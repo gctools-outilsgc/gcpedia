@@ -33,8 +33,7 @@ if ( accept.value != 1 && accept.value != -1 )
 	accept.value = -1;
 "
 >
-	<h2><?php $this->msg('createaccount') ?></h2>
-	<p id="userloginlink"><?php $this->html('link') ?></p>
+	
 	<?php $this->html('header'); /* pre-table point for form plugins... */ ?>
 	<?php if( @$this->haveData( 'languages' ) ) { ?><div id="languagelinks"><p><?php $this->html( 'languages' ); ?></p></div><?php } ?>
 		
