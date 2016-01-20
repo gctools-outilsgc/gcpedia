@@ -6,34 +6,35 @@
  *
  * @author Matthew April <Matthew.April@tbs-sct.gc.ca>
  */
+class insertTextField extends ApiBase 
+{
 
-$wgAjaxExportList[] = 'insertTextField';
-
-function insertTextField() {
-	
-	$js = " var emailName = EmailName.value.replace(/ /g, '');
-			if( emailName != '' && EmailDomain.value != ''){
-				var email = emailName + '@' + EmailDomain.value;
-				sajax_do_call( 'characterFilter', [email], function( strin ) { document.getElementById('wpEmail').value = strin.responseText; } );
+	function execute() {
+		
+		$js = " var emailName = EmailName.value.replace(/ /g, '');
+				if( emailName != '' && EmailDomain.value != ''){
+					var email = emailName + '@' + EmailDomain.value;
+					sajax_do_call( 'characterFilter', [email], function( strin ) { document.getElementById('wpEmail').value = strin.responseText; } );
+					
+					sajax_do_call( 'AJAXtest', [email] , function( strin ) { document.getElementById('wpName2').value = strin.responseText.replace(/^\s+|\s+$/g,''); document.getElementById('AJAXtest').value = strin.responseText; 
+						if ( acceptv.value == 1  && wpPassword.value != '' && wpPassword.value == wpRetype.value ){
+							wpCreateaccount.disabled=0;
+						}
+						else{
+							wpCreateaccount.disabled=1;
+						}
+					}  );
+				} else {
+					wpName2.value = ''
+					wpCreateaccount.disabled=1;
+				}";
 				
-				sajax_do_call( 'AJAXtest', [email] , function( strin ) { document.getElementById('wpName2').value = strin.responseText.replace(/^\s+|\s+$/g,''); document.getElementById('AJAXtest').value = strin.responseText; 
-					if ( acceptv.value == 1  && wpPassword.value != '' && wpPassword.value == wpRetype.value ){
-						wpCreateaccount.disabled=0;
-					}
-					else{
-						wpCreateaccount.disabled=1;
-					}
-				}  );
-			} else {
-				wpName2.value = ''
-				wpCreateaccount.disabled=1;
-			}";
-			
-	$output = "<input type='text' name='EmailDomain' id='EmailDomain' tabindex='2' onblur=\"$js\" /> ";
-	
-	echo $output;
-	
-	return "";
+		$output = "<input type='text' name='EmailDomain' id='EmailDomain' tabindex='2' onblur=\"$js\" /> ";
+		
+		echo $output;
+		
+		return "";
+	}
 }
 
 ?>

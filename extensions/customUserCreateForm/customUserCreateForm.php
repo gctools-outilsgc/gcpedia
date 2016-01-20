@@ -10,6 +10,16 @@ $wgExtensionMessagesFiles['customUserCreateForm'] = dirname(__FILE__) . '/custom
 $wgHooks['UserCreateForm'][] = 'customUserCreateForm';
 $wgHooks['UserLoginForm'][] = 'customUserLoginForm';
 
+// Load and register the ajax responders
+$wgAutoloadClasses['generateUsernameAJAX']	= __DIR__  . '/GCpedia AJAX/generateUsernameAJAX.php';
+$wgAPIModules['generateusernameajax'] = 'generateUsernameAJAX';
+
+$wgAutoloadClasses['characterFilterAJAX']	= __DIR__  . '/GCpedia AJAX/charFilterAJAX.php';
+$wgAPIModules['characterfilterajax'] = 'characterFilterAJAX';
+
+$wgAutoloadClasses['DomainSelector']	= __DIR__  . '/GCpedia AJAX/DomainSelector.php';
+$wgAPIModules['insertdomainselector'] = 'DomainSelector';
+
 function customUserCreateForm( &$template ) {
 
 	// include the request global so we can grab the return page from it

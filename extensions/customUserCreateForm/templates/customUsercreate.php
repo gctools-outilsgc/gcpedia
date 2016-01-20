@@ -23,14 +23,14 @@ class customUsercreateTemplate extends QuickTemplate {
 <div id="userlogin">
 <script type="text/javascript">
 	window.onload = function() {
-		document.getElementById("EmailName").focus()
+		document.getElementById("EmailName").focus();
 		document.getElementById("EmailName").select();
 	}
 </script>
 <form name="userlogin2" id="userlogin2" method="post" action="<?php $this->text('action') ?>" 
 onmousemove = "
-if ( accept.value != 1 && accept.value != -1 )
-	accept.value = -1;
+/*if ( accept.value != 1 && accept.value != -1 )
+	accept.value = -1;*/
 "
 >
 	
@@ -44,7 +44,7 @@ if ( accept.value != 1 && accept.value != -1 )
 		<?php 
 		include( 'domains/DomainList.php' );
 		
-		if( $this->data['useemail'] ) { ?>
+		//if( $this->data['useemail'] ) { ?>
 <!-- Email -->			
 		<label for='EmailName'> <?php $this->msg('validgcemail')?> </label>
 		<br/>
@@ -59,16 +59,30 @@ if ( accept.value != 1 && accept.value != -1 )
 				if ( emailName != '' && EmailDomain.value != 'example' && EmailDomain.value != ''){
 				
 						var email = emailName + '@' + EmailDomain.value;
-						sajax_do_call( 'characterFilter', [email], function( strin ) { document.getElementById('wpEmail').value = strin.responseText; } );
+						mw.loader.using( 'mediawiki.api', function () {
+							( new mw.Api() ).get( {
+								action: 'characterfilterajax',
+								emailinput: email,
+							} ).done( function ( data ) {
+								document.getElementById('wpEmail').value = data.characterfilterajax;
+							} );
+						} );
 						
-						sajax_do_call( 'AJAXtest', [email] , function( strin ) { document.getElementById('wpName2').value = strin.responseText.replace(/^\s+|\s+$/g,''); document.getElementById('AJAXtest').value = strin.responseText; 
-							if ( acceptv.value == 1  && wpPassword.value != '' && wpPassword.value == wpRetype.value ){
-								wpCreateaccount.disabled=0;
-							}
-							else{
-								wpCreateaccount.disabled=1;
-							}
-						}  );
+						mw.loader.using( 'mediawiki.api', function () {
+							( new mw.Api() ).get( {
+								action: 'generateusernameajax',
+								emailinput: email,
+							} ).done( function ( data ) {
+								document.getElementById('wpName2').value = data.generateusernameajax;
+							
+								if ( acceptv.value == 1  && wpPassword.value != '' && wpPassword.value == wpRetype.value ){
+									wpCreateaccount.disabled=0;
+								}
+								else{
+									wpCreateaccount.disabled=1;
+								}
+							} );
+						} );
 						
 					} else {
 						wpName.value = '';
@@ -82,7 +96,13 @@ if ( accept.value != 1 && accept.value != -1 )
 		<span id="domainWrapper">
 			<select action="" name="EmailDomain" id="EmailDomain" tabindex="2" onchange=" 
 					if(this.value == 'other') {
-						sajax_do_call( 'insertTextField', '', function( strin ) { document.getElementById('domainWrapper').innerHTML = strin.responseText; } );
+						mw.loader.using( 'mediawiki.api', function () {
+							( new mw.Api() ).get( {
+								action: 'insertdomainselector',
+							} ).done( function ( data ) {
+								document.getElementById('domainWrapper').innerHTML = data.generateusernameajax;
+							} );
+						} );
 						
 					} else if (this.value == 'example') {
 						wpName.value = '';
@@ -93,15 +113,29 @@ if ( accept.value != 1 && accept.value != -1 )
 						var emailName = EmailName.value.replace(/ /g, '');
 						if ( emailName != '' ){
 							var email = emailName + '@' + EmailDomain.value;
-							sajax_do_call( 'characterFilter', [email], function( strin ) { document.getElementById('wpEmail').value = strin.responseText; } );
+							mw.loader.using( 'mediawiki.api', function () {
+								( new mw.Api() ).get( {
+									action: 'characterfilterajax',
+									emailinput: email,
+								} ).done( function ( data ) {
+									document.getElementById('wpEmail').value = data.characterfilterajax;
+								} );
+							} );
 							
-							sajax_do_call( 'AJAXtest', [email] , function( strin ) { document.getElementById('wpName2').value = strin.responseText.replace(/^\s+|\s+$/g,''); document.getElementById('AJAXtest').value = strin.responseText; 
-								if ( acceptv.value == 1  && wpPassword.value != '' && wpPassword.value == wpRetype.value ){
-									wpCreateaccount.disabled=0;
-								}else{
-									wpCreateaccount.disabled=1;
-								}
-							}  );
+							mw.loader.using( 'mediawiki.api', function () {
+								( new mw.Api() ).get( {
+									action: 'generateusernameajax',
+									emailinput: email,
+								} ).done( function ( data ) {
+									document.getElementById('wpName2').value = data.generateusernameajax.replace(/^\s+|\s+$/g,'');
+								
+									if ( acceptv.value == 1  && wpPassword.value != '' && wpPassword.value == wpRetype.value ){
+										wpCreateaccount.disabled=0;
+									}else{
+										wpCreateaccount.disabled=1;
+									}
+								} );
+							} );
 						} else {
 							wpCreateaccount.disabled=1;
 						}
@@ -133,7 +167,7 @@ if ( accept.value != 1 && accept.value != -1 )
 		</span>
 		<input type="hidden" name="wpEmail" id="wpEmail" />
 		<br />
-		<?php } ?>
+		<?php //} ?>
 	<br />
 	<?php if( $this->data['usedomain'] ) {
 	/*-- Domain (old) --*/
@@ -187,10 +221,10 @@ if ( accept.value != 1 && accept.value != -1 )
 				style="width:17em;"
 				onblur="
 				if (wpPassword.value != '' && wpPassword.value == wpRetype.value){
-					document.getElementById('pwcheck').innerHTML=<?php $this->msg('passwordsmatch')?>;
+					document.getElementById('pwcheck').innerHTML='<?php $this->msg('passwordsmatch')?>';
 				}
 				else if ( wpPassword.value != wpRetype.value ) {
-					document.getElementById('pwcheck').innerHTML=<?php $this->msg('passwordsdontmatch')?>;
+					document.getElementById('pwcheck').innerHTML='<?php $this->msg('passwordsdontmatch')?>';
 				}
 				
 				if ( wpEmail.value != '' && EmailName.value != '' && acceptv.value == 1  && wpPassword.value != '' && wpPassword.value == wpRetype.value ) {
