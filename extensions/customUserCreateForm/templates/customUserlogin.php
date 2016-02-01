@@ -62,8 +62,9 @@ text-decoration: none;
     border: solid 1px #203E5F;
 }
 </style>
-<form name="userlogin" method="post" action="<?php $this->text('action') ?>">
 	
+<form name="userlogin" method="post" action="<?php $this->text('action') ?>">
+	<?php $this->msg( 'userlogin-noaccount' ); ?><a href="<?php $this->text( 'createOrLoginHref' ); ?>" id="mw-createaccount-join" tabindex="7" class="mw-ui-button mw-ui-progressive"><?php $this->msg( 'userlogin-joinproject' ); ?></a>
 	<?php $this->html('header'); /* pre-table point for form plugins... */ ?>
 	<div id="userloginprompt"><?php  $this->msgWiki('loginprompt') ?></div>
 	<br />
@@ -178,7 +179,7 @@ text-decoration: none;
 
 </form>
 </div>
-<div id="loginend"><?php $this->msgWiki( 'loginend' ); ?></div>
+<div id="loginend"><?php //$this->msgWiki( 'loginend' ); ?></div>
 <?php
 
 	}
