@@ -287,12 +287,14 @@ class FCKeditor_MediaWiki {
 	 * @return true
 	 */
 	public function onEditPageShowEditFormInitial( $form ) {
-		global $wgOut, $wgTitle, $wgScriptPath, $wgContLang, $wgUser;
+		global $wgTitle, $wgScriptPath, $wgContLang, $wgUser;
 		global $wgStylePath, $wgStyleVersion, $wgExtensionFunctions, $wgHooks, $wgDefaultUserOptions;
 		global $wgFCKWikiTextBeforeParse, $wgFCKEditorIsCompatible;
 		global $wgFCKEditorDir;
 
 		global $wgFCKEditorDir, $wgFCKEditorExtDir, $wgFCKEditorToolbarSet, $wgFCKEditorHeight;
+
+		$outputPage = RequestContext::getMain()->getOutput();
 
 		if( !isset( $this->showFCKEditor ) ){
 			$this->showFCKEditor = 0;
@@ -345,6 +347,8 @@ class FCKeditor_MediaWiki {
 		$printsheet = htmlspecialchars( "$wgStylePath/common/wikiprintable.css?$wgStyleVersion" );
 
 		$script = <<<HEREDOC
+		<script type="text/javascript"></script>
+<script type="text/javascript" src="$wgScriptPath/resources/lib/jquery/jquery.js"></script>
 <script type="text/javascript" src="$wgScriptPath/$wgFCKEditorDir/fckeditor.js"></script>
 <script type="text/javascript">
 var sEditorAreaCSS = '$printsheet,/mediawiki/skins/monobook/main.css?{$wgStyleVersion}';
@@ -616,7 +620,7 @@ function initEditor(){
 	}
 	return true;
 }
-addOnloadHook( initEditor );
+$(document).ready( initEditor );
 
 HEREDOC;
 
@@ -724,7 +728,8 @@ HEREDOC;
 }
 $script .= '</script>';
 
-		$wgOut->addScript( $script );
+		$wrappedScript = ResourceLoader::makeInlineScript($script);
+		$outputPage->addScript($wrappedScript);
 
 		return true;
 	}
