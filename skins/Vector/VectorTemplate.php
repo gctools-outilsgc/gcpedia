@@ -94,6 +94,21 @@ class VectorTemplate extends BaseTemplate {
 		// Output HTML Page
 		$this->html( 'headelement' );
 		?>
+		<div id="gcp-fip" style='position:absolute; top:-25px; z-index:99;'>
+			<div style='background-color:black; height:27px;'>
+				<div style="position:absolute; left:3px;">
+					<!-- gcpedia adding variable for script path -->
+					<?php global $wgScriptPath; ?>
+					<img src="<?php echo $wgScriptPath; ?>/images/sig-eng-bg.gif">
+				</div>
+				<div style="position:absolute; right: 3px; color:white; padding: 2px 3px;">
+					<!-- <img src="/gcwiki/images/GCpedia.jpg" alt="GCPedia" title="GCPedia">-->
+					<strong>GCpedia</strong>  |  
+					<a href='http://gcconnex.gc.ca/' style='color:white;'><!--<img src="/gcwiki/images/GCconnex.jpg" alt="GCConnex" title="GCConnex">-->GCconnex</a>  |  
+					<a href='http://www.gcforums.gc.ca/' style='color:white;'><!--<img src="/gcwiki/images/GCforums.jpg" alt="GCForums" title="GCForums">-->GCforums</a>
+				</div>
+			</div>
+		</div>
 		<div id="mw-page-base" class="noprint"></div>
 		<div id="mw-head-base" class="noprint"></div>
 		<div id="content" class="mw-body" role="main">
