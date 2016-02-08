@@ -286,7 +286,7 @@ class EmailUpdate extends SpecialPage {
 			
 			$userPage = $wgTitle->getBaseText();
 			$specialPage = SpecialPage::getSafeTitleFor( 'EmailUpdate/'.$userPage );
-			$URL = $specialPage->escapeLocalURL();
+			$URL = htmlspecialchars( $specialPage->getLocalUrl() );
 			?> 	<li>
 					<a href="<?php echo $URL; ?>"> <?php echo $template->msg( 'emailupdate' ); ?> </a>
 				</li> 
