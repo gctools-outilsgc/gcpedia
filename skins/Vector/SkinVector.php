@@ -60,7 +60,12 @@ class SkinVector extends SkinTemplate {
 				htmlspecialchars( $this->getConfig()->get( 'LocalStylePath' ) ) .
 				"/{$this->stylename}/csshover{$min}.htc\")}</style><![endif]-->"
 		);
-
+		global $wgScriptPath;
+$out->addHeadItem( 'gcpcss',
+			'<link rel="stylesheet" href="' . $wgScriptPath . '/skins/Vector/GCWeb/css/gcpedia.css">
+			 <link rel="stylesheet" href="' . $wgScriptPath . '/skins/Vector/GCWeb/css/theme.css">
+			 <link href="' . $wgScriptPath . '/skins/Vector/GCWeb/assets/favicon.ico" rel="icon" type="image/x-icon">'
+		);
 		$out->addModules( array( 'skins.vector.js' ) );
 	}
 

@@ -33,6 +33,8 @@ class VectorTemplate extends BaseTemplate {
 	 * Outputs the entire contents of the (X)HTML page
 	 */
 	public function execute() {
+		global $wgScriptPath;
+
 		// Build additional attributes for navigation urls
 		$nav = $this->data['content_navigation'];
 
@@ -94,21 +96,71 @@ class VectorTemplate extends BaseTemplate {
 		// Output HTML Page
 		$this->html( 'headelement' );
 		?>
-		<div id="gcp-fip" style='position:absolute; top:-25px; z-index:99;'>
-			<div style='background-color:black; height:27px;'>
-				<div style="position:absolute; left:3px;">
-					<!-- gcpedia adding variable for script path -->
-					<?php global $wgScriptPath; ?>
-					<img src="<?php echo $wgScriptPath; ?>/images/sig-eng-bg.gif">
-				</div>
-				<div style="position:absolute; right: 3px; color:white; padding: 2px 3px;">
-					<!-- <img src="/gcwiki/images/GCpedia.jpg" alt="GCPedia" title="GCPedia">-->
-					<strong>GCpedia</strong>  |  
-					<a href='http://gcconnex.gc.ca/' style='color:white;'><!--<img src="/gcwiki/images/GCconnex.jpg" alt="GCConnex" title="GCConnex">-->GCconnex</a>  |  
-					<a href='http://www.gcforums.gc.ca/' style='color:white;'><!--<img src="/gcwiki/images/GCforums.jpg" alt="GCForums" title="GCForums">-->GCforums</a>
-				</div>
+	<header role="banner">
+		<div id="wb-bnr" class="container">
+			<section id="wb-lng" class="visible-md visible-lg text-right">
+			<h2 class="wb-inv">Language selection</h2>
+			<div class="row">
+			<div class="col-md-12">
+			<ul class="list-inline margin-bottom-none">
+			<li><a lang="fr" href="index-fr.html">Français</a></li>
+			</ul>
 			</div>
+			</div>
+			</section>
+			<div class="row">
+			<div class="brand col-xs-8 col-sm-9 col-md-6">
+			<!--<a href="http://www.canada.ca/en/index.html">--><object type="image/svg+xml" tabindex="-1" data="<?php echo $wgScriptPath; ?>/skins/gctheme/GCWeb/assets/sig-blk-en.svg"></object><span class="wb-inv"> Government of Canada</span><!--</a>-->
+			</div>
+			<section class="wb-mb-links col-xs-4 col-sm-3 visible-sm visible-xs" id="wb-glb-mn">
+			<h2>Search and menus</h2>
+			<ul class="list-inline text-right chvrn">
+			<li><a href="#mb-pnl" title="Search and menus" aria-controls="mb-pnl" class="overlay-lnk" role="button"><span class="glyphicon glyphicon-search"><span class="glyphicon glyphicon-th-list"><span class="wb-inv">Search and menus</span></span></span></a></li>
+			</ul>
+			<div id="mb-pnl"></div>
+			</section>
+			<?php 
+			$this->outputSearch();
+
+
+			?>
 		</div>
+	</div>
+	<div id="app-brand">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-3 ">
+                    <div class="app-name">
+                    
+                    <a href="<?php echo htmlspecialchars( $this->data['nav_urls']['mainpage']['href'], ENT_QUOTES ) ?>">
+					<span><span class="bold-gc"><?php echo substr_replace($this->getMsg( 'sitetitle' )->escaped(),'</span>',2,0) ?></span>
+                    </a>
+                    </div>
+                    
+                    
+                </div>
+                <div class="col-sm-2 col-sm-offset-7 hidden-xs">
+                    <div class="dropdown  pull-right tools-navigator ">
+                        <a href="#" class=" dropdown-toggle" type="button" id="tools-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        GCTools(placeholder)
+            <!-- waiting for final version        <i class="fa fa-chevron-down"></i>
+                        </a>
+                    <ul class="dropdown-menu tools-navigator-menu tools-dropdown-holder clearfix" aria-labelledby="tools-dropdown">
+                       
+                            
+                            <li class="col-xs-6 clearfix"><a href="#"><div class=" img-responsive"><i class="fa fa-file-text-o fa-4x center-block"></i><div>GCpedia</div></div></a></li>
+                            <li class="col-xs-6"><a href="#"><i class="fa fa-share-alt fa-4x"></i><div>GCconnex</div></a></li>
+                            <li class="col-xs-6"><a href="#"><i class="fa fa-video-camera fa-4x"></i><div>GCVideo</div></a></li>
+                            <li class="col-xs-6"><a href="#"><i class="fa fa-globe fa-4x"></i><div>Intranet</div></a></li>
+
+                    </ul>
+                    </div>
+                </div>-->
+            </div>
+        </div>
+        
+    </div>
+</header>
 		<div id="mw-page-base" class="noprint"></div>
 		<div id="mw-head-base" class="noprint"></div>
 		<div id="content" class="mw-body" role="main">
@@ -202,11 +254,6 @@ class VectorTemplate extends BaseTemplate {
 				</div>
 			</div>
 			<div id="mw-panel">
-				<div id="p-logo" role="banner"><a class="mw-wiki-logo" href="<?php
-					echo htmlspecialchars( $this->data['nav_urls']['mainpage']['href'] )
-					?>" <?php
-					echo Xml::expandAttributes( Linker::tooltipAndAccesskeyAttribs( 'p-logo' ) )
-					?>></a></div>
 				<?php $this->renderPortals( $this->data['sidebar'] ); ?>
 			</div>
 		</div>
@@ -250,6 +297,8 @@ class VectorTemplate extends BaseTemplate {
 			<div style="clear:both"></div>
 		</div>
 		<?php $this->printTrail(); ?>
+		<script src="<?php echo $wgScriptPath; ?>/skins/gctheme/GCWeb/js/jquery-2.2.0.min.js"></script>
+		<script src="<?php echo $wgScriptPath; ?>/skins/gctheme/GCWeb/js/wet-boew.min.js"></script>
 
 	</body>
 </html>
@@ -345,6 +394,46 @@ class VectorTemplate extends BaseTemplate {
 			</div>
 		</div>
 	<?php
+	}
+
+	/**
+	 * Outputs the search form
+	 */
+	private function outputSearch() {
+		?>
+		<section id="wb-srch" class="col-xs-6 text-right visible-md visible-lg">
+<h2>Search</h2>
+<form action="<?php $this->text( 'wgScript' ) ?>" method="post" name="cse-search-box" role="search" class="form-inline">
+<div class="form-group">
+<label for="wb-srch-q" class="wb-inv">Search website</label>
+<input id="wb-srch-q" list="wb-srch-q-ac" class="wb-srch-q form-control" name="q" type="search" value="<?php $this->text( 'searchtitle' ) ?>" size="27" maxlength="150" placeholder="Search GCpedia">
+<datalist id="wb-srch-q-ac">
+<!--[if lte IE 9]><select><![endif]-->
+<!--[if lte IE 9]></select><![endif]-->
+</datalist>
+</div>
+<div class="form-group submit">
+<button type="submit" id="wb-srch-sub" class="btn btn-primary btn-small" name="wb-srch-sub"><span class="glyphicon-search glyphicon"></span><span class="wb-inv">Search</span></button>
+</div>
+</form>
+</section>
+
+		
+		<!--<form
+			action="<?php $this->text( 'wgScript' ) ?>"
+			role="search"
+			class="mw-portlet"
+			id="p-search"
+		>
+			<input type="hidden" name="title" value="<?php $this->text( 'searchtitle' ) ?>" />
+			<h3>
+				<label for="searchInput"><?php echo $this->getMsg( 'search' )->escaped() ?></label>
+			</h3>
+			<?php echo $this->makeSearchInput( array( 'id' => 'searchInput' ) ) ?>
+			<?php echo $this->makeSearchButton( 'go', array( 'id' => 'searchGoButton', 'class' => 'searchButton' ) ) ?>
+			<input type="hidden" name="title" value="<?php $this->text( 'searchtitle' ) ?>"/>
+		</form>-->
+		<?php
 	}
 
 	/**
