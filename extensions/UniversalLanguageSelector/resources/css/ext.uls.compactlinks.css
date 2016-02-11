@@ -1,0 +1,40 @@
+#p-lang .body ul .uls-trigger,
+#p-lang .pBody ul .uls-trigger {
+	background-image: none;
+	padding: 0;
+}
+
+.mw-interlanguage-selector,
+.mw-interlanguage-selector:active {
+	cursor: pointer;
+	padding: 4px 6px 4px 25px;
+	font-size: 13px;
+	font-weight: 400;
+	background-image: url( ../images/compact-links-trigger.svg );
+	background-size: 17px;
+	background-repeat: no-repeat;
+	background-position: 9% 8%;
+	margin-top: 4px;
+}
+
+.interlanguage-uls-menu:after,
+.interlanguage-uls-menu:before {
+	right: 100%;
+	content: " ";
+	position: absolute;
+	border: 1px solid black;
+}
+
+.interlanguage-uls-menu:after {
+	border-color: transparent;
+	border-right-color: #FCFCFC;
+	border-width: 20px;
+	top: 250px;
+}
+
+.interlanguage-uls-menu:before {
+	border-color: transparent;
+	border-right-color: #555555;
+	border-width: 20px;
+	top: 250px;
+}
