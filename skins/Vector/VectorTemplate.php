@@ -110,7 +110,7 @@ class VectorTemplate extends BaseTemplate {
 			</section>
 			<div class="row">
 			<div class="brand col-xs-8 col-sm-9 col-md-6">
-			<!--<a href="http://www.canada.ca/en/index.html">--><object type="image/svg+xml" tabindex="-1" data="<?php echo $wgScriptPath; ?>/skins/gctheme/GCWeb/assets/sig-blk-en.svg"></object><span class="wb-inv"> Government of Canada</span><!--</a>-->
+			<!--<a href="http://www.canada.ca/en/index.html">--><object type="image/svg+xml" tabindex="-1" data="<?php echo $wgScriptPath; ?>/skins/Vector/GCWeb/assets/sig-blk-en.svg"></object><span class="wb-inv"> Government of Canada</span><!--</a>-->
 			</div>
 			<section class="wb-mb-links col-xs-4 col-sm-3 visible-sm visible-xs" id="wb-glb-mn">
 			<h2>Search and menus</h2>
@@ -297,8 +297,8 @@ class VectorTemplate extends BaseTemplate {
 			<div style="clear:both"></div>
 		</div>
 		<?php $this->printTrail(); ?>
-		<script src="<?php echo $wgScriptPath; ?>/skins/gctheme/GCWeb/js/jquery-2.2.0.min.js"></script>
-		<script src="<?php echo $wgScriptPath; ?>/skins/gctheme/GCWeb/js/wet-boew.min.js"></script>
+		<script src="<?php echo $wgScriptPath; ?>/skins/Vector/GCWeb/js/jquery-2.2.0.min.js"></script>
+		<script src="<?php echo $wgScriptPath; ?>/skins/Vector/GCWeb/js/wet-boew.min.js"></script>
 
 	</body>
 </html>
