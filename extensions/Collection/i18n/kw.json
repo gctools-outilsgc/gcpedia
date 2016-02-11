@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kernoweger",
+			"Kw-Moon",
+			"Nrowe"
+		]
+	},
+	"coll-remove": "Dilea",
+	"coll-show": "Diskwedhes",
+	"coll-move_up": "Gwaya yn-bann",
+	"coll-move_down": "Gwaya yn-nans",
+	"coll-rename": "Dashenwel",
+	"coll-cancel": "Hedhi",
+	"coll-print_export": "Pryntya/esperthi",
+	"coll-create_a_book": "Gwruthyl lyver",
+	"coll-download_as": "Iskarga avel $1"
+}

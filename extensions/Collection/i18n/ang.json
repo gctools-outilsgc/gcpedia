@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Gott wisst",
+			"JJohnson1701"
+		]
+	},
+	"coll-remove": "Forniman",
+	"coll-show": "Īwan",
+	"coll-move_up": "Dōn upp",
+	"coll-move_down": "Dōn adūn",
+	"coll-print_export": "Atēfran oþþe forþasendan",
+	"coll-create_a_book": "Wyrcan bōc",
+	"coll-book_creator": "Bōca scippend",
+	"coll-download_as": "Hladan on rīmere tō $1",
+	"coll-disable": "gelettan",
+	"coll-book_creator_disable_tooltip": "Gelettan þā nytte þæs bōca scippendes",
+	"coll-add_this_page": "Besettan þisne tramet on þīne bōc",
+	"coll-add_page_tooltip": "Besettan þisne wikitramet on þīne bōc",
+	"coll-help": "Help",
+	"coll-help_tooltip": "Īwan help ymb þā scippunge bōca",
+	"coll-helppage": "Help:Bēc",
+	"coll-remove_this_page": "Forniman þisne tramet fram þīnre bēc",
+	"coll-show_collection": "Īwan bōc",
+	"coll-make_suggestions": "Trametas tyhtan",
+	"coll-attribution-anons": "Uncūþ: $1",
+	"coll-image-attribution": "<b>$1</b> <i>Fruma:</i> $2 <i>Lēafness:</i> $3 <i>Fyrðrendas:</i> $4 <i>Frumlic wyrhta:</i> $5"
+}

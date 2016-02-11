@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kening Aldgilles",
+			"SK-luuut",
+			"Snakesteuben",
+			"Robin0van0der0vliet"
+		]
+	},
+	"coll-remove": "Fuortsmite",
+	"coll-show": "Sjen litte",
+	"coll-move_up": "Nei boppen",
+	"coll-move_down": "Nei ûnderen",
+	"coll-yes": "Ja",
+	"coll-no": "Nee",
+	"coll-cancel": "Annulearje",
+	"coll-about_pp": "Oer $1",
+	"coll-print_export": "Ofdrukke/eksportearje",
+	"coll-create_a_book": "Boek meitsje",
+	"coll-book_creator": "Boekenmakker",
+	"coll-download_as": "Downloade as $1",
+	"coll-disable": "útskeakelje",
+	"coll-help": "Help",
+	"coll-helppage": "Help:Boeken",
+	"coll-n_pages": "$1 {{PLURAL:$1|side|siden}}",
+	"coll-setting-toc-yes": "Ja",
+	"coll-setting-toc-no": "Nee",
+	"coll-attribution-anons": "Anonym: $1",
+	"coll-article-attribution": "<b>$1</b> <i>Boarne:</i> $2 <i>Bydragers:</i> $3",
+	"coll-image-attribution": "<b>$1</b> <i>Boarne:</i> $2 <i>Lisinsje:</i> $3 <i>Bydragers:</i> $4 <i>Oarspronklike artyst:</i> $5"
+}

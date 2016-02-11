@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"MacTire02"
+		]
+	},
+	"coll-collection": "Lioar",
+	"coll-collections": "Lioaryn",
+	"coll-title": "Ard-ennym:",
+	"coll-contents": "Cummal",
+	"coll-create_chapter": "Croo cabdil noa",
+	"coll-sort_alphabetically": "Rang-oardraghey rere yn abbyrlhit",
+	"coll-personal_collection_label": "Lioar phersoonagh:",
+	"coll-community_collection_label": "Lioar voodeeys:",
+	"coll-yes": "Ta",
+	"coll-no": "Cha",
+	"coll-cancel": "Dolley magh",
+	"coll-about_pp": "Mychione $1",
+	"coll-create_a_book": "My haglym",
+	"coll-helppage": "Help:Lioaryn"
+}

@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Csisc",
+			"GeekEmad"
+		]
+	},
+	"coll-remove": "Ifsax",
+	"coll-show": "Warrī",
+	"coll-move_up": "Ḩawwil l- fūq",
+	"coll-move_down": "Ḩawwil l- ewţā",
+	"coll-yes": "oui (n3am)",
+	"coll-no": "la",
+	"coll-cancel": "ifsa5",
+	"coll-print_export": "Iţbaģ/Incur",
+	"coll-create_a_book": "Aģmil ktēb",
+	"coll-download_as": "Tēlēcarjīh kimē $1",
+	"coll-disable": "Weqqaf",
+	"coll-book_creator_disable": "Weqqaf il-şaniģ mtēģ il-ktub",
+	"coll-add_this_page": "Zīd hē il-pāj l- ktēbik",
+	"coll-add_page_tooltip": "Zīd hē il-pāj wīkī l- ktēbik",
+	"coll-help": "Mģāwne",
+	"coll-helppage": "Help:Ktub",
+	"coll-remove_this_page": "Ifsex hē il-pāj min ktēbik",
+	"coll-show_collection": "Warrī il-ktēb",
+	"coll-show_collection_tooltip": "Inzil bēc tbiddil/tēlēcarjî/tģarbin ģlā ktēbik",
+	"coll-make_suggestions": "Iqtraḩ pajēt",
+	"coll-attribution-anons": "Majhūl: $1"
+}

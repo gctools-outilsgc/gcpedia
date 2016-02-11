@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Jose77",
+			"Redhotchili23"
+		]
+	},
+	"coll-remove": "Kakason",
+	"coll-show": "Ipakita",
+	"coll-move_up": "Magsaka",
+	"coll-move_down": "Magpanaog",
+	"coll-cancel": "Kanselahon",
+	"coll-create_a_book": "Maghimo sing libro",
+	"coll-book_creator": "Taghimo sing libro",
+	"coll-add_this_page": "Idugang ang ini nga panid sa imo nga libro",
+	"coll-remove_this_page": "Kakason ang ini nga panid sa imo nga libro",
+	"coll-show_collection": "Ipakita ang libro",
+	"coll-make_suggestions": "Magtanyag sing mga panid"
+}

@@ -1,0 +1,41 @@
+{
+	"@metadata": {
+		"authors": [
+			"Siebrand"
+		]
+	},
+	"coll-book_creator_intro": "<big>Met de ''Boekenmaker'' kan je een boek maken dat wikipagina's naar je eigen inzicht bevat.\nJe kunt het boek exporteren in verschillende bestandsformaten (bijvoorbeeld PDF of ODF) of een gedrukt exemplaar bestellen.</big>",
+	"coll-manage_your_book": "Je boek beheren",
+	"coll-book_creator_disable_text": "De ''Boekenmaker'' wordt uitgeschakeld en het boek waar je aan werkt wordt verwijderd.",
+	"coll-noscript_text": "<h1>JavaScript is vereist!</h1>\n<strong>Je browser ondersteunt geen JavaScript of JavaScript is uitgeschakeld.\nDeze pagina werkt niet correct tenzij je JavaScript inschakelt.</strong>",
+	"coll-your_book": "Jouw boek",
+	"coll-download_text": "Kies een bestandsformaat en klik op de knop om je boek te downloaden.",
+	"coll-download_as_text": "Klik op de knop om je boek te downloaden in het bestandsformaat $1.",
+	"coll-save_collection_title": "Je boek opslaan en delen",
+	"coll-login_to_save": "Als je boeken wilt opslaan voor later gebruik, [[Special:UserLogin|meldt je dan aan of maak een gebruiker aan]].",
+	"coll-overwrite_text": "Er bestaat al een pagina met de naam [[:$1]].\nWil je die pagina vervangen door je verzameling wikipagina's?",
+	"coll-load_overwrite_text": "Je hebt al een aantal pagina's in je boek.\nWil je je huidige boek overschrijven, de nieuwe pagina's toevoegen óf het laden van dit boek annuleren?",
+	"coll-limit_exceeded_text": "Je boek is te groot.\nJe kunt geen pagina's meer toevoegen.",
+	"coll-rendering_text": "<p><strong>Het document wordt aangemaakt.</strong></p>\n\n<p><strong>Voortgang:</strong> <span id=\"renderingProgress\">$1</span>% <span id=\"renderingStatus\">$2</span></p>\n\n<p>Deze pagina wordt regelmatig bijgewerkt.\nAls dit niet werkt, klik dan op de knop \"Vernieuwen\" in je browser.</p>",
+	"coll-download_notfound_text": "Het bestand dat je probeert te downloaden bestaat niet.\nHet is mogelijk verwijderd en moet opnieuw aangemaakt worden.",
+	"coll-invalid_podpartner_msg": "De opgegeven print on demand-partner is ongeldig.\nNeem contact op met je MediaWiki-beheerder.",
+	"coll-suggest_title": "Paginasuggesties voor je boek",
+	"coll-suggest_intro_text": "Suggesties zijn gebaseerd op de huidige selectie van wikipagina's in je boek.\nDe lijst wordt bijgewerkt als je op de knop 'toevoegen' of 'verwijderen' klikt.",
+	"coll-suggest_your_book": "Jouw boek",
+	"coll-suggest_article_add": "De pagina <strong>$1</strong> is toegevoegd aan je boek ($2).",
+	"coll-suggest_article_remove": "De pagina <strong>$1</strong> is verwijderd uit je boek ($2).",
+	"coll-load_local_book": "Klik \"OK\" om door te gaan met je boek $1 dat $2 wikipagina's bevat. Klik op \"Annuleren\" om het te verwijderen en opnieuw te beginnen met een leeg boek.",
+	"coll-add_linked_article": "De gekoppelde wikipagina aan je boek toevoegen",
+	"coll-remove_linked_article": "De gekoppelde wikipagina uit je boek verwijderen",
+	"coll-add_category": "Deze categorie aan je boek toevoegen",
+	"coll-add_category_tooltip": "Alle pagina's in deze categorie aan je boek toevoegen",
+	"coll-add_this_page": "Deze pagina aan je boek toevoegen",
+	"coll-add_page_tooltip": "De huidige wikipagina aan je boek toevoegen",
+	"coll-clear_collection_confirm": "Wil je je boek echt leegmaken?",
+	"coll-clear_collection_tooltip": "Alle pagina's uit je huidige boek verwijderen",
+	"coll-load_collection_tooltip": "Dit boek als je huidige boek laden",
+	"coll-remove_this_page": "Deze pagina uit je boek verwijderen",
+	"coll-remove_page_tooltip": "De huidige wikipagina uit je boek verwijderen",
+	"coll-show_collection_tooltip": "Klik om je boek te bewerken/downloaden/bestellen",
+	"coll-make_suggestions_tooltip": "Suggesties weergeven op basis van de pagina's in je boek"
+}

@@ -1,0 +1,11 @@
+{
+	"preset": "wikimedia",
+	// allow some slop to account for legacy code
+	"requireCamelCaseOrUpperCaseIdentifiers": null,
+	"requireMultipleVarDecl": true,
+	"disallowQuotedKeysInObjects": null,
+
+	"excludeFiles": [
+		"node_modules/**"
+	]
+}

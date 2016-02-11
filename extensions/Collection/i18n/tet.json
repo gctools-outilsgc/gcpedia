@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"MF-Warburg"
+		]
+	},
+	"coll-collection": "Livru",
+	"coll-collections": "Livru sira",
+	"coll-your_book": "Ita-nia livru",
+	"coll-remove": "Hasai",
+	"coll-title": "Títulu:",
+	"coll-contents": "Konteúdu",
+	"coll-yes": "Sin",
+	"coll-no": "Lae",
+	"coll-cancel": "Para",
+	"coll-about_pp": "Kona-ba $1",
+	"coll-return_to": "Fali ba [[:$1]]",
+	"coll-suggest_your_book": "Ita-nia livru",
+	"coll-create_a_book": "Kria livru ida",
+	"coll-bookscategory": "Livru sira",
+	"coll-helppage": "Help:Livru sira",
+	"coll-n_pages": "{{PLURAL:$1|pájina ida|pájina $1}}"
+}

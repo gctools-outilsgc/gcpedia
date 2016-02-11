@@ -1,0 +1,41 @@
+{
+	"@metadata": {
+		"authors": [
+			"RMizo"
+		]
+	},
+	"coll-print_export": "Chhụtkàina/Thawnchhuahna",
+	"coll-create_a_book": "Lehkhabu siamna",
+	"coll-create_a_book_tooltip": "Lehkhabu emaw phêk chilhkhâwm emaw siamna",
+	"coll-book_creator": "Lehkhabu siamtu",
+	"coll-download_as": "A $1-a hnuhthlâkna",
+	"coll-download_as_tooltip": "He wiki phêk $1 hi hnûkthla rawh",
+	"coll-disable": "tihthihna",
+	"coll-book_creator_disable": "Lehkhabu siamtu tihthihna",
+	"coll-book_creator_disable_tooltip": "Lehkhabu siamtu hman bansan rawh",
+	"coll-add_linked_article": "I lehkhabuah wiki phêk zawmsa telh rawh",
+	"coll-remove_linked_article": "I lehkhabua wiki phêk zawm awm nuaibo rawh",
+	"coll-add_category": "He pawl hi i lehkhabuah telh rawh",
+	"coll-add_category_tooltip": "He pawla wiki phêk zawng zawng hi i lehkhabuah telh vek rawh",
+	"coll-add_this_page": "He phêk hi i lehkhabuah telh rawh",
+	"coll-add_page_tooltip": "Tuna i wiki phêk en mék hi i lehkhabuah telh rawh",
+	"coll-bookscategory": "Lehkhabute",
+	"coll-clear_collection": "Lehkhabu nuaibona",
+	"coll-clear_collection_confirm": "I lehkhabu zawng zawng i nuaibo vek duh tak tak maw?",
+	"coll-clear_collection_tooltip": "Tuna i lehkhabu aţang hian wiki phêk zawng zawng nuaibo vek rawh",
+	"coll-help": "Ṭanpuina",
+	"coll-help_tooltip": "Lehkhabu siam chungchang kaihhruaina",
+	"coll-helppage": "Help:Lehkhabu",
+	"coll-load_collection": "Lehkhabu kèuna",
+	"coll-load_collection_tooltip": "He lehkhabu i hman mék angin lâwt rawh",
+	"coll-n_pages": "Phek $1 {{PLURAL:$1||}}",
+	"coll-printable_version_pdf": "A pdf",
+	"coll-remove_this_page": "He phêk hi i lehkhabu aţang pawtthla rawh",
+	"coll-remove_page_tooltip": "Tuna i wiki phêk en mék hi i lehkhabu aţang pawtthla rawh",
+	"coll-show_collection": "Lehkhabu keuna",
+	"coll-show_collection_tooltip": "I lehkhabu siamţha/la/chah tùrin tah hian hmet rawh",
+	"coll-not_addable": "He phêk hi telh theih a ni lo",
+	"coll-make_suggestions": "Phêk rawtna",
+	"coll-make_suggestions_tooltip": "I lehkhabu phêk aţanga rawtna tihlanna",
+	"coll-suggest_empty": "ruak"
+}

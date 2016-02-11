@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"Chinneeb",
+			"Sembuk"
+		]
+	},
+	"coll-remove": "Арилгах",
+	"coll-show": "Үзүүлэх",
+	"coll-move_up": "Дззшлүүлэх",
+	"coll-move_down": "Доошлуулах",
+	"coll-yes": "Тийм",
+	"coll-no": "Үгүй",
+	"coll-cancel": "Цуцлах",
+	"coll-suggest_show": "үзүүлэх",
+	"coll-print_export": "Хэвлэх/Экспортлох",
+	"coll-create_a_book": "Шинээр ном нээх",
+	"coll-download_as": "$1 хэлбэрээр татаж авах",
+	"coll-n_pages": "$1 {{PLURAL:$1|хуудас}}"
+}

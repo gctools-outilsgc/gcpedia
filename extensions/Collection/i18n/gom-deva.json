@@ -1,0 +1,37 @@
+{
+	"@metadata": {
+		"authors": [
+			"Darshan kandolkar",
+			"Santhosh.thottingal",
+			"Konknni mogi 24",
+			"Supriya kankumbikar",
+			"Vaishali Parab",
+			"The Discoverer"
+		]
+	},
+	"coll-remove": "काड",
+	"coll-show": "दाखयात",
+	"coll-move_up": "वयर व्हरात",
+	"coll-move_down": "सकयल व्हरात",
+	"coll-print_export": "छापात/निर्गत करात",
+	"coll-create_a_book": "पुस्तक रोचात",
+	"coll-book_creator": "पुस्तक रोचणार",
+	"coll-download_as": " $1 अशें उतरायात",
+	"coll-disable": "असक्शम करात",
+	"coll-book_creator_disable": "पुस्तक निर्मिप्याक असक्शम कर",
+	"coll-book_creator_disable_tooltip": "पुस्तक निर्मातो वापरपाचो बंद करात",
+	"coll-add_this_page": "हें पान तुज्या पुस्तकाक जोड",
+	"coll-add_page_tooltip": "सद्याचें विकी पान तुज्या पुस्तकाक जोड",
+	"coll-help": "आदार",
+	"coll-help_tooltip": "पुस्तक रोचपाच्या संबंदान आदार दाखयात",
+	"coll-helppage": "Help:पुस्तकां",
+	"coll-n_pages": "$1 {{PLURAL:$1|पान|पानां}}",
+	"coll-remove_this_page": "हें पान तुमच्या पुस्तकांतले काडात",
+	"coll-show_collection": "पुस्तक दाखयात",
+	"coll-show_collection_tooltip": "तुमचो पुस्तक संपादकपाक/डाउनलोड करपाक/ऑर्डर करपाक क्लिक कर",
+	"coll-make_suggestions": "पानां सुचयात",
+	"coll-make_suggestions_tooltip": "तुमच्या पुस्तकाच्या पानांचेर आदारुन सुचोवणी दाखयात",
+	"coll-attribution-anons": "अनामीक: $1",
+	"coll-article-attribution": "<b>$1</b> <i>स्त्रोत:</i> $2 <i>योगदान करपी:</i> $3",
+	"coll-image-attribution": "<b>$1</b> <i>स्त्रोत:</i> $2 <i>परवानो:</i> $3 <i>योगदान करपी:</i> $4 <i>मूळ कलाकार:</i> $5"
+}

@@ -1,0 +1,40 @@
+{
+	"@metadata": {
+		"authors": [
+			"Botuzhaleny-sodamo"
+		]
+	},
+	"coll-collection": "Кинига",
+	"coll-collections": "Кинигат",
+	"coll-download_title": "Таргамо",
+	"coll-download": "Таргамс",
+	"coll-format_label": "Форматозо:",
+	"coll-remove": "Нардык",
+	"coll-show": "Невтемс",
+	"coll-move_to_top": "Печтевтемс тёкшос",
+	"coll-move_up": "Печтевтемс верев",
+	"coll-move_down": "Печтевтемс алов",
+	"coll-move_to_bottom": "Печтевтемс алксонтень",
+	"coll-title": "Коняксозо:",
+	"coll-contents": "Потмокс",
+	"coll-rename": "Лемдемс одов",
+	"coll-no_such_category": "Истямо категория арась",
+	"coll-empty_collection": "Чаво кинига",
+	"coll-save_collection_title": "Ванстомс пурнавксот ды панжомс лиятненень",
+	"coll-community_collection_label": "Велень-сядонь пурнавксось:",
+	"coll-save_collection": "Ванстомс киниганть",
+	"coll-yes": "Истя",
+	"coll-no": "Арась",
+	"coll-overwrite": "Нардамс сёрмадомсто",
+	"coll-notfound_title": "Кинигась а муеви",
+	"coll-suggested_articles": "Мельть-ушодкст",
+	"coll-suggest_show": "невтемс",
+	"coll-create_a_book": "Шкамс кинига",
+	"coll-book_creator": "Кинигань шкиця",
+	"coll-add_category": "Поладомс кинигазот те категориянть",
+	"coll-bookscategory": "Кинигат",
+	"coll-help": "Лезкс",
+	"coll-helppage": "Help:Кинигат",
+	"coll-show_collection": "Невтемс киниганть",
+	"coll-suggest_empty": "чаво"
+}

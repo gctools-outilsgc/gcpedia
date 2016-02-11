@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"Filipinayzd"
+		]
+	},
+	"coll-collection": "Libro",
+	"coll-collections": "Mga libro",
+	"coll-format_label": "Format:",
+	"coll-remove": "Galinon",
+	"coll-show": "Ipabayad",
+	"coll-move_to_top": "Ilipat sa itaas",
+	"coll-move_up": "Ilipat sa itaas",
+	"coll-move_down": "Ilipat sa ibaba",
+	"coll-move_to_bottom": "Ilipat sa irarum",
+	"coll-title": "Titulo:",
+	"coll-subtitle": "Kaabay na titulo:",
+	"coll-contents": "Mga loog",
+	"coll-rename": "Bagong ngaran",
+	"coll-yes": "Amo",
+	"coll-no": "Diri",
+	"coll-license": "Lisenya",
+	"coll-return_to": "Bumalik sa [[:$1]]",
+	"coll-suggested_articles": "Mga suhestyon",
+	"coll-suggest_reset_bans": "ibalik",
+	"coll-suggest_reset_bans_tooltip": "Ipabayad a mga suhestyon na ginalin na",
+	"coll-suggest_add_selected": "Irugang a mga mapiling pahina",
+	"coll-suggest_ban_selected": "Galinon a mga naliping pahina",
+	"coll-suggest_your_book": "A kanimong libro",
+	"coll-suggest_show": "ipabayad"
+}

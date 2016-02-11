@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Amikeco",
+			"Bouron"
+		]
+	},
+	"coll-download_title": "Æрбавгæн",
+	"coll-download": "Æрбавгæн",
+	"coll-show": "Равдис",
+	"coll-title": "Сæргонд:",
+	"coll-yes": "О",
+	"coll-no": "Нæ",
+	"coll-cancel": "Ныууадзын",
+	"coll-create_a_book": "Чиныг скæнын",
+	"coll-download_as": "Æрбавгæн куыд $1",
+	"coll-help": "Æххуыс",
+	"coll-suggest_empty": "афтид"
+}

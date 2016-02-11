@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"Baloch Afghanistan"
+		]
+	},
+	"coll-collection": "کتاب",
+	"coll-collections": "کتابان",
+	"coll-your_book": "شمی کتاب",
+	"coll-download_title": "ڈانلوڈ",
+	"coll-download": "ڈانلوڈ",
+	"coll-no_such_category": "جوانین تهرِ نه اینت",
+	"coll-yes": "هان",
+	"coll-no": "نه",
+	"coll-cancel": "کنسیل",
+	"coll-update": "آپڈ\tیت",
+	"coll-limit_exceeded_title": "کتاب بیش از اندازه بزرگ است",
+	"coll-rendering_page": "(دیم: $1)",
+	"coll-notfound_title": "کتاب ودی نه بوت",
+	"coll-download_notfound_title": "پایل ودی نه بوت",
+	"coll-suggest_your_book": "شمی کتاب",
+	"coll-suggest_show": "پیش دار",
+	"coll-bookscategory": "کتابان",
+	"coll-clear_collection": "کتابانی پاک کورتین",
+	"coll-clear_collection_confirm": "آیا شما په راستیا لوٹ\tیت وتی کتابا کامل پاک کنیت؟",
+	"coll-help": "کومک",
+	"coll-setting-toc-yes": "هان",
+	"coll-setting-toc-no": "نه",
+	"coll-attribution-anons": "ناشناس: $1",
+	"coll-attribution-page": "<h1>منابع متن و تصویر، مشارکت‌کنندگان و مجوزها</h1>\n<h2>متن</h2>\n$1<h2>اکس هان</h2>\n$2\n<h2>محتوای مجوز</h2>\n$3"
+}

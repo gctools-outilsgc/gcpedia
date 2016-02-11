@@ -1,0 +1,40 @@
+{
+	"@metadata": {
+		"authors": [
+			"Manuae"
+		]
+	},
+	"coll-collection": "Buch",
+	"coll-collections": "Bischa",
+	"coll-your_book": "Doi Buch",
+	"coll-remove": "Weggnemme",
+	"coll-show": "Zaische",
+	"coll-move_up": "Nuffschiewe",
+	"coll-move_down": "Runnaschiewe",
+	"coll-suggest_your_book": "Doi Buch",
+	"coll-suggest_show": "zaische",
+	"coll-print_export": "Drugge/Runnalaade",
+	"coll-create_a_book": "Machä Buch",
+	"coll-book_creator": "Buch-Schepfa",
+	"coll-download_as": "Als $1 runnalaade",
+	"coll-disable": "abschdelle",
+	"coll-book_creator_disable": "Bucheazaischa abschdelle",
+	"coll-book_creator_disable_tooltip": "Heama uff middm Buchschebfa",
+	"coll-add_this_page": "Fiesch die Said doim Buch dzu",
+	"coll-add_page_tooltip": "Fiesch die deazaidisch Said vun doim Buch dzu",
+	"coll-bookscategory": "Bischa",
+	"coll-clear_collection": "Buch lesche",
+	"coll-clear_collection_confirm": "Wilschd doi Buch wirglisch lesche?",
+	"coll-help": "Unnaschdidzung",
+	"coll-help_tooltip": "Zaisch Hilf fas mache vun Bischa",
+	"coll-helppage": "Help:Bischa",
+	"coll-n_pages": "$1 {{PLURAL:$1|Said|Saide}}",
+	"coll-remove_this_page": "Die Said vun doim Buch weggnemme",
+	"coll-show_collection": "Buch zaische",
+	"coll-show_collection_tooltip": "Fa doi Buch gligg uff schaffe/runnalaade/bschdelle.",
+	"coll-make_suggestions": "Saide voaschlache",
+	"coll-make_suggestions_tooltip": "Zaisch Voaschleesch vunde Saide in doim Buch",
+	"coll-attribution-anons": "Anoniem: $1",
+	"coll-article-attribution": "<b>$1</b> <i>Gwell:</i> $2 <i>Middawaida:</i> $3",
+	"coll-image-attribution": "<b>$1</b> <i>Gwell:</i> $2 <i>Lizens:</i> $3 <i>Middawaida:</i> $4 <i>Uaschbringlischa Schebfa:</i> $5"
+}

@@ -1,0 +1,32 @@
+{
+	"@metadata": {
+		"authors": [
+			"علی ساکی لرستانی"
+		]
+	},
+	"coll-remove": "حأذف",
+	"coll-show": "نیشۉ دائن",
+	"coll-move_up": "حأریکأت ری ڤە بالا",
+	"coll-move_down": "حأریکأت ری ڤە دوٙمین",
+	"coll-print_export": "پرینت/بیروٙن دائن",
+	"coll-create_a_book": "راس کردن یە کتآڤ",
+	"coll-book_creator": "کیتآۉ ساز",
+	"coll-download_as": "دوٙمینلۉد ڤە صوٙرأت $1",
+	"coll-disable": "د کار انداختن",
+	"coll-book_creator_disable": "د کار انداختن کتآۉ ساز",
+	"coll-book_creator_disable_tooltip": "تۉقف کردن استفادھ د کتآۉ ساز",
+	"coll-add_this_page": "اضاف کردن ای بلگه مئنه کتآۉ ایشا",
+	"coll-add_page_tooltip": "اضاف کردن ای بلگله ویکی ۉھ کتآۉ ایشا",
+	"coll-help": "هۉمیاری",
+	"coll-help_tooltip": "نشو دائن کمک د راس کردن کتآۉل",
+	"coll-helppage": "Help:کیتآڤل",
+	"coll-n_pages": "$1{{PLURAL:$1|بألگە|بألگل}}",
+	"coll-remove_this_page": "حأذف کۉ ئی بألگنە ز کیتآڤیت",
+	"coll-show_collection": "نیشۉ دائنە کیتآۉ",
+	"coll-show_collection_tooltip": "کلیژ کن سی اصلاح/دۉمنلود/سفارش کردن کتآۉ ایشا",
+	"coll-make_suggestions": "بلگل تۉصیه ۉابیدھ",
+	"coll-make_suggestions_tooltip": "نشۉ دائن پیشنهادل براساس بلگل مئنه کتآۉ ایشا",
+	"coll-attribution-anons": "بی نۉم: $1",
+	"coll-article-attribution": "<b>$1</b> <i>سرچشمه:</i> $2 <i>همدرنگل:</i> $3",
+	"coll-image-attribution": "<b>$1</b> <i>سأرچیشمە:</i> $2 <i>مۉجأڤیز:</i> $3 <i>ھوٙۉمیارل:</i> $4 <i>هۉنأرمأند أصلی:</i> $5"
+}

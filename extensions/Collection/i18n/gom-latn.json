@@ -1,0 +1,35 @@
+{
+	"@metadata": {
+		"authors": [
+			"Deepak D'Souza",
+			"The Discoverer"
+		]
+	},
+	"coll-remove": "Kad",
+	"coll-show": "Dakhoi",
+	"coll-move_up": "Voir vor",
+	"coll-move_down": "Khala vor",
+	"coll-contents": "Suchi-potr",
+	"coll-return_to": "[[:$1]] ak patim vos",
+	"coll-print_export": "Chap / Nirgot kor",
+	"coll-create_a_book": "Pustok toiar kor",
+	"coll-book_creator": "Pustokacho rochnar",
+	"coll-download_as": "$1 oxem utorayat",
+	"coll-disable": "osokxom kor",
+	"coll-book_creator_disable": "Pustok nirmipeak osokxom kor",
+	"coll-book_creator_disable_tooltip": "Pustok nirmato vapurpacho bond kor",
+	"coll-add_this_page": "Hem pan tujea pustokak zod",
+	"coll-add_page_tooltip": "Sod'deachem wiki pan tujea pustokak zod",
+	"coll-help": "Adar",
+	"coll-help_tooltip": "Pustok rochne vixim adar dakhoi",
+	"coll-helppage": "Help:Pustokam",
+	"coll-n_pages": "$1 {{PLURAL:$1|pan|panam}}",
+	"coll-remove_this_page": "Hem pan tujea pustokantlem kad",
+	"coll-show_collection": "Pustok dakhoi",
+	"coll-show_collection_tooltip": "Tuzo pustok bodolpak / download korpak / order korpak click kor",
+	"coll-make_suggestions": "Panam suchoi",
+	"coll-make_suggestions_tooltip": "Tujea pustokachea panancher adarun suchovnio dakhoi",
+	"coll-attribution-anons": "Anamik: $1",
+	"coll-article-attribution": "<b>$1</b> <i>Strot:</i> $2 <i>Yogdan diupi:</i> $3",
+	"coll-image-attribution": "<b>$1</b> <i>Strot:</i> $2 <i>Licens:</i> $3 <i>Yogdan korpi:</i> $4 <i>Poilo kolakar:</i> $5"
+}
