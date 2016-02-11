@@ -1,0 +1,67 @@
+/*!
+ * VisualEditor UserInterface CommandHelpDialog styles.
+ *
+ * @copyright 2011-2015 VisualEditor Team and others; see http://ve.mit-license.org
+ */
+
+.ve-ui-commandHelpDialog-container {
+	-ms-column-count: 3;
+	-moz-column-count: 3;
+	-webkit-column-count: 3;
+	column-count: 3;
+}
+
+.ve-ui-commandHelpDialog-section {
+	/*
+	 * Hack 1: Prevent splitting over columns. This should be done with
+	 * column-break-inside but it's not well supported yet.
+	 */
+	display: inline-block;
+	width: 100%;
+}
+
+.ve-ui-commandHelpDialog-section h3 {
+	margin: 0 0 1em 0;
+	padding: 0;
+}
+
+.ve-ui-commandHelpDialog-list {
+	margin: 1em 0;
+}
+
+.ve-ui-commandHelpDialog-list dd {
+	display: inline-block;
+	vertical-align: top;
+	width: 45%;
+	margin: 0;
+}
+
+.ve-ui-commandHelpDialog-list dt {
+	display: inline-block;
+	vertical-align: top;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	width: 55%;
+	padding-right: 1em;
+	text-align: right;
+	font-weight: bold;
+}
+
+.ve-ui-commandHelpDialog-list dt kbd {
+	font-family: monospace;
+	display: block;
+	clear: right;
+}
+
+/* Enlarge vertical spacing in a list of shortcuts for one action */
+.ve-ui-commandHelpDialog-list dt kbd ~ kbd {
+	margin-top: 0.2em;
+}
+
+.ve-ui-commandHelpDialog-list dd,
+.ve-ui-commandHelpDialog-list dt {
+	line-height: 110%;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}

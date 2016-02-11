@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Gleki",
+			"NoiX180",
+			"Pras",
+			"Jadinegara"
+		]
+	},
+	"tooltip-ca-ve-edit": "Sunting kaca punika ngangge VisualEditor",
+	"visualeditor-ca-editsource": "Owah sumber",
+	"visualeditor-ca-editsource-section": "Owah sumber",
+	"visualeditor-desc": "Pangowah visual kanggo MediaWiki",
+	"visualeditor-descriptionpagelink": "Proyek:VisualEditor",
+	"visualeditor-loadwarning": "Kasulayan nalika ngemot data saka sasana: $1. Sampéyan pingin njajal manèh?",
+	"visualeditor-saveerror": "Kasulayan nalika nyimpen data ning sasana: $1.",
+	"visualeditor-viewpage-savewarning": "Sira yakin arêp mbalik mênyang tata panyawangan tanpa nyimpên dhisik?"
+}
