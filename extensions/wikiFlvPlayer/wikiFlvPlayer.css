@@ -1,0 +1,13 @@
+/* Stylesheet for the Wiki FLV Player extension
+ *
+ * @package MediaWiki
+ * @subpackage Extensions
+ * @author Manuel Schneider <gu.paul@gmail.com>
+ * @copyright © 2007 by Paul Gu
+ * @licence GNU General Public Licence 2.0 or later
+*/
+
+.wikiFlvPlayer {
+	border: 1px solid #ddd;
+	margin: 5px auto;
+}
