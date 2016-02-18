@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"Cedric31"
+		]
+	},
+	"lookupuser": "Percórrer las entresenhas a prepaus de l'utilizaire",
+	"lookupuser-desc": "Extracha las entresenhas concernent un utilizaire talas coma una adreça electronica e lo numèro ID",
+	"lookupuser-intro": "Picar un nom d'utilizaire per veire sas preferéncias",
+	"lookupuser-nonexistent": "Error : l'utilizaire existís pas",
+	"lookupuser-authenticated": "Corrièr electronic d'identificacion : $1",
+	"lookupuser-not-authenticated": "pas identificat",
+	"lookupuser-id": "ID de l'utilizaire : <tt>#$1</tt>",
+	"lookupuser-email": "Corrièr electronic : [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "pas provesit",
+	"lookupuser-realname": "Nom vertadièr : $1",
+	"lookupuser-registration": "Data d'enregistrament : $1",
+	"lookupuser-no-registration": "pas enregistrat",
+	"lookupuser-touched": "Enregistrament de l'utilizaire tocat pel darrièr còp : $1",
+	"lookupuser-info-authenticated": "Autentificacion del corrièr electronic : $1",
+	"lookupuser-useroptions": "Opcions de l'utilizaire :",
+	"lookupuser-foundmoreusers": "Mai d'un utilizaire de trobat :",
+	"right-lookupuser": "Visionar las preferéncias dels utilizaires"
+}

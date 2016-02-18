@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kghbln",
+			"LWChris",
+			"Melancholie",
+			"Metalhead64",
+			"SVG",
+			"Umherirrender"
+		]
+	},
+	"lookupuser": "Benutzerinformationen einsehen",
+	"lookupuser-desc": "Ergänzt eine [[Special:LookupUser|Spezialseite]] mit der Informationen zu einem Benutzer eingesehen werden können",
+	"lookupuser-intro": "Bitte einen Benutzernamen angeben, um die persönlichen Einstellungen des zugehörigen Benutzers anzusehen. Es kann auch eine E-Mail-Adresse angegeben werden, wobei dann alle Benutzerkonten angezeigt werden, die diese E-Mail-Adresse nutzen.",
+	"lookupuser-nonexistent": "Fehler: Benutzer nicht vorhanden",
+	"lookupuser-authenticated": "E-Mail-Bestätigung: $1",
+	"lookupuser-not-authenticated": "nicht bestätigt",
+	"lookupuser-id": "Benutzerkennung: <tt>#$1</tt>",
+	"lookupuser-email": "E-Mail-Adresse: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "nicht angegeben",
+	"lookupuser-realname": "Bürgerlicher Name: $1",
+	"lookupuser-registration": "Datum der Registrierung: $1",
+	"lookupuser-no-registration": "nicht verzeichnet",
+	"lookupuser-touched": "Letzte Aktualisierung der Benutzerdaten: $1",
+	"lookupuser-info-authenticated": "E-Mail-Bestätigung: $1",
+	"lookupuser-useroptions": "Einstellungen des Benutzerkontos:",
+	"lookupuser-foundmoreusers": "Es wurde mehr als ein Benutzer gefunden:",
+	"right-lookupuser": "Benutzereinstellungen anderer Benutzer einsehen",
+	"action-lookupuser": "Benutzereinstellungen einsehen"
+}

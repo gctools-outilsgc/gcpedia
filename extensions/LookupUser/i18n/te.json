@@ -1,0 +1,17 @@
+{
+	"@metadata": {
+		"authors": [
+			"Chaduvari",
+			"Veeven"
+		]
+	},
+	"lookupuser": "వాడుకరి సమాచారంలో వెతకండి",
+	"lookupuser-intro": "ఒక వాడుకరి యొక్క అభిరుచులు చూడడానికి ఆ వాడుకరిపేరుని ఇవ్వండి.",
+	"lookupuser-nonexistent": "లోపం: వాడుకరి లేనే లేరు",
+	"lookupuser-id": "వాడుకరి ID: <tt>#$1</tt>",
+	"lookupuser-email": "ఈ-మెయిల్: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "ఇవ్వలేదు",
+	"lookupuser-realname": "నిజమైన పేరు: $1",
+	"lookupuser-registration": "నమోదైన తేదీ: $1",
+	"lookupuser-useroptions": "వాడుకరి ఎంపికలు:"
+}

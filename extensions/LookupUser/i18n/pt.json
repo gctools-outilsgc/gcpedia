@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Cainamarques",
+			"Hamilton Abreu",
+			"Malafaya",
+			"Vitorvicentevalente"
+		]
+	},
+	"lookupuser": "Procurar informação do utilizador",
+	"lookupuser-desc": "[[Special:LookupUser|Obter informação]] sobre um utilizador tal como o correio electrónico e a identificação (ID)",
+	"lookupuser-intro": "Introduza um nome de utilizador para ver as preferências desse utilizador. Um endereço de email pode também ser introduzido e mostrará todas as contas que utilizam este email.",
+	"lookupuser-nonexistent": "Erro: Utilizador não existe",
+	"lookupuser-authenticated": "autenticado em $1",
+	"lookupuser-not-authenticated": "não autenticado",
+	"lookupuser-id": "ID de utilizador: <tt>#$1</tt>",
+	"lookupuser-email": "Correio electrónico: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "não fornecido",
+	"lookupuser-realname": "Nome real: $1",
+	"lookupuser-registration": "Data de registo: $1",
+	"lookupuser-no-registration": "não registado",
+	"lookupuser-touched": "Registo de utilizador alterado pela última vez: $1",
+	"lookupuser-info-authenticated": "Autenticação do correio electrónico: $1",
+	"lookupuser-useroptions": "Opções do utilizador:",
+	"lookupuser-foundmoreusers": "Foram encontrados mais de um utilizador:",
+	"right-lookupuser": "Consultar preferências de utilizador",
+	"action-lookupuser": "visualizar preferências de utilizadores"
+}

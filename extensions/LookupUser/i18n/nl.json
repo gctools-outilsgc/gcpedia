@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"McDutchie",
+			"SPQRobin",
+			"Siebrand"
+		]
+	},
+	"lookupuser": "Gebruikersgegevens opzoeken",
+	"lookupuser-desc": "[[Special:LookupUser|Informatie inzien]] van een gebruiker, zoals e-mailadres en gebruikersnummer",
+	"lookupuser-intro": "Geef een gebruikersnaam in om de voorkeuren van die gebruiker te bekijken. U kunt ook een e-mailadres opgeven om alle gebruikers met dat e-mailadres weer te geven.",
+	"lookupuser-nonexistent": "Fout: gebruiker bestaat niet",
+	"lookupuser-authenticated": "E-mailbevestiging: $1",
+	"lookupuser-not-authenticated": "niet bevestigd",
+	"lookupuser-id": "Gebruikersnummer: <tt>#$1</tt>",
+	"lookupuser-email": "E-mailadres: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "niet opgegeven",
+	"lookupuser-realname": "Echte naam: $1",
+	"lookupuser-registration": "Registratiedatum: $1",
+	"lookupuser-no-registration": "niet opgeslagen",
+	"lookupuser-touched": "Gebruikersvoorkeuren laatst gewijzigd: $1",
+	"lookupuser-info-authenticated": "E-mailbevestiging: $1",
+	"lookupuser-useroptions": "Gebruikersopties:",
+	"lookupuser-foundmoreusers": "Meer dan één gebruiker gevonden:",
+	"right-lookupuser": "Gebruikersvoorkeuren opzoeken",
+	"action-lookupuser": "gebruikersvoorkeuren op te zoeken"
+}

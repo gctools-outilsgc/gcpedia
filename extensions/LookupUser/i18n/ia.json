@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"McDutchie"
+		]
+	},
+	"lookupuser": "Cercar info de usator",
+	"lookupuser-desc": "[[Special:LookupUser|Recupera informationes]] super un usator como adresse de e-mail e numero de ID",
+	"lookupuser-intro": "Entra un nomine de usator pro vider le preferentias de ille usator. Un adresse de e-mail pote anque esser usate, e monstrara tote le contos que usa ille adresse.",
+	"lookupuser-nonexistent": "Error: Usator non existe",
+	"lookupuser-authenticated": "Authentication de e-mail: $1",
+	"lookupuser-not-authenticated": "non authenticate",
+	"lookupuser-id": "ID del usator: <tt>#$1</tt>",
+	"lookupuser-email": "E-mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "non fornite",
+	"lookupuser-realname": "Nomine real: $1",
+	"lookupuser-registration": "Data de registration: $1",
+	"lookupuser-no-registration": "non disponibile",
+	"lookupuser-touched": "Ultime alteration del informationes del usator: $1",
+	"lookupuser-info-authenticated": "Authentication de e-mail: $1",
+	"lookupuser-useroptions": "Optiones del usator:",
+	"lookupuser-foundmoreusers": "Plure usatores trovate:",
+	"right-lookupuser": "Consultar preferentias de usatores",
+	"action-lookupuser": "consultar le preferentias del usator"
+}

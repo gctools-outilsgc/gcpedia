@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Malafaya",
+			"Smeira"
+		]
+	},
+	"lookupuser": "Sukön gebananünodis",
+	"lookupuser-intro": "Penolös gebananami ad logön buükamis gebana at.",
+	"lookupuser-nonexistent": "Pöl: Geban no dabinon",
+	"lookupuser-id": "Dientifanüm gebana: <tt>#$1</tt>",
+	"lookupuser-realname": "Nem jenöfik: $1",
+	"lookupuser-registration": "Registaramadät: $1"
+}

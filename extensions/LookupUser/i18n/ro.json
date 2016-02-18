@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Firilacroco",
+			"KlaudiuMihaila",
+			"Minisarm",
+			"Stelistcristi"
+		]
+	},
+	"lookupuser": "Căutare informații utilizator",
+	"lookupuser-nonexistent": "Eroare: Utilizatorul nu există",
+	"lookupuser-authenticated": "autentificat la $1",
+	"lookupuser-not-authenticated": "neautentificat",
+	"lookupuser-id": "ID utilizator: <tt>#$1</tt>",
+	"lookupuser-email": "E-mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "nefurnizat",
+	"lookupuser-realname": "Nume real: $1",
+	"lookupuser-registration": "Data înregistrării: $1",
+	"lookupuser-no-registration": "neînregistrat",
+	"lookupuser-info-authenticated": "Autentificare e-mail: $1",
+	"lookupuser-useroptions": "Opțiuni utilizator:"
+}

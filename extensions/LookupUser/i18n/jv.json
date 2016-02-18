@@ -1,0 +1,17 @@
+{
+	"@metadata": {
+		"authors": [
+			"Meursault2004"
+		]
+	},
+	"lookupuser-nonexistent": "Kaluputan: Panganggo ora ana",
+	"lookupuser-authenticated": "Pamastèn e-mail: $1",
+	"lookupuser-not-authenticated": "durung dipastèkaké",
+	"lookupuser-id": "ID panganggo: <tt>#$1</tt>",
+	"lookupuser-email": "E-mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "ora diwènèhaké",
+	"lookupuser-realname": "Jeneng asli: $1",
+	"lookupuser-registration": "Tanggal didaftar: $1",
+	"lookupuser-no-registration": "ora direkam",
+	"lookupuser-useroptions": "Opsi panganggo:"
+}

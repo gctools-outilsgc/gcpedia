@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Karthi.dr",
+			"Shanmugamp7",
+			"மதனாஹரன்"
+		]
+	},
+	"lookupuser-nonexistent": "பிழை: பயனர் இல்லை",
+	"lookupuser-id": "பயனர் அடியாள எண்: <tt>#$1</tt>",
+	"lookupuser-email": "மின்னஞ்சல்: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "வழங்கப்படவில்லை",
+	"lookupuser-realname": "உண்மைப் பெயர்: $1",
+	"lookupuser-registration": "பதிவுத் திகதி: $1",
+	"lookupuser-no-registration": "பதிவு செய்யப்படவில்லை",
+	"lookupuser-info-authenticated": "மின்னஞ்சல் உறுதிப்படுத்தல்: $1",
+	"lookupuser-useroptions": "பயனர் விருப்பத் தேர்வுகள்:"
+}

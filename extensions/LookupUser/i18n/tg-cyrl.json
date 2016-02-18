@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ibrahim"
+		]
+	},
+	"lookupuser-nonexistent": "Хато: Корбар вуҷуд надорад",
+	"lookupuser-email": "Фиристодани E-mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "пешниҳод нашудааст",
+	"lookupuser-realname": "Номи аслӣ: $1",
+	"lookupuser-registration": "Таърихи сабти ном: $1"
+}

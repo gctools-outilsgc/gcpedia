@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Crt",
+			"Jaakonam",
+			"Nike",
+			"Tarmo",
+			"VezonThunder",
+			"Pxos"
+		]
+	},
+	"lookupuser": "Katso käyttäjän tiedot",
+	"lookupuser-desc": "[[Special:LookupUser|Hakee tietoja]] käyttäjästä, kuten sähköpostiosoitteen ja tunnisteen.",
+	"lookupuser-intro": "Syötä käyttäjätunnus nähdäksesi kyseisen käyttäjän asetukset. Voidaan käyttää myös sähköpostiosoitetta, jolloin näytetään kaikki kyseistä sähköpostiosoitetta käyttävät tunnukset.",
+	"lookupuser-nonexistent": "Virhe: Käyttäjää ei ole olemassa",
+	"lookupuser-authenticated": "tunnistettu osoite $1",
+	"lookupuser-not-authenticated": "ei tunnistettu",
+	"lookupuser-id": "Käyttäjänumero: <tt>#$1</tt>",
+	"lookupuser-email": "Sähköposti: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "ei annettu",
+	"lookupuser-realname": "Oikea nimi: $1",
+	"lookupuser-registration": "Rekisteröitymispäivämäärä: $1",
+	"lookupuser-no-registration": "ei tallennettu",
+	"lookupuser-touched": "Käyttäjätietoja viimeksi muutettu: $1",
+	"lookupuser-info-authenticated": "Sähköpostitunnistus: $1",
+	"lookupuser-useroptions": "Käyttäjävalinnat:",
+	"lookupuser-foundmoreusers": "Löydettiin useita käyttäjiä:",
+	"right-lookupuser": "Hakea käyttäjän asetuksia"
+}

@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Lloffiwr"
+		]
+	},
+	"lookupuser-authenticated": "dilyswyd am $1",
+	"lookupuser-not-authenticated": "heb ei ddilysu",
+	"lookupuser-id": "ID y defnyddiwr: <tt>#$1</tt>",
+	"lookupuser-email": "E-bost: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-realname": "Yr enw cywir: $1",
+	"lookupuser-registration": "Dyddiad cofrestru: $1",
+	"lookupuser-no-registration": "heb ei gofnodi",
+	"lookupuser-info-authenticated": "Dilysiad ebost: $1",
+	"lookupuser-useroptions": "Dewisiadau'r defnyddiwr:",
+	"lookupuser-foundmoreusers": "Cafwyd hyd i fwy nag un defnyddiwr:",
+	"right-lookupuser": "Gweld dewisiadau defnyddiwr",
+	"action-lookupuser": "gweld dewisiadau defnyddiwr"
+}

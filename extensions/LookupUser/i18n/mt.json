@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Chrisportelli"
+		]
+	},
+	"lookupuser-no-email": "mhux provdut",
+	"lookupuser-realname": "Isem veru: $1",
+	"lookupuser-registration": "Data ta' reġistrazzjoni: $1",
+	"lookupuser-no-registration": "mhux rekordjat",
+	"lookupuser-foundmoreusers": "Instab iktar minn utent wieħed:",
+	"right-lookupuser": "Jikkonsulta l-preferenzi tal-utenti"
+}

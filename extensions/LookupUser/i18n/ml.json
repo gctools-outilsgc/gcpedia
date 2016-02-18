@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Anoopan",
+			"Praveenp",
+			"Shijualex"
+		]
+	},
+	"lookupuser": "ഉപയോക്താവിന്റെ വിവരം തിരയുക",
+	"lookupuser-desc": "ഒരു ഉപയോക്താവിന്റെ ഇമെയിൽ വിലാസം, ഐ.ഡി. തുടങ്ങിയ [[Special:LookupUser|വിവരങ്ങൾ ശേഖരിക്കുക]]",
+	"lookupuser-intro": "ഒരു ഉപയോക്താവിന്റെ ക്രമീകരണങ്ങൾ നൽകാൻ ഉപയോക്തൃനാമം നൽകുക.",
+	"lookupuser-nonexistent": "തെറ്റ്: ഉപയോക്താവ് നിലവിലില്ല",
+	"lookupuser-authenticated": "ഇമെയിൽ സ്ഥിരീകരണം: $1",
+	"lookupuser-not-authenticated": "സ്ഥിരീകരിച്ചിട്ടില്ല",
+	"lookupuser-id": "ഉപയോക്തൃ ഐ.ഡി.: <tt>#$1</tt>",
+	"lookupuser-email": "ഇമെയിൽ: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "നൽകിയിട്ടില്ല",
+	"lookupuser-realname": "ശരിയായ പേര്: $1",
+	"lookupuser-registration": "രജിസ്റ്റർ ചെയ്ത തീയതി: $1",
+	"lookupuser-no-registration": "റെക്കോർഡ് ചെയ്തിട്ടില്ല",
+	"lookupuser-touched": "ഉപയോക്താവിന്റെ വിവരങ്ങൾ അവസാനം തിരുത്തിയത്: $1",
+	"lookupuser-info-authenticated": "ഇമെയിൽ സാധൂകരണം: $1",
+	"lookupuser-useroptions": "ഉപയോക്തൃ ഐച്ഛികങ്ങൾ:",
+	"right-lookupuser": "ഉപയോക്തൃ ഐച്ഛികങ്ങൾ നോക്കുക"
+}

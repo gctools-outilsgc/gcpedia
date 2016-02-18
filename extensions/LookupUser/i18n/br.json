@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Fulup",
+			"Y-M D"
+		]
+	},
+	"lookupuser": "Sellet ouzh titouroù an implijer",
+	"lookupuser-desc": "[[Special:LookupUser|Adpakañ a ra an titouroù]] a denn d'un implijer bennak evel ar chomlec'h postel hag an niverenn ID",
+	"lookupuser-intro": "Merkañ un anv implijer da sellet ouzh e benndibaboù. Gallout a reer implijout ur chomlec'h postel ivez; diskouez a raio an holl gontoù stag ouzh ar postel-se.",
+	"lookupuser-nonexistent": "Fazi : n'eus ket eus an implijer-mañ",
+	"lookupuser-authenticated": "Aotreet e $1",
+	"lookupuser-not-authenticated": "n'eo ket aotreet",
+	"lookupuser-id": "ID an implijer : <tt>#$1</tt>",
+	"lookupuser-email": "Postel : [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "N'eo ket bet pourchaset",
+	"lookupuser-realname": "Anv gwir : $1",
+	"lookupuser-registration": "Deiziad enrollañ : $1",
+	"lookupuser-no-registration": "n'eo ket enrollet",
+	"lookupuser-touched": "Enrolladenn an implijer bet tizhet da ziwezhañ : $1",
+	"lookupuser-info-authenticated": "Gwiriañ ar postel : $1",
+	"lookupuser-useroptions": "Dibarzhioù an implijer :",
+	"lookupuser-foundmoreusers": "Kavet ez eus bet meur a implijer :",
+	"right-lookupuser": "Sellet ouzh ar penndibaboù implijout"
+}

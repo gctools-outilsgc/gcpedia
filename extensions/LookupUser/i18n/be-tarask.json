@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"EugeneZelenko",
+			"Jim-by",
+			"Wizardist",
+			"Zedlik",
+			"Red Winged Duck"
+		]
+	},
+	"lookupuser": "Пошук зьвестак пра ўдзельніка",
+	"lookupuser-desc": "[[Special:LookupUser|Атрыманьне зьвестак]] пра удзельнікаў, такіх, як адрас электроннай пошты і ідэнтыфікатар",
+	"lookupuser-intro": "Увядзіце імя ўдзельніка каб праглядзець яго налады. Можна ўвесьці адрас электроннай пошты — будуць паказаныя ўсе рахункі, якія выкарыстоўваюць гэты адрас.",
+	"lookupuser-nonexistent": "Памылка: Удзельнік не існуе",
+	"lookupuser-authenticated": "аўтэнтыфікаваны па $1",
+	"lookupuser-not-authenticated": "не аўтэнтыфікаваны",
+	"lookupuser-id": "Ідэнтыфікатар удзельніка: <tt>#$1</tt>",
+	"lookupuser-email": "Электронная пошта: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "не пазначана",
+	"lookupuser-realname": "Сапраўднае імя: $1",
+	"lookupuser-registration": "Дата рэгістрацыі: $1",
+	"lookupuser-no-registration": "не запісаны",
+	"lookupuser-touched": "Апошнія абнаўленьні зьвестак пра удзельніка: $1",
+	"lookupuser-info-authenticated": "Аўтэнтыфікацыя электроннай пошты: $1",
+	"lookupuser-useroptions": "Налады ўдзельніка:",
+	"lookupuser-foundmoreusers": "Знойдзена больш за аднаго ўдзельніка:",
+	"right-lookupuser": "пошук зьвестак пра удзельнікаў",
+	"action-lookupuser": "прагляд наладаў карыстальніка"
+}

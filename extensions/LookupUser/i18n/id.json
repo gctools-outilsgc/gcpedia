@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bennylin",
+			"IvanLanin",
+			"Rex"
+		]
+	},
+	"lookupuser": "Mencari informasi pengguna",
+	"lookupuser-desc": "[[Special:LookupUser|Menampilkan informasi]] seorang pengguna seperti alamat surel dan ID",
+	"lookupuser-intro": "Masukkan nama pengguna untuk melihat daftar preferensinya.",
+	"lookupuser-nonexistent": "Galat: Pengguna tidak ditemukan",
+	"lookupuser-authenticated": "di-otentifikasi pada $1",
+	"lookupuser-not-authenticated": "tidak di-otentifikasi",
+	"lookupuser-id": "ID Pengguna: <tt>#$1</tt>",
+	"lookupuser-email": "Surel: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "tidak diberikan",
+	"lookupuser-realname": "Nama asli: $1",
+	"lookupuser-registration": "Tanggal pendaftaran: $1",
+	"lookupuser-no-registration": "tidak dicatat",
+	"lookupuser-touched": "Catatan pengguna terakhir dilihat: $1",
+	"lookupuser-info-authenticated": "Otentifikasi surel: $1",
+	"lookupuser-useroptions": "Pilihan pengguna:",
+	"right-lookupuser": "Lihat preferensi pengguna"
+}

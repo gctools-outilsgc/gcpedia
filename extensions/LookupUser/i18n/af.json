@@ -1,0 +1,17 @@
+{
+	"@metadata": {
+		"authors": [
+			"Naudefj"
+		]
+	},
+	"lookupuser": "Kyk gebruikersinliging op",
+	"lookupuser-intro": "Sleutel 'n gebruikersnaam in om die gebruiker se voorkeure te sien.",
+	"lookupuser-nonexistent": "Fout: Gebruiker bestaan nie",
+	"lookupuser-id": "Gebruiker-ID: <tt>#$1</tt>",
+	"lookupuser-email": "E-posadres: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "nie verskaf nie",
+	"lookupuser-realname": "Regte naam: $1",
+	"lookupuser-registration": "Registrasiedatum: $1",
+	"lookupuser-no-registration": "nie aangeteken nie",
+	"lookupuser-useroptions": "Gebruikersopsies:"
+}

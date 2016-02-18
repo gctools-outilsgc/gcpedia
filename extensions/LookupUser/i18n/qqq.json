@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bennylin",
+			"Fryed-peach",
+			"Purodha",
+			"SVG",
+			"Shirayuki",
+			"The Evil IP address",
+			"Umherirrender"
+		]
+	},
+	"lookupuser": "{{doc-special|LookupUser}}",
+	"lookupuser-desc": "{{desc|name=Lookup User|url=https://www.mediawiki.org/wiki/Extension:LookupUser}}",
+	"lookupuser-intro": "Short howto use introduction",
+	"lookupuser-nonexistent": "Error message which shown when selected user does not exist",
+	"lookupuser-authenticated": "Used as <code>$1</code> in {{msg-mw|Lookupuser-info-authenticated}}.\n\nParameters:\n* $1 - time and date\nSee also:\n* {{msg-mw|Emailauthenticated}}",
+	"lookupuser-not-authenticated": "Used as <code>$1</code> in {{msg-mw|Lookupuser-info-authenticated}}.\n\nSee also:\n* {{msg-mw|Emailnotauthenticated}}",
+	"lookupuser-id": "Parameters:\n* $1 - user ID\n{{Identical|User ID}}",
+	"lookupuser-email": "Link to [[Special:EmailUser/$2]]. Parameters:\n* $1 - email address or {{msg-mw|Lookupuser-no-email}}\n* $2 - username",
+	"lookupuser-no-email": "Used as <code>$1</code> in {{msg-mw|Lookupuser-email}} if the email address is not specified.\n{{Identical|Notprovided}}",
+	"lookupuser-realname": "Parameters:\n* $1 - real name of the selected user",
+	"lookupuser-registration": "Parameters:\n* $1 - time and date\nSee also:\n* {{msg-mw|Prefs-registration}}\n* {{msg-mw|Prefs-registration-date-time}}",
+	"lookupuser-no-registration": "If no registration date about the selected user is available",
+	"lookupuser-touched": "Date of user's last login. Parameters:\n* $1 - time and date",
+	"lookupuser-info-authenticated": "Parameters:\n* $1 - any one of the following messages:\n** {{msg-mw|Lookupuser-authenticated}} (<code>$1</code> is time and date)\n** {{msg-mw|Lookupuser-not-authenticated}}",
+	"lookupuser-useroptions": "User's options",
+	"lookupuser-foundmoreusers": "Message which will be shown when multiple users (2 or more users) are found.\n\nThis message is followed by a drop-down box which allows to select a user.",
+	"right-lookupuser": "{{doc-right|lookupuser}}",
+	"action-lookupuser": "{{doc-action|lookupuser}}"
+}

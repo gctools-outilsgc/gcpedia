@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Helix84"
+		]
+	},
+	"lookupuser": "Vyhľadať informácie o používateľovi",
+	"lookupuser-desc": "[[Special:LookupUser|Získať informácií]] o používateľovi ako emailová adresa a ID",
+	"lookupuser-intro": "Zadajte používateľské meno, ktorého nastavenia chcete zobraziť.",
+	"lookupuser-nonexistent": "Chyba: Používateľ neexistuje",
+	"lookupuser-authenticated": "Overenie emailu: $1",
+	"lookupuser-not-authenticated": "neoverený",
+	"lookupuser-id": "ID používateľa: <tt>#$1</tt>",
+	"lookupuser-email": "Email: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "nebol poskytnutý",
+	"lookupuser-realname": "Skutočné meno: $1",
+	"lookupuser-registration": "Dátum registrácie: $1",
+	"lookupuser-no-registration": "nebol zaznamenaný",
+	"lookupuser-touched": "Posledný záznam používateľa: $1",
+	"lookupuser-info-authenticated": "Overenie emailu: $1",
+	"lookupuser-useroptions": "Nastavenia používateľa:",
+	"right-lookupuser": "Zistiť nastavenia používateľa"
+}

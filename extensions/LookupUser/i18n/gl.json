@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Alma",
+			"Toliño",
+			"Xosé"
+		]
+	},
+	"lookupuser": "Consultar a información do usuario",
+	"lookupuser-desc": "[[Special:LookupUser|Recuperar información]] sobre un usuario como o enderezo de correo electrónico e o ID",
+	"lookupuser-intro": "Introduza un nome de usuario para ver as preferencias dese usuario. Tamén se poden usar enderezos de correo electrónico e aparecerán todas as contas que empregan ese enderezo.",
+	"lookupuser-nonexistent": "Erro: O usuario non existe",
+	"lookupuser-authenticated": "autenticado o $1",
+	"lookupuser-not-authenticated": "sen autenticar",
+	"lookupuser-id": "ID do usuario: <tt>nº$1</tt>",
+	"lookupuser-email": "Correo electrónico: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "non proporcionado",
+	"lookupuser-realname": "Nome real: $1",
+	"lookupuser-registration": "Data de rexistro: $1",
+	"lookupuser-no-registration": "non rexistrado",
+	"lookupuser-touched": "Rexistro do usuario tocado por última vez: $1",
+	"lookupuser-info-authenticated": "Autenticación por correo electrónico: $1",
+	"lookupuser-useroptions": "Opcións do usuario:",
+	"lookupuser-foundmoreusers": "Atopouse máis dun usuario:",
+	"right-lookupuser": "Consultar as preferencias dun usuario",
+	"action-lookupuser": "consultar as preferencias dun usuario"
+}

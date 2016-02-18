@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Игорь Бродский"
+		]
+	},
+	"lookupuser-realname": "Todesine nimi: $1",
+	"lookupuser-useroptions": "Kävutajan järgendused:",
+	"right-lookupuser": "Ectä kävutajan järgendused"
+}

@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Frokor",
+			"Harald Khan",
+			"Njardarlogar"
+		]
+	},
+	"lookupuser": "Finn brukarinformasjon",
+	"lookupuser-desc": "[[Special:LookupUser|Hent informasjon]] om ein brukar, som t.d. e-postadresse og ID",
+	"lookupuser-intro": "Skriv inn eit brukarnamn for å vise innstillingane til brukaren.",
+	"lookupuser-nonexistent": "Feil: Brukaren eksisterer ikkje",
+	"lookupuser-authenticated": "E-poststadfesting: $1",
+	"lookupuser-not-authenticated": "ikkje stadfesta",
+	"lookupuser-id": "Brukar-ID: <tt>#$1</tt>",
+	"lookupuser-email": "E-post: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "ikkje oppgjeve",
+	"lookupuser-realname": "Verkeleg namn: $1",
+	"lookupuser-registration": "Registreringsdato: $1",
+	"lookupuser-no-registration": "ikkje lagra",
+	"lookupuser-touched": "Innstillingar sist endra: $1",
+	"lookupuser-info-authenticated": "E-postverifisering: $1",
+	"lookupuser-useroptions": "Brukarval:",
+	"right-lookupuser": "Sjå brukarinnstillingar"
+}

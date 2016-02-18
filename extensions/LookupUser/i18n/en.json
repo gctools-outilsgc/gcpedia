@@ -1,0 +1,25 @@
+{
+    "@metadata": {
+        "authors": [
+            "Tim Starling"
+        ]
+    },
+    "lookupuser": "Look up user info",
+    "lookupuser-desc": "[[Special:LookupUser|Retrieve information]] about a user such as email address and ID",
+    "lookupuser-intro": "Enter a username to view the preferences of that user. An email address can also be used, and will show all accounts using that email.",
+    "lookupuser-nonexistent": "Error: User does not exist",
+    "lookupuser-authenticated": "authenticated on $1",
+    "lookupuser-not-authenticated": "not authenticated",
+    "lookupuser-id": "User ID: <tt>#$1</tt>",
+    "lookupuser-email": "Email: [[Special:EmailUser/$2|$1]]",
+    "lookupuser-no-email": "not provided",
+    "lookupuser-realname": "Real name: $1",
+    "lookupuser-registration": "Registration date: $1",
+    "lookupuser-no-registration": "not recorded",
+    "lookupuser-touched": "User record last touched: $1",
+    "lookupuser-info-authenticated": "Email authentication: $1",
+    "lookupuser-useroptions": "User options:",
+    "lookupuser-foundmoreusers": "Found more than one user:",
+    "right-lookupuser": "Look up user preferences",
+    "action-lookupuser": "look up user preferences"
+}

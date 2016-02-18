@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Purodha"
+		]
+	},
+	"lookupuser": "Metmaacher-Enfommazjuhne zeije",
+	"lookupuser-desc": "Donn [[Special:LookupUser|Enfommazjuhne övver ene Metmaacher]] aanzeije, esu jät wi de <i lang=\"en\" xml:lang=\"en\" dir=\"ltr\" title=\"„de eläktrohnesche Poß“\">e-mail</i>-Adräß udder de Kännong.",
+	"lookupuser-intro": "JJivv enem Metmaacher singe Name aan, öm däm sing Enstellunge aanzeije ze lohße.\nJivv en Addräß för de <i lang=\"en\">e-mail<i> aan, öm all de Metmaachere annzeije ze lohße, di di Addräß för de <i lang=\"en\">e-mail<i> aanjejovve han.",
+	"lookupuser-nonexistent": "Fähler, esu ene Metmaacher kenne mer nit",
+	"lookupuser-authenticated": "E-mail bestätich: $1",
+	"lookupuser-not-authenticated": "–unbestätich–",
+	"lookupuser-id": "Metmaacher-Nommer: <tt>$1</tt>",
+	"lookupuser-email": "E-mail Address: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "–nit&nbsp;aanjejovve–",
+	"lookupuser-realname": "Rechteje Nahme: $1",
+	"lookupuser-registration": "Et eets aanjemelldt om: $1",
+	"lookupuser-no-registration": "–nit&nbsp;faßjehallde–",
+	"lookupuser-touched": "Läzde Änderong am Metmaacher-Dahtesaz: $1",
+	"lookupuser-info-authenticated": "Bestätesch övver <i lang=\"en\">e-mail</i>: $1",
+	"lookupuser-useroptions": "Enschtällonge:",
+	"lookupuser-foundmoreusers": "Mer han mih wi eine Metmaacher jefonge:",
+	"right-lookupuser": "Enem Metmaacher sing Ennschtällong aankike",
+	"action-lookupuser": "de Metmaacher iehre Enschtällonge ze beloore"
+}

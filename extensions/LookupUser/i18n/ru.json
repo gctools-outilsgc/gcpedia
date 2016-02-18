@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Adata80",
+			"Eleferen",
+			"Kaganer",
+			"Okras",
+			"Александр Сигачёв"
+		]
+	},
+	"lookupuser": "Показать сведения об участнике",
+	"lookupuser-desc": "[[Special:LookupUser|Получение сведений]] об участнике, таких как почтовый адрес и идентификатор",
+	"lookupuser-intro": "Введите имя пользователя, чтобы просмотреть его настройки. Адрес электронной почты также может быть использован, и покажет все учетные записи использующие этот почтовый ящик.",
+	"lookupuser-nonexistent": "Ошибка. Участника не существует",
+	"lookupuser-authenticated": "Аутентификация по эл. почте: $1",
+	"lookupuser-not-authenticated": "не аутентифицирован",
+	"lookupuser-id": "ID участника: <tt>#$1</tt>",
+	"lookupuser-email": "Эл. почта: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "не указан",
+	"lookupuser-realname": "Настоящее имя: $1",
+	"lookupuser-registration": "Дата регистрации: $1",
+	"lookupuser-no-registration": "не записана",
+	"lookupuser-touched": "Последнее обновление записи участника: $1",
+	"lookupuser-info-authenticated": "Аутентификация по почте: $1",
+	"lookupuser-useroptions": "Настройки участника:",
+	"lookupuser-foundmoreusers": "Найдено более одного пользователя:",
+	"right-lookupuser": "поиск настроек участников",
+	"action-lookupuser": "просмотр пользовательских настроек"
+}

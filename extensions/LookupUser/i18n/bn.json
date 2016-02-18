@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Wikitanvir"
+		]
+	},
+	"lookupuser": "ব্যবহারকারী তথ্যাদি দেখুন",
+	"lookupuser-intro": "কোনো ব্যবহারকারীর পছন্দ দেখতে ঐ ব্যবহারকারীর নাম প্রবেশ করান।",
+	"lookupuser-nonexistent": "ত্রুটি: এই নামে কোনো ব্যবহারকারী নেই",
+	"lookupuser-authenticated": "$1-এ নিশ্চিতকৃত",
+	"lookupuser-not-authenticated": "নিশ্চিতকৃত নয়",
+	"lookupuser-id": "ব্যবহারকারী আইডি: <tt>#$1</tt>",
+	"lookupuser-email": "ই-মেইল: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "দেয়া হয়নি",
+	"lookupuser-realname": "প্রকৃত নাম: $1",
+	"lookupuser-registration": "নিবন্ধনের তারিখ: $1",
+	"lookupuser-no-registration": "রেকর্ডকৃত নয়",
+	"lookupuser-info-authenticated": "ই-মেইল নিশ্চিতকরণ: $1",
+	"lookupuser-useroptions": "ব্যবহারকারী অপশন:",
+	"right-lookupuser": "ব্যবহারকারীর পছন্দ দেখুন"
+}

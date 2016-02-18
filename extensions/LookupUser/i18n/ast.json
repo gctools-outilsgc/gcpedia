@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Xuacu"
+		]
+	},
+	"lookupuser": "Consultar información del usuariu",
+	"lookupuser-desc": "[[Special:LookupUser|Recuperar información]] tocante a un usuariu como la direición de corréu electrónicu y la ID",
+	"lookupuser-intro": "Escriba un nome d'usuariu pa ver les preferencies d'esi usuariu. Tamién pue usase una direición de corréu electrónicu, y amosará toles cuentes qu'usen esi corréu.",
+	"lookupuser-nonexistent": "Error: L'usuariu nun esiste",
+	"lookupuser-authenticated": "identificáu el $1",
+	"lookupuser-not-authenticated": "ensin identificar",
+	"lookupuser-id": "ID d'usuariu: <tt>nº$1</tt>",
+	"lookupuser-email": "Corréu electrónicu: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "nun se dio",
+	"lookupuser-realname": "Nome real: $1",
+	"lookupuser-registration": "Data de rexistru: $1",
+	"lookupuser-no-registration": "nun se guardó",
+	"lookupuser-touched": "Rexistru d'usuarios tocáu por última vez: $1",
+	"lookupuser-info-authenticated": "Comprobación del corréu electrónicu: $1",
+	"lookupuser-useroptions": "Opciones del usuariu:",
+	"lookupuser-foundmoreusers": "Alcontróse más d'un usuariu:",
+	"right-lookupuser": "Consultar les preferencies d'usuariu",
+	"action-lookupuser": "consultar les preferencies d'usuariu"
+}

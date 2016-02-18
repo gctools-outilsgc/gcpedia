@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Liangent"
+		]
+	},
+	"lookupuser-nonexistent": "Xato: Korbar vuçud nadorad",
+	"lookupuser-email": "Firistodani E-mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "peşnihod naşudaast",
+	"lookupuser-realname": "Nomi aslī: $1",
+	"lookupuser-registration": "Ta'rixi sabti nom: $1"
+}

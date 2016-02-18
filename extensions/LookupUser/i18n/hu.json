@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dani",
+			"Glanthor Reviol",
+			"Tgr"
+		]
+	},
+	"lookupuser": "Felhasználói információ keresése",
+	"lookupuser-desc": "[[Special:LookupUser|Információ lekérése]] egy adott felhasználóról, például annak e-mail címe vagy azonosítója",
+	"lookupuser-intro": "Add meg a felhasználó nevét, akinek meg szeretnéd nézni a beállításait.",
+	"lookupuser-nonexistent": "Hiba: a felhasználó nem létezik",
+	"lookupuser-authenticated": "Email megerősítés: $1",
+	"lookupuser-not-authenticated": "nincs megerősítve",
+	"lookupuser-id": "Azonosító: <tt>#$1</tt>",
+	"lookupuser-email": "E-mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "nincs megadva",
+	"lookupuser-realname": "Valódi név: $1",
+	"lookupuser-registration": "Regisztráció időpontja: $1",
+	"lookupuser-no-registration": "nincs feljegyezve",
+	"lookupuser-touched": "Utolsó hozzáférés ideje: $1",
+	"lookupuser-info-authenticated": "Megerősített e-mail cím: $1",
+	"lookupuser-useroptions": "Beállításai:",
+	"right-lookupuser": "felhasználó beállításainak megtekintése"
+}

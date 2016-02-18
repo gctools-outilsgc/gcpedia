@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"Meno25",
+			"Ouda"
+		]
+	},
+	"lookupuser": "ابحث عن معلومات المستخدم",
+	"lookupuser-desc": "[[Special:LookupUser|يعرض معلومات]] عن المستخدم مثل عنوان البريد الإلكترونى والرقم",
+	"lookupuser-intro": "أدخل اسم مستخدم لرؤية تفضيلات هذا المستخدم.",
+	"lookupuser-nonexistent": "المستخدم غير موجود",
+	"lookupuser-authenticated": "تأكيد البريد الإلكتروني: $1",
+	"lookupuser-not-authenticated": "غير مرخص",
+	"lookupuser-id": "رقم المستخدم: <tt>#$1</tt>",
+	"lookupuser-email": "البريد الإلكتروني: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "غير موفر",
+	"lookupuser-realname": "الاسم الحقيقي: $1",
+	"lookupuser-registration": "تاريخ التسجيل: $1",
+	"lookupuser-no-registration": "غير مسجل",
+	"lookupuser-touched": "سجل المستخدم تم تعديله آخر مرة في: $1",
+	"lookupuser-info-authenticated": "تأكيد البريد الإلكتروني: $1",
+	"lookupuser-useroptions": "خيارات المستخدم:",
+	"right-lookupuser": "مطالعة تفضيلات المستخدم"
+}

@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"lookupuser": "Wužiwarske informacije sej wobhladać",
+	"lookupuser-desc": "[[Special:LookupUser|Informacije wo wužiwarja wotwołać]], na přikład e-mejlowu adresu a ID",
+	"lookupuser-intro": "Zapodaj wužiwarske mjeno, zo by nastajenja toho wužiwarja wobhladał. E-mejlowa adresa móže so tež wužiwać a budźe wšě konta pokazować, kotrež tutu e-mejlowu adresu wužiwaja.",
+	"lookupuser-nonexistent": "Zmylk: Wužiwar njeeksistuje",
+	"lookupuser-authenticated": "E-mejlowe awtentizowanje: $1",
+	"lookupuser-not-authenticated": "njeawtentizowany",
+	"lookupuser-id": "Wužiwarski ID: <tt>#$1</tt>",
+	"lookupuser-email": "E-mejl: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "njepodaty",
+	"lookupuser-realname": "Woprawdźite mjeno: $1",
+	"lookupuser-registration": "Datum registrowanja: $1",
+	"lookupuser-no-registration": "njezapřijaty",
+	"lookupuser-touched": "Posledni přistup na wužiwarske daty: $1",
+	"lookupuser-info-authenticated": "E-mejlowa awtentifikacija: $1",
+	"lookupuser-useroptions": "Wužiwarske opcije:",
+	"lookupuser-foundmoreusers": "Je so wjace hač jedyn wužiwar namakał:",
+	"right-lookupuser": "Wužiwarske nastajenja sej wobhladać",
+	"action-lookupuser": "Wužiwarske nastajenja sej wobhladać"
+}

@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kaustubh",
+			"Siddhartha Ghai"
+		]
+	},
+	"lookupuser": "सदस्य जानकारी खोजें",
+	"lookupuser-desc": "किसी सदस्य की [[Special:LookupUser|अधिक जानकारी खोजें]] उदा. ई-मेल पता और सदस्य क्रमांक",
+	"lookupuser-intro": "एक सदस्यकी वरीयतायें देखने के लिये उसका नाम लिखें।",
+	"lookupuser-nonexistent": "गलती: सदस्य अस्तित्वमें नहीं हैं",
+	"lookupuser-authenticated": "इ-मेल प्रमाणिकरण: $1",
+	"lookupuser-not-authenticated": "जाँच पूरी नहीं हुई हैं",
+	"lookupuser-id": "सदस्य क्रमांक: <tt>#$1</tt>",
+	"lookupuser-email": "इ-मेल: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "नहीं दिया हैं",
+	"lookupuser-realname": "असली नाम: $1",
+	"lookupuser-registration": "पंजिकरण तिथी: $1",
+	"lookupuser-no-registration": "रेकार्डमें नहीं हैं",
+	"lookupuser-touched": "देखी हुआ आखिरी सदस्य रेकार्ड: $1",
+	"lookupuser-useroptions": "सदस्य विकल्प:"
+}

@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Yekrats"
+		]
+	},
+	"lookupuser": "Konsulti informon pri uzanto",
+	"lookupuser-desc": "[[Special:LookupUser|Konsulti informon]] pri uzanto kiel retadreso kaj identigo",
+	"lookupuser-intro": "Enigi salutnomo rigardi la preferojn de tiu uzanto.",
+	"lookupuser-nonexistent": "Eraro: Tiu uzanto ne ekzistas",
+	"lookupuser-authenticated": "retpoŝta aŭtentkontrolo: $1",
+	"lookupuser-not-authenticated": "ne aŭtentita",
+	"lookupuser-id": "Salutnomo: <tt>#$1</tt>",
+	"lookupuser-email": "Retpoŝto: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "ne provizita",
+	"lookupuser-realname": "Reala nomo: $1",
+	"lookupuser-registration": "Dato de registrado: $1",
+	"lookupuser-no-registration": "ne registrita",
+	"lookupuser-touched": "Rikordo de uzanto estis laste ŝanĝita: $1",
+	"lookupuser-info-authenticated": "Retpoŝta aŭtentokontrolo: $1",
+	"lookupuser-useroptions": "Opcioj de uzanto:",
+	"right-lookupuser": "Trarigardi agordojn de uzantoj"
+}

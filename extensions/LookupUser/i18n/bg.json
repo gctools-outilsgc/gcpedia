@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"DCLXVI"
+		]
+	},
+	"lookupuser": "Извличане на потребителска информация",
+	"lookupuser-desc": "[[Special:LookupUser|Извлича информация]] за потребител - електронна поща, потребителски номер и др.",
+	"lookupuser-intro": "Въведете потребителско име за да видите предпочитанията и настройките на потребителя.",
+	"lookupuser-nonexistent": "Грешка: Потребителят не съществува",
+	"lookupuser-authenticated": "Потвърждение на е-поща: $1",
+	"lookupuser-id": "Потребителски номер: <tt>#$1</tt>",
+	"lookupuser-email": "Е-поща: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-realname": "Име и фамилия: $1",
+	"lookupuser-registration": "Дата на регистрация: $1",
+	"lookupuser-touched": "Последна промяна на потребителските настройки: $1",
+	"lookupuser-useroptions": "Потребителски настройки:",
+	"right-lookupuser": "Изследване на потребителските предпочитания"
+}

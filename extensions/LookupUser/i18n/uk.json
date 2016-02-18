@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"AS",
+			"Aleksandrit",
+			"Ua2004",
+			"Ата"
+		]
+	},
+	"lookupuser": "Відомості про користувача",
+	"lookupuser-desc": "[[Special:LookupUser|Отримання відомостей]] про користувача",
+	"lookupuser-intro": "Введіть ім'я користувача, щоб переглянути відомості про нього. Можна використати адресу електронної пошти, тоді ви побачите усі облікові записи, що її використовують.",
+	"lookupuser-nonexistent": "Помилка. Такого користувача не існує",
+	"lookupuser-authenticated": "Аутентифікація ел. поштою: $1",
+	"lookupuser-not-authenticated": "не автентифікований",
+	"lookupuser-id": "ID користувача: <tt>#$1</tt>",
+	"lookupuser-email": "Ел. пошта: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "не указан",
+	"lookupuser-realname": "Справжнє ім'я: $1",
+	"lookupuser-registration": "Дата реєстрації: $1",
+	"lookupuser-no-registration": "не записана",
+	"lookupuser-touched": "Останнє оновлення запису користувача: $1",
+	"lookupuser-info-authenticated": "Аутентифікація по пошті: $1",
+	"lookupuser-useroptions": "Налаштування користувача:",
+	"lookupuser-foundmoreusers": "Знайдено більше одного користувача:",
+	"right-lookupuser": "Перегляд налаштувань користувачів",
+	"action-lookupuser": "перегляд налаштувань користувачів"
+}

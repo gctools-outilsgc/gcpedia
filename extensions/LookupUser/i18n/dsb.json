@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"lookupuser": "Wužywarske informacije póglědaś",
+	"lookupuser-desc": "[[Special:LookupUser|Informacije wó wužywarju]] kaž e-mailowu adresu a ID wótwołaś",
+	"lookupuser-intro": "Zapódaj wužywarske mě, aby se nastajenja togo wužywarja woglědał. E-mailowa adresa dajo se teke wužywaś a wšykne konta, kótarež wužywaju toś tu e-mailowu adresu, b udu se pokazowaś.",
+	"lookupuser-nonexistent": "Zmólka: Wužywaŕ njeeksistěrujo.",
+	"lookupuser-authenticated": "E-mailowa awtentifikacija: $1",
+	"lookupuser-not-authenticated": "njeawtentificěrowany",
+	"lookupuser-id": "ID wužywarja: <tt>#$1</tt>",
+	"lookupuser-email": "E-mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "njepódany",
+	"lookupuser-realname": "Napšawdne mě: $1",
+	"lookupuser-registration": "Datum registrěrowanja: $1",
+	"lookupuser-no-registration": "njenagrany",
+	"lookupuser-touched": "Wužywarske daty slědny raz dotyknjone: $1",
+	"lookupuser-info-authenticated": "E-mailowa awtentifikacija: $1",
+	"lookupuser-useroptions": "Wužywarske nastajenja:",
+	"lookupuser-foundmoreusers": "Jo se wěcej ako jaden wužywaŕ namakał:",
+	"right-lookupuser": "Wužywarske nastajenja se woglědaś"
+}

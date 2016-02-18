@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Amire80",
+			"Nirofir",
+			"Rotemliss",
+			"YaronSh",
+			"Yona b"
+		]
+	},
+	"lookupuser": "בדיקת נתוני משתמש",
+	"lookupuser-desc": "[[Special:LookupUser|בדיקת נתונים]] אודות משתמש כגון כתובת הדוא\"ל ומספר המשתמש",
+	"lookupuser-intro": "נא לכתוב את שם המשתמש כדי לצפות בהעדפות שלו. אפשר להשתמש גם בכתובת דוא\"ל, וזה יציג את כל החשבונות המזוהים עם הכתובת.",
+	"lookupuser-nonexistent": "שגיאה: המשתמש אינו קיים",
+	"lookupuser-authenticated": "אימות כתובת דוא\"ל: $1",
+	"lookupuser-not-authenticated": "לא מאומתת",
+	"lookupuser-id": "מספר המשתמש: <tt>#$1</tt>",
+	"lookupuser-email": "כתובת דוא\"ל: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "לא סופקה",
+	"lookupuser-realname": "שם אמיתי: $1",
+	"lookupuser-registration": "תאריך ההרשמה: $1",
+	"lookupuser-no-registration": "לא נשמר",
+	"lookupuser-touched": "הפעם האחרונה בה ביצעו פעולה במידע המשתמש: $1",
+	"lookupuser-info-authenticated": "אימות כתובת דוא\"ל: $1",
+	"lookupuser-useroptions": "אפשרויות המשתמש:",
+	"lookupuser-foundmoreusers": "נמצאו יותר ממשתמש אחד:",
+	"right-lookupuser": "בדיקת העדפות משתמש",
+	"action-lookupuser": "לבדוק העדפות משתמש"
+}

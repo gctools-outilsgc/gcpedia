@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Als-Chlämens",
+			"Als-Holder"
+		]
+	},
+	"lookupuser": "Benutzerinformatione aaluege",
+	"lookupuser-desc": "[[Special:LookupUser|Informatione]] iber Benutzer iberchu, z. B. E-Mail-Adräss oder ID.",
+	"lookupuser-intro": "Gib e Benutzername yy, go di persenlige Yystellige vu däm Benutzer aaluege. Es cha au e E-Mail-Adräss aagee werde, wo deno alli Chonte aazeigt, wo die E-Mail-Adräss bruuche.",
+	"lookupuser-nonexistent": "Fähler: Benutzer git s nit",
+	"lookupuser-authenticated": "E-Mail-Bstätigung: $1",
+	"lookupuser-not-authenticated": "nit bstätigt",
+	"lookupuser-id": "Benutzer-ID: <tt>$1</tt>",
+	"lookupuser-email": "E-Mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "git s nit",
+	"lookupuser-realname": "Wirklige Name: $1",
+	"lookupuser-registration": "Datum vu dr Regischtrierig: $1",
+	"lookupuser-no-registration": "nit verzeichnet",
+	"lookupuser-touched": "Benutzerkonto s letscht Mol aaglängt: $1",
+	"lookupuser-info-authenticated": "E-Mail-Bstätigung: $1",
+	"lookupuser-useroptions": "Yystellige vum Benutzerkonto:",
+	"lookupuser-foundmoreusers": "Es isch mee wie ei Benutzer gfunde worde:",
+	"right-lookupuser": "Suech no Benutzer Yystellige"
+}

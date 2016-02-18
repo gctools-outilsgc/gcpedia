@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ebraminio",
+			"Huji",
+			"Persianizer",
+			"Reza1615",
+			"ZxxZxxZ",
+			"Mjbmr"
+		]
+	},
+	"lookupuser": "نگاه کردن به اطلاعات کاربر",
+	"lookupuser-desc": "[[Special:LookupUser|به دست آوردن اطلاعات]] در مورد یک کاربر نظیر آدرس ایمیل و ID",
+	"lookupuser-intro": "یک نام کاربری وارد کنید تا ترجیحات آن کاربر را ببینید. همچنین می‌توانید از آدرس ایمیل استفاده کرده تا همهٔ حساب‌های کاربری استفاده‌کننده از آن ایمیل را دید.",
+	"lookupuser-nonexistent": "خطا: کاربر وجود ندارد",
+	"lookupuser-authenticated": "اعتبارداده‌شده روی $1",
+	"lookupuser-not-authenticated": "فاقد اعتبار",
+	"lookupuser-id": "نام کاربری: <tt>#$1</tt>",
+	"lookupuser-email": "ایمیل: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "تامین نشده",
+	"lookupuser-realname": "نام حقیقی: $1",
+	"lookupuser-registration": "تاریخ ثبت‌نام: $1",
+	"lookupuser-no-registration": "ثبت نشده",
+	"lookupuser-touched": "آخرین دستکاری در اطلاعات کاربر: $1",
+	"lookupuser-info-authenticated": "احراز هویت ایمیلی: $1",
+	"lookupuser-useroptions": "گزینه‌های کاربر:",
+	"lookupuser-foundmoreusers": "بیش از یک کاربر یافت شد:",
+	"right-lookupuser": "مراجعه به ترجیحات کاربر",
+	"action-lookupuser": "جستجوی ترجیحات کاربر"
+}

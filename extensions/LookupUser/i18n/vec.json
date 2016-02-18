@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Candalua"
+		]
+	},
+	"lookupuser": "Varda informassion su l'utente",
+	"lookupuser-desc": "[[Special:LookupUser|Varda le informassion]] su un utente, tipo la so identità e el so indirisso e-mail",
+	"lookupuser-intro": "Inserissi un nome utente par védarghine le preferense.",
+	"lookupuser-nonexistent": "Eròr: sto utente no l'esiste mia",
+	"lookupuser-authenticated": "Conferma indirisso e-mail: $1",
+	"lookupuser-not-authenticated": "mia confermà",
+	"lookupuser-id": "ID utente: <tt>#$1</tt>",
+	"lookupuser-email": "E-mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "mia fornìo",
+	"lookupuser-realname": "Vero nome: $1",
+	"lookupuser-registration": "Data de registrassion: $1",
+	"lookupuser-no-registration": "mia disponibile",
+	"lookupuser-touched": "Ultima visita registrà de l'utente: $1",
+	"lookupuser-info-authenticated": "Autenticassion de posta eletronica: $1",
+	"lookupuser-useroptions": "Preferense utente:",
+	"right-lookupuser": "Varda le preferense de l'utente"
+}

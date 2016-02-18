@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Malafaya"
+		]
+	},
+	"lookupuser-email": "Eposta: [[Special:EmailUser/$2|$1]]"
+}

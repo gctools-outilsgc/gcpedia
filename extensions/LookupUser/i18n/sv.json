@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Boivie",
+			"M.M.S.",
+			"Najami",
+			"WikiPhoenix"
+		]
+	},
+	"lookupuser": "Kolla upp användar info",
+	"lookupuser-desc": "[[Special:LookupUser|Hämta information]] om en användare, som t.ex. e-postadress och ID",
+	"lookupuser-intro": "Skriv in ett användarnamn för att visa användarens inställningar. En e-postadress kan också användas, och kommer att visa alla konton som använder denna e-post.",
+	"lookupuser-nonexistent": "Error: Användare existerar inte",
+	"lookupuser-authenticated": "E-postbekräftning: $1",
+	"lookupuser-not-authenticated": "inte bekräftad",
+	"lookupuser-id": "Användar ID: <tt>#$1</tt>",
+	"lookupuser-email": "E-post: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "inte uppgett",
+	"lookupuser-realname": "Riktigt namn: $1",
+	"lookupuser-registration": "Registrerings datum: $1",
+	"lookupuser-no-registration": "inte lagrat",
+	"lookupuser-touched": "Inställningar sist ändrat: $1",
+	"lookupuser-info-authenticated": "E-postverifiering: $1",
+	"lookupuser-useroptions": "Användarval:",
+	"lookupuser-foundmoreusers": "Hittade fler än en användare:",
+	"right-lookupuser": "Kolla användarpreferenser",
+	"action-lookupuser": "kolla användarpreferenser"
+}

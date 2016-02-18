@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Malafaya"
+		]
+	},
+	"lookupuser-nonexistent": "Eroro: Uzanto ne existas",
+	"lookupuser-realname": "Reala nomo: $1"
+}

@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dalibor Bosits",
+			"Ex13"
+		]
+	},
+	"lookupuser": "Pogledaj info suradnika",
+	"lookupuser-desc": "[[Special:LookupUser|Omogućava gledanje]] informacija o suradniku poput e-mail adrese ili ID broja",
+	"lookupuser-intro": "Upišite suradničko ime da biste vidjeli njegove postavke.",
+	"lookupuser-nonexistent": "Greška: Suradnik ne postoji",
+	"lookupuser-authenticated": "E-mail potvrda: $1",
+	"lookupuser-not-authenticated": "nije potvrđen",
+	"lookupuser-id": "Suradnički ID-broj: <tt>#$1</tt>",
+	"lookupuser-email": "Elektronička pošta: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "nije upisana",
+	"lookupuser-realname": "Pravo ime: $1",
+	"lookupuser-registration": "Datum registracije: $1",
+	"lookupuser-no-registration": "nije zabilježeno",
+	"lookupuser-touched": "Suradnički račun zadnji put korišten: $1",
+	"lookupuser-info-authenticated": "E-mail potvrda: $1",
+	"lookupuser-useroptions": "Suradničke postavke:",
+	"right-lookupuser": "Pogledaj suradničke postavke"
+}

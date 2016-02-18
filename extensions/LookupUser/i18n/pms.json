@@ -1,0 +1,26 @@
+{
+	"@metadata": {
+		"authors": [
+			"Borichèt",
+			"Dragonòt"
+		]
+	},
+	"lookupuser": "Varda anformassion utent",
+	"lookupuser-desc": "[[Special:LookupUser|Treuva anformassion]] an s'un utent con st'adrëssa e-mail e ID-sì",
+	"lookupuser-intro": "Ch'a anserissa në stranòm për vëdde ij gust ëd col utent. N'adrëssa ëd pòsta eletrònica a peul ëdcò esse dovrà, e a smonrà tùit ij cont ch'a deuvro cola adrëssa.",
+	"lookupuser-nonexistent": "Eror: l'utent a esist pa",
+	"lookupuser-authenticated": "Autenticà an dzora a $1",
+	"lookupuser-not-authenticated": "pa autenticà",
+	"lookupuser-id": "ID utent: <tt>#$1</tt>",
+	"lookupuser-email": "E-mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "pa dàit",
+	"lookupuser-realname": "Nòm ver: $1",
+	"lookupuser-registration": "Data d'argistrassion: $1",
+	"lookupuser-no-registration": "pa arcordà",
+	"lookupuser-touched": "Registr ëd l'ùltim click ëd l'utent: $1",
+	"lookupuser-info-authenticated": "Autenticassion e-mail: $1",
+	"lookupuser-useroptions": "Opsion ëd l'utent:",
+	"lookupuser-foundmoreusers": "Trovà pi che un utent:",
+	"right-lookupuser": "Varda ij \"mè gust\" ëd l'utent",
+	"action-lookupuser": "arserché ant ij gust ëd l'utent"
+}

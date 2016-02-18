@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"ChrisPtDe"
+		]
+	},
+	"lookupuser": "Parcorir les enformacions a l’usanciér",
+	"lookupuser-nonexistent": "Èrror : l’usanciér ègziste pas",
+	"lookupuser-authenticated": "ôtenticâ dessus $1",
+	"lookupuser-not-authenticated": "pas ôtenticâ",
+	"lookupuser-id": "Numerô a l’usanciér : <tt>#$1</tt>",
+	"lookupuser-email": "Mèl. : [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "pas balyê",
+	"lookupuser-realname": "Veré nom : $1",
+	"lookupuser-registration": "Dâta d’encartâjo : $1",
+	"lookupuser-no-registration": "pas encartâ",
+	"lookupuser-touched": "Encartâjo a l’usanciér tochiê por lo dèrriér côp : $1",
+	"lookupuser-info-authenticated": "Ôtenticacion de l’adrèce èlèctronica : $1",
+	"lookupuser-useroptions": "Chouèx a l’usanciér :",
+	"lookupuser-foundmoreusers": "Més de yon utilisator trovâ :",
+	"right-lookupuser": "Vêre les prèferences ux usanciérs"
+}

@@ -1,0 +1,26 @@
+{
+	"@metadata": {
+		"authors": [
+			"Matěj Grabovský",
+			"Mormegil"
+		]
+	},
+	"lookupuser": "Vyhledat informace o uživateli",
+	"lookupuser-desc": "[[Special:LookupUser|Získání informací]] o uživateli jako e-mailová adresa a ID",
+	"lookupuser-intro": "Zadejte uživatelské jméno uživatele, jehož nastavení chcete zobrazit. Lze použít i e-mailovou adresu, v tom případě se zobrazí všechny účty, které tento e-mail používají.",
+	"lookupuser-nonexistent": "Chyba: Uživatel neexistuje",
+	"lookupuser-authenticated": "Ověření e-mailu: $1",
+	"lookupuser-not-authenticated": "neověřený",
+	"lookupuser-id": "ID uživatele: <tt>#$1</tt>",
+	"lookupuser-email": "E-mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "nebyl poskytnut",
+	"lookupuser-realname": "Skutečné jméno: $1",
+	"lookupuser-registration": "Datum registrace: $1",
+	"lookupuser-no-registration": "nebyl zaznamenán",
+	"lookupuser-touched": "Poslední záznam uživatele: $1",
+	"lookupuser-info-authenticated": "Ověření emailu: $1",
+	"lookupuser-useroptions": "Nastavení uživatele:",
+	"lookupuser-foundmoreusers": "Nalezeno více uživatelů:",
+	"right-lookupuser": "Prohlížení nastavení jiných uživatelů",
+	"action-lookupuser": "prohlížet uživatelská nastavení"
+}

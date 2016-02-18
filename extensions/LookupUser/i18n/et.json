@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Avjoska"
+		]
+	},
+	"lookupuser-realname": "Õige nimi: $1",
+	"lookupuser-registration": "Registreerimise kuupäev: $1"
+}

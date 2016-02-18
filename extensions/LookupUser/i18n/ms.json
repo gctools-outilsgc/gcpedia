@@ -1,0 +1,26 @@
+{
+	"@metadata": {
+		"authors": [
+			"Anakmalaysia",
+			"Aviator"
+		]
+	},
+	"lookupuser": "Dapatkan maklumat pengguna",
+	"lookupuser-desc": "[[Special:LookupUser|Dapatkan maklumat]] mengenai seseorang pengguna sepreti alamat e-mel dan ID",
+	"lookupuser-intro": "Isikan satu nama pengguna untuk melihat keutamaannya. Alamat e-mel juga boleh digunakan, dan akan memaparkan semua akaun yang menggunakan e-mel itu.",
+	"lookupuser-nonexistent": "Ralat: Pengguna tidak wujud",
+	"lookupuser-authenticated": "Pengesahan e-mel: $1",
+	"lookupuser-not-authenticated": "belum disahkan",
+	"lookupuser-id": "ID pengguna: <tt>#$1</tt>",
+	"lookupuser-email": "E-mel: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "tidak dibekalkan",
+	"lookupuser-realname": "Nama sebenar: $1",
+	"lookupuser-registration": "Tarikh pendaftaran: $1",
+	"lookupuser-no-registration": "tidak direkodkan",
+	"lookupuser-touched": "Kali terakhir rekod pengguna disentuh: $1",
+	"lookupuser-info-authenticated": "Pengesahan e-mel: $1",
+	"lookupuser-useroptions": "Pilihan pengguna:",
+	"lookupuser-foundmoreusers": "Lebih seorang pengguna dijumpai:",
+	"right-lookupuser": "Mencari keutamaan pengguna",
+	"action-lookupuser": "melihat keutamaan pengguna"
+}

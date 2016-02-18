@@ -1,0 +1,16 @@
+{
+	"@metadata": {
+		"authors": [
+			"SMP",
+			"Solde",
+			"Toniher"
+		]
+	},
+	"lookupuser-no-email": "no proporcionat",
+	"lookupuser-realname": "Nom real: $1",
+	"lookupuser-registration": "Data de registre: $1",
+	"lookupuser-no-registration": "no guardat",
+	"lookupuser-info-authenticated": "Autenticació de l'adreça electrònica: $1",
+	"lookupuser-useroptions": "Opcions d'usuari:",
+	"right-lookupuser": "Consultar les preferències d'usuari"
+}

@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Marzedu",
+			"Taxandru"
+		]
+	},
+	"lookupuser-id": "ID impitadore: <tt>#$1</tt>",
+	"lookupuser-email": "E-mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-realname": "Nòmene beru: $1"
+}

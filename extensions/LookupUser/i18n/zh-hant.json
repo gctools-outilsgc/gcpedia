@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Gzdavidwong",
+			"Justincheng12345",
+			"Mark85296341",
+			"Wrightbus",
+			"LNDDYL",
+			"Cwlin0416"
+		]
+	},
+	"lookupuser": "查詢使用者資訊",
+	"lookupuser-desc": "[[Special:LookupUser|檢索資訊]] 有關的使用者 ID 的電子郵件地址等",
+	"lookupuser-intro": "輸入使用者名稱以檢視該使用者的偏好設定，亦可使用電子郵件地址，並顯示所有使用該電子郵件地址的帳號。",
+	"lookupuser-nonexistent": "錯誤：使用者不存在",
+	"lookupuser-authenticated": "$1已驗証",
+	"lookupuser-not-authenticated": "未驗證",
+	"lookupuser-id": "使用者 ID：<tt>#$1</tt>",
+	"lookupuser-email": "電郵：[[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "未提供",
+	"lookupuser-realname": "真實姓名：$1",
+	"lookupuser-registration": "註冊日期：$1",
+	"lookupuser-no-registration": "沒有記錄",
+	"lookupuser-touched": "最後觸及的使用者記錄：$1",
+	"lookupuser-info-authenticated": "電子郵件驗證：$1",
+	"lookupuser-useroptions": "使用者選擇：",
+	"lookupuser-foundmoreusers": "找到多位使用者：",
+	"right-lookupuser": "檢視使用者設定",
+	"action-lookupuser": "檢視使用者設定"
+}

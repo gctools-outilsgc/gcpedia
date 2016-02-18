@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Pyt"
+		]
+	},
+	"lookupuser": "Benutserinformatione ienkiekje",
+	"lookupuser-desc": "[[Special:LookupUser|Informatione]] uur Benutser kriege, as E-Mail-Adresse of ID.",
+	"lookupuser-intro": "Reek n Benutsernoome ien, uum die do persöönelke Ienstaalengen fon n Benutser antoukiekjen.",
+	"lookupuser-nonexistent": "Failer: Benutser bestoant nit",
+	"lookupuser-authenticated": "E-Mail-Bestäätigenge: $1",
+	"lookupuser-not-authenticated": "nit bestäätiged",
+	"lookupuser-id": "Benutser-ID: <tt>#$1</tt>",
+	"lookupuser-email": "E-Mail: [[Special:EmailUser/$2|$1]]",
+	"lookupuser-no-email": "nit deer",
+	"lookupuser-realname": "Wuddelken Noome: $1",
+	"lookupuser-registration": "Doatum fon ju Registrierenge: $1",
+	"lookupuser-no-registration": "nit ferteekend",
+	"lookupuser-touched": "Benutserkonto toulääst rööged: $1",
+	"lookupuser-info-authenticated": "E-Mail-Bestäätigenge: $1",
+	"lookupuser-useroptions": "Ienstaalengen fon dät Benutserkonto:",
+	"right-lookupuser": "Sjuch do Benutserienstaalengen fon uur Benutsere"
+}
