@@ -1,0 +1,47 @@
+{
+	"name": "TreeAndMenu",
+	"version": "4.2.0, 2015-06-21",
+	"author": ["[http://www.organicdesign.co.nz/aran Aran Dunkley]"],
+	"url": "http://www.mediawiki.org/wiki/Extension:TreeAndMenu",
+	"descriptionmsg": "treeandmenu-desc",
+	"license-name": "[https://www.gnu.org/licenses/gpl-2.0.html GNU General Public Licence 2.0] or later",
+	"type": "parserhook",
+	"callback": "TreeAndMenu::onRegistration",
+	"config": {
+		"TreeAndMenuPersistIfId": false,           "@": "Makes trees with id attributes have persistent state"
+	},
+	"AutoloadClasses": {
+		"TreeAndMenu": "TreeAndMenu_body.php"
+	},
+	"ExtensionMessagesFiles": {
+		"TreeAndMenuMagic": "TreeAndMenu.i18n.magic.php"
+	},
+	"MessagesDirs": {
+		"TreeAndMenu": ["i18n"]
+	},
+	"ResourceModules": {
+		"ext.fancytree": {
+			"scripts": [
+				"jquery.fancytree.js",
+				"jquery.fancytree.persist.js",
+				"jquery.fancytree.mediawiki.js",
+				"fancytree.js"
+			],
+			"dependencies": [
+				"jquery.ui.core",
+				"jquery.ui.widget",
+				"jquery.effects.blind",
+				"jquery.cookie"
+			]
+		},
+		"ext.suckerfish": {
+			"scripts": ["suckerfish.js"],
+			"dependencies": ["jquery.client"]
+		}
+	},
+	"@": "The paths will be populated later as it needs be calculated",
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": ""
+	}
+}

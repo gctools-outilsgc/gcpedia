@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Anakmalaysia"
+		]
+	},
+	"treeandmenu-desc": "Membubuh fungsi penghurai <code><nowiki>#tree</nowiki></code> dan <code><nowiki>#menu</nowiki></code> yang mengandungi senarai berbulet untuk dipaparkan dalam bentuk paparan pepohon boleh lipat atau juntai bawah.\nPaparan pepohon menggunakan menu pepohon JavaScript [http://wwwendt.de/tech/fancytree FancyTree], sementara menu juntai bawah menggunakan [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

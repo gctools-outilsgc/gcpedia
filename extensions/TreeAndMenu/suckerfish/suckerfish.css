@@ -1,0 +1,84 @@
+/**
+ * Son of Suckerfish menu styles
+ * - see http://alistapart.com/article/dropdowns
+ */
+.suckerfish {
+	width: 180px;
+}
+.suckerfish, .suckerfish ul {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+.suckerfish .selflink {
+	font-weight: normal;
+}
+.suckerfish li {
+	position: relative;
+	float: left;
+	width: 172px;
+	padding: 4px;
+	z-index: 100;
+}
+.suckerfish li,
+.suckerfish li.even a,
+.suckerfish li.odd a,
+.suckerfish li li,
+.suckerfish li li a,
+.suckerfish li li li,
+.suckerfish li li li a {
+	color : black;
+}
+.suckerfish li li {
+	margin: 0;
+}
+.suckerfish li ul {
+	position: absolute;
+	left: -999em;
+	z-index: 101;
+	border: 1px solid #ccc;
+}
+.suckerfish li ul ul {
+	position: absolute;
+	left: -999em;
+	margin: 0 0 0 0;
+	z-index: 102;
+}
+.suckerfish li.odd .submenu {
+	width: 12px;
+	height: 15px;
+	float: right;
+	background: url(img/Arr_r.png) 0 3px no-repeat;
+}
+.suckerfish li.even .submenu {
+	width: 12px;
+	height: 15px;
+	float: right;
+	background: url(img/Arr_r.png) 0 3px no-repeat;
+}
+.suckerfish li.odd {
+	background: #E9EDF4;
+	border: 2px solid #E9EDF4;
+}
+.suckerfish li.even {
+	background: #D0D8E8;
+	border: 2px solid #D0D8E8;
+}
+.suckerfish li:hover, .suckerfish li.sfhover {
+	border: 2px solid #385D8A;
+}
+.suckerfish li:hover ul ul,
+.suckerfish li:hover ul ul ul,
+.suckerfish li.sfhover ul ul,
+.suckerfish li.sfhover ul ul ul {
+	left: -999em;
+}
+.suckerfish li:hover ul,
+.suckerfish li li:hover ul,
+.suckerfish li li li:hover ul,
+.suckerfish li.sfhover ul,
+.suckerfish li li.sfhover ul,
+.suckerfish li li li.sfhover ul {
+	left: 182px;
+	top: -3px;
+}

@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Hamilton Abreu"
+		]
+	},
+	"treeandmenu-desc": "Adiciona as funções do analisador sintáctico <code><nowiki>#tree</nowiki></code> e <code><nowiki>#menu</nowiki></code>, que contêm listas com marcadores, para serem apresentadas na forma de árvore recolhível ou menus descendentes.\nAs árvores usam o menu árvore [http://wwwendt.de/tech/fancytree FancyTree] do JavaScript e os menus descendentes usam [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

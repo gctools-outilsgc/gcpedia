@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"BeginaFelicysym"
+		]
+	},
+	"treeandmenu-desc": "Dodaje funkcje analizator składni <code><nowiki>#tree</nowiki></code> i <code><nowiki>#menu</nowiki></code>, które zawierają listy punktowane do wyświetlenia jako zwijanej drzewidoki lub menu rozwijane.\nDrzewidoki używają generowanych przez JavaScript menu drzewiastych [http://wwwendt.de/tech/fancytree FancyTree], a menu rozwijane wykorzystują [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

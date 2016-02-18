@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Siebrand"
+		]
+	},
+	"treeandmenu-desc": "Voegt de parserfuncties <code><nowiki>#tree</nowiki></code> en <code><nowiki>#menu</nowiki></code> toe die ervoor zorgen dat ongenummerde lijsten worden weergegeven als inklapbare boomstructuren of dropdownmenu's.\nHiervoor worden de componenten [http://wwwendt.de/tech/fancytree FancyTree] en [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish] gebruikt"
+}

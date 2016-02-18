@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"AnakngAraw"
+		]
+	},
+	"treeandmenu-desc": "Nagdaragdag ng mga tungkuling pambanghay na <code><nowiki>#tree</nowiki></code> at <code><nowiki>#menu</nowiki></code> na naglalaman ng mga listahang napupungluan na ihaharap bilang isang nababaklas na mga tanawin ng puno o mga menu naibabagsak na paibaba.\nAng mga tanawin ng puno ay gumagamit ng [http://wwwendt.de/tech/fancytree FancyTree] ng menu ng puno ng JavaScript, at ang mga menung naibabagsak paibaba ay gumagamit ng [http://www.htmldog.com/articles/suckerfish/dropdowns/ Anak na Lalaki ng Suckerfish]"
+}

@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Gomoko"
+		]
+	},
+	"treeandmenu-desc": "Ajoute les fonctions d'analyse <code><nowiki>#tree</nowiki></code> et <code><nowiki>#menu</nowiki></code> qui permettent aux listes à puces d'être rendues comme des arbres pliables ou des menus déroulants.\nLes arbres pliables utilisent le menu par arbre JavaScript [http://wwwendt.de/tech/fancytree FancyTree], et les menus déroulants utilisent [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

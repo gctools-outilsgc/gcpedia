@@ -1,0 +1,6 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"treeandmenu-desc": "Adds <code><nowiki>#tree</nowiki></code> and <code><nowiki>#menu</nowiki></code> parser functions which contain bullet-lists to be rendered as collapsible treeviews or dropdown menus.\nThe treeviews use the [http://wwwendt.de/tech/fancytree FancyTree] JavaScript tree menu, and the dropdown menus use [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

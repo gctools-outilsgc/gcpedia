@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"treeandmenu-desc": "Pśidawa parserowe funkcije <code><nowiki>#tree</nowiki></code> a <code><nowiki>#menu</nowiki></code>, kótarež zwobraznjaju nalicenja ako złožujobne bomowe naglědy abo padajuce menije.\nBomowe naglědy wužywaju JavaScriptowy bomowy meni [http://wwwendt.de/tech/fancytree FancyTree] a padajuce menije wužywaju [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Xuacu"
+		]
+	},
+	"treeandmenu-desc": "Amiesta les funciones d'analís <code><nowiki>#tree</nowiki></code> y <code><nowiki>#menu</nowiki></code>, que contienen llistes con asteriscos qu'apaecerán como vistes d'árbol contraíbles o menús estenderexables.\nLes vistes d'árbol usen el menú d'árbol JavaScript [http://wwwendt.de/tech/fancytree FancyTree], y los menús estenderexables usen [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

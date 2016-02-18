@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Toliño"
+		]
+	},
+	"treeandmenu-desc": "Endade as funcións analíticas <code><nowiki>#tree</nowiki></code> e <code><nowiki>#menu</nowiki></code>, que conteñen listas con asteriscos que se renderizarán como árbores contraíbles ou menús despregables.\nAs árbores empregan o menú de árbore [http://wwwendt.de/tech/fancytree FancyTree] do JavaScript e os menús despregables usan [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

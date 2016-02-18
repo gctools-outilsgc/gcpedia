@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"EugeneZelenko",
+			"Renessaince"
+		]
+	},
+	"treeandmenu-desc": "Дадае функцыі парсэру <code><nowiki>#tree</nowiki></code> і <code><nowiki>#menu</nowiki></code>, якія зьмяшчаюць маркіраваныя сьпісы, што могуць выводзіцца як разгортваемыя дрэвы або выпадаючыя мэню.\nРазгортваемыя дрэвы выкарыстоўваюць JavaScript [http://wwwendt.de/tech/fancytree FancyTree], а выпадаючыя мэню — [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

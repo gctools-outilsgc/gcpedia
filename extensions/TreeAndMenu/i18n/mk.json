@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bjankuloski06"
+		]
+	},
+	"treeandmenu-desc": "Додава парсерски функции <code><nowiki>#tree</nowiki></code> и <code><nowiki>#menu</nowiki></code> што содржат списоци со потточки што ќе се прикажат како расклопни разгранети претстави или паѓачки менија or dropdown menus.\nРазгранетите претстави го користат стеблото [http://wwwendt.de/tech/fancytree FancyTree] од JavaScript, а паѓачките менија користат [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

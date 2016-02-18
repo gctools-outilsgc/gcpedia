@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Beta16",
+			"Ximo17"
+		]
+	},
+	"treeandmenu-desc": "Aggiunge le funzioni parser <code><nowiki>#tree</nowiki></code> e <code><nowiki>#menu</nowiki></code> che permettono di visualizzare gli elenchi puntati come menù ad albero o a discesa.\nPer i menù ad albero utilizza il menù [http://wwwendt.de/tech/fancytree FancyTree] di JavaScript, mentre per i menù a tendina utilizza [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

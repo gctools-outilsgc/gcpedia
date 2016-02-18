@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"McDutchie"
+		]
+	},
+	"treeandmenu-desc": "Adde le functiones analysator <code><nowiki>#tree</nowiki></code> e <code><nowiki>#menu</nowiki></code> le quales contine listas a punctos a presentar como vistas arborescente plicabile o menus disrolante.\nLe vistas arborescente usa le menu JavaScript arborescente [http://wwwendt.de/tech/fancytree FancyTree], e le menus disrolante usa [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

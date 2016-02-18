@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kghbln"
+		]
+	},
+	"treeandmenu-desc": "Fügt die Parserfunktionen <code><nowiki>#tree</nowiki></code> und <code><nowiki>#menu</nowiki></code> hinzu, die Aufzählungslisten in Form einer Baumansicht ein- und ausklappbar machen oder als Aufklappmenü darstellen können.\nDie Baumansicht nutzt hierzu [http://wwwendt.de/tech/fancytree FancyTree] sowie das Aufklappmenü [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

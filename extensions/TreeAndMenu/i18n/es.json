@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Armando-Martin"
+		]
+	},
+	"treeandmenu-desc": "Añade las funciones del analizador (parser) <code><nowiki>#tree</nowiki></code> y <code><nowiki>#menu</nowiki></code>, que contienen listas con viñetass que se renderizarán como árboles contraíbles o menús desplegables.\nLos árboles emplean un menú de [http://www.destroydrop.com/javascripts/árbol dTree] de JavaScript y los menús desplegables utilizan [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

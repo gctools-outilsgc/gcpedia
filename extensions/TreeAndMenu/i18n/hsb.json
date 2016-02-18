@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"treeandmenu-desc": "Přidawa parserowe funkcije <code><nowiki>#tree</nowiki></code> a <code><nowiki>#menu</nowiki></code>, kotrež naličenja jako fałdujomne štomowe napohlady abo padace menije zwobraznjeja.\nŠtomowe napohlady wužiwaja JavaScriptowy štomowy meni [http://wwwendt.de/tech/fancytree FancyTree] a padace menije wužiwaja [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

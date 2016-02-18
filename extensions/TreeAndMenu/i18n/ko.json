@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"아라"
+		]
+	},
+	"treeandmenu-desc": "축소 가능한 트리보기 또는 드롭 다운 메뉴로 표시하는 순서 없는 목록을 포함하는 <code><nowiki>#tree</nowiki></code>와 <code><nowiki>#menu</nowiki></code> 파서 함수를 추가.\n트리 보기는 [http://wwwendt.de/tech/fancytree FancyTree] 자바 스크립트 메뉴를 사용하고 드롭 다운 메뉴는 [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]를 사용합니다."
+}

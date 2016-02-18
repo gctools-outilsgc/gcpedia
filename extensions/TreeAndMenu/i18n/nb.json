@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Event"
+		]
+	},
+	"treeandmenu-desc": "Legger til <code><nowiki>#tree-</nowiki></code> og <code><nowiki>#menu-</nowiki></code>parser-funksjoner som inneholder punktlister som fremstilles som sammenleggbare trevisninger eller nedtrekksmenyer.\nTrevisningene bruker [http://wwwendt.de/tech/fancytree FancyTree] JavaScript-tremenyen, mens nedtrekksmenyen bruker [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

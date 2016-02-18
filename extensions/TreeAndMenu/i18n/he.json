@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Amire80"
+		]
+	},
+	"treeandmenu-desc": "הוספת פונקציות המפענח <code dir=\"ltr\"><nowiki>#tree</nowiki></code> ו־<code dir=\"ltr\"><nowiki>#menu</nowiki></code> שמכילות רשימות תבליטים שיוצגו כעצים שאפשר לקפל או תפריטים נפתחים.\nתצוגת העץ משתמשת בתפריט [http://wwwendt.de/tech/fancytree FancyTree] והפתריטים המפתחים משתמשים ב־[http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}

@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Александр Сигачёв"
+		]
+	},
+	"treeandmenu-desc": "Добавляет функции парсера <code><nowiki>#tree</nowiki></code> и <code><nowiki>#menu</nowiki></code>, позволяющие выводить списки как раскрываемые деревья или выпадающие меню.\nДля раскрывающихся деревьев используется JavaScript-скрипт [http://wwwendt.de/tech/fancytree FancyTree], для выпадающих меню — [http://www.htmldog.com/articles/suckerfish/dropdowns/ Son of Suckerfish]"
+}
