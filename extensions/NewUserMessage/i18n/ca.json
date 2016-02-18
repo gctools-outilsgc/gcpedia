@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aleator",
+			"Paucabot"
+		]
+	},
+	"newusermessage-desc": "Afegeix un missatge a les discussions dels nous usuaris.",
+	"newuseredit-summary": "Afegint [[{{int:newusermessage-template}}|missatge de benvinguda]] a la pàgina de discussió de l'usuari"
+}

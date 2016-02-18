@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Lejonel",
+			"M.M.S."
+		]
+	},
+	"newusermessage-desc": "Lägger ett meddelande på nyligen registrerade användares diskussionssidor",
+	"newuseredit-summary": "Lägger till ett [[{{int:newusermessage-template}}|välkomstmeddelande]] till nya användares diskussionssidor"
+}

@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dragonòt"
+		]
+	},
+	"newusermessage-desc": "A gionta un messagi a le pàgine ëd discussion dj'utent pen-e creà",
+	"newuseredit-summary": "I gionto [[{{int:newusermessage-template}}|messagi ëd bin ëvnù]] a la pàgina ëd discussion d'un neuv utent"
+}

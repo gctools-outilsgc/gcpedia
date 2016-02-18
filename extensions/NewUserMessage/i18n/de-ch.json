@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"MichaelFrey"
+		]
+	},
+	"newuseredit-summary": "Begrüsst einen neuen Benutzer auf seiner Diskussionsseite mit einer [[{{int:newusermessage-template}}|Willkommensnachricht]]"
+}

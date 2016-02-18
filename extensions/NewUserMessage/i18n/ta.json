@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Shanmugamp7"
+		]
+	},
+	"newusermessage-desc": "புதியதாக உருவாக்கப்பட்ட பயனரின் உரையாடல்பக்கத்தில் ஒரு தகவலை சேர்க்கிறது.",
+	"newuseredit-summary": "புதிய பயனரின் உரையாடல் பக்கத்திற்கு [[{{int:newusermessage-template}}|வரவேற்பு செய்தி]] ஐ சேர்க்கிறது"
+}

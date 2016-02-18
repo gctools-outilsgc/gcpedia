@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"EugeneZelenko",
+			"Jim-by",
+			"Red Winged Duck"
+		]
+	},
+	"newusermessage-desc": "Дадае паведамленьне на старонку гутарак новага ўдзельніка",
+	"newuseredit-summary": "Даданьне [[{{int:newusermessage-template}}|прывітальнага паведамленьня]] на старонку гутарак новага ўдзельніка"
+}

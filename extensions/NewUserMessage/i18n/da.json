@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Byrial"
+		]
+	},
+	"newusermessage-desc": "Placerer en besked på nye brugeres diskussionsside",
+	"newuseredit-summary": "Placerer en [[{{int:newusermessage-template}}|velkomstbesked]] på nye brugeres diskussionsside"
+}

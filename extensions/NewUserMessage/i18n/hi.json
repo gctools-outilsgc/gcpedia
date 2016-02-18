@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kaustubh",
+			"Mayur",
+			"Siddhartha Ghai"
+		]
+	},
+	"newusermessage-desc": "नये सदस्यों के वार्ता पृष्ठ पर एक संदेश देता है",
+	"newuseredit-summary": "[[{{int:newusermessage-template}}|स्वागतम्]]"
+}

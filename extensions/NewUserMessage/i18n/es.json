@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ascánder",
+			"Macofe"
+		]
+	},
+	"newusermessage-desc": "Agrega un mensaje a la página de discusión de un usuario recién creado",
+	"newuseredit-summary": "Agregando el [[{{int:newusermessage-template}}|mensaje de bienvenida]] a la página de discusión del usuario nuevo"
+}

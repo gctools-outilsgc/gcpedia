@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"McDutchie"
+		]
+	},
+	"newusermessage-desc": "Adde un message al paginas de discussion de nove usatores",
+	"newuseredit-summary": "Addition de un [[{{int:newusermessage-template}}|message de benvenita]] al pagina de discussion del nove usator"
+}

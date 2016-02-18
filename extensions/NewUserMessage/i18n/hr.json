@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dalibor Bosits"
+		]
+	},
+	"newusermessage-desc": "Dodaje poruku na stranicu za razgovor novih suradnika",
+	"newuseredit-summary": "Dodajem [[{{int:newusermessage-template}}|dobrodošlicu]] na stranicu za razgovor novog suradnika"
+}

@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Rancher"
+		]
+	},
+	"newusermessage-desc": "Поставља поруку на странице за разговор нових корисника",
+	"newuseredit-summary": "Додавање [[{{int:newusermessage-template}}|добродошлице]] на страницу за разговор новог корисника"
+}

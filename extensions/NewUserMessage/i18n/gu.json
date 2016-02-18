@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ashok modhvadia",
+			"Dsvyas"
+		]
+	},
+	"newusermessage-desc": "નવા સભ્યનાં ચર્ચાનાં પાનાઓ પર સંદેશ ઉમેરો",
+	"newuseredit-summary": "નવા સભ્યનાં ચર્ચાનાં પાના પર [[{{int:newusermessage-template}}|સ્વાગત સંદેશ]]નો ઉમેરો"
+}

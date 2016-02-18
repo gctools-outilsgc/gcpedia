@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dbc334"
+		]
+	},
+	"newusermessage-desc": "Dodaj sporočilo na pogovorno stran novo ustvarjenega uporabnika",
+	"newuseredit-summary": "Dodajanje [[{{int:newusermessage-template}}|pozdravnega sporočila]] na pogovorno stran novega uporabnika"
+}

@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Olsi"
+		]
+	},
+	"newusermessage-desc": "Shton një mesazh tek faqja e diskutimit e përdoruesit më të ri",
+	"newuseredit-summary": "Duke shtuar [[{{int:newusermessage-template}}|mesazhin mirëseardhës]] tek faqja e diskutimit e përdoruesit të ri"
+}

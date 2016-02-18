@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Als-Holder"
+		]
+	},
+	"newusermessage-desc": "Fiegt e Nochricht uf dr Benutzerdiskussionssyte vu nej aagmäldete Benutzer yy",
+	"newuseredit-summary": "Begrießt e neije Benutzer uf syynere Diskussionssyte mit ere [[{{int:newusermessage-template}}|Willkummensnochricht]]"
+}

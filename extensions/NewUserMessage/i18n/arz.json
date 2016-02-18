@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ghaly",
+			"Meno25",
+			"Ramsis II"
+		]
+	},
+	"newusermessage-desc": "بيضيف رسالة لصفحات النقاش بتاعة اليوزرز الجداد",
+	"newuseredit-summary": "إضافة [[{{int:newusermessage-template}}|رسالة ترحيب]] لصفحة نقاش يوزر جديد"
+}

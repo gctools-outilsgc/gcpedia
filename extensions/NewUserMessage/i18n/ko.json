@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kwj2772",
+			"아라"
+		]
+	},
+	"newusermessage-desc": "새로 만든 사용자의 토론 문서에 메시지를 추가합니다",
+	"newuseredit-summary": "새 사용자의 토론 문서에 [[{{int:newusermessage-template}}|환영 메시지]]를 추가"
+}

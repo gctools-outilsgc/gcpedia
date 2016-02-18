@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Meno25",
+			"OsamaK"
+		]
+	},
+	"newusermessage-desc": "يضيف رسالة إلى صفحات نقاش المستخدمين الجدد",
+	"newuseredit-summary": "إضافة [[{{int:newusermessage-template}}|رسالة ترحيب]] إلى صفحة نقاش مستخدم جديد"
+}

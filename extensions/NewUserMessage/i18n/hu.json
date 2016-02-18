@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dani"
+		]
+	},
+	"newusermessage-desc": "Egy üzenetet helyez el az új szerkesztők vitalapjára",
+	"newuseredit-summary": "[[{{int:newusermessage-template}}|Üdvözlő üzenet]] elhelyezése az új szerkesztő vitalapjára"
+}

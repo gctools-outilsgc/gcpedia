@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"AnakngAraw"
+		]
+	},
+	"newusermessage-desc": "Nagdaragdag ng isang mensahe sa mga pahina ng usapan ng bagong likhang tagagamit",
+	"newuseredit-summary": "Nagdaragdag ng [[{{int:newusermessage-template}}|pahina ng pagbati]] sa pahina ng usapan ng bagong tagagamit"
+}
