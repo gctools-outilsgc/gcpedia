@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"David1010"
+		]
+	},
+	"edituser": "მომხმარებლის რედაქტირება",
+	"edituser-username": "მომხმარებლის სახელი:",
+	"edituser-dosearch": "ძიება",
+	"edituser-nouser": "მომხმარებელი „$1“ არ არსებობს."
+}

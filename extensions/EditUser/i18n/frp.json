@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"ChrisPtDe"
+		]
+	},
+	"edituser": "Changiér l’usanciér",
+	"edituser-username": "Nom d’usanciér :",
+	"edituser-dosearch": "Rechèrchiér",
+	"edituser-nouser": "L’usanciér « $1 » ègziste pas.",
+	"edituser-exempt": "L’usanciér « $1 » pôt pas étre changiê.",
+	"right-edituser": "Changiér les prèferences ux ôtros usanciérs"
+}

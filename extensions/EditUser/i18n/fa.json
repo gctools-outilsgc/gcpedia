@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Hooshmand.hasannia",
+			"Mjbmr"
+		]
+	},
+	"edituser": "ویرایش کاربر",
+	"edituser-username": "نام کاربری:",
+	"edituser-dosearch": "جستجو",
+	"edituser-nouser": "کاربر \"$1\" وجود ندارد."
+}

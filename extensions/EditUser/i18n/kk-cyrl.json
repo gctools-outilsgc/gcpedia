@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"Daniyar",
+			"GaiJin"
+		]
+	},
+	"edituser": "Қатысушыны өзгерту",
+	"edituser-username": "Қатысушы аты:",
+	"edituser-dosearch": "Іздеу",
+	"edituser-nouser": "«$1» деген қатысушы есімі жоқ.",
+	"edituser-exempt": "Қатысушы «$1» өзгертуге келмейді.",
+	"right-edituser": "Басқа қатысушыларға арналған баптауларды өзгерту",
+	"right-edituser-exempt": "Басқа қатысушылар бұл қатысушының баптауларын өзгерте алмайды"
+}

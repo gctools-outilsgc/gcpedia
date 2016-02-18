@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"KalmerE.",
+			"Pikne"
+		]
+	},
+	"edituser-username": "Kasutajanimi:",
+	"edituser-dosearch": "otsi",
+	"edituser-nouser": "Kasutajat \"$1\" pole olemas."
+}

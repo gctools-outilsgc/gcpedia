@@ -1,0 +1,16 @@
+{
+	"@metadata": {
+		"authors": [
+			"Xuacu"
+		]
+	},
+	"edituser": "Editar usuariu",
+	"extensionname-edituser": "EditUser",
+	"edituser-desc": "Permite que los usuarios col privilexu editen les preferencies d'otru usuariu",
+	"edituser-username": "Nome d'usuariu:",
+	"edituser-dosearch": "Guetar",
+	"edituser-nouser": "L'usuariu \"$1\" nun esiste.",
+	"edituser-exempt": "L'usuariu \"$1\" nun pué editase.",
+	"right-edituser": "Editar les preferencies d'otros usuarios",
+	"right-edituser-exempt": "Otros nun pueden cambiar les preferencies d'esti usuariu"
+}
