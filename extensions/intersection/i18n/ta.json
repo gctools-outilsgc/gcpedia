@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"TRYPPN"
+		]
+	},
+	"intersection_toomanycats": "தவறு: மிக அதிகமான பகுப்புக்கள் !",
+	"intersection_noresults": "தவறு:  எந்தவிதமான முடிவுகளும் இல்லை !",
+	"intersection_noincludecats": "தவறு: தாங்கள் குறைந்தது ஒரு பகுப்பு அல்லது பெயர்வெளியை சேர்க்க வேண்டும் !"
+}

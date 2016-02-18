@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Nike",
+			"Olli",
+			"Syreeni"
+		]
+	},
+	"intersection-desc": "Tulostaa listan luokasta tai useamman luokan yhdisteessä olevista sivuista.",
+	"intersection_toomanycats": "Virhe: Liian monta luokkaa!",
+	"intersection_noresults": "Näitä kriteerejä täyttäviä sivuja ei ole.",
+	"intersection_noincludecats": "Virhe: Lisää vähintään yksi luokka tai määritä nimiavaruus!"
+}

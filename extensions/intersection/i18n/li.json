@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aelske",
+			"Matthias",
+			"Ooswesthoesbes"
+		]
+	},
+	"intersection-desc": "Geeft als uitvoer een ongenummerde lijst met de meest recent toegevoegde items in een categorie, of een combinatie van categorieë",
+	"intersection_toomanycats": "Error: Te väöl categorieë!",
+	"intersection_noresults": "Gein inkel pagina's vóldoon aan dees kriteria.",
+	"intersection_noincludecats": "Error: Geer moet tenminste ein categorie of ein naamruumde opgeve!"
+}

@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aleator",
+			"Armando-Martin",
+			"Remember the dot",
+			"Sanbec",
+			"Macofe"
+		]
+	},
+	"intersection-desc": "Devuelve una lista de los elementos más recientes que están en una categoría o en una intersección de varias categorías",
+	"intersection_toomanycats": "Error: demasiadas categorías",
+	"intersection_noresults": "Ninguna página cumple estos criterios.",
+	"intersection_noincludecats": "Error: debes incluir al menos una categoría, o especificar un espacio de nombres"
+}

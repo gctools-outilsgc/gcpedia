@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Helix84"
+		]
+	},
+	"intersection-desc": "Vypíše zoznam najnovších položiek v kategórii alebo zjednotení niekoľkých kategórií",
+	"intersection_toomanycats": "Error: Príliš veľa kategórií!",
+	"intersection_noresults": "Error: Žiadne výsledky!",
+	"intersection_noincludecats": "Error: Musíte uviesť aspoň jednu kategóriu alebo menný priestor!"
+}

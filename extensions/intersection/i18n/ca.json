@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Arnaugir",
+			"Paucabot",
+			"SMP"
+		]
+	},
+	"intersection-desc": "Genera una llista d'elements recents en una categoria o en la intersecció de diverses.",
+	"intersection_toomanycats": "Error: Massa categories!",
+	"intersection_noresults": "Cap pàgina compleix aquests criteris.",
+	"intersection_noincludecats": "Error: Heu d'incloure almenys una categoria o especificar un espai de noms!"
+}

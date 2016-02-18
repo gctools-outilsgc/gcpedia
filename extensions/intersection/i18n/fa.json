@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Huji",
+			"Mjbmr",
+			"ZxxZxxZ"
+		]
+	},
+	"intersection-desc": "فهرست گلوله‌ای از صفحه‌هایی به نمایش در می‌آورد که به تازگی در یک یا چند رده وارد شده‌اند",
+	"intersection_toomanycats": "خطا: تعداد رده‌ها زیاد است!",
+	"intersection_noresults": "هیچ صفحه‌ای با این معیارها مطابقت ندارد.",
+	"intersection_noincludecats": "خطا: حداقل باید یک رده را وارد کنید یا یک فضای نام را مشخص کنید!"
+}

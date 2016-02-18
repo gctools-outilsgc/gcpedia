@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Hylle",
+			"Peter Alberti"
+		]
+	},
+	"intersection-desc": "Giver en punktopstilling af de nyeste elementer i en kategori eller i foreningen af flere kategorier",
+	"intersection_toomanycats": "Fejl: For mange kategorier!",
+	"intersection_noresults": "Ingen sider lever op til disse kriterier.",
+	"intersection_noincludecats": "Fejl: Du skal medtage mindst én kategori eller angive et navnerum!"
+}

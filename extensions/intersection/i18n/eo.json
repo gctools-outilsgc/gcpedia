@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki",
+			"Yekrats"
+		]
+	},
+	"intersection-desc": "Eligas bulpunktitan liston de la plej lastaj kategorianoj, aŭ unuigo de pluraj kategorioj",
+	"intersection_toomanycats": "Eraro: Tro da kategorioj!",
+	"intersection_noresults": "Neniom da paĝoj kongruas ĉi tiujn kriteriojn.",
+	"intersection_noincludecats": "Eraro: Vi devas inkluzivi almenaŭ unu kategorion, aŭ specifu nomspacon!"
+}

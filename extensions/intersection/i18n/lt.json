@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Matasg",
+			"Albertas"
+		]
+	},
+	"intersection-desc": "Išveda suženklintą sąrašą naujausių elementų, slypinčių kategorijoje arba kelių kategorijų sankirtoje",
+	"intersection_toomanycats": "Error: Per daug kategorijų!",
+	"intersection_noresults": "Nėra puslapių, kurie atitiktų šiuos kriterijus.",
+	"intersection_noincludecats": "Error: Jums reikia įtraukti bent vieną kategoriją, arba nurodyti vardų sritį!"
+}

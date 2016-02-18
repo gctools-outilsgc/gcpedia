@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Smeira"
+		]
+	},
+	"intersection_toomanycats": "Error: Klads tu mödiks!",
+	"intersection_noresults": "Error: Seks nonik!",
+	"intersection_noincludecats": "Error: Nedol välön kladi pu bali, u nemaspadi!"
+}

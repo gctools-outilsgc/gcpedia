@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Minh Nguyen"
+		]
+	},
+	"intersection-desc": "Cho ra danh sách những khoản gần đây nhất được xếp vào một thể loại hay hợp của hơn một thể loại",
+	"intersection_toomanycats": "Lỗi: Quá nhiều thể loại!",
+	"intersection_noresults": "Không có trang nào phù hợp với các tiêu chuẩn này.",
+	"intersection_noincludecats": "Lỗi: Cần phải bao gồm ít nhất một thể loại hay định rõ một không gian tên!"
+}

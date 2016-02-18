@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"FriedrickMILBarbarossa",
+			"Millosh",
+			"Rancher"
+		]
+	},
+	"intersection-desc": "Даје редни списак најскорије додатих чланака у једну или више категорија.",
+	"intersection_toomanycats": "Грешка: Превише категорија!",
+	"intersection_noresults": "Ниједна страница не задовољава наведене критеријуме.",
+	"intersection_noincludecats": "Грешка: Потребно је укључити бар једну категорију или одредити именски простор!"
+}

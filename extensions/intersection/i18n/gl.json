@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Toliño",
+			"Xosé"
+		]
+	},
+	"intersection-desc": "Devolve unha lista dos elementos máis recentes que están nunha categoría ou nunha intersección de varias categorías",
+	"intersection_toomanycats": "Erro: Demasiadas categorías!",
+	"intersection_noresults": "Non hai ningunha páxina que coincida con eses criterios.",
+	"intersection_noincludecats": "Erro: Ten que incluír unha categoría polo menos ou especificar un espazo de nomes!"
+}

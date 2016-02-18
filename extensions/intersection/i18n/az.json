@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Wertuose"
+		]
+	},
+	"intersection_toomanycats": "Xəta: Kateqoriya sayı həddindən çoxdur!",
+	"intersection_noresults": "Xəta: Nəticə yoxdur!",
+	"intersection_noincludecats": "Xəta: Siz ən azı bir kateqoriya əlavə etməli və ya adlar fəzası müəyyənləşdirməlisiniz!"
+}

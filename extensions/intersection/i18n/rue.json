@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Gazeb"
+		]
+	},
+	"intersection-desc": "Выпише список найновшых положок в катеґорії або зъєдинить пару катеґорій",
+	"intersection_toomanycats": "Error: дуже много катеґорій!",
+	"intersection_noresults": "Тоты крітерії не сповнюють жадны сторінкы.",
+	"intersection_noincludecats": "Хыба: Мусите включіти холем єдну катеґорію або задати простор назв!"
+}

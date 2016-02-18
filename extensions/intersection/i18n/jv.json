@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Meursault2004",
+			"NoiX180"
+		]
+	},
+	"intersection-desc": "Ngasilaké sawijining daftar item paling anyar ing sawijining kategori utawa gabungan sawetara kategori",
+	"intersection_toomanycats": "Error: Kakèhan kategori!",
+	"intersection_noresults": "Ora ana kaca sing padha karo syarat.",
+	"intersection_noincludecats": "Error: Panjenengan perlu minimal mènèhi kategori sawiji, utawa spésifikasi bilik nama sawiji!"
+}

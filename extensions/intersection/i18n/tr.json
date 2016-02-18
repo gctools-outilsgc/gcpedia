@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Joseph",
+			"Arystanbek"
+		]
+	},
+	"intersection-desc": "Bir kategoride, yada birçok kategorinin kesişiminde bulunan en son öğelerin, madde işaretli listesini üretir",
+	"intersection_toomanycats": "Hata: Çok fazla kategori!",
+	"intersection_noresults": "Hiçbir sayfa bu kriterleri.",
+	"intersection_noincludecats": "Hata: En az bir kategori eklemeli, ya da bir ad alanı belirtmelisiniz!"
+}

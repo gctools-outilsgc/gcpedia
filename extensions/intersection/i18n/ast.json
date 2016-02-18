@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Esbardu",
+			"Xuacu"
+		]
+	},
+	"intersection-desc": "Amuesa una llista de los elementos más recién que tenga una categoría o una xuntanza de varies categoríes",
+	"intersection_toomanycats": "Error: ¡Demasiaes categoríes!",
+	"intersection_noresults": "Denguna páxina cumple estos criterios.",
+	"intersection_noincludecats": "Error: ¡Necesites amiestar a lo menos una categoría, o especificar un espaciu de nomes!"
+}

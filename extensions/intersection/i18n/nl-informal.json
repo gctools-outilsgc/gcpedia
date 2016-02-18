@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Siebrand"
+		]
+	},
+	"intersection_noincludecats": "Fout: je moet tenminste een categorie of een naamruimte opgeven!"
+}

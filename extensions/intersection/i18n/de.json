@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kghbln",
+			"Pill",
+			"Purodha",
+			"Raimond Spekking",
+			"Umherirrender"
+		]
+	},
+	"intersection-desc": "Ermöglicht die Ausgabe einer Liste der aktuellsten Einträge einer oder der Schnittmenge mehrerer Kategorien",
+	"intersection_toomanycats": "Fehler: Zu viele Kategorien!",
+	"intersection_noresults": "Keine Seiten entsprechen diesen Kriterien.",
+	"intersection_noincludecats": "Fehler: Es muss mindestens eine Kategorie eingebunden oder ein Namensraum angegeben werden."
+}

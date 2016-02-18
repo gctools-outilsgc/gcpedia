@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Olsi"
+		]
+	},
+	"intersection-desc": "Rezultatet një listë bulleted nga pikat më të fundit që banojnë në një kategori, apo një ndërprerje të disa kategori",
+	"intersection_toomanycats": "Gabim: Shumë kategori!",
+	"intersection_noresults": "Gabim: Nuk ka rezultate!",
+	"intersection_noincludecats": "Gabim: Ju duhet të përfshini të paktën një kategori, ose të specifikoni një hapësirë!"
+}

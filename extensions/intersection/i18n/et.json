@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Avjoska",
+			"Pikne"
+		]
+	},
+	"intersection-desc": "Väljastab ühe kategooria või mitme kategooria ühistest uusimatest liikmetest koostatud täpploendi.",
+	"intersection_toomanycats": "Tõrge: Liiga palju kategooriaid!",
+	"intersection_noresults": "Ükski lehekülg ei vasta neile kriteeriumitele.",
+	"intersection_noincludecats": "Tõrge: Lisa vähemalt üks kategooria või täpsusta nimeruum!"
+}

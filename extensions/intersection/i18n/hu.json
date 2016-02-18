@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dani",
+			"Dj",
+			"Gondnok",
+			"KossuthRad"
+		]
+	},
+	"intersection-desc": "Megjeleníti egy adott kategóriában, vagy kategóriák uniójában lévő legújabb szócikkek listáját",
+	"intersection_toomanycats": "Hiba: Túl sok kategória!",
+	"intersection_noresults": "Nincs a feltételnek megfelelő lap.",
+	"intersection_noincludecats": "Hiba: Legalább egy listázandó kategóriát meg kell adnod, vagy pedig egy névteret!"
+}

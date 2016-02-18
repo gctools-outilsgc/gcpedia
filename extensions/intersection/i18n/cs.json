@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Li-sung",
+			"Matěj Grabovský",
+			"Mormegil"
+		]
+	},
+	"intersection-desc": "Vypíše seznam nejnovějších položek v kategorii nebo sjednotí několik kategorií",
+	"intersection_toomanycats": "Error: Příliš mnoho kategorií!",
+	"intersection_noresults": "Tato kritéria nesplňují žádné stránky.",
+	"intersection_noincludecats": "Error: Musíte zahrnout alespoň jednu kategorii nebo určit jmenný prostor!"
+}

@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Hanberke"
+		]
+	},
+	"intersection-desc": "Bir kategoriýada bar bolan iň soňky elemntleriň markirlenen sanawyny ýa-da birnäçe kategoriýanyň birleşmesini öndürýär",
+	"intersection_toomanycats": "Säwlik: Aşa köp kategoriýa!",
+	"intersection_noresults": "Säwlik: Netije ýok!",
+	"intersection_noincludecats": "Säwlik: Iň bolmanda bir kategoriýa goşmaly ýa-da at giňişligi görkezmeli!"
+}

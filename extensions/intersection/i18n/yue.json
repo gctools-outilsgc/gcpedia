@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Shinjiman",
+			"Yueman"
+		]
+	},
+	"intersection-desc": "輸出一個點列最近響分類嘅項目，或者係幾個分類嘅一個聯繫",
+	"intersection_toomanycats": "DynamicPageList: 太多分類!",
+	"intersection_noresults": "無一頁符合呢啲條件。",
+	"intersection_noincludecats": "DynamicPageList: 你需要去包含最少一個分類，或者指定一個空間名!"
+}

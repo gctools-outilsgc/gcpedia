@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"ChrisPtDe"
+		]
+	},
+	"intersection-desc": "Montre una lista, de puges, des èlèments los ples novéls dens una catègorie, ou ben dês una combinèson d’un mouél de catègories.",
+	"intersection_toomanycats": "Èrror : trop de catègories !",
+	"intersection_noresults": "Niona pâge corrèspond a cetos critèros.",
+	"intersection_noincludecats": "Èrror : vos dête encllure u muens yona catègorie, ou ben spècefiar un èspâço de noms !"
+}

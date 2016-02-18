@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Amire80",
+			"Rotem Liss",
+			"Guycn2"
+		]
+	},
+	"intersection-desc": "רשימה עם תבליטים של הפריטים האחרונים המצויים בקטגוריה, או במספר קטגוריות",
+	"intersection_toomanycats": "DynamicPageList: קטגוריות רבות מדי!",
+	"intersection_noresults": "אין דפים שמתאימים לתנאים האלה.",
+	"intersection_noincludecats": "שגיאה: יש לכלול לפחות קטגוריה אחת, או לציין מרחב שם!"
+}

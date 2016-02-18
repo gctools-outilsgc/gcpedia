@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bishnu Saikia",
+			"Gitartha.bordoloi",
+			"Nilamdyuti"
+		]
+	},
+	"intersection-desc": "কোনো শ্ৰেণী বা কেইবাটাও শ্ৰেণীৰ সংযোগত থকা শেহতীয়া আইটেমসমূহৰ তালিকা দেখুৱায়",
+	"intersection_toomanycats": "ত্ৰুটী: বেছি সংখ্যক শ্ৰেণী!",
+	"intersection_noresults": "কোনো পৃষ্ঠায় এই মাপকাঠী পৰিপূৰ্ণ নকৰে।",
+	"intersection_noincludecats": "ত্ৰুটী: আপুনি অন্ততঃ এটা শ্ৰেণী অন্তৰ্ভুক্ত কৰিব লাগিব, বা এটা নামস্থান নিৰ্দেশ কৰিব লাগিব!"
+}

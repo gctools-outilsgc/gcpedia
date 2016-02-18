@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Anakmalaysia",
+			"Aviator"
+		]
+	},
+	"intersection-desc": "Mengoutput senarai item terkini dalam sesebuah kategori atau kesatuan beberapa buah kategori",
+	"intersection_toomanycats": "Ralat: Kategori terlalu banyak!",
+	"intersection_noresults": "Tiada halaman yang memenuhi syarat-syarat ini.",
+	"intersection_noincludecats": "Error: Anda hendaklah memasukkan sekurang-kurangnya sebuah kategori atau menyatakan sebuah ruang nama!"
+}

@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Naudefj"
+		]
+	},
+	"intersection_toomanycats": "Fout: Te veel kategorieë!",
+	"intersection_noresults": "Geen bladsye voldoen aan hierdie kriteria nie.",
+	"intersection_noincludecats": "Fout: U moet ten minste een kategorie insluit, of spesifiseer 'n naamspasie!"
+}

@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Mihai",
+			"Minisarm"
+		]
+	},
+	"intersection-desc": "Întoarce o lista celor mai recenți itemi care fac parte dintr-o categorie, sau intersecția a mai multor categorii",
+	"intersection_toomanycats": "Eroare: Prea multe categorii!",
+	"intersection_noresults": "Nicio pagină nu întrunește aceste criterii.",
+	"intersection_noincludecats": "Eroare: Trebuie să incluzi cel puțin o categorie, sau să specifici un spațiu de nume!"
+}
