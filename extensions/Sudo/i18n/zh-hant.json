@@ -1,0 +1,32 @@
+{
+	"@metadata": {
+		"authors": [
+			"Mark85296341",
+			"Simon Shek",
+			"LNDDYL",
+			"Liuxinyu970226",
+			"Cwlin0416"
+		]
+	},
+	"sudo": "登入至另一個使用者的帳號",
+	"unsudo": "返回到您的帳號",
+	"sudo-desc": "允許sudo者以其他使用者身份登入",
+	"sudo-personal-unsudo": "返回到您的帳號",
+	"sudo-form": "登入至：",
+	"sudo-user": "使用者名稱：",
+	"sudo-reason": "原因：",
+	"sudo-submit": "登入",
+	"sudo-unsudo": "歡迎 $1 ，您當前以$2的身份登入到wiki。單擊“{{int:sudo-unsudo-submit}}”以返回到您自己的登入。",
+	"sudo-unsudo-submit": "返回",
+	"sudo-success": "歡迎$1，您當前已經以$2的身份登錄到wiki。",
+	"sudo-error": "Sudo錯誤：$1",
+	"sudo-error-sudo-invaliduser": "無效的使用者名稱",
+	"sudo-error-sudo-ip": "不能登錄到IP地址",
+	"sudo-error-sudo-nonexistent": "該使用者不存在",
+	"sudo-error-sudo-self": "無法sudo到您自己",
+	"sudo-error-nosudo": "你似乎不在sudo登錄中",
+	"sudo-logpagename": "Sudo日誌",
+	"sudo-logpagetext": "這是所有使用sudo的日誌。",
+	"sudo-logentry": "登入到 $2 的帳號",
+	"right-sudo": "登入到另一個使用者的帳戶"
+}

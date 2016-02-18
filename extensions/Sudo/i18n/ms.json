@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Anakmalaysia"
+		]
+	},
+	"sudo": "Log masuk ke dalam akaun pengguna lain",
+	"unsudo": "Kembali ke akaun anda",
+	"sudo-desc": "Membolehkan ahli sudo untuk log masuk sebagai pengguna lain",
+	"sudo-personal-unsudo": "Kembali ke akaun anda",
+	"sudo-form": "Log masuk ke dalam:",
+	"sudo-user": "Nama pengguna:",
+	"sudo-reason": "Sebab:",
+	"sudo-submit": "Log masuk",
+	"sudo-unsudo": "Selama datang $1, anda sedang log masuk ke dalam wiki sebagai $2. Klik \"{{int:sudo-unsudo-submit}}\" untuk kembali ke log masuk anda sendiri.",
+	"sudo-unsudo-submit": "Kembali",
+	"sudo-success": "Selamat datang $1; kini, anda log masuk ke dalam wiki sebagai $2.",
+	"sudo-error": "Ralat sudo: $1",
+	"sudo-error-sudo-invaliduser": "Nama pengguna tidak sah",
+	"sudo-error-sudo-ip": "Tidak dapat log masuk ke dalam alamat IP",
+	"sudo-error-sudo-nonexistent": "Pengguna itu tidak wujud",
+	"sudo-error-sudo-self": "Tidak boleh bersudo ke dalam diri sendiri",
+	"sudo-error-nosudo": "Nampaknya anda tidak log masuk secara sudo",
+	"sudo-logpagename": "Log sudo",
+	"sudo-logpagetext": "Ini ialah log semua pengguna sudo.",
+	"sudo-logentry": "log masuk ke dalam akaun $2",
+	"right-sudo": "Log masuk ke dalam akaun pengguna lain"
+}

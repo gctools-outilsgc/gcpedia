@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"KlaudiuMihaila"
+		]
+	},
+	"charinsert-desc": "Permite crearea unei cutii JavaScript pentru [[MediaWiki:Edittools|inserarea caracterelor nestandard]]"
+}

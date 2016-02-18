@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Harald Khan",
+			"Njardarlogar"
+		]
+	},
+	"charinsert-desc": "Gjer det mogleg å setja inn [[MediaWiki:Edittools|spesialteikn]] i endringsruta ved hjelp av JavaScript"
+}

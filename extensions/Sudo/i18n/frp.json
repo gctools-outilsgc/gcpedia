@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"ChrisPtDe"
+		]
+	},
+	"sudo": "Branchiéd-vos u compto a un ôtro usanciér",
+	"unsudo": "Retôrn a voutron compto",
+	"sudo-desc": "Pèrmèt ux usanciérs sudô de sè branchiér coment un ôtro usanciér.",
+	"sudo-personal-unsudo": "Retôrn a voutron compto",
+	"sudo-form": "Branchement a :",
+	"sudo-user": "Nom d’utilisator :",
+	"sudo-reason": "Rêson :",
+	"sudo-submit": "Branchement",
+	"sudo-unsudo-submit": "Retôrn",
+	"sudo-success": "Benvegnua $1, vos éte ora branchiê u vouiqui coment $2.",
+	"sudo-error": "Èrror sudô : $1",
+	"sudo-error-sudo-invaliduser": "Nom d’usanciér envalido",
+	"sudo-error-sudo-ip": "Sè pôt pas branchiér a una adrèce IP",
+	"sudo-error-sudo-nonexistent": "Cél usanciér ègziste pas",
+	"sudo-error-sudo-self": "Empossiblo de sè branchiér ''per sudô'' sur son prôpro compto",
+	"sudo-error-nosudo": "Vos semblâd pas étre dens un branchement sudô",
+	"sudo-logpagename": "Historico sudô",
+	"sudo-logpagetext": "O est un historico de tôs los usâjos de ''sudô''.",
+	"sudo-logentry": "branchiê u compto $2",
+	"right-sudo": "Branchement u compto a un ôtro usanciér"
+}

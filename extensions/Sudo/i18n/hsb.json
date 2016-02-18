@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"sudo": "Ke kontu druheho wužiwarja so přizjewić",
+	"unsudo": "Wróćo k twojemu kontu",
+	"sudo-desc": "Zmóžnja přizjewjenje wužiwarjow jako druzy wužiwarjo z pomuc přikaza \"sudo\"",
+	"sudo-personal-unsudo": "Wróćo k twojemu kontu",
+	"sudo-form": "Přizjewić so jako:",
+	"sudo-user": "Wužiwarske mjeno:",
+	"sudo-reason": "Přičina:",
+	"sudo-submit": "Přizjewjenje",
+	"sudo-unsudo": "Witaj $1, sy tuchwilu we wikiju jako $2 přizjewjeny. Klikń na \"{{int:sudo-unsudo-submit}}\", zo by so k swójskemu přizjewjenju wróćił.",
+	"sudo-unsudo-submit": "Wróćić so",
+	"sudo-success": "Witaj $1, sy nětko pola wikija $2 přizjewjeny.",
+	"sudo-error": "Sudo-zmylk: $1",
+	"sudo-error-sudo-invaliduser": "Njepłaćiwe wužiwarske mjeno",
+	"sudo-error-sudo-ip": "Přizjewjenje z IP-adresu njeje móžno",
+	"sudo-error-sudo-nonexistent": "Tón wužiwar njeeksistuje",
+	"sudo-error-sudo-self": "Njemóžeš so samoho přez \"sudo\" přizjewić",
+	"sudo-error-nosudo": "Zda so, zo njesy přez \"sudo\" přizjewjeny",
+	"sudo-logpagename": "Sudo-protokol",
+	"sudo-logpagetext": "To je protokol wšěch wužićow sudo.",
+	"sudo-logentry": "je so pola konta $2 přizjewił",
+	"right-sudo": "Pola konta druheho wužiwarja so přizjewić"
+}

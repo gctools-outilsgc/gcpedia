@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"DCamer",
+			"Okras"
+		]
+	},
+	"sudo": "Войти в учетную запись другого пользователя",
+	"unsudo": "Вернуться к вашей учётной записи",
+	"sudo-desc": "Позволяет судоерам войти в качестве другого пользователей",
+	"sudo-personal-unsudo": "Вернуться к вашей учетной записи",
+	"sudo-form": "Войти:",
+	"sudo-user": "Имя участника:",
+	"sudo-reason": "Причина:",
+	"sudo-submit": "Представиться",
+	"sudo-unsudo": "Приветствуем $1, вы вошли как $2. Нажмите \"{{int:sudo-unsudo-submit}}\" чтобы вернуться в свою учётную запись.",
+	"sudo-unsudo-submit": "Вернуться",
+	"sudo-success": "Приветствуем $1, вы вошли как $2.",
+	"sudo-error": "Судо-ошибка: $1",
+	"sudo-error-sudo-invaliduser": "Неправильное имя участника",
+	"sudo-error-sudo-ip": "Не удалось войти в IP-адрес",
+	"sudo-error-sudo-nonexistent": "Целевой участник не существует.",
+	"sudo-error-sudo-self": "Нельзя войти в себя",
+	"sudo-error-nosudo": "Вы не представились в Sudo",
+	"sudo-logpagename": "Журнал Sudo",
+	"sudo-logpagetext": "Это журнал всех использований Sudo.",
+	"sudo-logentry": "вошел в учетную запись $2",
+	"right-sudo": "Войти в учетную запись другого пользователя"
+}

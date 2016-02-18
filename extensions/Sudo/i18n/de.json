@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kghbln",
+			"The Evil IP address"
+		]
+	},
+	"sudo": "Mit anderem Benutzerkonto anmelden",
+	"unsudo": "Zum eigenen Benutzerkonto zurückkehren",
+	"sudo-desc": "Ermöglicht die Anmeldung mit einem anderen Benutzerkonto als dem Eigenen",
+	"sudo-personal-unsudo": "Zum eigenen Benutzerkonto zurückkehren",
+	"sudo-form": "Anmelden als:",
+	"sudo-user": "Benutzername:",
+	"sudo-reason": "Grund:",
+	"sudo-submit": "Anmelden",
+	"sudo-unsudo": "Willkommen $1, du bist momentan als Benutzer „$2“ im Wiki angemeldet. Klicke auf „{{int:sudo-unsudo-submit}}“, um zu deinem eigenen Benutzerkonto zurückzukehren.",
+	"sudo-unsudo-submit": "Zurückkehren",
+	"sudo-success": "Willkommen $1, du bist jetzt im Wiki als Benutzer „$2“ angemeldet.",
+	"sudo-error": "Sudo-Fehler: $1",
+	"sudo-error-sudo-invaliduser": "Ungültiger Benutzername",
+	"sudo-error-sudo-ip": "Man kann sich nicht mit einer IP-Adresse anmelden",
+	"sudo-error-sudo-nonexistent": "Dieser Benutzer ist nicht vorhanden",
+	"sudo-error-sudo-self": "Man kann sich nicht noch einmal selbst anmelden",
+	"sudo-error-nosudo": "Du scheinst nicht mit einem anderen Benutzerkonto angemeldet zu sein",
+	"sudo-logpagename": "Sudo-Logbuch",
+	"sudo-logpagetext": "Dies ist das Logbuch aller Verwendungen von „sudo“.",
+	"sudo-logentry": "hat sich mit dem Benutzerkonto von $2 angemeldet",
+	"right-sudo": "Mit anderem Benutzerkonto anmelden"
+}

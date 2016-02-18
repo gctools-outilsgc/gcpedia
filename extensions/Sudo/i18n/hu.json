@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dani"
+		]
+	},
+	"sudo-personal-unsudo": "Vissza a saját fiókodhoz",
+	"sudo-form": "Bejelentkezés ide:",
+	"sudo-user": "Felhasználónév:",
+	"sudo-reason": "Ok:",
+	"sudo-submit": "Bejelentkezés",
+	"sudo-unsudo-submit": "Visszatérés"
+}

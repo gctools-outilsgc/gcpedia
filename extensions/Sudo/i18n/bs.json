@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"CERminator"
+		]
+	},
+	"sudo": "Prijava na račun drugog korisnika",
+	"unsudo": "Nazad na svoj račun",
+	"sudo-desc": "Omogućuje sudo korisnicima da se prijave kao neki drugi korisnik",
+	"sudo-personal-unsudo": "Nazad na svoj račun",
+	"sudo-form": "Prijava na:",
+	"sudo-user": "Korisničko ime:",
+	"sudo-reason": "Razlog:",
+	"sudo-submit": "Prijava",
+	"sudo-unsudo": "Dobrodošli $1, trenutno ste prijavljeni na wiki kao $2. Kliknite na \"{{int:sudo-unsudo-submit}}\" da se vratite na vaš vlastiti račun.",
+	"sudo-unsudo-submit": "Nazad",
+	"sudo-success": "Dobrodošli $1, sada ste prijavljeni na wiki kao $2.",
+	"sudo-error": "Sudo greška: $1",
+	"sudo-error-sudo-invaliduser": "Nevaljano korisničko ime",
+	"sudo-error-sudo-ip": "Ne mogu se prijaviti na IP adresu",
+	"sudo-error-sudo-nonexistent": "Ovaj korisnik ne postoji.",
+	"sudo-error-sudo-self": "Ne možete prijaviti samog sebe",
+	"sudo-error-nosudo": "Izgleda da se ne nalazite unutar sudo prijave",
+	"sudo-logpagename": "Sudo zapisnik",
+	"sudo-logpagetext": "Ovo je zapisnik svih sudo korištenja.",
+	"sudo-logentry": "prijavljen na račun od $2",
+	"right-sudo": "Prijavljivanje na račun drugog korisnika"
+}

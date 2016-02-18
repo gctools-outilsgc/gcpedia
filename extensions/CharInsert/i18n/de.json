@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kghbln",
+			"Raimond Spekking"
+		]
+	},
+	"charinsert-desc": "Ermöglicht die Erstellung einer JavaScript-gesteuerten Leiste zum [[MediaWiki:Edittools|Einfügen von Sonderzeichen]]"
+}

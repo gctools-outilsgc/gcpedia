@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Li-sung"
+		]
+	},
+	"charinsert-desc": "Umožňuje vytvoření JavaScriptového políčka, které zjednodušuje [[MediaWiki:Edittools|vkládání neobvyklých znaků]]"
+}

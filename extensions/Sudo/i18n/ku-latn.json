@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"George Animal"
+		]
+	},
+	"sudo-user": "Navê bikarhêner:",
+	"sudo-reason": "Sedem:",
+	"sudo-submit": "Têketin",
+	"sudo-error-sudo-nonexistent": "Ev bikarhêner tune ye"
+}

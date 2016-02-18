@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Als-Holder"
+		]
+	},
+	"sudo": "Mit eme andere Benutzerkonto aamälde",
+	"unsudo": "Zum eigene Benutzerkonto zruckchehre",
+	"sudo-desc": "Macht d Aamäldig megli mit eme anderen Benutzerkonto („sudo“)",
+	"sudo-personal-unsudo": "Zum eigene Benutzerkonto zruckchehre",
+	"sudo-form": "Aamälden as:",
+	"sudo-user": "Benutzername:",
+	"sudo-reason": "Grund:",
+	"sudo-submit": "Aamälde",
+	"sudo-unsudo": "Willchuu $1, Du bisch zurzyt as Benutzer „$2“ im Wiki aagmäldet. Klick uf „{{int:sudo-unsudo-submit}}“ go zue Dyym eigen Benutzerkonto zruckchehre.",
+	"sudo-unsudo-submit": "Zruckchehre",
+	"sudo-success": "Willchuu $1, Du bisch jetz im Wiki as Benutzer „$2“ aagmäldet.",
+	"sudo-error": "Sudo-Fäler: $1",
+	"sudo-error-sudo-invaliduser": "Nit giltige Benutzername",
+	"sudo-error-sudo-ip": "Mer cha sich nit mit ere IP-Adräss aamälde",
+	"sudo-error-sudo-nonexistent": "Dää Benutzer git s nit.",
+	"sudo-error-sudo-self": "Mer cha sich nit nomol sälber aamälde",
+	"sudo-error-nosudo": "Du bisch schyns nit mit eme andere Benutzerkonto aagmäldet",
+	"sudo-logpagename": "Sudo-Logbuech",
+	"sudo-logpagetext": "Des isch s Logbuech vu allne Verwändige vu „sudo“.",
+	"sudo-logentry": "het sich mit em Benutzerkonto vu $2 aagmäldet",
+	"right-sudo": "Mit eme andere Benutzerkonto aamälde"
+}

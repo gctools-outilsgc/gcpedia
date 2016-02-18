@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Amire80"
+		]
+	},
+	"sudo": "להיכנס לחשבון של משתמש אחר",
+	"unsudo": "חזרה לחשבונכם",
+	"sudo-desc": "מאפשר למשתמשים מורשים (sudoers) להיכנס בתור משתמשים אחרים",
+	"sudo-personal-unsudo": "חזרה לחשבונכם",
+	"sudo-form": "להיכנס אל:",
+	"sudo-user": "שם המשתמש:",
+	"sudo-reason": "סיבה:",
+	"sudo-submit": "להיכנס",
+	"sudo-unsudo": "ברוך בואכם, $1, עכשיו אתם בחשבון בתור $2. לחצו על \"{{int:sudo-unsudo-submit}}\" כדי לחזור לחשבונכם.",
+	"sudo-unsudo-submit": "חזרה",
+	"sudo-success": "ברוכים הבאים, $1, עכשיו נכנסתם לוויקי בתור $2.",
+	"sudo-error": "שגיאת מעבר חשבון: $1",
+	"sudo-error-sudo-invaliduser": "שם משתמש בלתי־תקין",
+	"sudo-error-sudo-ip": "לא ניתן להיכנס לכתובת IP",
+	"sudo-error-sudo-nonexistent": "המשתמש אינו קיים",
+	"sudo-error-sudo-self": "לא ניתן לעבור לאותו החשבון",
+	"sudo-error-nosudo": "לא נראה שאתם במצב מעבר חשבון",
+	"sudo-logpagename": "יומן מעבר חשבון",
+	"sudo-logpagetext": "זהו יומן של כל השימושים במעבר חשבון",
+	"sudo-logentry": "נכנס לחשבון $2",
+	"right-sudo": "כניסה לחשבון של משתמש אחר"
+}

@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"AnakngAraw",
+			"Jojit fb"
+		]
+	},
+	"sudo": "Maglogin papasok sa iba pang account ng tagagamit",
+	"unsudo": "Bumalik sa account mo",
+	"sudo-desc": "Nagpapahintulot sa mga nagsu-sudo na lumagda bilang ibang mga tagagamit",
+	"sudo-personal-unsudo": "Bumalik sa account mo",
+	"sudo-form": "Lumagda sa:",
+	"sudo-user": "Pangalan ng tagagamit:",
+	"sudo-reason": "Dahilan:",
+	"sudo-submit": "Mag-login",
+	"sudo-unsudo": "Maligayang pagdating $1, pangkasalukuyang nakalagda ka sa wiki bilang si $2. Pindutin ang  \"{{int:sudo-unsudo-submit}}\" bumalik sa pansarili mong paglagda.",
+	"sudo-unsudo-submit": "Bumalik",
+	"sudo-success": "Maligayang pagdating $1, nakalagda ka na ngayon sa wiki bilang si $2.",
+	"sudo-error": "Kamalian ng sudo: $1",
+	"sudo-error-sudo-invaliduser": "Hindi katanggap-tanggap na pangalan ng tagagamit",
+	"sudo-error-sudo-ip": "Hindi makalagda papunta sa isang tirahan ng IP",
+	"sudo-error-sudo-nonexistent": "Hindi umiiral ang tagagamit na iyan",
+	"sudo-error-sudo-self": "Hindi maaaring magsudo na papasok sa sarili mo",
+	"sudo-error-nosudo": "Tila wala ka sa loob ng isang paglagda ng sudo",
+	"sudo-logpagename": "Talaan ng sudo",
+	"sudo-logpagetext": "Isa itong talaan ng lahat ng mga pinaggagamitan ng sudo.",
+	"sudo-logentry": "nakalagda sa account ni $2",
+	"right-sudo": "Mag-login papasok sa iba pang account ng tagagamit"
+}

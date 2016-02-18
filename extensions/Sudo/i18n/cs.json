@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Vks"
+		]
+	},
+	"sudo-submit": "Přihlásit se",
+	"sudo-error-sudo-invaliduser": "Neplatné uživatelské jméno",
+	"sudo-logpagename": "Sudo log"
+}

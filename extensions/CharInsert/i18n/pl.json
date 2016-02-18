@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Derbeth",
+			"Sp5uhe"
+		]
+	},
+	"charinsert-desc": "Umożliwia stworzenie z użyciem JavaScriptu ramki z linkami [[MediaWiki:Edittools|wstawiającymi niestandardowe znaki]]"
+}

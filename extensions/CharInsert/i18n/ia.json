@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"McDutchie"
+		]
+	},
+	"charinsert-desc": "Permitte crear un quadro JavaScript pro [[MediaWiki:Edittools|inserer characteres non-standard]]"
+}

@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Sp5uhe",
+			"Pio387"
+		]
+	},
+	"sudo": "Zaloguj się jako inny użytkownik",
+	"unsudo": "Powróć do własnego konta",
+	"sudo-desc": "Pozwala wybranym użytkownikom logować się na konta innych",
+	"sudo-personal-unsudo": "Powrócić do własnego konta",
+	"sudo-form": "Zaloguj się jako",
+	"sudo-user": "Nazwa użytkownika",
+	"sudo-reason": "Powód",
+	"sudo-submit": "Zaloguj",
+	"sudo-unsudo": "Witaj $1. Jesteś obecnie zalogowany do wiki jako $2. Kliknij „{{int:sudo-unsudo-submit}}”, a wrócisz do swojego własnego konta.",
+	"sudo-unsudo-submit": "Wróć",
+	"sudo-success": "Witaj $1. Jesteś teraz zalogowany do wiki jako $2.",
+	"sudo-error": "Błąd zmiany zalogowania $1",
+	"sudo-error-sudo-invaliduser": "Nieprawidłowa nazwa użytkownika",
+	"sudo-error-sudo-ip": "Nie można zalogować się jako adres IP",
+	"sudo-error-sudo-nonexistent": "Taki użytkownik nie istnieje",
+	"sudo-error-sudo-self": "Nie można przelogować się na własne konto",
+	"sudo-error-nosudo": "Nie wygląda na to abyś był zalogowany na inne konto",
+	"sudo-logpagename": "Rejestr zmian zalogowania się",
+	"sudo-logpagetext": "Jest to rejestr wszystkich zdarzeń zmian zalogowania się.",
+	"sudo-logentry": "zalogowany jako $2",
+	"right-sudo": "Zaloguj się jako inny użytkownik"
+}

@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aotake",
+			"JtFuruhata",
+			"Shirayuki"
+		]
+	},
+	"charinsert-desc": "[[MediaWiki:Edittools|特殊文字の挿入]]を補助する JavaScript ボックスを作成できるようにする"
+}

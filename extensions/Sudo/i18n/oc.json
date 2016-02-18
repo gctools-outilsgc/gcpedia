@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Cedric31"
+		]
+	},
+	"sudo": "Connectatz-vos al compte d'un autre utilizaire",
+	"unsudo": "Retorn a vòstre compte",
+	"sudo-desc": "Permet al ''sudoers'' de se connectar en tant qu'un autre utilizaire",
+	"sudo-personal-unsudo": "Retorn a vòstre compte",
+	"sudo-form": "Connexion a :",
+	"sudo-user": "Nom d'utilizaire :",
+	"sudo-reason": "Rason :",
+	"sudo-submit": "Connexion",
+	"sudo-unsudo": "Benvenguda $1, sètz actualament connectat al wiki en tant que $2. Clicatz sus {{int:sudo-unsudo-submit}} per tornar a vòstra connexion precedenta.",
+	"sudo-unsudo-submit": "Retorn",
+	"sudo-success": "Benvenguda $1, ara sètz connectat al wiki en tant que $2.",
+	"sudo-error": "Error de ''sudo'': $1",
+	"sudo-error-sudo-invaliduser": "Nom d'utilizaire invalid",
+	"sudo-error-sudo-ip": "Se pòt pas connectar a una adreça IP",
+	"sudo-error-sudo-nonexistent": "Aqueste utilizaire existís pas",
+	"sudo-error-sudo-self": "Impossible de s'identificar ''via sudo'' sus son pròpri compte",
+	"sudo-error-nosudo": "Sembla que sètz pas dins una connexion sudo",
+	"sudo-logpagename": "Istoric de ''sudo''",
+	"sudo-logpagetext": "Aquò's un istoric de totas las utilizacions de ''sudo''.",
+	"sudo-logentry": "connectat al compte $2",
+	"right-sudo": "Connexion al compte d'un autre utilizaire"
+}

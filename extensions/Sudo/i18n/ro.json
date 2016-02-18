@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Minisarm",
+			"Stelistcristi"
+		]
+	},
+	"sudo": "Autentificați-vă în contul de utilizator al altcuiva",
+	"unsudo": "Reveniți la contul dumneavoastră",
+	"sudo-personal-unsudo": "Reveniți la contul dumneavoastră",
+	"sudo-form": "Autentificare la:",
+	"sudo-user": "Nume de utilizator:",
+	"sudo-reason": "Motiv:",
+	"sudo-submit": "Autentificare",
+	"sudo-unsudo": "Bine ați venit $1, sunteți în prezent autentificat pe wiki ca $2. Clic pe „{{int:sudo-unsudo-submit}}” pentru a vă întoarce la propriul dumneavoastră cont.",
+	"sudo-unsudo-submit": "Înapoi",
+	"sudo-success": "Bine ați venit $1, sunteți autentificat în wiki sub numele $2.",
+	"sudo-error": "Eroare sudo: $1",
+	"sudo-error-sudo-invaliduser": "Nume de utilizator incorect",
+	"sudo-error-sudo-nonexistent": "Acel utilizator nu există"
+}

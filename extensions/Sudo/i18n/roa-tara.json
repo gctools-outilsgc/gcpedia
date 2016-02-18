@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Joetaras"
+		]
+	},
+	"sudo-form": "Tràse jndr'à:",
+	"sudo-reason": "Mutive:",
+	"sudo-submit": "Tràse",
+	"sudo-unsudo-submit": "Tuèrne"
+}

@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ahmed-Najib-Biabani-Ibrahimkhel"
+		]
+	},
+	"sudo-user": "کارن-نوم:",
+	"sudo-reason": "سبب:",
+	"sudo-submit": "ننوتل",
+	"sudo-error-sudo-invaliduser": "ناسم کارن-نوم"
+}

@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Robby"
+		]
+	},
+	"sudo": "Mat engem anere Benotzerkont aloggen",
+	"unsudo": "Zréck op Äre Benotzerkont",
+	"sudo-personal-unsudo": "Zréck op Äre Benotzerkont",
+	"sudo-form": "Aloggen als:",
+	"sudo-user": "Benotzernumm:",
+	"sudo-reason": "Grond:",
+	"sudo-submit": "Aloggen",
+	"sudo-unsudo-submit": "Zréck",
+	"sudo-error": "Sudo-Feeler: $1",
+	"sudo-error-sudo-invaliduser": "Ongëltege Benotzernumm",
+	"sudo-error-sudo-ip": "Däerf sech nat mat enger IP-Adress umellen",
+	"sudo-error-sudo-nonexistent": "Dee Benotzer gëtt et net.",
+	"sudo-logpagename": "Sudo-Logbuch",
+	"right-sudo": "Alogge mat engem anere sengem Benotzerkont"
+}

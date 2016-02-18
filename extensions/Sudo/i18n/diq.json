@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Erdemaslancan",
+			"Mirzali"
+		]
+	},
+	"sudo-user": "Nameyê karberi:",
+	"sudo-reason": "Sebeb:",
+	"sudo-submit": "Cıkewtış",
+	"sudo-logpagename": "Sudo kewê"
+}

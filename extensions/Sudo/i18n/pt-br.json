@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Luckas",
+			"Luckas Blade",
+			"555"
+		]
+	},
+	"sudo": "Autenticar-se na conta de outro usuário",
+	"unsudo": "Voltar à sua conta",
+	"sudo-desc": "Permite iniciar sessão como outro usuário",
+	"sudo-personal-unsudo": "Voltar à sua conta",
+	"sudo-form": "Entrar como:",
+	"sudo-user": "Nome de usuário:",
+	"sudo-reason": "Motivo:",
+	"sudo-submit": "Entrar",
+	"sudo-unsudo": "Bem-vindo(a) $1, você se autenticou no wiki como $2.\nClique em \"{{int:sudo-unsudo-submit}}\" para voltar à sua conta original.",
+	"sudo-unsudo-submit": "Voltar",
+	"sudo-success": "Bem-vindo(a) $1, você se autenticou no wiki como $2.",
+	"sudo-error": "Erro: $1",
+	"sudo-error-sudo-invaliduser": "Nome de usuário inválido",
+	"sudo-error-sudo-ip": "Não é possível se autenticar como um IP",
+	"sudo-error-sudo-nonexistent": "Usuário inexistente",
+	"sudo-error-sudo-self": "Não é possível entrar na própria conta",
+	"sudo-error-nosudo": "Você não parece estar autenticado como outro usuário via sudo.",
+	"sudo-logpagename": "Registros de sudo",
+	"sudo-logpagetext": "Segue-se registro de todos os usos de sudo.",
+	"sudo-logentry": "autenticou-se na conta $2",
+	"right-sudo": "Se autenticar em contas de outros usuários"
+}

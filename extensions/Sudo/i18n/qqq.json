@@ -1,0 +1,26 @@
+{
+	"@metadata": {
+		"authors": [
+			"EugeneZelenko",
+			"Shirayuki",
+			"The Evil IP address",
+			"Umherirrender"
+		]
+	},
+	"sudo": "{{doc-special|Sudo}}",
+	"sudo-desc": "{{desc|name=Sudo|url=https://www.mediawiki.org/wiki/Extension:Sudo}}",
+	"sudo-user": "{{Identical|Username}}",
+	"sudo-reason": "{{Identical|Reason}}",
+	"sudo-submit": "{{Identical|Login}}",
+	"sudo-unsudo": "{{doc-important|Do not translate <code><nowiki>{{int:sudo-unsudo-submit}}</nowiki></code>.}}\nRefers to {{msg-mw|Sudo-unsudo-submit}}.\n\nUsed as welcome message. Parameters:\n* $1 - username of super user (with link)\n* $2 - username (with link)\nSee also:\n* {{msg-mw|Sudo-success}}",
+	"sudo-unsudo-submit": "Used as label for Submit button.\n\nUsed in {{msg-mw|Sudo-unsudo}}.\n{{Identical|Return}}",
+	"sudo-success": "Used as welcome message. Parameters:\n* $1 - username of super user (with link)\n* $2 - username (with link)\nSee also:\n* {{msg-mw|Sudo-unsudo}}",
+	"sudo-error": "Used as error message. Parameters:\n* $1 - error message. Any one of the following messages:\n** {{msg-mw|Sudo-error-sudo-invaliduser}}\n** {{msg-mw|Sudo-error-sudo-ip}}\n** {{msg-mw|Sudo-error-sudo-nonexistent}}\n** {{msg-mw|Sudo-error-sudo-self}}\n** {{msg-mw|Sudo-error-nosudo}}",
+	"sudo-error-sudo-invaliduser": "Used as <code>$1</code> in {{msg-mw|Sudo-error}}.\n{{Identical|Invalid username}}",
+	"sudo-error-sudo-ip": "Used as <code>$1</code> in {{msg-mw|Sudo-error}}.",
+	"sudo-error-sudo-nonexistent": "Used as <code>$1</code> in {{msg-mw|Sudo-error}}.",
+	"sudo-error-sudo-self": "Used as <code>$1</code> in {{msg-mw|Sudo-error}}.",
+	"sudo-error-nosudo": "Used as <code>$1</code> in {{msg-mw|Sudo-error}}.",
+	"sudo-logentry": "Parameters\n* $2 - username",
+	"right-sudo": "{{doc-right|sudo}}"
+}

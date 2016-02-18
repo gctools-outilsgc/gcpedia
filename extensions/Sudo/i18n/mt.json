@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Chrisportelli"
+		]
+	},
+	"unsudo": "Lura għall-kont tiegħek",
+	"sudo-personal-unsudo": "Lura għall-kont tiegħek",
+	"sudo-form": "Idħol f':",
+	"sudo-user": "Isem tal-utent:",
+	"sudo-reason": "Raġuni:"
+}

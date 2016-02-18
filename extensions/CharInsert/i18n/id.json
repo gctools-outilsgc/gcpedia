@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"IvanLanin"
+		]
+	},
+	"charinsert-desc": "Mengizinkan pembuatan kotak JavaScript untuk [[MediaWiki:Edittools|menyisipkan karakter non-standar]]"
+}

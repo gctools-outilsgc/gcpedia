@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Meithal",
+			"Urhixidur",
+			"Verdy p"
+		]
+	},
+	"charinsert-desc": "Permet la création d’une boîte JavaScript pour l’[[MediaWiki:Edittools|insertion de caractères absents des claviers usuels]]"
+}

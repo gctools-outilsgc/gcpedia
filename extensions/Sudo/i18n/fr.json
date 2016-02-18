@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Otourly",
+			"Sherbrooke"
+		]
+	},
+	"sudo": "Connectez-vous au compte d'un autre utilisateur",
+	"unsudo": "Retour à votre compte",
+	"sudo-desc": "Permet au ''sudoers'' de se connecter en tant qu'un autre utilisateur",
+	"sudo-personal-unsudo": "Retour à votre compte",
+	"sudo-form": "Connexion à:",
+	"sudo-user": "Nom d’utilisateur :",
+	"sudo-reason": "Raison :",
+	"sudo-submit": "Connexion",
+	"sudo-unsudo": "Bienvenue $1, vous êtes actuellement connecté au wiki en tant que $2. Cliquez sur {{int:sudo-unsudo-submit}} pour revenir à votre connexion précédente.",
+	"sudo-unsudo-submit": "Retour",
+	"sudo-success": "Bienvenue $1, vous êtes maintenant connecté au wiki en tant que $2.",
+	"sudo-error": "Erreur de ''sudo'': $1",
+	"sudo-error-sudo-invaliduser": "Nom d’utilisateur invalide",
+	"sudo-error-sudo-ip": "Ne peut se connecter à une adresse IP",
+	"sudo-error-sudo-nonexistent": "Cet utilisateur n'existe pas",
+	"sudo-error-sudo-self": "Impossible de s'identifier ''via sudo'' sur son propre compte",
+	"sudo-error-nosudo": "Vous ne semblez pas être dans une connexion sudo",
+	"sudo-logpagename": "Historique de ''sudo''",
+	"sudo-logpagetext": "Ceci est un historique de toutes les utilisations de ''sudo''.",
+	"sudo-logentry": "connecté au compte $2",
+	"right-sudo": "Connexion au compte d'un autre utilisateur"
+}

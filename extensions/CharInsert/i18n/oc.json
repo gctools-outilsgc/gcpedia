@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Cedric31"
+		]
+	},
+	"charinsert-desc": "Permet la creacion d’una bóstia JavaScript per [[MediaWiki:Edittools|l’insercion de caractèrs pas estandards]]"
+}

@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bjankuloski06"
+		]
+	},
+	"sudo": "Најава со туѓа сметка",
+	"unsudo": "Назад на својата сметка",
+	"sudo-desc": "Им овозможува на корисниците на Sudo да се најавуваат со туѓи сметки",
+	"sudo-personal-unsudo": "Назад на својата сметка",
+	"sudo-form": "Најава на:",
+	"sudo-user": "Корисничко име:",
+	"sudo-reason": "Причина:",
+	"sudo-submit": "Најава",
+	"sudo-unsudo": "Добре дојдовте, $1. Моментално сте најавени на викито како $2. За да се вратите на вашата сопствена сметка, стиснете на „{{int:sudo-unsudo-submit}}“.",
+	"sudo-unsudo-submit": "Назад",
+	"sudo-success": "Добре дојдовте, $1. Сега сте најавени на викито како $2.",
+	"sudo-error": "Грешка во Sudo: $1",
+	"sudo-error-sudo-invaliduser": "Неважечко корисничко име",
+	"sudo-error-sudo-ip": "Не можете да се најавите на IP-адреса",
+	"sudo-error-sudo-nonexistent": "Нема таков корисник.",
+	"sudo-error-sudo-self": "Не можете да се најавите на својата сметка како на туѓа",
+	"sudo-error-nosudo": "Се чини дека не сте во Sudo-сметка",
+	"sudo-logpagename": "Дневник на Sudo",
+	"sudo-logpagetext": "Ова е дневник на сите употреби на Sudo",
+	"sudo-logentry": "најава на сметката на $2",
+	"right-sudo": "Најавување на туѓа сметка"
+}

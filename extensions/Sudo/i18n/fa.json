@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Armin1392",
+			"Ebraminio",
+			"Mjbmr"
+		]
+	},
+	"sudo": "ورود به حساب کاربری دیگری",
+	"unsudo": "بازگشت به حساب شما",
+	"sudo-desc": "اجازه به سودوئرها برای ورود به عنوان کاربران دیگر",
+	"sudo-personal-unsudo": "بازگشت به حساب شما",
+	"sudo-form": "ورود به:",
+	"sudo-user": "نام کاربری:",
+	"sudo-reason": "دلیل:",
+	"sudo-submit": "ورود به سامانه",
+	"sudo-unsudo": "خوش‌ آمدید $1، شما در حال حاضر به عنوان $2 وارد ویکی شده‌اید. بر روی \"{{int:sudo-unsudo-submit}}\" برای بازگشت به حساب کاربری خود، کلیک کنید.",
+	"sudo-unsudo-submit": "بازگشت",
+	"sudo-success": "خوش‌آمدید $1 ، شما در حال ورود به ویکی به عنوان $2 هستید.",
+	"sudo-error": "خطای سودو: $1",
+	"sudo-error-sudo-invaliduser": "نام کاربری نامعتبر",
+	"sudo-error-sudo-ip": "نمی‌توان به عنوان یک آدرس آی‌پی وارد شد",
+	"sudo-error-sudo-nonexistent": "آن کاربر وجود ندارد",
+	"sudo-error-sudo-self": "نتوانست سودو به خودتان",
+	"sudo-error-nosudo": "شما برای ورود به عنوان کاربر دیگری با استفاده از سودو، ظاهر نمی‌شوید.",
+	"sudo-logpagename": "سیاهه سودو",
+	"sudo-logpagetext": "این یک سیاهه همه استفاده‌ها از سودو است.",
+	"sudo-logentry": "ورود به حساب $2",
+	"right-sudo": "ورود به حساب کاربری دیگری"
+}

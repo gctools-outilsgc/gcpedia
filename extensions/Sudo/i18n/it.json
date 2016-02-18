@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Beta16",
+			"Darth Kule"
+		]
+	},
+	"sudo": "Entrare con un altro account utente",
+	"unsudo": "Ritorna al tuo account",
+	"sudo-desc": "Permette agli utenti autorizzati a farlo di effettuare l'accesso come altri utenti",
+	"sudo-personal-unsudo": "Ritorna al tuo account",
+	"sudo-form": "Accedi a:",
+	"sudo-user": "Nome utente:",
+	"sudo-reason": "Motivo:",
+	"sudo-submit": "Entra",
+	"sudo-unsudo": "Benvenuto $1, ora sei entrato in questo wiki come $2. Fai clic su \"{{int:sudo-unsudo-submit}}\" per tornare al tuo account.",
+	"sudo-unsudo-submit": "Ritorna",
+	"sudo-success": "Benvenuto $1, ora sei entrato in questo wiki come $2.",
+	"sudo-error": "Errore sudo: $1",
+	"sudo-error-sudo-invaliduser": "Nome utente non valido",
+	"sudo-error-sudo-ip": "Non è possibile effettuare l'accesso come indirizzo IP",
+	"sudo-error-sudo-nonexistent": "Questo utente non esiste",
+	"sudo-error-sudo-self": "Impossibile cambiare utente nel proprio",
+	"sudo-error-nosudo": "Non risulta che sei entrato come un altro utente usando sudo.",
+	"sudo-logpagename": "Registro sudo",
+	"sudo-logpagetext": "Questo è un registro di tutti gli usi di sudo.",
+	"sudo-logentry": "è entrato nell'account di $2",
+	"right-sudo": "Accede con un altro account utente"
+}

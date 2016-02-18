@@ -1,0 +1,22 @@
+{
+	"name": "CharInsert",
+	"author": "Brion Vibber",
+	"url": "https://www.mediawiki.org/wiki/Extension:CharInsert",
+	"descriptionmsg": "charinsert-desc",
+	"license-name": "GPL-2.0+",
+	"type": "parserhook",
+	"Hooks": {
+		"ParserFirstCallInit": [
+			"CharInsert::onParserFirstCallInit"
+		]
+	},
+	"MessagesDirs": {
+		"CharInsert": [
+			"i18n"
+		]
+	},
+	"AutoloadClasses": {
+		"CharInsert": "CharInsert.body.php"
+	},
+	"manifest_version": 1
+}

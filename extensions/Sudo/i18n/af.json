@@ -1,0 +1,16 @@
+{
+	"@metadata": {
+		"authors": [
+			"Naudefj"
+		]
+	},
+	"unsudo": "Keer terug na u eie gebruiker",
+	"sudo-personal-unsudo": "Keer terug na u eie gebruiker",
+	"sudo-form": "Meld aan as:",
+	"sudo-user": "Gebruikersnaam:",
+	"sudo-reason": "Rede:",
+	"sudo-submit": "Aanmeld",
+	"sudo-unsudo-submit": "Terug",
+	"sudo-error": "Sudo-fout: $1",
+	"sudo-error-sudo-invaliduser": "Ongeldige gebruikersnaam"
+}

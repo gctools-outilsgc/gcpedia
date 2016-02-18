@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"McDutchie"
+		]
+	},
+	"sudo": "Aperir session in le conto de un altere usator",
+	"unsudo": "Retornar al proprie conto",
+	"sudo-desc": "Permitte a \"transidentificatores\" de aperir session in le conto de altere usatores",
+	"sudo-personal-unsudo": "Retornar al proprie conto",
+	"sudo-form": "Aperir session como:",
+	"sudo-user": "Nomine de usator:",
+	"sudo-reason": "Motivo:",
+	"sudo-submit": "Aperir session",
+	"sudo-unsudo": "Benvenite $1, tu es ora identificate in le wiki como $2. Clicca super \"{{int:sudo-unsudo-submit}}\" pro retornar a tu proprie conto de usator.",
+	"sudo-unsudo-submit": "Retornar",
+	"sudo-success": "Benvenite $1, tu es ora identificate in le wiki como $2.",
+	"sudo-error": "Error de transidentification: $1",
+	"sudo-error-sudo-invaliduser": "Nomine de usator invalide",
+	"sudo-error-sudo-ip": "Non es possibile aperir session como un adresse IP",
+	"sudo-error-sudo-nonexistent": "Iste usator non existe",
+	"sudo-error-sudo-self": "Non es possibile transidentificar se con le proprie conto",
+	"sudo-error-nosudo": "Tu non pare esser in un session transidentificate",
+	"sudo-logpagename": "Registro de transidentification",
+	"sudo-logpagetext": "Isto es un registro de tote le usos del facilitate de transidentification.",
+	"sudo-logentry": "aperiva session in le conto de $2",
+	"right-sudo": "Aperir session in le conto de un altere usator"
+}

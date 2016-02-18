@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michaello"
+		]
+	},
+	"charinsert-desc": "Omogućava pravljenje javaskript kutijice za [[MediaWiki:Edittools|inserting non-standard characters]]"
+}

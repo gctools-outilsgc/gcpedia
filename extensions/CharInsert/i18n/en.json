@@ -1,0 +1,6 @@
+{
+    "@metadata": {
+        "authors": []
+    },
+    "charinsert-desc": "Allows creation of JavaScript box for [[MediaWiki:Edittools|inserting non-standard characters]]"
+}

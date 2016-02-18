@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"පසිඳු කාවින්ද"
+		]
+	},
+	"sudo": "වෙනත් පරිශීලකයෙකුගේ ගිණුමකට ප්‍රවිෂ්ට වන්න",
+	"unsudo": "ඔබේ ගිණුම වෙත ප්‍රත්‍යාගමනය කරන්න",
+	"sudo-desc": "sudoers හට වෙනත් පරිශීලකයන් ලෙස ප්‍රවිෂ්ට වීමට ඉඩ දෙන්න",
+	"sudo-personal-unsudo": "ඔබේ ගිණුම වෙත ප්‍රත්‍යාගමනය කරන්න",
+	"sudo-form": "වෙත ප්‍රවිෂ්ට වන්න:",
+	"sudo-user": "පරිශීලක නාමය:",
+	"sudo-reason": "හේතුව:",
+	"sudo-submit": "පිවිසෙන්න",
+	"sudo-unsudo-submit": "ප්‍රත්‍යාගමනය",
+	"sudo-error": "සුදෝ දෝෂය: $1",
+	"sudo-error-sudo-invaliduser": "වලංගු නොවන පරිශීලක නාමය",
+	"sudo-error-sudo-ip": "IP ලිපිනයක් ලෙස පිවිසිය නොහැක",
+	"sudo-error-sudo-nonexistent": "එම පරිශිලකයා නොපවතියි",
+	"sudo-error-sudo-self": "ඔබට sudo විය නොහැක",
+	"sudo-logpagename": "සුදෝ ලොගය",
+	"sudo-logpagetext": "මෙය සියලුම පරිශීලකයන්ගේ sudo හී ලොගයකි.",
+	"sudo-logentry": "$2 ගේ ගිණුමට ප්‍රවිෂ්ට වන්න",
+	"right-sudo": "වෙනත් පරිශීලකයෙකුගේ ගිණුමකට ප්‍රවිෂ්ට වන්න"
+}
