@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Pikne"
+		]
+	},
+	"usermerge-badolduser": "Vigane vana kasutajanimi",
+	"usermerge-badnewuser": "Vigane uus kasutajanimi",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2) on kustutatud.",
+	"usermerge-logpage": "Kasutaja ühendamislogi",
+	"usermerge-logpagetext": "See on kasutajaühendamistoimingute logi."
+}

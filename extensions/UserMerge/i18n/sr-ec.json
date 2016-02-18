@@ -1,0 +1,32 @@
+{
+	"@metadata": {
+		"authors": [
+			"Milicevic01",
+			"Rancher",
+			"Жељко Тодоровић",
+			"Михајло Анђелковић"
+		]
+	},
+	"usermerge": "Спаја и брише кориснике",
+	"usermerge-badolduser": "Неисправно старо корисничко име",
+	"usermerge-badnewuser": "Неисправно ново корисничко име",
+	"usermerge-noolduser": "Испразни старо корисничко име",
+	"usermerge-same-old-and-new-user": "Старо и ново корисничко име се морају разликовати.",
+	"usermerge-fieldset": "Корисничка имена за спајање",
+	"usermerge-olduser": "Стари корисник (спајање од):",
+	"usermerge-newuser": "Нови корисник (спајање са):",
+	"usermerge-deleteolduser": "Обриши старог корисника",
+	"usermerge-submit": "Споји корисника",
+	"usermerge-userdeleted": "$1 ($2) је {{GENDER:$1|обрисан|обрисана}}.",
+	"usermerge-userdeleted-log": "Обрисан корисник: $2 ($3)",
+	"usermerge-success": "Спајање {{GENDER:$1|$1}} ($2) са {{GENDER:$3|$3}} ($4) је завршено.",
+	"usermerge-success-log": "{{GENDER:$2|Корисник|Корисница}} $2 ($3) је {{GENDER:$2|спојен|спојена}} са {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Дневник спајања корисника",
+	"usermerge-logpagetext": "Ово је историја спајања корисника.",
+	"usermerge-noselfdelete": "Не можете да се обришете или спојите са {{GENDER:$1|самим собом}}!",
+	"usermerge-protectedgroup": "Није могуће спојити овог {{GENDER:$1|корисника}} са другим — налази се у заштићеној групи.",
+	"right-usermerge": "спајање корисника",
+	"action-usermerge": "спајање корисника",
+	"usermerge-autopagedelete": "Аутоматски обрисано због спајања корисника",
+	"usermerge-move-log": "Аутоматско премештање странице због спајања корисника „[[User:$1|$1]]“ у „[[User:$2|{{GENDER:$2|$2}}]]“"
+}
