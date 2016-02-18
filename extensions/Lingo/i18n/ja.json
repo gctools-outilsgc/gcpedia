@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Schu",
+			"Shirayuki"
+		]
+	},
+	"lingo-desc": "[[$1]] ページに定義された用語から、ページ上にヒントを表示する hover-over ツールを提供する",
+	"lingo-terminologypagename": "Terminology",
+	"lingo-noterminologypage": "ページ「$1」は存在しません。",
+	"lingo-terminologypagenotlocal": "ページ「$1」はローカルページではありません。"
+}

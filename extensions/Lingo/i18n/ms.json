@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Anakmalaysia"
+		]
+	},
+	"lingo-desc": "Menyediakan petua-petua alatan secara hover pada laman-laman daripada kata-kata yang ditakrifkan di laman [[$1]]",
+	"lingo-terminologypagename": "Peristilahan",
+	"lingo-noterminologypage": "Halaman \"$1\" tidak wujud.",
+	"lingo-terminologypagenotlocal": "Laman \"$1\" bukan laman tempatan."
+}

@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"lingo-desc": "Zwobraznja pomocne teksty, gaž kursor myšy stoj nad słowom, kótarež jo na boku [[$1]] definěrowane.",
+	"lingo-terminologypagename": "Terminologija",
+	"lingo-noterminologypage": "Bok \"$1\" njeeksistěrujo.",
+	"lingo-terminologypagenotlocal": "Bok \"$1\" njejo lokalny bok."
+}

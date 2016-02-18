@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"BeginaFelicysym",
+			"Sp5uhe",
+			"Woytecr"
+		]
+	},
+	"lingo-desc": "Wyświetla dymki na stronach po najechaniu na wyraz zdefiniowany na stronie [[$1]]",
+	"lingo-terminologypagename": "Terminologia",
+	"lingo-noterminologypage": "Strona „$1“ nie istnieje.",
+	"lingo-terminologypagenotlocal": "Strona \"$1\" nie jest stroną lokalną."
+}

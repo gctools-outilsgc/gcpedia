@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Armin1392",
+			"Mjbmr"
+		]
+	},
+	"lingo-desc": "فراهم کردن نکات اتمام توقف ابزار در صفحات از کلمات تعریف شده در صفحهٔ [[$1]]",
+	"lingo-terminologypagename": "اصطلاح‌شناسی",
+	"lingo-noterminologypage": "صفحهٔ «$1» وجود ندارد.",
+	"lingo-terminologypagenotlocal": "صفحهٔ \"$1\" یک صفحهٔ داخلی نیست."
+}

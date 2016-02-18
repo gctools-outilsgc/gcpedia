@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"lingo-desc": "Zwobraznja pomocne teksty, hdyž kursor myše nad słowom steji, kotrež je na stronje [[$1]] definowane.",
+	"lingo-terminologypagename": "Terminologija",
+	"lingo-noterminologypage": "Strona \"$1\" njeeksistuje",
+	"lingo-terminologypagenotlocal": "Strona \"$1\" lokalna strona njeje."
+}
