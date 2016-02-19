@@ -55,7 +55,7 @@ class generateUsernameAJAX extends ApiBase
 			}
 			
 			$dbr = wfGetDB( DB_SLAVE );
-			$emailQuery = mysql_real_escape_string($email);
+			$emailQuery = $dbr->addQuotes($email);
 			
 			#count number of emails
 			// $query2 = "SELECT count(*) FROM " .$dbr->tableName('user') ." WHERE user_email = \"". $emailQuery ."\"";
