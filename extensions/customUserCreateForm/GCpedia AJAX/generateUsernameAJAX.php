@@ -92,7 +92,7 @@ class generateUsernameAJAX extends ApiBase
 			}
 			
 			#select matching usernames
-			$usrnameQuery = mysql_real_escape_string($usrname);
+			$usrnameQuery = $dbr->addQuotes($usrname);
 			// $query = "SELECT user_id FROM " .$dbr->tableName('user') ." WHERE user_name LIKE \"". $usrnameQuery ."\" COLLATE latin1_swedish_ci";
 
 			// $result1 = $dbr->doQuery($query);
