@@ -894,17 +894,18 @@ th {
 .glyphicon-tree-deciduous:before {
   content: "\e200"; }
 
-* {
+/* GCpedia patch - only needed for header, otherwise inteferes with Visual Editor */
+header * {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box; }
 
-*:before,
-*:after {
+header *:before,
+header *:after {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box; }
-
+/*
 html {
   font-size: 10px;
   -webkit-tap-highlight-color: transparent; }
@@ -915,7 +916,7 @@ body {
   line-height: 1.4375;
   color: #333333;
   background-color: #fff; }
-
+*/
 input,
 button,
 select,
@@ -923,7 +924,7 @@ textarea {
   font-family: inherit;
   font-size: inherit;
   line-height: inherit; }
-
+/*
 a {
   color: #295376;
   text-decoration: none; }
@@ -934,7 +935,7 @@ a {
     outline: thin dotted;
     outline: 5px auto -webkit-focus-ring-color;
     outline-offset: -2px; }
-
+*/
 figure {
   margin: 0; }
 
@@ -987,7 +988,7 @@ hr {
   margin: 0;
   overflow: visible;
   clip: auto; }
-
+/*
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
   font-family: inherit;
@@ -1064,7 +1065,7 @@ h6, .h6 {
 
 p {
   margin: 0 0 11.5px; }
-
+*/
 .lead {
   margin-bottom: 23px;
   font-size: 18px;
@@ -9481,13 +9482,13 @@ details {
  */
 /*
 	Global Default Body styling
-*/
+
 body {
   background: #f8f8f8;
   font-family: Helvetica, Arial, sans-serif;
   font-size: 16px;
   font-weight: 300; }
-
+*/
 a {
   color: #284162; }
   a img.thumbnail:hover {
@@ -9502,7 +9503,7 @@ input[placeholder],
   color: #5c5c5c !important; }
 
 /* Theme base styles */
-h1, .h1, h2,
+/*h1, .h1, h2,
 .h2, h3,
 .h3, h4,
 .h4, h5,
@@ -9542,7 +9543,7 @@ h6,
 .h5,
 .h6 {
   border: 0; }
-
+*/
 aside.site-related h2 {
   font-size: 28px;
   margin-top: 0; }
