@@ -6,7 +6,7 @@
  *
  * @author Matthew April <Matthew.April@tbs-sct.gc.ca>
  */
-class insertTextField extends ApiBase 
+class domainSelector extends ApiBase 
 {
 
 	function execute() {
@@ -14,16 +14,29 @@ class insertTextField extends ApiBase
 		$js = " var emailName = EmailName.value.replace(/ /g, '');
 				if( emailName != '' && EmailDomain.value != ''){
 					var email = emailName + '@' + EmailDomain.value;
-					sajax_do_call( 'characterFilter', [email], function( strin ) { document.getElementById('wpEmail').value = strin.responseText; } );
+					mw.loader.using( 'mediawiki.api', function () {
+								( new mw.Api() ).get( {
+									action: 'characterfilterajax',
+									emailinput: email,
+								} ).done( function ( data ) {
+									document.getElementById('wpEmail').value = data.characterfilterajax;
+								} );
+							} );
 					
-					sajax_do_call( 'AJAXtest', [email] , function( strin ) { document.getElementById('wpName2').value = strin.responseText.replace(/^\s+|\s+$/g,''); document.getElementById('AJAXtest').value = strin.responseText; 
-						if ( acceptv.value == 1  && wpPassword.value != '' && wpPassword.value == wpRetype.value ){
-							wpCreateaccount.disabled=0;
-						}
-						else{
-							wpCreateaccount.disabled=1;
-						}
-					}  );
+					mw.loader.using( 'mediawiki.api', function () {
+								( new mw.Api() ).get( {
+									action: 'generateusernameajax',
+									emailinput: email,
+								} ).done( function ( data ) {
+									document.getElementById('wpName2').value = data.generateusernameajax.replace(/^\s+|\s+$/g,'');
+								
+									if ( acceptv.value == 1  && wpPassword.value != '' && wpPassword.value == wpRetype.value ){
+										wpCreateaccount.disabled=0;
+									}else{
+										wpCreateaccount.disabled=1;
+									}
+								} );
+							} );
 				} else {
 					wpName2.value = ''
 					wpCreateaccount.disabled=1;
@@ -31,7 +44,7 @@ class insertTextField extends ApiBase
 				
 		$output = "<input type='text' name='EmailDomain' id='EmailDomain' tabindex='2' onblur=\"$js\" /> ";
 		
-		echo $output;
+		$this->getResult()->addValue( null, $this->getModuleName(), $output );
 		
 		return "";
 	}

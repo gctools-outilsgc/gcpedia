@@ -17,8 +17,8 @@ $wgAPIModules['generateusernameajax'] = 'generateUsernameAJAX';
 $wgAutoloadClasses['characterFilterAJAX']	= __DIR__  . '/GCpedia AJAX/charFilterAJAX.php';
 $wgAPIModules['characterfilterajax'] = 'characterFilterAJAX';
 
-$wgAutoloadClasses['DomainSelector']	= __DIR__  . '/GCpedia AJAX/DomainSelector.php';
-$wgAPIModules['insertdomainselector'] = 'DomainSelector';
+$wgAutoloadClasses['domainSelector']	= __DIR__  . '/GCpedia AJAX/DomainSelector.php';
+$wgAPIModules['insertdomainselector'] = 'domainSelector';
 
 function customUserCreateForm( &$template ) {
 

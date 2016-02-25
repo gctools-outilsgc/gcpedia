@@ -100,7 +100,7 @@ onmousemove = "
 							( new mw.Api() ).get( {
 								action: 'insertdomainselector',
 							} ).done( function ( data ) {
-								document.getElementById('domainWrapper').innerHTML = data.generateusernameajax;
+								document.getElementById('domainWrapper').innerHTML = data.insertdomainselector;
 							} );
 						} );
 						
