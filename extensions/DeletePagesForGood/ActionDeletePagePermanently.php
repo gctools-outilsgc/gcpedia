@@ -178,10 +178,11 @@ class ActionDeletePagePermanently extends FormAction {
 				# Get all filenames of old versions:
 				$fields = OldLocalFile::selectFields();
 				$res = $dbw->select( 'oldimage', $fields, array( 'oi_name' => $t ) );
-
+					global $IP;
 				foreach ( $res as $row ) {
 					$oldLocalFile = OldLocalFile::newFromRow( $row, $file->repo );
 					$path = $oldLocalFile->getArchivePath() . '/' . $oldLocalFile->getArchiveName();
+						$path = str_ireplace( "mwstore://local-backend/local-public", "$IP/images", $path );		// fix path
 
 					try {
 						unlink( $path );
