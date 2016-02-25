@@ -1,12 +1,12 @@
 ﻿.btn-primary{
 	color:#fff;
-	background-color:#46055C !important;
+	background-color:#055959 !important;
 }
 #wb-info .brand {
     border-top: 4px solid #46055C ;
 }
 #app-brand {
-    background-color: #720396;
+    background-color: #047177;
     color: #fff;
     min-height: 45px;
 }
@@ -14,7 +14,7 @@
     font-size: 1.6em;
     padding-top: 5px;
     padding-left: 20px;
-    background-color: #46055C;
+    background-color: #055959;
     min-height: 45px;
     max-width: 165px;
     margin-left: -15px;
@@ -29,7 +29,7 @@
     height: 0;
     border-top: 22.5px solid transparent;
     border-bottom: 22.5px solid transparent;
-    border-left: 20px solid #46055C;
+    border-left: 20px solid #055959;
     clear: both;
 }
 #app-brand a {
