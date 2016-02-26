@@ -20,6 +20,10 @@ $wgAPIModules['characterfilterajax'] = 'characterFilterAJAX';
 $wgAutoloadClasses['domainSelector']	= __DIR__  . '/GCpedia AJAX/DomainSelector.php';
 $wgAPIModules['insertdomainselector'] = 'domainSelector';
 
+$wgAutoloadClasses['findUsernameAJAX']	= __DIR__  . '/GCpedia AJAX/findUsernameAJAX.php';
+$wgAPIModules['findusernameajax'] = 'findUsernameAJAX';
+
+
 function customUserCreateForm( &$template ) {
 
 	// include the request global so we can grab the return page from it

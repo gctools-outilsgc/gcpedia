@@ -163,8 +163,15 @@ text-decoration: none;
 				<br />
 				<label for='byEmail'> <?php $this->msg('enteremail') ?> </label> <input type='text' name='byEmail' id='byEmail'>
 				<input type='button' value="<?php $this->msg('findusername') ?>"name='findUser' id='findUser'
-				onclick="sajax_do_call( 'findUsername', [byEmail.value] , function( strin ) { document.getElementById('wpName1').value = strin.responseText;});
-				"
+				onclick="mw.loader.using( 'mediawiki.api', function () {
+							( new mw.Api() ).get( {
+								action: 'findusernameajax',
+								emailinput: byEmail.value,
+							} ).done( function ( data ) {
+								document.getElementById('wpName1').value = data.findusernameajax;
+							} );
+						} );
+						"
 				>
 			
 			<?php if ( $this->translator->translate( 'search' ) == 'Search' )  echo " <br /><br />
