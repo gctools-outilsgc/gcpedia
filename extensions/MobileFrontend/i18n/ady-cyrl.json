@@ -1,0 +1,43 @@
+{
+	"@metadata": {
+		"authors": [
+			"Highlander45temp",
+			"SmartNart12",
+			"Bedynokue.nart",
+			"SamGamgee",
+			"GR44 Luc",
+			"Amire80",
+			"TheRossatron",
+			"Inyzh"
+		]
+	},
+	"mobile-frontend-changeslist-nocomment": "хэIэзэныгъэм и къэбар щыIэп",
+	"mobile-frontend-copyright": "$1-м тетэу кIоцIрытыр олъэгъу (нэмыкIым игугъу къамышIмэ).",
+	"mobile-frontend-editor-edit": "ЕӀаз",
+	"mobile-frontend-featured-article": "НепэкIэ хэхыгъэ гор",
+	"mobile-frontend-generic-login": "{{SITENAME}}-м ощ фэдэхэр дэлажьэх.",
+	"mobile-frontend-generic-login-action": "Системэм хахь ухэлэжьэрагъомэ.",
+	"mobile-frontend-home-button": "Унэм",
+	"mobile-frontend-language-article-heading": "ПэмыкI бзэкIэ едж",
+	"mobile-frontend-last-modified-date": "Мыщпэм зызэблахъугъэр $1, $2-м",
+	"mobile-frontend-login": "Хахь",
+	"mobile-frontend-main-menu-account-create": "Паролыр ублэ",
+	"mobile-frontend-main-menu-button-tooltip": "Меню шъхьаIыр зэIух",
+	"mobile-frontend-main-menu-login": "Системэм хахь",
+	"mobile-frontend-main-menu-nearby": "Благъэхэр",
+	"mobile-frontend-main-menu-settings": "Гъэпсыхэр",
+	"mobile-frontend-main-menu-watchlist": "Лъыплъэ куп",
+	"mobile-frontend-news-items": "Къэбархэр",
+	"mobile-frontend-password-placeholder": "Парол",
+	"mobile-frontend-placeholder": "{{SITENAME}}-ым лъыхъу",
+	"mobile-frontend-privacy-link-text": "Конфиденциал Iофхэр",
+	"mobile-frontend-random-button": "ОшIэдэмышI",
+	"mobile-frontend-terms-text": "Зэрагъэфедэрэ Хабзэр",
+	"mobile-frontend-username-placeholder": "СистемэцӀэр",
+	"mobile-frontend-view": "Мобил теплъэ",
+	"mobile-frontend-view-desktop": "Iанэтет",
+	"mobile-frontend-view-mobile": "Мобил",
+	"tag-mobile_edit": "МобилымкIэ еIаз",
+	"tag-mobile_web_edit": "МобилымкIэ еIаз",
+	"mobile-frontend-pageaction-edit-tooltip": "Мы нэкIубгъом и секцие шъхьаIэм еIэзэн."
+}
