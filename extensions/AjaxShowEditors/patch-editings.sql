@@ -1,4 +1,4 @@
-CREATE TABLE /*$wgDBprefix*/editings (
+CREATE TABLE IF NOT EXISTS /*$wgDBprefix*/editings (
   `editings_page` int(8) NOT NULL,
   `editings_user` varchar(255) NOT NULL,
   `editings_started` char(14) NOT NULL,

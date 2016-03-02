@@ -9,6 +9,7 @@ $wgHooks['ArticleSaveComplete'][] = 'wfAjaxShowEditorsCleanup';
 $wgHooks['BeforePageDisplay'][] = 'wfAjaxShowEditorsAddCSS';
 $wgHooks['BeforePageDisplay'][] = 'wfAjaxShowEditorsAddJS';
 $wgHooks['EditPage::showEditForm:initial'][] = 'wfAjaxShowEditorsShowBox';
+$wgHooks['LoadExtensionSchemaUpdates'][] = 'AjaxShowEditorsSchemaUpdates';
 
 /**
 	$article: the article (object) saved
@@ -65,5 +66,19 @@ function wfAjaxShowEditorsShowBox( ) {
 		. '<p id="ajax-se-editors">' . wfMsg( 'ajax-se-pending' ) . '</p>'
 		. '</div>'
 		);
+	return true;
+}
+
+function AjaxShowEditorsSchemaUpdates( $updater = null ) {
+	if ( $updater === null ) { // <= 1.16 support
+		global $wgExtNewTables, $wgExtModifiedFields;
+		$wgExtNewTables[] = array(
+				'editings',
+				dirname( __FILE__ ) . '/patch-editings.sql'
+		);
+	} else { // >= 1.17 support
+		$updater->addExtensionUpdate( array( 'addTable', 'editings',
+				dirname( __FILE__ ) . '/patch-editings.sql', true ) );
+	}
 	return true;
 }
