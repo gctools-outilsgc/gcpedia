@@ -660,9 +660,11 @@ class SkinMinerva extends SkinTemplate {
 	 * @returns {String} html for header
 	 */
 	protected function getHeaderHtml() {
+		global $wgLang;
 		$title = $this->getOutput()->getPageTitle();
+		$langurl = $this->getTitle()->getFullURL();
 		if ( $title ) {
-			return Html::rawElement( 'h1', array( 'id' => 'section_0' ), $title );
+			return Html::rawElement( 'a', array( 'href' => $langurl . wfMessage('mobile-frontend-language-link-code'), 'style' => 'float:right' ), wfMessage('mobile-frontend-language-link-text') ) . Html::rawElement( 'h1', array( 'id' => 'section_0' ), $title );
 		}
 		return '';
 	}
@@ -707,6 +709,7 @@ class SkinMinerva extends SkinTemplate {
 				'places' => array(
 					'terms-use',
 					'privacy',
+					'about',
 				),
 			) );
 		}

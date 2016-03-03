@@ -427,5 +427,7 @@
 	"mobile-frontend-panel-cancel": "Non merci",
 	"mobile-frontend-panel-betaoptin-msg": "Voulez-vous essayer quelques nouvelles fonctionnalités ? En adhérant à la bêta, vous aurez accès à des fonctionnalités expérimentales, au risque de rencontrer des bugs et problèmes.",
 	"mobile-frontend-search-feedback-link-text": "Donnez-nous votre avis.",
-	"mobile-frontend-search-feedback-prompt": "Vous n’avez pas trouvé ce que vous cherchiez ?"
+	"mobile-frontend-search-feedback-prompt": "Vous n’avez pas trouvé ce que vous cherchiez ?",
+	"mobile-frontend-language-link-text": "English",
+	"mobile-frontend-language-link-code": "?setlang=en"
 }
