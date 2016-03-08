@@ -254,7 +254,9 @@ class VectorTemplate extends BaseTemplate {
 				</div>
 			</div>
 			<div id="mw-panel">
-				<?php $this->renderPortals( $this->data['sidebar'] ); ?>
+				<nav class="wb-sec" typeof="SiteNavigationElement" id="wb-sec" role="navigation">
+						<?php $this->renderPortals( $this->data['sidebar'] ); ?>
+				</nav>
 			</div>
 		</div>
 		<div id="footer" role="contentinfo"<?php $this->html( 'userlangattributes' ) ?>>
@@ -374,15 +376,17 @@ class VectorTemplate extends BaseTemplate {
 				<?php
 				if ( is_array( $content ) ) {
 					?>
-					<ul>
+					<ul class="list-group menu list-unstyled">
+						<div class="row">
 						<?php
 						foreach ( $content as $key => $val ) {
-							echo $this->makeListItem( $key, $val );
+							echo $this->makeListItem( $key, $val, array( 'class' => 'list-group-item') );
 						}
 						if ( $hook !== null ) {
 							Hooks::run( $hook, array( &$this, true ) );
 						}
 						?>
+						</div>
 					</ul>
 				<?php
 				} else {
