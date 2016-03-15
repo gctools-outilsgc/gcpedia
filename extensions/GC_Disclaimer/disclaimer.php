@@ -118,7 +118,9 @@ if( $wgUser->isLoggedIn() ) {
 		}
 		
 		.checkboxRequired {
-			color: #FF0000;
+			color: #000000;
+			font-weight: bold;
+			font-size: 1.06em;
 		}
 		
 		.proceedenabled {
