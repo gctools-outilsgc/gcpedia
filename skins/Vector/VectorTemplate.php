@@ -103,7 +103,7 @@ class VectorTemplate extends BaseTemplate {
 			<div class="row">
 			<div class="col-md-12">
 			<ul class="list-inline margin-bottom-none">
-			<li><a lang="fr" href="index-fr.html">Français</a></li>
+			<li><?php echo wfMsg('topbar:langlink') ?></li>
 			</ul>
 			</div>
 			</div>
@@ -131,7 +131,7 @@ class VectorTemplate extends BaseTemplate {
             <div class="row">
                 <div class="col-sm-3 ">
                     <div class="app-name">
-                    <a href="<?php echo $site_url; ?>">
+                    <a href="<?php echo "./"; ?>">
                         <span><span class="bold-gc">GC</span>pedia</span>
                     </a>
                     </div>

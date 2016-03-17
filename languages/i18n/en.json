@@ -3838,5 +3838,6 @@
 	"mw-widgets-titleinput-description-redirect": "redirect to $1",
 	"api-error-blacklisted": "Please choose a different, descriptive title.",
 	"wet:gcintranetLink": "http://intranet.canada.ca/index-eng.asp",
-	"wet:gcpediaLink": "http://gcconnex.gc.ca/"
+	"wet:gcpediaLink": "http://gcconnex.gc.ca/",
+	"topbar:langlink": "<a lang='fr' href='.?uselang=fr'>Français</a>"
 }
