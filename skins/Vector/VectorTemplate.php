@@ -126,36 +126,35 @@ class VectorTemplate extends BaseTemplate {
 			?>
 		</div>
 	</div>
-	<div id="app-brand">
+	    <div id="app-brand">
         <div class="container">
             <div class="row">
                 <div class="col-sm-3 ">
                     <div class="app-name">
-                    
-                    <a href="<?php echo htmlspecialchars( $this->data['nav_urls']['mainpage']['href'], ENT_QUOTES ) ?>">
-					<span><span class="bold-gc"><?php echo substr_replace($this->getMsg( 'sitetitle' )->escaped(),'</span>',2,0) ?></span>
+                    <a href="<?php echo $site_url; ?>">
+                        <span><span class="bold-gc">GC</span>pedia</span>
                     </a>
                     </div>
                     
                     
                 </div>
-                <div class="col-sm-2 col-sm-offset-7 hidden-xs">
-                    <div class="dropdown  pull-right tools-navigator ">
-                        <a href="#" class=" dropdown-toggle" type="button" id="tools-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                        GCTools(placeholder)
-            <!-- waiting for final version        <i class="fa fa-chevron-down"></i>
-                        </a>
-                    <ul class="dropdown-menu tools-navigator-menu tools-dropdown-holder clearfix" aria-labelledby="tools-dropdown">
-                       
-                            
-                            <li class="col-xs-6 clearfix"><a href="#"><div class=" img-responsive"><i class="fa fa-file-text-o fa-4x center-block"></i><div>GCpedia</div></div></a></li>
-                            <li class="col-xs-6"><a href="#"><i class="fa fa-share-alt fa-4x"></i><div>GCconnex</div></a></li>
-                            <li class="col-xs-6"><a href="#"><i class="fa fa-video-camera fa-4x"></i><div>GCVideo</div></a></li>
-                            <li class="col-xs-6"><a href="#"><i class="fa fa-globe fa-4x"></i><div>Intranet</div></a></li>
-
-                    </ul>
+                <div class="col-sm-6 col-sm-offset-3 hidden-xs">
+                    <div id="tool-link" class="pull-right">
+                    <div class="pull-right tool-link">
+                        <a href="<?php echo wfMsg('wet:gcintranetLink');?>">
+                        <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/intranet_icon.png';?>" alt="GCintranet"/><span class="bold-gc">GC</span>intranet</a>
+                        
                     </div>
-                </div>-->
+                    <div class="pull-right tool-link">
+                        <a href="<?php echo wfMsg('wet:gcpediaLink');?>">
+                        <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/connex_icon.png';?>" alt="GCconnex" /><span class="bold-gc">GC</span>connex</a>
+                        
+                        
+                    </div>
+
+                    </div>
+                   
+                </div>
             </div>
         </div>
         
