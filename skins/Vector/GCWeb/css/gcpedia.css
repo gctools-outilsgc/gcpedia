@@ -91,3 +91,16 @@
 .tools-navigator-menu li a{
     color:black;   
 }
+.tool-link{
+    padding:11px 0 0 30px;
+}
+
+.tool-link:hover{
+    text-decoration: underline;
+}
+
+.tool-link-icon{
+    width: 20px;
+    margin:0 5px 3px 0;
+
+}
