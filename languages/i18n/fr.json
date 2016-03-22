@@ -3598,6 +3598,6 @@
 	"mw-widgets-titleinput-description-new-page": "la page n’existe pas encore",
 	"mw-widgets-titleinput-description-redirect": "redirection vers $1",
 	"wet:gcintranetLink": "http://intranet.canada.ca/index-fra.asp",
-	"wet:gcpediaLink": "http://gcconnex.gc.ca/",
-	"topbar:langlink": "<a lang='en' href='.?uselang=en'>English</a>"
+	"wet:gcconnexLink": "http://gcconnex.gc.ca/",
+	"topbar:langlink": "<a lang='en' href='?uselang=en'>English</a>"
 }

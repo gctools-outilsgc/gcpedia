@@ -145,7 +145,7 @@ class VectorTemplate extends BaseTemplate {
                         
                     </div>
                     <div class="pull-right tool-link">
-                        <a href="<?php echo wfMsg('wet:gcpediaLink');?>">
+                        <a href="<?php echo wfMsg('wet:gcconnexLink');?>">
                         <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/connex_icon.png';?>" alt="GCconnex" /><span class="bold-gc">GC</span>connex</a>
                         
                     </div>
