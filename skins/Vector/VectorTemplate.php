@@ -136,7 +136,6 @@ class VectorTemplate extends BaseTemplate {
                     </a>
                     </div>
                     
-                    
                 </div>
                 <div class="col-sm-6 col-sm-offset-3 hidden-xs">
                     <div id="tool-link" class="pull-right">
@@ -148,7 +147,6 @@ class VectorTemplate extends BaseTemplate {
                     <div class="pull-right tool-link">
                         <a href="<?php echo wfMsg('wet:gcpediaLink');?>">
                         <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/connex_icon.png';?>" alt="GCconnex" /><span class="bold-gc">GC</span>connex</a>
-                        
                         
                     </div>
 
@@ -409,7 +407,7 @@ class VectorTemplate extends BaseTemplate {
 <form action="<?php $this->text( 'wgScript' ) ?>" method="post" name="cse-search-box" role="search" class="form-inline">
 <div class="form-group">
 <label for="wb-srch-q" class="wb-inv">Search website</label>
-<input id="wb-srch-q" list="wb-srch-q-ac" class="wb-srch-q form-control" name="q" type="search" value="<?php $this->text( 'searchtitle' ) ?>" size="27" maxlength="150" placeholder="Search GCpedia">
+<input id="wb-srch-q" list="wb-srch-q-ac" class="wb-srch-q form-control" name="search" type="search" value="" size="27" maxlength="150" placeholder="<?php echo wfMessage( 'searchsuggest-search' )->text(); ?> GCpedia">
 <datalist id="wb-srch-q-ac">
 <!--[if lte IE 9]><select><![endif]-->
 <!--[if lte IE 9]></select><![endif]-->
