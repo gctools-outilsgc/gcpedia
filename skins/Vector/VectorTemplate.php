@@ -99,18 +99,18 @@ class VectorTemplate extends BaseTemplate {
 	<header role="banner">
 		<div id="wb-bnr" class="container">
 			<section id="wb-lng" class="visible-md visible-lg text-right">
-			<h2 class="wb-inv">Language selection</h2>
-			<div class="row">
-			<div class="col-md-12">
-			<ul class="list-inline margin-bottom-none">
-			<li><?php echo wfMsg('topbar:langlink') ?></li>
-			</ul>
-			</div>
-			</div>
+				<h2 class="wb-inv">Language selection</h2>
+				<div class="row">
+				<div class="col-md-12">
+				<ul class="list-inline margin-bottom-none">
+				<li><?php echo wfMsg('topbar:langlink') ?></li>
+				</ul>
+				</div>
+				</div>
 			</section>
 			<div class="row">
 			<div class="brand col-xs-8 col-sm-9 col-md-6">
-			<!--<a href="http://www.canada.ca/en/index.html">--><object type="image/svg+xml" tabindex="-1" data="<?php echo $wgScriptPath; ?>/skins/Vector/GCWeb/assets/sig-blk-en.svg"></object><span class="wb-inv"> Government of Canada</span><!--</a>-->
+			<!--<a href="http://www.canada.ca/en/index.html">--><object type="image/png" tabindex="-1" data="<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo $wgScriptPath .'/skins/Vector/GCWeb/assets/sig-blk-fr.png'; else echo $wgScriptPath .'/skins/Vector/GCWeb/assets/sig-blk-en.png';?>"></object><span class="wb-inv"> Government of Canada</span><!--</a>-->
 			</div>
 			<section class="wb-mb-links col-xs-4 col-sm-3 visible-sm visible-xs" id="wb-glb-mn">
 			<h2>Search and menus</h2>
@@ -131,10 +131,11 @@ class VectorTemplate extends BaseTemplate {
             <div class="row">
                 <div class="col-sm-3 ">
                     <div class="app-name">
-                    <a href="<?php echo "./"; ?>">
-                        <span><span class="bold-gc">GC</span>pedia</span>
+                    <a href="<?php echo htmlspecialchars( $this->data['nav_urls']['mainpage']['href'] ) ?>">
+                        <span><span class="bold-gc">GC</span>p<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo  'é'; else echo 'e'; ?>dia</span>
                     </a>
                     </div>
+                    
                     
                 </div>
                 <div class="col-sm-6 col-sm-offset-3 hidden-xs">
@@ -148,6 +149,7 @@ class VectorTemplate extends BaseTemplate {
                         <a href="<?php echo wfMsg('wet:gcconnexLink');?>">
                         <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/connex_icon.png';?>" alt="GCconnex" /><span class="bold-gc">GC</span>connex</a>
                         
+                        
                     </div>
 
                     </div>
@@ -158,6 +160,7 @@ class VectorTemplate extends BaseTemplate {
         
     </div>
 </header>
+
 		<div id="mw-page-base" class="noprint"></div>
 		<div id="mw-head-base" class="noprint"></div>
 		<div id="content" class="mw-body" role="main">
