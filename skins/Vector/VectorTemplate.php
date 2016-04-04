@@ -617,7 +617,7 @@ class VectorTemplate extends BaseTemplate {
 					<?php
 					break;
 				case 'SEARCH':
-					?>
+					/*?>
 					<div id="p-search" role="search">
 						<h3<?php $this->html( 'userlangattributes' ) ?>>
 							<label for="searchInput"><?php $this->msg( 'search' ) ?></label>
@@ -651,7 +651,7 @@ class VectorTemplate extends BaseTemplate {
 							</div>
 						</form>
 					</div>
-					<?php
+					<?php*/
 
 					break;
 			}
