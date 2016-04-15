@@ -43,7 +43,8 @@ html {
   -webkit-text-size-adjust: 100%; }
 
 body {
-  margin: 0; }
+  margin: 0;
+  padding-right: 1em; }
 
 article,
 aside,
@@ -902,6 +903,17 @@ header * {
 
 header *:before,
 header *:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
+.brand * {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
+.brand *:before,
+.brand *:after {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box; }
@@ -9919,7 +9931,7 @@ header .brand {
 #wb-info {
   background: #e1e4e7;
   position: relative;
-  z-index: 5; }
+  z-index: 0; }
   #wb-info a {
     font-size: 0.875em;
     text-decoration: none; }
