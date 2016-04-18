@@ -91,33 +91,13 @@ class generateUsernameAJAX extends ApiBase
 				$usrname = rtrim($usrname, "0..9");
 			}
 			
-			#select matching usernames
-			$usrnameQuery = $dbr->addQuotes($usrname);
-			// $query = "SELECT user_id FROM " .$dbr->tableName('user') ." WHERE user_name LIKE \"". $usrnameQuery ."\" COLLATE latin1_swedish_ci";
-
-			// $result1 = $dbr->doQuery($query);
-			
-			$result1 = $dbr->select( $dbr->tableName('user'), 'user_id', 'user_name LIKE "' . $usrnameQuery . '"', __METHOD__, array( 'COLLATE' => 'latin1_swedish_ci' ) );
-
 			#check if username exists and increment it
-			// if ( mysql_num_rows($result1) > 0 ){
-			if ( $result1->numRows() > 0 ){
-				
+			if ( User::idFromName($usrname) != null ){
 				$unamePostfix = 0;
-				
 				do {
 					$unamePostfix++;
-					
-					$tmpUsrnameQuery = $usrnameQuery . $unamePostfix;
-					
-					// $query = "SELECT user_id FROM " .$dbr->tableName('user') ." WHERE user_name LIKE \"". $tmpUsrnameQuery ."\" COLLATE latin1_swedish_ci";
-					// $tmpResult = $dbr->doQuery($query);
-					$tmpResult = $dbr->select( $dbr->tableName('user'), 'user_id', 'user_name LIKE "' . $tmpUsrnameQuery . '"', __METHOD__, array( 'COLLATE' => 'latin1_swedish_ci' ) );
-
 					$uname = $usrname . $unamePostfix;
-					
-				// } while ( mysql_num_rows($tmpResult) > 0);
-				} while ( $tmpResult->numRows() > 0);
+				} while ( User::idFromName($uname) != null );
 				
 			}else{
 				#username is available
