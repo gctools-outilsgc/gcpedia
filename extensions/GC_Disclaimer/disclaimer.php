@@ -356,7 +356,7 @@ function emailCheck() {
 			$oldEmail = trim($oldEmail);
 			
 			# returns true on success
-			$validEmail = User::isValidEmailAddr( $newEmail );
+			$validEmail = Sanitizer::validateEmail( $newEmail );
 			
 			if( $validEmail === true && $newEmail != $oldEmail ) {
 				
@@ -372,7 +372,7 @@ function emailCheck() {
 					# send confirmation email
 					$result = $wgUser->sendConfirmationMail();
 					
-					if( WikiError::isError( $result ) ) { //test me
+					if( $result->isOK() ) { //test me
 						$err = wfMsg( 'mailerror', htmlspecialchars( $result->getMessage() ) );
 					} else {
 						$confmessage = wfMsg( 'emailupdate-confirm' );
