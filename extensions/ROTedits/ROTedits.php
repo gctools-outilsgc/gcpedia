@@ -25,16 +25,19 @@ function rot( &$parser, &$text, &$strip_state )
 		getROTCount( getUName( substr( $wgTitle, 10, strlen($wgTitle) ) ), $text );
 		
 	}
-	
 
 	return true;
-
 
 }
 
 function getROTCount( $username, &$text )
 {
 	$user =  User::newFromName( $username );
+	
+	// check if this is a real user
+	if ( !$user )
+		return true;
+
 	$total = $user->getEditCount();
 	
 	$dbr = wfGetDB( DB_SLAVE );
