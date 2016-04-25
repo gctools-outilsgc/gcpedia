@@ -161,6 +161,9 @@ class MediaWikiFlvPlayer {
 
 		global $wgScriptPath, $wgJsMimeType;
 
+		// initialize imageurl
+		$this->imageurl = '';
+
 		$pos1 = strpos($this->flvfile, "/");
 		if ($pos1 !== false) {
 			// use absolute path for file
