@@ -102,6 +102,7 @@ if( $wgUser->isLoggedIn() ) {
 	# load head scripts
 	echo $out->getHeadLinks() . "\n";
 	echo $out->getHeadScripts() . "\n";
+	echo '<link href="' . $wgScriptPath . '/skins/Vector/GCWeb/assets/favicon.ico" rel="icon" type="image/x-icon">';
 	
 	?>
 
