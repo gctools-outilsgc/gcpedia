@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"Lloffiwr"
+		]
+	},
+	"contactpage": "Tudalen gysylltu",
+	"contactpage-desc": "[[Special:Contact|Ffurlen gysylltu ar gyfer ymwelwyr]]",
+	"contactpage-title": "Cysylltu",
+	"contactpage-pagetext": "Mae croeso i chi ddefnyddio'r ffurflen isod i gysylltu â ni.",
+	"contactpage-legend": "Anfon e-bost",
+	"contactpage-defsubject": "Neges",
+	"contactpage-subject-and-sender": "$1 (oddi wrth $2)",
+	"contactpage-subject-and-sender-withip": "$1 (oddi wrth $2 ar $3)",
+	"contactpage-fromname": "Eich enw: *",
+	"contactpage-fromaddress": "Eich cyfeiriad e-bost: **",
+	"contactpage-formfootnotes": "* dewisol<br />\n** dewisol ond rhaid ei gael er mwyn gallu derbyn ateb",
+	"contactpage-includeip": "Cynnwys fy nghyfeiriad IP yn y neges hon.",
+	"contactpage-usermailererror": "Dychwelwyd gwall gan y rhaglen e-bost:"
+}

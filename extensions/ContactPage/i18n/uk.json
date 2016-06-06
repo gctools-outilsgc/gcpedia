@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Andriykopanytsia",
+			"NickK",
+			"Prima klasy4na",
+			"Тест",
+			"Base"
+		]
+	},
+	"contactpage": "Сторінка контакту",
+	"contactpage-desc": "[[Special:Contact|Форма для відвідувачів]]",
+	"contactpage-title": "Контакт",
+	"contactpage-pagetext": "Будь ласка, використовуйте цю форму, щоб зв'язатися з нами.",
+	"contactpage-legend": "Надіслати листа електронною поштою",
+	"contactpage-defsubject": "Повідомлення",
+	"contactpage-subject-and-sender": "$1 (з $2)",
+	"contactpage-subject-and-sender-withip": "$1 (від $2 з $3)",
+	"contactpage-fromname": "Ваше ім'я:",
+	"contactpage-fromaddress": "Ваша адреса електронної пошти:",
+	"contactpage-formfootnotes": "(вимагається, якщо ви хочете отримати відповідь)",
+	"contactpage-includeip": "Додати мою IP-адресу до цього повідомлення.",
+	"contactpage-usermailererror": "При відправці повідомлення електронної пошти сталася помилка:",
+	"contactpage-captcha-error": "Помилка CAPTCHA",
+	"contactpage-config-error-title": "Помилка форми зв'язку",
+	"contactpage-config-error": "Форму зв'язку чи не налаштовано для цієї сторінки, чи налаштовано неправильно."
+}

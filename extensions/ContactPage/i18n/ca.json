@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"BroOk",
+			"Fitoschido",
+			"Martorell",
+			"SMP",
+			"Solde",
+			"Vriullop"
+		]
+	},
+	"contactpage": "Pàgina de contacte",
+	"contactpage-desc": "[[Special:Contact|Formulari de contacte per als visitants]]",
+	"contactpage-title": "Contacte",
+	"contactpage-pagetext": "Utilitzeu el formulari següent per a contactar-nos.",
+	"contactpage-legend": "Envia missatge",
+	"contactpage-defsubject": "Missatge de contacte",
+	"contactpage-subject-and-sender": "$1 (de $2)",
+	"contactpage-subject-and-sender-withip": "$1 (de $2 a $3)",
+	"contactpage-fromname": "El vostre nom:",
+	"contactpage-fromaddress": "La vostra adreça de correu:",
+	"contactpage-formfootnotes": "(necessari si voleu una resposta)",
+	"contactpage-includeip": "Inclou al missatge l'adreça IP que estic utilitzant.",
+	"contactpage-usermailererror": "L'objecte de correu ha retornat un error:"
+}

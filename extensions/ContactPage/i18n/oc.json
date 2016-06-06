@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"Cedric31"
+		]
+	},
+	"contactpage": "Contacte",
+	"contactpage-desc": "[[Special:Contact|Formulari de contacte pels visitors]]",
+	"contactpage-title": "Contacte",
+	"contactpage-pagetext": "Utilizatz lo formulari çaijós per nos contactar.",
+	"contactpage-legend": "Mandar un corrièr electronic",
+	"contactpage-defsubject": "Messatge",
+	"contactpage-subject-and-sender": "$1 (de $2)",
+	"contactpage-subject-and-sender-withip": "$1 (de $2 a $3)",
+	"contactpage-fromname": "Vòstre nom :",
+	"contactpage-fromaddress": "Vòstra adreça electronica :",
+	"contactpage-formfootnotes": "(obligatòri se desiratz una responsa)",
+	"contactpage-includeip": "Inclure mon adreça IP dins aquel messatge.",
+	"contactpage-usermailererror": "Error dins lo subjècte del corrièr electronic :"
+}

@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Chhorran",
+			"Lovekhmer",
+			"Thearith",
+			"គីមស៊្រុន"
+		]
+	},
+	"contactpage": "ទំព័រ​ទំនាក់ទំនង",
+	"contactpage-desc": "[[Special:Contact|សំណុំបែបបទទាក់ទង​សម្រាប់អ្នកទស្សនា]]",
+	"contactpage-title": "ទាក់ទង",
+	"contactpage-pagetext": "សូម​ប្រើ​ប្រាស់​សំណុំបែបបទ​ខាងក្រោម​ ដើម្បី​ទាក់ទងមក​យើងខ្ញុំ។",
+	"contactpage-legend": "ផ្ញើអ៊ីមែល",
+	"contactpage-defsubject": "សារទាក់ទង",
+	"contactpage-subject-and-sender": "$1 (ផ្ញើ​ពី $2)",
+	"contactpage-subject-and-sender-withip": "$1 (ផ្ញើពី $2 នៅ $3)",
+	"contactpage-fromname": "ឈ្មោះ​​របស់អ្នក៖",
+	"contactpage-fromaddress": "អ៊ីមែល​​របស់អ្នក៖",
+	"contactpage-formfootnotes": "(ត្រូវការបើសិនជាអ្នកចង់បានចម្លើយតប)",
+	"contactpage-includeip": "បញ្ចូលអាសយដ្ឋានIPរបស់ខ្ញុំទៅក្នុងសារនេះ។",
+	"contactpage-usermailererror": "បញ្ហាជាមួយកម្មវត្ថុអ៊ីមែល៖",
+	"contactpage-captcha-error": "បញ្ហាជាមួយ CAPTCHA",
+	"contactpage-config-error-title": "បញ្ហាជាមួយទម្រង់បែបបទទាក់ទង"
+}

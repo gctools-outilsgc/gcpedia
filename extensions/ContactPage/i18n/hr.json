@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dnik",
+			"SpeedyGonsales",
+			"Tivek"
+		]
+	},
+	"contactpage": "Stranica za kontakt",
+	"contactpage-desc": "[[Special:Contact|Obrazac za posjetitelje]]",
+	"contactpage-title": "Kontakt",
+	"contactpage-pagetext": "Molimo, koristite ovaj obrazac za kontakt s nama.",
+	"contactpage-legend": "Pošalji e-mail",
+	"contactpage-defsubject": "Poruka za kontakt",
+	"contactpage-subject-and-sender": "$1 (od $2)",
+	"contactpage-subject-and-sender-withip": "$1 (od $2 s $3)",
+	"contactpage-fromname": "Vaše ime: *",
+	"contactpage-fromaddress": "Vaš e-mail: **",
+	"contactpage-formfootnotes": "* neobavezno<br />\n** neobavezno, ali potrebno ako želite odgovor",
+	"contactpage-includeip": "Priloži moju IP adresu u ovu poruku.",
+	"contactpage-usermailererror": "Sustav pošte javio je pogrešku:"
+}

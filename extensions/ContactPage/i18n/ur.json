@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"محبوب عالم"
+		]
+	},
+	"contactpage": "صفحۂ رابطہ",
+	"contactpage-title": "رابطہ کریں",
+	"contactpage-pagetext": "ہم سے رابطہ کرنے کیلئے درج ذیل تشکیلہ استعمال کریں",
+	"contactpage-defsubject": "پیغام",
+	"contactpage-fromname": "آپ کا نام: *",
+	"contactpage-fromaddress": "آپکا برقی پتہ: **"
+}

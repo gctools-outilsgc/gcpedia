@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"GreenZeb",
+			"Papuass"
+		]
+	},
+	"contactpage": "Kontaktu lapa",
+	"contactpage-desc": "[[Special:Contact|Apmeklētāju kontaktforma]]",
+	"contactpage-title": "Kontakti",
+	"contactpage-pagetext": "Lūdzu, izmantojiet zemāk esošo formu, lai sazinātos ar mums.",
+	"contactpage-legend": "Sūtīt e-pastu",
+	"contactpage-subject-and-sender": "$1 (no $2)",
+	"contactpage-subject-and-sender-withip": "$1 (no $2 - $3)",
+	"contactpage-fromname": "Jūsu vārds: *",
+	"contactpage-fromaddress": "Jūsu e-pasts: **",
+	"contactpage-includeip": "Iekļaut šajā ziņojumā manu IP adresi.",
+	"contactpage-usermailererror": "Pasta objekts atgrieza kļūdu:"
+}

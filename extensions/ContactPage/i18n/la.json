@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Omnipaedista",
+			"SPQRobin",
+			"UV",
+			"Lesgles"
+		]
+	},
+	"contactpage": "Pagina communicationis",
+	"contactpage-subject-and-sender": "$1 (ex $2)",
+	"contactpage-fromname": "Nomen tuum: *"
+}

@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Praveenp",
+			"Shijualex"
+		]
+	},
+	"contactpage": "ബന്ധപ്പെടാനുള്ള താൾ",
+	"contactpage-desc": "[[Special:Contact|സന്ദർശകർക്ക് ബന്ധപ്പെടാനുള്ള ഫോം]]",
+	"contactpage-title": "വിലാസം",
+	"contactpage-pagetext": "ഞങ്ങളെ ബന്ധപ്പെടാൻ ദയവായി താഴെ കൊടുത്തിരിക്കുന്ന ഫോം ഉപയോഗിക്കുക.",
+	"contactpage-legend": "ഇമെയിൽ അയയ്ക്കുക",
+	"contactpage-defsubject": "ബന്ധപ്പെടാനുള്ള സന്ദേശം",
+	"contactpage-subject-and-sender": "$1 (അയച്ചത് $2)",
+	"contactpage-subject-and-sender-withip": "$1 ($3 എന്ന വിലാസത്തിൽനിന്നുള്ള $2)",
+	"contactpage-fromname": "താങ്കളുടെ പേര്‌: *",
+	"contactpage-fromaddress": "താങ്കളുടെ ഇമെയിൽ വിലാസം: **",
+	"contactpage-formfootnotes": "* നിർബന്ധമില്ല<br />\n** നിർബന്ധമില്ല, പക്ഷെ താങ്കൾക്ക് മറുപടി വേണമെങ്കിൽ ഇതു ആവശ്യമാണ്‌",
+	"contactpage-includeip": "ഈ സന്ദേശത്തിൽ എന്റെ ഐ.പി. വിലാസവും ചേർക്കുക.",
+	"contactpage-usermailererror": "മെയിൽ ഒബ്ജക്റ്റ് പിഴവാണ് തിരിച്ചയത്:"
+}

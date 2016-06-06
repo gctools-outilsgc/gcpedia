@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aurora",
+			"Aviator",
+			"Anakmalaysia"
+		]
+	},
+	"contactpage": "Laman hubungan",
+	"contactpage-desc": "[[Special:Contact|Borang hubungan untuk pengunjung]]",
+	"contactpage-title": "Hubungi kami",
+	"contactpage-pagetext": "Sila gunakan borang di bawah untuk menghubungi kami.",
+	"contactpage-legend": "Kirim e-mel",
+	"contactpage-defsubject": "Pesanan",
+	"contactpage-subject-and-sender": "$1 (daripada $2)",
+	"contactpage-subject-and-sender-withip": "$1 (daripada $2 di alamat $3)",
+	"contactpage-fromname": "Nama anda:",
+	"contactpage-fromaddress": "Alamat e-mel anda:",
+	"contactpage-formfootnotes": "(diperlukan jika hendak dibalas)",
+	"contactpage-includeip": "Sertakan alamat IP saya dalam pesanan ini.",
+	"contactpage-usermailererror": "Objek Mail memulangkan ralat:",
+	"contactpage-captcha-error": "Ralat CAPTCHA",
+	"contactpage-config-error-title": "Ralat borang perhubungan"
+}

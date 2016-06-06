@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"Yekrats"
+		]
+	},
+	"contactpage": "Kontaktpaĝo",
+	"contactpage-desc": "[[Special:Contact|Kontaktpaĝo por vizitantoj]]",
+	"contactpage-title": "Kontaktigi",
+	"contactpage-pagetext": "Bonvolu uzi la suban kamparon por kontakti nin.",
+	"contactpage-legend": "Sendi retpoŝton",
+	"contactpage-defsubject": "Kontakta Mesaĝo",
+	"contactpage-subject-and-sender": "$1 (de $2)",
+	"contactpage-subject-and-sender-withip": "$1 (de $2 ĉe $3)",
+	"contactpage-fromname": "Via nomo: *",
+	"contactpage-fromaddress": "Via retadreso: **",
+	"contactpage-formfootnotes": "* nedeviga<br />\n** nedeviga sed deviga se vi volas respondon",
+	"contactpage-includeip": "Inkluzivi mian IP-adreson en ĉi tiu mesaĝo",
+	"contactpage-usermailererror": "Resendita retmesaĝa erarsubjekto:"
+}

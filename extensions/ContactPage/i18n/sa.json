@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Shubha",
+			"NehalDaveND"
+		]
+	},
+	"contactpage": "सम्पर्कपृष्ठम्",
+	"contactpage-title": "सम्पर्कः",
+	"contactpage-legend": "वि-पत्रं प्रेषयतु",
+	"contactpage-fromname": "भवतः/भवत्याः नाम :",
+	"contactpage-fromaddress": "भवतः/भवत्याः वि-पत्रसङ्केतः :",
+	"contactpage-usermailererror": "पत्राचारपदार्थस्य प्रत्यागतदोषः ।"
+}

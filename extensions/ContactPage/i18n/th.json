@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Harley Hartwell",
+			"Horus",
+			"Woraponboonkerd"
+		]
+	},
+	"contactpage": "หน้าติดต่อ",
+	"contactpage-desc": "[[Special:Contact|แบบการติดต่อสำหรับผู้เยื่ยมชม]]",
+	"contactpage-title": "ติดต่อ",
+	"contactpage-pagetext": "กรุณาใช้แบบด้านล่างนี้เพื่อติดต่อเรา",
+	"contactpage-legend": "ส่งอีเมล",
+	"contactpage-defsubject": "ข้อความติดต่อ",
+	"contactpage-subject-and-sender": "$1 (จาก $2)",
+	"contactpage-subject-and-sender-withip": "$1 (จาก $2 ที่ $3)",
+	"contactpage-fromname": "ชื่อของคุณ:",
+	"contactpage-fromaddress": "ที่อยู่อีเมลของคุณ:",
+	"contactpage-formfootnotes": "(จำเป็นหากคุณต้องการคำตอบ)",
+	"contactpage-includeip": "รวมเลขที่อยู่ไอพีของฉันในข้อความนี้",
+	"contactpage-usermailererror": "การส่งอีเมลผิดพลาด:"
+}

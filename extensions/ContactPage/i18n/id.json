@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bennylin",
+			"Iwan Novirion"
+		]
+	},
+	"contactpage": "Hubungi kami",
+	"contactpage-desc": "[[Special:Contact|Formulir hubungi kami untuk pengunjung]]",
+	"contactpage-title": "Hubungi",
+	"contactpage-pagetext": "Gunakan formulir berikut untuk menghubungi kami",
+	"contactpage-legend": "Kirim surel",
+	"contactpage-defsubject": "Pesan",
+	"contactpage-subject-and-sender": "$1 (dari $2)",
+	"contactpage-subject-and-sender-withip": "$1 (dari $2 pada $3)",
+	"contactpage-fromname": "Nama Anda: *",
+	"contactpage-fromaddress": "Surel Anda: **",
+	"contactpage-formfootnotes": "* opsional<br />\n** opsional, namun dibutuhkan jika Anda menginginkan jawaban",
+	"contactpage-includeip": "Sertakan alamat IP saya di pesan ini.",
+	"contactpage-usermailererror": "Kesalahan objek surat:"
+}

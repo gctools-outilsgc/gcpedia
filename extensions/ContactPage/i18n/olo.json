@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ilja.mos",
+			"Mashoi7"
+		]
+	},
+	"contactpage": "Yhtevyssivu",
+	"contactpage-desc": "[[Special:Contact|Yhtevyönottoankiettu gostile]]",
+	"contactpage-title": "Kirjuta meile",
+	"contactpage-pagetext": "Voit kirjuttua meile al olijal ankietal.",
+	"contactpage-legend": "Työnnä sähköpoštu",
+	"contactpage-defsubject": "Sinun viesti",
+	"contactpage-subject-and-sender": "$1 (työndäi: $2)",
+	"contactpage-subject-and-sender-withip": "$1 (käyttäjälpäi $2 adressaspäi $3)",
+	"contactpage-fromname": "Sinun nimi:",
+	"contactpage-fromaddress": "Sinun sähköpoštuadressu:",
+	"contactpage-formfootnotes": "(pidäy ku tahtonet vastavuksen)",
+	"contactpage-includeip": "Ližiä minun IP-adressu täh viestih.",
+	"contactpage-captcha-error": "CAPTCHA-haireh"
+}

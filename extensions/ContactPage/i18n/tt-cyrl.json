@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ильнар"
+		]
+	},
+	"contactpage": "Элемтә бите",
+	"contactpage-desc": "[[Special:Contact|Караучылар өчен форма]]",
+	"contactpage-title": "Элемтә",
+	"contactpage-pagetext": "Зинһар, астагы форманы безнең белән элемтәгә керү өчен кулланыгыз.",
+	"contactpage-legend": "Хат җибәрү",
+	"contactpage-defsubject": "Хат",
+	"contactpage-subject-and-sender": "$1 ($2 башлап)",
+	"contactpage-subject-and-sender-withip": "$1 ($2  $3 юлламасыннан)",
+	"contactpage-fromname": "Сезнең исемегез: *",
+	"contactpage-fromaddress": "Сезнең эл. почта юлламагыз: **",
+	"contactpage-formfootnotes": "* мәҗбүри түгел<br />\n** мәҗбүри түгел, ләкин сезгә җавап бирү өчен кирәк",
+	"contactpage-includeip": "Минем IP-юлламаны бу хат белән җибәрергә."
+}

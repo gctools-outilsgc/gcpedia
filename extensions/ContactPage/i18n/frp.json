@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"ChrisPtDe"
+		]
+	},
+	"contactpage": "Contacte",
+	"contactpage-desc": "[[Special:Contact|Formulèro de contacte por los visitors]].",
+	"contactpage-title": "Contacte",
+	"contactpage-pagetext": "Volyéd utilisar lo formulèro ce-desot por vos veriér vers nos.",
+	"contactpage-legend": "Mandar un mèssâjo",
+	"contactpage-defsubject": "Mèssâjo",
+	"contactpage-subject-and-sender": "$1 (de $2)",
+	"contactpage-subject-and-sender-withip": "$1 (de $2 a $3)",
+	"contactpage-fromname": "Voutron nom : *",
+	"contactpage-fromaddress": "Voutra adrèce èlèctronica : **",
+	"contactpage-formfootnotes": "* u chouèx<br />\n** u chouèx mas nècèssèro se vos voléd una rèponsa",
+	"contactpage-includeip": "Encllure mon adrèce IP dens ceti mèssâjo.",
+	"contactpage-usermailererror": "Fôta dens la chousa du mèssâjo :"
+}

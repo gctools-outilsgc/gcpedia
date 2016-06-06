@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Lam-ang"
+		]
+	},
+	"contactpage": "Pagdamagan a panid",
+	"contactpage-desc": "[[Special:Contact|Pagdamagan a porma para kadagiti bisita]]",
+	"contactpage-title": "Pagdamagan",
+	"contactpage-pagetext": "Pangngaasi nga usaren ti porma dita baba tapno agdamag kaniami.",
+	"contactpage-legend": "Ipatulod ti esurat",
+	"contactpage-defsubject": "Mensahe ti pagdamagan",
+	"contactpage-subject-and-sender": "$1 (manipud kenni $2)",
+	"contactpage-subject-and-sender-withip": "$1 (manipud kenni $2 iti $3)",
+	"contactpage-fromname": "Ti naganmo:",
+	"contactpage-fromaddress": "Ti esuratmo:",
+	"contactpage-formfootnotes": "(nasken no kayatmo ti sungbat)",
+	"contactpage-includeip": "Iraman ti IP a pagtaengak iti daytoy a mensahe.",
+	"contactpage-usermailererror": "Kita ti surat ket nangisubli ti biddut:",
+	"contactpage-captcha-error": "Biddut ti CAPTCHA"
+}

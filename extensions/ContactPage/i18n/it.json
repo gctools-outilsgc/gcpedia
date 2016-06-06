@@ -1,0 +1,26 @@
+{
+	"@metadata": {
+		"authors": [
+			"Beta16",
+			"Civvì",
+			"Darth Kule",
+			"Gianfranco"
+		]
+	},
+	"contactpage": "Contatti",
+	"contactpage-desc": "[[Special:Contact|Modulo di contatto per gli ospiti]]",
+	"contactpage-title": "Contatti",
+	"contactpage-pagetext": "Il modulo riportato di seguito consente di mettersi in contatto con noi.",
+	"contactpage-legend": "Invia email",
+	"contactpage-defsubject": "Messaggio",
+	"contactpage-subject-and-sender": "$1 (da $2)",
+	"contactpage-subject-and-sender-withip": "$1 (da $2 all'indirizzo $3)",
+	"contactpage-fromname": "Il tuo nome:",
+	"contactpage-fromaddress": "Il tuo indirizzo email:",
+	"contactpage-formfootnotes": "(obbligatorio se si desidera una risposta)",
+	"contactpage-includeip": "Includi il mio indirizzo IP in questo messaggio.",
+	"contactpage-usermailererror": "L'oggetto mail ha restituito l'errore:",
+	"contactpage-captcha-error": "Errore CAPTCHA",
+	"contactpage-config-error-title": "Errore nel modulo di contatto",
+	"contactpage-config-error": "Non è stato configurato un modulo di contatto per questa pagina, oppure non è stato configurato in modo corretto."
+}

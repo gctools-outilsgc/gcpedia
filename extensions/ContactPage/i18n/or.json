@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ansumang",
+			"Psubhashish"
+		]
+	},
+	"contactpage": "ସମ୍ପର୍କ ପୃଷ୍ଠା",
+	"contactpage-desc": "[[Special:Contact|ଆଗନ୍ତୁକଙ୍କ ପାଇଁ ସମ୍ପର୍କ ପତ୍ର]]",
+	"contactpage-title": "ସମ୍ପର୍କ",
+	"contactpage-pagetext": "ଆମ ସହ ଯୋଗାଯୋଗ କରିବା ନିମନ୍ତେ ଏହି ତଳ ଆବେଦନ ପତ୍ରଟି ବ୍ୟବହାର କରନ୍ତୁ ।",
+	"contactpage-legend": "ଇ-ମେଲ ପଠାଇବେ",
+	"contactpage-defsubject": "ଯୋଗାଯୋଗ ସନ୍ଦେଶ",
+	"contactpage-subject-and-sender": "$1 (from $2)",
+	"contactpage-subject-and-sender-withip": "$1 (from $2 at $3)",
+	"contactpage-fromname": "ଆପଣଙ୍କ ନାମ:",
+	"contactpage-fromaddress": "ଆପଣଙ୍କ ଇ-ମେଲ:",
+	"contactpage-formfootnotes": "(ଦରକାର ଯଦି ଆପଣ ଉତ୍ତରଟିଏ ଚାହୁଁଛନ୍ତି)",
+	"contactpage-usermailererror": "ମେଲ ଭିତରେ କିଛି ଅସୁବିଧା ଅଛି ବୋଲି ଜାଣିବାକୁ ମିଳିଲା:"
+}

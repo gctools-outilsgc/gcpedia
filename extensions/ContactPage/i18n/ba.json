@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Assele",
+			"Haqmar"
+		]
+	},
+	"contactpage": "Бәйләнеш бите",
+	"contactpage-desc": "[[Special:Contact|Ҡараусылар өсөн форма]]",
+	"contactpage-title": "Бәйләнеш",
+	"contactpage-pagetext": "Зинһар, беҙҙең менән бәйләнешкә кереү өсөн, түбәндәге форманы ҡулланығыҙ.",
+	"contactpage-legend": "Э-хат ебәрергә",
+	"contactpage-defsubject": "Хәбәр",
+	"contactpage-subject-and-sender": "$1 ($2 башлап)",
+	"contactpage-subject-and-sender-withip": "$1 ($2  $3 адресынан)",
+	"contactpage-fromname": "Исемегеҙ: *",
+	"contactpage-fromaddress": "Электрон почта адресығыҙ: **",
+	"contactpage-formfootnotes": "* мәжбүри түгел<br />\n** мәжбүри түгел, ләкин һеҙгә яуап биреү өсөн кәрәк",
+	"contactpage-includeip": "Был хәбәргә минең IP адресты өҫтәргә.",
+	"contactpage-usermailererror": "Хат ебәргән ваҡытта хата килеп сыҡты:"
+}

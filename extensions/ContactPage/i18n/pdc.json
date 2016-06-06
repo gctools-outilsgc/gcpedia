@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Xqt"
+		]
+	},
+	"contactpage-subject-and-sender": "$1 (vun $2)",
+	"contactpage-fromname": "Dei Naame: *",
+	"contactpage-fromaddress": "Dei E-Poschd: **"
+}

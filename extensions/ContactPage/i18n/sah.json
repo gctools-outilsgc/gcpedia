@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"HalanTul"
+		]
+	},
+	"contactpage": "Алтыһыы сирэйэ",
+	"contactpage-desc": "[[Special:Contact|Ыалдьыттарга аналлаах фуорма]]",
+	"contactpage-title": "Контакт",
+	"contactpage-pagetext": "Биһигини кытта ситимнэһэргэ бу фуорманы туһан.",
+	"contactpage-legend": "Суругу ыыт",
+	"contactpage-defsubject": "Сурук",
+	"contactpage-subject-and-sender": "$1 (от $2)",
+	"contactpage-subject-and-sender-withip": "$1 ($2, $3 аадырыстан)",
+	"contactpage-fromname": "Эн аатыҥ: *",
+	"contactpage-fromaddress": "Эн эл. почтаҥ аадырыһа: **",
+	"contactpage-formfootnotes": "* булугуччута суох<br />\n** булугуччута суох гынан баран эппиэт эрэйэр буоллаххына наада",
+	"contactpage-includeip": "Мин IP-бын бу биллэриккэ киллэр.",
+	"contactpage-usermailererror": "Сурук кыайан барбата:"
+}

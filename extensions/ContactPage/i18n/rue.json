@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"Gazeb"
+		]
+	},
+	"contactpage": "Сторінка контакту",
+	"contactpage-desc": "[[Special:Contact|Контактный формуларь про навщівників]]",
+	"contactpage-title": "Контакт",
+	"contactpage-pagetext": "За помочі ниже указаного формуларя ся з нами можете споїти.",
+	"contactpage-legend": "Послати ел. пошту",
+	"contactpage-defsubject": "Повідомлїня",
+	"contactpage-subject-and-sender": "$1 (з $2)",
+	"contactpage-subject-and-sender-withip": "$1 (од $2 з $3)",
+	"contactpage-fromname": "Ваше імя: *",
+	"contactpage-fromaddress": "Ваша адреса ел. пошты: **",
+	"contactpage-formfootnotes": "&#042; волительны<br />\n&#042;&#042; волительны, але потрібны кідь хочете одповідь",
+	"contactpage-includeip": "Приложыти ку повідомлїню мою IP адресу.",
+	"contactpage-usermailererror": "Хыба поштового проґраму:"
+}

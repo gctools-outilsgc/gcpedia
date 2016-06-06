@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"Als-Holder"
+		]
+	},
+	"contactpage": "Kontaktsyte",
+	"contactpage-desc": "[[Special:Contact|Kontaktformular fir Bsuecher]]",
+	"contactpage-title": "Kontakt",
+	"contactpage-pagetext": "Mit däm Formular chasch is Nochrichte schicke.",
+	"contactpage-legend": "E-Mail abschicke",
+	"contactpage-defsubject": "Kontaktnochricht",
+	"contactpage-subject-and-sender": "$1 (vu $2)",
+	"contactpage-subject-and-sender-withip": "$1 (vu $2 uf $3)",
+	"contactpage-fromname": "Dy Name: *",
+	"contactpage-fromaddress": "Dyy E-Mail-Adräss: **",
+	"contactpage-formfootnotes": "* optional<br />\n** optional, wird aber bruucht wänn du ne Antwort witt",
+	"contactpage-includeip": "Myy IP-Adräss in die Nochricht yysetze.",
+	"contactpage-usermailererror": "S Mail-Objekt het e Fähler zruckgee:"
+}

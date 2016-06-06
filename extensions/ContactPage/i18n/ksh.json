@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Purodha"
+		]
+	},
+	"contactpage": "Kontak-Sigg",
+	"contactpage-desc": "[[Special:Contact|Kontak-Sigg]] för Besöker.",
+	"contactpage-title": "Kumtak",
+	"contactpage-pagetext": "Övver di Sigg hee kanns De dä Wiki-Maacher jet schrieve.",
+	"contactpage-legend": "<i lang=\"en\">e-mail</i> schecke",
+	"contactpage-defsubject": "Kontak-Nohreesch",
+	"contactpage-subject-and-sender": "$1 (fun $2)",
+	"contactpage-subject-and-sender-withip": "$1 (vum $2 met dä IP-Addräß $3)",
+	"contactpage-fromname": "Dinge Nahme:",
+	"contactpage-fromaddress": "Ding Adräß för de <i lang=\"en\" xml:lang=\"en\" dir=\"ltr\">e-mail</i>:",
+	"contactpage-formfootnotes": "(kanns De fott lohße, ußer wann De en Antwoot han wells)",
+	"contactpage-includeip": "Donn ming <i lang=\"en\">IP</i>-Addräß en heh di Nohreesch erin.",
+	"contactpage-usermailererror": "Dat E-Mail-Objek jov ene Fähler us:",
+	"contactpage-captcha-error": "<span style=\"text-transform:uppercase\" title=\"Jät zom Ennjävve, öm ze zeije, dadd ene Minsch vör em Kompjuhter sez\">Kaptscha</span>-Fähler",
+	"contactpage-config-error-title": "Fähler jefonge em Fommollaa för der Kumtak",
+	"contactpage-config-error": "Et Wikki häte kei Fommollaa för der Kumtk, udder ed es enjereesch, ävver doh es ene Fähler dren, esu dadd ed nit deiht."
+}

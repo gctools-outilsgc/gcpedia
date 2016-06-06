@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"Eitvys200",
+			"Garas",
+			"Mantak111",
+			"Matasg"
+		]
+	},
+	"contactpage": "Kontaktų puslapis",
+	"contactpage-title": "Kontaktas",
+	"contactpage-pagetext": "Prašome naudoti žemiau esančią formą norint susisiekti su mumis.",
+	"contactpage-legend": "Siųsti elektroninį laišką",
+	"contactpage-subject-and-sender": "$1 (iš $2 )",
+	"contactpage-fromname": "Jūsų vardas:",
+	"contactpage-fromaddress": "Jūsų elektroninis paštas:",
+	"contactpage-formfootnotes": "(reikalingas, jei norite gauti atsakymą)",
+	"contactpage-includeip": "Įtraukti mano IP adresą į šį pranešimą.",
+	"contactpage-usermailererror": "Pašto objektas grąžino klaidą:"
+}

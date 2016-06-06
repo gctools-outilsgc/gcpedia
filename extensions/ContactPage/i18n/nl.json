@@ -1,0 +1,26 @@
+{
+	"@metadata": {
+		"authors": [
+			"SPQRobin",
+			"Siebrand",
+			"Sjoerddebruin",
+			"Esketti"
+		]
+	},
+	"contactpage": "Contactpagina",
+	"contactpage-desc": "[[Special:Contact|Contactformulier voor bezoekers]]",
+	"contactpage-title": "Contact",
+	"contactpage-pagetext": "Gebruik het onderstaande formulier om contact met ons op te nemen.",
+	"contactpage-legend": "E-mail verzenden",
+	"contactpage-defsubject": "Contactbericht",
+	"contactpage-subject-and-sender": "$1 (van $2)",
+	"contactpage-subject-and-sender-withip": "$1 (van $2 op $3)",
+	"contactpage-fromname": "Uw naam:",
+	"contactpage-fromaddress": "Uw e-mailadres:",
+	"contactpage-formfootnotes": "(nodig als u een antwoord wilt ontvangen)",
+	"contactpage-includeip": "Stuur mijn IP-adres mee met dit bericht.",
+	"contactpage-usermailererror": "Foutmelding bij het verzenden:",
+	"contactpage-captcha-error": "CAPTCHA-fout",
+	"contactpage-config-error-title": "Contactformulierfout",
+	"contactpage-config-error": "Een contactformulier is niet geconfigureerd voor deze pagina of onjuist is geconfigureerd."
+}

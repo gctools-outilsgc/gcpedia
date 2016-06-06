@@ -1,0 +1,17 @@
+{
+	"@metadata": {
+		"authors": [
+			"Mdupont"
+		]
+	},
+	"contactpage-title": "Kontakt",
+	"contactpage-pagetext": "Ju lutem përdorni formularin e mëposhtëm për të na kontaktoni.",
+	"contactpage-legend": "Dergo e-mail",
+	"contactpage-defsubject": "mesazh Kontakt",
+	"contactpage-subject-and-sender": "$1 (nga $2)",
+	"contactpage-subject-and-sender-withip": "$1 (prej $2 në $3)",
+	"contactpage-fromname": "Emri juaj: *",
+	"contactpage-fromaddress": "Your e-mail: **",
+	"contactpage-formfootnotes": "* Opcionale <br /> ** Dëshirë por e nevojshme qoftë se dëshironi një përgjigje",
+	"contactpage-includeip": "Përfshini IP adresa ime ne kete mesazh."
+}

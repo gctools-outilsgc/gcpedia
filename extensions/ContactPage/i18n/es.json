@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"Crazymadlover",
+			"Fitoschido",
+			"Imre",
+			"Locos epraix",
+			"Peter17",
+			"Sanbec",
+			"Sporeunai",
+			"לערי ריינהארט",
+			"Macofe"
+		]
+	},
+	"contactpage": "Página de contacto",
+	"contactpage-desc": "[[Special:Contact|Formulario de contacto para visitantes]]",
+	"contactpage-title": "Contacto",
+	"contactpage-pagetext": "Utiliza el siguiente formulario para ponerte en contacto con nosotros.",
+	"contactpage-legend": "Enviar correo electrónico",
+	"contactpage-defsubject": "Mensaje de contacto",
+	"contactpage-subject-and-sender": "$1 (de $2)",
+	"contactpage-subject-and-sender-withip": "$1 (de $2 en $3)",
+	"contactpage-fromname": "Tu nombre:",
+	"contactpage-fromaddress": "Tu dirección de correo:",
+	"contactpage-formfootnotes": "(necesario si quieres una respuesta)",
+	"contactpage-includeip": "Incluir mi dirección IP en este mensaje.",
+	"contactpage-usermailererror": "El sistema de correo devolvió un error:",
+	"contactpage-captcha-error": "Error en el CAPTCHA",
+	"contactpage-config-error-title": "Error en el formulario de contacto",
+	"contactpage-config-error": "Un formulario de contacto no está configurado para esta página o no está configurado correctamente."
+}

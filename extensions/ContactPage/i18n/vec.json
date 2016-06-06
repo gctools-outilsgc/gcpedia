@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Candalua",
+			"GatoSelvadego"
+		]
+	},
+	"contactpage": "Contatto",
+	"contactpage-desc": "[[Special:Contact|Modulo de contatto par i visitadori]]",
+	"contactpage-title": "Contato",
+	"contactpage-pagetext": "Par piaser, par contatarne doparè el mòdulo qua soto.",
+	"contactpage-legend": "Manda e-mail",
+	"contactpage-defsubject": "Messajo",
+	"contactpage-subject-and-sender": "$1 (da $2)",
+	"contactpage-subject-and-sender-withip": "$1 (da $2 a $3)",
+	"contactpage-fromname": "El to nome: *",
+	"contactpage-fromaddress": "La to e-mail: **",
+	"contactpage-formfootnotes": "* canpo mia obligatorio<br />\n** canpo obligatorio se te voli na risposta",
+	"contactpage-includeip": "Includi el me indirisso IP in sto messajo.",
+	"contactpage-usermailererror": "L'ogeto mail el gà restituìo l'eror:"
+}

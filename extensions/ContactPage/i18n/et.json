@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Avjoska",
+			"Pikne"
+		]
+	},
+	"contactpage": "Ühendustvõtmise lehekülg",
+	"contactpage-desc": "[[Special:Contact|Ühendustvõtmise vorm külalistele]]",
+	"contactpage-title": "Kontakt",
+	"contactpage-pagetext": "Palun kasuta all olevat vormi meiega ühenduse võtmiseks.",
+	"contactpage-legend": "Saada e-kiri",
+	"contactpage-defsubject": "Sõnum",
+	"contactpage-subject-and-sender": "$1 (saatis $2)",
+	"contactpage-subject-and-sender-withip": "$1 (saatis $2 IP-aadressilt $3)",
+	"contactpage-fromname": "Sinu nimi:",
+	"contactpage-fromaddress": "Sinu e-posti aadress:",
+	"contactpage-formfootnotes": "(vajalik, kui tahad vastust)",
+	"contactpage-includeip": "Lisa selle sõnumi juurde minu IP-aadress.",
+	"contactpage-usermailererror": "Saatmise viga:"
+}

@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"contactpage": "Kontaktna strona",
+	"contactpage-desc": "[[Special:Contact|Kontaktowy formular za wopytarjow]]",
+	"contactpage-title": "Kontakt",
+	"contactpage-pagetext": "Prošu wužij tutón formular, zo by nas skontaktował.",
+	"contactpage-legend": "E-mejl pósłać",
+	"contactpage-defsubject": "Kontaktna zdźělenka",
+	"contactpage-subject-and-sender": "$1 (z $2)",
+	"contactpage-subject-and-sender-withip": "$1 (wot $2 na $3)",
+	"contactpage-fromname": "Twoje mjeno:",
+	"contactpage-fromaddress": "Twoja e-mejlowa adresa:",
+	"contactpage-formfootnotes": "(trěbny, jeli chceš wotmołwu)",
+	"contactpage-includeip": "Moju IP-adresu w tutej powěsći zapřijeć.",
+	"contactpage-usermailererror": "E-mejlowy objekt je zmylk wróćił:"
+}

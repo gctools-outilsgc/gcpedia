@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"Srtxg"
+		]
+	},
+	"contactpage": "Pådje d' atôtchance",
+	"contactpage-desc": "[[Special:Contact|Formulrece d' atôtchance po les viziteus]]",
+	"contactpage-title": "Atôtchî",
+	"contactpage-pagetext": "Eployîz l' formulrce chal pa dzo po nos atôtchî.",
+	"contactpage-legend": "Evoyî èn emile",
+	"contactpage-defsubject": "Messaedje po-z atôtchî",
+	"contactpage-subject-and-sender": "$1 (di $2)",
+	"contactpage-subject-and-sender-withip": "$1 (di $2 a $3)",
+	"contactpage-fromname": "Vosse no: *",
+	"contactpage-fromaddress": "Vost emile: **",
+	"contactpage-formfootnotes": "* opcionel<br />\n** opcionel mins vos l' divoz mete si vos vloz rçure ene response",
+	"contactpage-includeip": "Mete l' adresse IP da minne dins l' messaedje.",
+	"contactpage-usermailererror": "Åk n' a nén stî tot voyant l' emile:"
+}

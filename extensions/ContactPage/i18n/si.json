@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Sahan.ssw",
+			"පසිඳු කාවින්ද"
+		]
+	},
+	"contactpage": "සම්බන්ධක පිටුව",
+	"contactpage-desc": "[[Special:Contact|අමුත්තන් සඳහා සම්බන්ධක ෆෝරමය]]",
+	"contactpage-title": "සම්බන්ධ කරන්න",
+	"contactpage-pagetext": "අපව සම්බන්ධ කරගැනීමට කරුණාකර මෙම ෆෝරමය භාවිතා කරන්න.",
+	"contactpage-legend": "ඊ-තැපෑල යවන්න",
+	"contactpage-defsubject": "සම්බන්ධක පණිවුඩය",
+	"contactpage-subject-and-sender": "$1 ($2 ගෙන්)",
+	"contactpage-subject-and-sender-withip": "$1 ($2 ගෙන් $3 හීදී)",
+	"contactpage-fromname": "ඔබේ නම: *",
+	"contactpage-fromaddress": "ඔබේ ඊ-තැපෑල: **",
+	"contactpage-formfootnotes": "(ඔබට පිළිතුරක් ලබා ගැනීමට නම්)",
+	"contactpage-includeip": "මෙම පණිවුඩයෙහි මගේ අයිපී ලිපිනය අඩංගු කරන්න.",
+	"contactpage-usermailererror": "Mail object විසින් පහත දෝෂය එවනලදී:"
+}

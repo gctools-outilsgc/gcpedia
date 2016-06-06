@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"Hanberke"
+		]
+	},
+	"contactpage": "Kontakt sahypasy",
+	"contactpage-desc": "[[Special:Contact|Zyýaratçylar üçin kontakt formy]]",
+	"contactpage-title": "Kontakt",
+	"contactpage-pagetext": "Biziň bilen habarlaşmak üçin aşakdaky formy ulanyň.",
+	"contactpage-legend": "E-poçta iber",
+	"contactpage-defsubject": "Kontakt habarlaşygy",
+	"contactpage-subject-and-sender": "$1 ($2-dan/den)",
+	"contactpage-subject-and-sender-withip": "$1 (gelýän ýeri: $3 IP adresindäki $2 )",
+	"contactpage-fromname": "Adyňyz: *",
+	"contactpage-fromaddress": "E-poçtaňyz: **",
+	"contactpage-formfootnotes": "* islege görä<br />\n** islege görä, ýöne jogap isleýän bolsaňyz gerek",
+	"contactpage-includeip": "Bu habara meniň IP adresimi goş.",
+	"contactpage-usermailererror": "E-poçta säwlige duçar boldy:"
+}

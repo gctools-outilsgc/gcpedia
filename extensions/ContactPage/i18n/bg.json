@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"DCLXVI",
+			"Mitzev",
+			"Turin"
+		]
+	},
+	"contactpage": "Страница за контакт",
+	"contactpage-desc": "[[Special:Contact|Формуляр за връзка]]",
+	"contactpage-title": "Контакт",
+	"contactpage-pagetext": "Формулярът по-долу може да бъде използван за връзка с нас.",
+	"contactpage-legend": "Изпращане на е-писмо",
+	"contactpage-defsubject": "Съобщение",
+	"contactpage-subject-and-sender": "$1 (от $2)",
+	"contactpage-fromname": "Вашето име:",
+	"contactpage-fromaddress": "Вашата е-поща:",
+	"contactpage-formfootnotes": "(изисква се за получаване отговор)",
+	"contactpage-usermailererror": "Пощенският обект даде грешка:"
+}

@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Игорь Бродский"
+		]
+	},
+	"contactpage-legend": "Oigeta e-kirjeine",
+	"contactpage-defsubject": "Tedotuz",
+	"contactpage-subject-and-sender": "$1 (oigendai: $2)",
+	"contactpage-fromname": "Teiden nimi: *",
+	"contactpage-fromaddress": "Teiden e-počtan aderes: **",
+	"contactpage-usermailererror": "Počtan adresat pörduti tedotusen petuses:"
+}

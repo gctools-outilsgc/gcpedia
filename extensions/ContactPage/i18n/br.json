@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Fohanno",
+			"Fulup",
+			"Y-M D"
+		]
+	},
+	"contactpage": "Pajenn daremprediñ",
+	"contactpage-desc": "[[Special:Contact|Furmskrid mont e darempred evit ar gweladennerien]]",
+	"contactpage-title": "Darempred",
+	"contactpage-pagetext": "Mar plij implijit ar furmskrid dindan evit dont e darempred ganeomp.",
+	"contactpage-legend": "Kas ur postel",
+	"contactpage-defsubject": "Kemennadenn daremprediñ",
+	"contactpage-subject-and-sender": "$1 (eus $2)",
+	"contactpage-subject-and-sender-withip": "$1 (eus $2 da $3)",
+	"contactpage-fromname": "Hoc'h anv :",
+	"contactpage-fromaddress": "Ho chomlec'h postel :",
+	"contactpage-formfootnotes": "(rekis mar fell deoc'h e vefe respontet deoc'h)",
+	"contactpage-includeip": "Merkañ ma chomlec'h IP er postel-mañ.",
+	"contactpage-usermailererror": "Fazi postel :",
+	"contactpage-captcha-error": "Fazi CAPTCHA"
+}

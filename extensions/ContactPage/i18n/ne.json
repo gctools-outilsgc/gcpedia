@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bhawani Gautam",
+			"Bhawani Gautam Rhk",
+			"Nirjal stha"
+		]
+	},
+	"contactpage": "सम्पर्क पृष्ठ",
+	"contactpage-desc": "[[Special:Contact|आगन्तुकसितको सम्पर्क]]",
+	"contactpage-title": "संपर्क गर्ने",
+	"contactpage-pagetext": "हामीसित सम्पर्क साध्न तल दिइएको फ़ारमको प्रयोग गर्नुहोस्।",
+	"contactpage-legend": "इमेल पठाउने",
+	"contactpage-defsubject": "सम्पर्क सन्देश",
+	"contactpage-subject-and-sender": "($2बाट) $1",
+	"contactpage-subject-and-sender-withip": "($2बाट  $3मा) $1",
+	"contactpage-fromname": "तपाईंको नाम:  *",
+	"contactpage-fromaddress": "तपाईंको इमेल: **",
+	"contactpage-formfootnotes": "* ऐच्छिक <br />\n** ऐच्छिक तर आवश्यक यदि तपाईं उत्तर चाहनु हुन्छ भनें",
+	"contactpage-includeip": "मेरो आई पी ठेगाना यस सन्देशमा संलग्न गर्ने।",
+	"contactpage-usermailererror": "मेल अब्जेक्टले देखाएको त्रुटि:",
+	"contactpage-config-error-title": "सम्पर्क फारम समस्या"
+}

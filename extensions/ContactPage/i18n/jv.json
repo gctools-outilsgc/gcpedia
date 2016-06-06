@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Meursault2004",
+			"NoiX180",
+			"Pras"
+		]
+	},
+	"contactpage": "Hubungi awak dhéwé",
+	"contactpage-desc": "[[Special:Contact|Formulir kontak kanggo pangunjung]]",
+	"contactpage-title": "Kontak",
+	"contactpage-pagetext": "Mangga nganggo formulir sing kapacak ing ngisor iki menawa arep kontak kita.",
+	"contactpage-legend": "Kirim layang èlèktronik",
+	"contactpage-defsubject": "Layang kontak",
+	"contactpage-subject-and-sender": "$1 (saka $2)",
+	"contactpage-subject-and-sender-withip": "$1 (saka $2 nèng $3)",
+	"contactpage-fromname": "Asma panjenengan: *",
+	"contactpage-fromaddress": "Layang-e panjenengan: **",
+	"contactpage-formfootnotes": "* opsional<br />\n** opsional nanging diperlokaké yèn panjenengan perlu wangsulan",
+	"contactpage-includeip": "Sartakaké alamat IP kula nèng layang iki.",
+	"contactpage-usermailererror": "Kaluputan obyèk layang:"
+}

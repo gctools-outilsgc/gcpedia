@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Irwangatot",
+			"Kandar"
+		]
+	},
+	"contactpage": "Kaca kontak",
+	"contactpage-pagetext": "Mangga eusian formulir di handap pikeun ngontak ka kami.",
+	"contactpage-subject-and-sender": "$1 (ti $2)",
+	"contactpage-fromname": "ngaran anjeun *",
+	"contactpage-fromaddress": "surélék anjeun **"
+}

@@ -1,0 +1,26 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aotake",
+			"Fryed-peach",
+			"JtFuruhata",
+			"Naohiro19",
+			"Shirayuki",
+			"לערי ריינהארט"
+		]
+	},
+	"contactpage": "連絡先",
+	"contactpage-desc": "[[Special:Contact|サイト来訪者向け連絡フォーム]]",
+	"contactpage-title": "連絡フォーム",
+	"contactpage-pagetext": "以下のフォームでは、私たちにメッセージを送信できます。",
+	"contactpage-legend": "メールを送信",
+	"contactpage-defsubject": "連絡事項",
+	"contactpage-subject-and-sender": "$1 ($2 より)",
+	"contactpage-subject-and-sender-withip": "$1 ($2 が $3 から送信)",
+	"contactpage-fromname": "あなたの名前:",
+	"contactpage-fromaddress": "あなたのメールアドレス:",
+	"contactpage-formfootnotes": "(回答が必要な場合は必ずご記入ください)",
+	"contactpage-includeip": "このメッセージに自分のIPアドレスを含める",
+	"contactpage-usermailererror": "メールが以下のエラーを返しました:",
+	"contactpage-captcha-error": "CAPTCHA エラー"
+}

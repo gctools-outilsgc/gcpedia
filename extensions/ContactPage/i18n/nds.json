@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Slomox"
+		]
+	},
+	"contactpage": "Kontaktsied",
+	"contactpage-desc": "[[Special:Contact|Kontaktformular för Besökers]]",
+	"contactpage-title": "Kontakt",
+	"contactpage-pagetext": "Över dit Formular kannst du uns Narichten tostüern.",
+	"contactpage-legend": "E-Mail afschicken",
+	"contactpage-defsubject": "Kontaktnaricht",
+	"contactpage-subject-and-sender": "$1 (vun $2)",
+	"contactpage-fromname": "Dien Naam: *",
+	"contactpage-fromaddress": "Dien E-Mail-Adress: **",
+	"contactpage-formfootnotes": "* optional<br />\n** optional, aver nödig, wenn du en Antwoord hebben wullt",
+	"contactpage-usermailererror": "Dat Mail-Objekt hett en Fehler trüchgeven:"
+}

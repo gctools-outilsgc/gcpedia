@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Les Meloures",
+			"Robby",
+			"Soued031"
+		]
+	},
+	"contactpage": "Kontaktsäit",
+	"contactpage-desc": "[[Special:Contact|Kontakt-Formulair fir Visiteuren]]",
+	"contactpage-title": "Kontakt",
+	"contactpage-pagetext": "Mat dësem Formelär kënnt Dir eis kontaktéieren.",
+	"contactpage-legend": "E-Mail schécken",
+	"contactpage-defsubject": "Kontakt Message",
+	"contactpage-subject-and-sender": "$1 (vum $2)",
+	"contactpage-subject-and-sender-withip": "$1 (vum $2 iwwer $3)",
+	"contactpage-fromname": "Ären Numm:",
+	"contactpage-fromaddress": "Är E-mail-Adress:",
+	"contactpage-formfootnotes": "(gëtt gebraucht wann Dir eng Äntwert wëllt)",
+	"contactpage-includeip": "Meng IP-Adress an dëse Message drasetzen",
+	"contactpage-usermailererror": "E-Mail-Objet mellt deen heite Feeler:",
+	"contactpage-captcha-error": "CAPTCHA-Feeler"
+}

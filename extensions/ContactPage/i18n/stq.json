@@ -1,0 +1,16 @@
+{
+	"@metadata": {
+		"authors": [
+			"Pyt"
+		]
+	},
+	"contactpage": "Kontaktsiede",
+	"contactpage-title": "Kontakt",
+	"contactpage-pagetext": "Mäd dit Formular koast du uus Ättergjuchte toukuume läite.",
+	"contactpage-defsubject": "Kontakt-Ättergjucht",
+	"contactpage-subject-and-sender": "$1 (fon $2)",
+	"contactpage-fromname": "Din Noome *",
+	"contactpage-fromaddress": "Dien E-Mail Adresse **",
+	"contactpage-formfootnotes": "* optional<br />\n** optional, is oawers nöödich, uum die oantwoudje tou konnen",
+	"contactpage-usermailererror": "Dät Mail-Objekt roat n Failer tourääch:"
+}

@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Chrisportelli",
+			"Leli Forte"
+		]
+	},
+	"contactpage": "Kuntatt",
+	"contactpage-desc": "[[Special:Contact|Formola ta' kuntatt għall-viżitaturi]]",
+	"contactpage-title": "Kuntatt",
+	"contactpage-pagetext": "Jekk jogħġbok uża din il-formola sabiex tikkuntatjana.",
+	"contactpage-legend": "Ibgħat ittra-e",
+	"contactpage-defsubject": "Messaġġ",
+	"contactpage-subject-and-sender": "$1 (minn $2)",
+	"contactpage-subject-and-sender-withip": "$1 (minn $2 sa $3)",
+	"contactpage-fromname": "Isem: *",
+	"contactpage-fromaddress": "Indirizz elettroniku: **",
+	"contactpage-formfootnotes": "* opzjonali<br />\n** opzjonali imma neċessarju jekk qed tistenna tweġiba",
+	"contactpage-includeip": "Inkludi l-indirizz IP f'dan il-messaġġ.",
+	"contactpage-usermailererror": "L-oġġett tal-posta ta l-problema:",
+	"contactpage-captcha-error": "Żball tal-CAPTCHA"
+}

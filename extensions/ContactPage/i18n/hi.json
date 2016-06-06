@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ansumang",
+			"Kaustubh",
+			"Siddhartha Ghai"
+		]
+	},
+	"contactpage": "सम्पर्क पॄष्ठ",
+	"contactpage-desc": "[[Special:Contact|भेंट देनेवालोंके लिये संपर्क फ़ार्म]]",
+	"contactpage-title": "संपर्क",
+	"contactpage-pagetext": "हमसे संपर्क करने के लिये नीचे दिये गये फ़ार्म का इस्तेमाल करें।",
+	"contactpage-legend": "ई-मेल भेजें",
+	"contactpage-defsubject": "संपर्क संदेश",
+	"contactpage-subject-and-sender": "$1 ($2 से)",
+	"contactpage-subject-and-sender-withip": "$1 ($2 से $3 पे)",
+	"contactpage-fromname": "आपका नाम:",
+	"contactpage-fromaddress": "आपका इ-मेल पता:",
+	"contactpage-formfootnotes": "(यदि आपको उत्तर चाहिए तो आवश्यक)",
+	"contactpage-includeip": "मेरा आईपि पता इस संदेश में शामिल हैं।",
+	"contactpage-usermailererror": "मेल ऑब्जेक्ट ने त्रुटि दी:"
+}

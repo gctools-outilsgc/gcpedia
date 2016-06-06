@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Arystanbek"
+		]
+	},
+	"contactpage": "Байланысу беті",
+	"contactpage-title": "Байланыс",
+	"contactpage-pagetext": "Байланысу үшін төмендегі пішінді қолданыңыз.",
+	"contactpage-legend": "Электроныды хат жіберу",
+	"contactpage-defsubject": "Баланыс хабарлама",
+	"contactpage-fromname": "Сіздің есіміңіз:",
+	"contactpage-fromaddress": "Сіздің э-почта мекенжайыңыз:",
+	"contactpage-formfootnotes": "(жауап алу үшін қажет)",
+	"contactpage-includeip": "Менің сәйкестендіргіш хабарламамды қамты.",
+	"contactpage-usermailererror": "Mail нысаны қате қайтарды:",
+	"contactpage-captcha-error": "CAPTCHA қате",
+	"contactpage-config-error-title": "Байланыс пішіні қате"
+}

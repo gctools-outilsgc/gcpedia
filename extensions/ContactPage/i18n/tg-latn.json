@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Liangent"
+		]
+	},
+	"contactpage": "SahifaiTamos",
+	"contactpage-title": "Aloqa",
+	"contactpage-pagetext": "Lutfan baroi dar aloqa budan bo mo az formi zer istifoda kuned.",
+	"contactpage-defsubject": "Pajomi Aloqa",
+	"contactpage-subject-and-sender": "$1 (az $2)",
+	"contactpage-usermailererror": "Poctai elektroni ba xatoe ducor şud:"
+}

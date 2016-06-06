@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Omnipaedista"
+		]
+	},
+	"contactpage-title": "Ἐπαφή",
+	"contactpage-subject-and-sender": "$1 (ἀπὸ $2)",
+	"contactpage-fromname": "Τὸ ὄνομά σου: *",
+	"contactpage-usermailererror": "Τὸ ἠλ-ταχυδρομεῖον ἐπέστρεψεν σφάλμα:"
+}

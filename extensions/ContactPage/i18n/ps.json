@@ -1,0 +1,17 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ahmed-Najib-Biabani-Ibrahimkhel"
+		]
+	},
+	"contactpage": "د اړيکو مخ",
+	"contactpage-desc": "[[Special:Contact|د کتونکو لپاره د اړيکو فورمه]]",
+	"contactpage-title": "اړيکه",
+	"contactpage-pagetext": "له موږ سره د اړيکو ټينگولو لپاره، لاندينۍ فورمه وکاروۍ.",
+	"contactpage-legend": "برېښليک لېږل",
+	"contactpage-defsubject": "د اړيکې پيغام",
+	"contactpage-subject-and-sender": "$1 (د $2 لخوا )",
+	"contactpage-fromname": "ستاسې نوم:",
+	"contactpage-fromaddress": "ستاسې برېښليک پته:",
+	"contactpage-formfootnotes": "(ورته اړتيا ده که يو ځواب غواړۍ)"
+}

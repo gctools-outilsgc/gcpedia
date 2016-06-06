@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aelske",
+			"Ooswesthoesbes",
+			"Pahles"
+		]
+	},
+	"contactpage": "Kóntakpaasj",
+	"contactpage-desc": "[[Special:Contact|Kóntakformuleer veur bezeuker]]",
+	"contactpage-title": "Kóntak",
+	"contactpage-pagetext": "Gebroek 't óngerstäöndje formeleer óm kóntak mit ós óp te nömme.",
+	"contactpage-legend": "Sjik e-mail",
+	"contactpage-defsubject": "Kóntakberich",
+	"contactpage-subject-and-sender": "$1 (ven $2)",
+	"contactpage-subject-and-sender-withip": "$1 (van $2 op $3)",
+	"contactpage-fromname": "Diene naam: *",
+	"contactpage-fromaddress": "Die-t e-mailadres: **",
+	"contactpage-formfootnotes": "* keuzevrie<br />\n** keuzevrie, mer beneudj es antjwaord gewönsj is",
+	"contactpage-includeip": "Sjik mien IP-adres mit in dit berich.",
+	"contactpage-usermailererror": "Foutmeljing biej 't zenje:"
+}
