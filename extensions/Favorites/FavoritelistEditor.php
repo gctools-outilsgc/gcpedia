@@ -194,6 +194,8 @@ class FavoritelistEditor {
 	 * and return as a two-dimensional array with namespace, title and
 	 * redirect status
 	 *
+	 * GCchange - Ilia: To prevent minute + long page table locks when users with 100+ favorites view or edit them 
+	 *
 	 * @param $user User
 	 * @return array
 	 */
@@ -201,25 +203,32 @@ class FavoritelistEditor {
 		$titles = array();
 		$dbr = wfGetDB( DB_MASTER );
 		$uid = intval( $user->getId() );
-		list( $favoritelist, $page ) = $dbr->tableNamesN( 'favoritelist', 'page' );
+		/*list( $favoritelist, $page ) = $dbr->tableNamesN( 'favoritelist', 'page' );
 		$sql = "SELECT fl_namespace, fl_title, page_id, page_len, page_is_redirect
 			FROM {$favoritelist} LEFT JOIN {$page} ON ( fl_namespace = page_namespace
 			AND fl_title = page_title ) WHERE fl_user = {$uid}";
-		$res = $dbr->query( $sql, __METHOD__ );
+		$res = $dbr->query( $sql, __METHOD__ );*/
+		$res = $dbr->select(
+			array( 'favoritelist' ),
+			array( 'fl_namespace', 'fl_title' ),
+			array( 'fl_user' => $uid ),
+			__METHOD__,
+			array( 'ORDER BY' => array( 'fl_namespace', 'fl_title' ) )
+		);
 		if( $res && $dbr->numRows( $res ) > 0 ) {
-			$cache = LinkCache::singleton();
+			//$cache = LinkCache::singleton();
 			while( $row = $dbr->fetchObject( $res ) ) {
 				$title = Title::makeTitleSafe( $row->fl_namespace, $row->fl_title );
 				if( $title instanceof Title ) {
 					// Update the link cache while we're at it
-					if( $row->page_id ) {
+					/*if( $row->page_id ) {
 						$cache->addGoodLinkObj( $row->page_id, $title, $row->page_len, $row->page_is_redirect );
 					} else {
 						$cache->addBadLinkObj( $title );
-					}
+					}*/
 					// Ignore non-talk
 					//if( !$title->isTalkPage() )
-						$titles[$row->fl_namespace][$row->fl_title] = $row->page_is_redirect;
+						$titles[$row->fl_namespace][$row->fl_title] = 0;//$row->page_is_redirect;
 				}
 			}
 		}
