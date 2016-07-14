@@ -85,16 +85,10 @@ $badgebox[17] = "{{7nd dan black belt userbox}}";
 
 function award( &$parser, &$text, &$strip_state )
 {
-	/*static $hasRun = false;
-	if ($hasRun) return true;
-	$hasRun = true;*/
-	
 	global $wgTitle;
 	global $wgLang;
 	global $wgOut;
-	
-	//echo substr( $wgTitle, 0, 5 );
-	
+
 	if ( substr( $wgTitle, 0, 5 ) == "User:" ){
 		
 		generateAwards( getUName( substr( $wgTitle, 5, strlen($wgTitle) ) ), $text );
@@ -106,7 +100,6 @@ function award( &$parser, &$text, &$strip_state )
 		
 	}
 	
-
 	return true;
 	
 }
@@ -119,43 +112,9 @@ function generateAwards( $usename, &$text )
 	global $medal;
 	global $gnomejutsu;
 	global $medalbox;
-	global $badgebox;
-//	$startkey = -1;
-//	$endkey = -1;
-//	$length = count( $lines );
-	
-//	$lines = explode( "\n", $text );
-	
+
+
 	$awoptions['test'] = 'testing';
-	
-/*	for ( $x = 0; $x < $length && $startkey < 0 && $endkey < 0 ; $x++ ){
-		if ( strripos( $lines[$x], "<awards>", 0 ) ){
-			$startkey = $x;}
-			echo $startkey;
-		
-			
-		if ( strripos( $lines[$x], "</awards>", 0 ) )
-			$endkey = $x;
-	}
-	*/
-//	echo $startkey .", " .$endkey;
-//	echo "<br /> " .strripos( $lines[1], "<awards>" );
-	
-//	echo strripos( $text, "<awards>" );
-//	echo strripos( $text, "</awards>" )  + 15 - strripos( $text, "<awards>" );
-	
-	/*if ( strripos( $text, "</awards>" ) ){
-		$acode = substr( $text, strripos( $text, "<awards>" ), strripos( $text, "</awards>") + 9 - strripos( $text, "<awards>" ) );
-		
-		$lines = explode( "\n", substr( $text, strripos( $text, "<awards>" ) + 8, strripos( $text, "</awards>") - 9 - strripos( $text, "<awards>" ) ) );
-		
-		for ( $x = 0; $x < count($lines); $x++ ){
-			if ( strrpos( $lines[$x], '=' ) ){
-				$awoptions[strtolower( substr( $lines[$x], 0, strripos( $lines[$x], '=' ) ) )] = substr( $lines[$x], strripos( $lines[$x], '=' ) + 1 );
-			}
-		}
-	}*/
-	
 	
 	$dbr = wfGetDB( DB_SLAVE );
 	$queryString = "SELECT user_editcount FROM `user` WHERE `user_name` = \"".$usename ."\"";
@@ -218,11 +177,9 @@ function calculateAwards( $usename, $editcount, $awoptions )
 	if ( $editcount > 0 )
 		$GCP = 50 + $editcount * 5 + $bonus;
 	
-	$GCPLevel = getGCPLevel( $GCP ); //(int)( $GCP / 926 );
+	$GCPLevel = getGCPLevel( $GCP );
 	
-	//$ptnl = ($GCP % 926) * 100 / 926;
-	
-	return $GCPLevel /*."<p style='background-color:yellow; text-align:center; border: 6px groove gold ; padding: 3px 0 15px 0; width:" .$awoptions[width] .";'><span style=\"float:left; font-size:750%; color:red; position:relative; left:5%; top:45px;\">". $GCPLevel ."</span> <br />Edit count: " .$editcount. "<br />GCPEDIA Contribution Points: " .$GCP ."<br />GCpedian level: " .$GCPLevel ."<br />Contribution points gained for next level: " .$ptnl ."% ( ". ($GCP % 926) ." of 926)<br /></p>"*/ ;
+	return $GCPLevel;
 	
 }
 
@@ -310,9 +267,6 @@ function getGCPLevel( $GCP )
 		$GCPLevel++;
 	
 	return $GCPLevel;
-
-
-
 }
 
 

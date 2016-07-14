@@ -5,9 +5,6 @@
  *
  */
 
-//echo "<pre>";
-//print_r($wgAjaxExportList);
-//echo "</pre>";
 
 $wgHooks['AddNewAccount'][] = 'Addnewuser';
 function Addnewuser( $user )

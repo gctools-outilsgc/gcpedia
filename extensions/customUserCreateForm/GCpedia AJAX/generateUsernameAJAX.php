@@ -58,17 +58,9 @@ class generateUsernameAJAX extends ApiBase
 			$emailQuery = $dbr->addQuotes($email);
 			
 			#count number of emails
-			// $query2 = "SELECT count(*) FROM " .$dbr->tableName('user') ." WHERE user_email = \"". $emailQuery ."\"";
-			// $result2 = $dbr->doQuery($query2);
-			// $emailrow = $dbr->fetchRow($result2);
 			$emailrow = $dbr->select( $dbr->tableName('user'), 'user_email', 'user_email = "' . $emailQuery . '"', __METHOD__, array() );
 			
 			#check if email in use
-			// if ( $emailrow[0] > 0 ) {
-			// 	# NOTE: the '>' character is used to make the username invalid.
-			// 	echo "> " . wfMsg('email-in-use'); //translate this
-			// 	return "";
-			// }
 			if ( $emailrow->numRows() > 0 ) {
 				# NOTE: the '>' character is used to make the username invalid.
 				$this->getResult()->addValue( null, $this->getModuleName(), "> " . wfMsg('email-in-use') ); //translate this
