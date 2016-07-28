@@ -12,7 +12,7 @@ function Addnewuser( $user )
 
 	$dbr = wfGetDB( DB_MASTER );
 	
-	$queryString = "INSERT INTO `accepted` (Username, date) VALUES (\"". $user->getName() ."\", '".date("d.m.y")."')";
+	$queryString = "INSERT INTO `accepted` (user_id, Username, date) VALUES ({$user->getId()}, \"{$user->getName()}\", '".date("d.m.y")."')";
 	
 	$result = $dbr->query($queryString);
 	
@@ -38,29 +38,29 @@ class AddAccepted extends ApiBase {
 		// int $flags is not declared because it causes "Strict standards"
 		// warning. Most derived classes do not implement it.
 		return array(
-			'username' => '');
+			'username'	=> '',
+			'userid'	=> -1);
 	}
 	function execute()
 	{
-		require_once('dbdisclaimer.php');
 		$dbw = wfGetDB( DB_MASTER );
 		
 		// extract request parameters
 		$params = $this->extractRequestParams();
-		$q = $params['username'];
+		$q = $params['userid'];
 
-		$queryString = "SELECT 1 FROM `accepted`  WHERE Username = '".$q."'";
+		$queryString = "SELECT 1 FROM `accepted` WHERE user_id = {$q}";
 		$result = $dbw->query($queryString);
 		$row = $dbw->fetchRow( $result );
 		
 		if($row[0]!='')
 		{
-			$queryString = "UPDATE IGNORE `accepted` SET date = '".date("d.m.y")."' WHERE Username = '".$q."'";
+			$queryString = "UPDATE IGNORE `accepted` SET date = '".date("d.m.y")."' WHERE user_id = {$q}";
 			$dbw->query($queryString);
 		}	
 		else
 		{
-			$queryString = "INSERT INTO `accepted` (Username, date) VALUES (\"".$q."\", '".date("d.m.y")."')";
+			$queryString = "INSERT INTO `accepted` (username, date, user_id) VALUES (\"{$params['username']}\", '".date("d.m.y")."', $q)";
 			$dbw->query($queryString);
 		}	
 		
