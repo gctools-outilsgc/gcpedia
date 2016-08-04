@@ -112,6 +112,7 @@ function generateAwards( $usename, &$text )
 	global $medal;
 	global $gnomejutsu;
 	global $medalbox;
+	global $badgebox;
 
 
 	$awoptions['test'] = 'testing';

@@ -52,7 +52,6 @@ $wgExtensionMessagesFiles['MagicNumberedHeadings'] = $dir . 'MagicNumberedHeadin
 
 $wgHooks['MagicWordMagicWords'][] = 'MagicNumberedHeadingsMagicWordMagicWords';
 $wgHooks['MagicWordwgVariableIDs'][] = 'MagicNumberedHeadingsMagicWordwgVariableIDs';
-#$wgHooks['ParserBeforeInternalParse'][] = 'MagicNumberedHeadingsParserBeforeInternalParse';
 $wgHooks['InternalParseBeforeLinks'][] = 'MagicNumberedHeadingsInternalParseBeforeLinks';
  
 function MagicNumberedHeadingsMagicWordMagicWords(&$magicWords)
@@ -67,7 +66,6 @@ function MagicNumberedHeadingsMagicWordwgVariableIDs(&$wgVariableIDs)
         return true;
 }
  
-#function MagicNumberedHeadingsParserBeforeInternalParse($parser, $text, $stripState)
 function MagicNumberedHeadingsInternalParseBeforeLinks(&$parser, &$text, &$stripState)
 {
         if (MagicWord::get( 'MAG_NUMBEREDHEADINGS' )->matchAndRemove( $text ) )

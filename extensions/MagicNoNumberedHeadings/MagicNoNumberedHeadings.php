@@ -67,7 +67,6 @@ function MagicNoNumberedHeadingsMagicWordwgVariableIDs(&$wgVariableIDs)
         return true;
 }
 
-//function MagicNoNumberedHeadingsParserBeforeInternalParse($parser, $text, $stripState)
 function MagicNoNumberedHeadingsInternalParseBeforeLinks(&$parser, &$text, &$stripState)
 {
         if (MagicWord::get( 'MAG_NONUMBEREDHEADINGS' )->matchAndRemove( $text ) )

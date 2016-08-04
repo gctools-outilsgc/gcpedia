@@ -6,24 +6,17 @@
  */
 
 $wgHooks['ParserBeforeInternalParse'][] = 'rot';
+$wgHooks['LoadExtensionSchemaUpdates'][] = 'ROTeditsSchemaUpdates';
 
 function rot( &$parser, &$text, &$strip_state )
 {
 	global $wgTitle;
 	
-	$dbr = wfGetDB( DB_SLAVE );
-	$queryString = "CREATE TABLE IF NOT EXISTS rotusers (user_name varchar(100), start_editcount varchar(10))	";
-	$result = $dbr->query($queryString);
-	
 	if ( substr( $wgTitle, 0, 5 ) == "User:" ){
-		
 		getROTCount( getUName( substr( $wgTitle, 5, strlen($wgTitle) ) ), $text );
-		
 	}
 	else if ( substr( $wgTitle, 0, 10 ) == "User talk:" ){
-		
 		getROTCount( getUName( substr( $wgTitle, 10, strlen($wgTitle) ) ), $text );
-		
 	}
 
 	return true;
@@ -46,7 +39,6 @@ function getROTCount( $username, &$text )
 	$row = $dbr->fetchRow($result);
 	
 	if ( $row[0] != $username ){	// user not in rot db
-	
 		str_replace( "<ROTedits>", "<ROTedits>", $text, $countreplace );		// only for the count
 		str_replace( "<ROTparticipant>", "<ROTparticipant>", $text, $countreplace2 );
 		if ( $countreplace + $countreplace2 > 0 ) {
@@ -88,6 +80,21 @@ function getROTCount( $username, &$text )
 	
 }
 
+function ROTeditsSchemaUpdates( $updater = null ) {
+	if ( $updater === null ) { // <= 1.16 support
+		global $wgExtNewTables, $wgExtModifiedFields;
+		$wgExtNewTables[] = array(
+				'rotusers',
+				dirname( __FILE__ ) . '/ROTedits.sql'
+		);
+	} else { // >= 1.17 support
+		$db = $updater->getDB();
+
+		$updater->addExtensionUpdate( array( 'addTable', 'rotusers',
+				dirname( __FILE__ ) . '/ROTedits.sql', true ) );
+	}
+	return true;
+}
 
 /**
  * Uses the title of the page (excluding namespace) to return the username of the user who's awards should be displayed
