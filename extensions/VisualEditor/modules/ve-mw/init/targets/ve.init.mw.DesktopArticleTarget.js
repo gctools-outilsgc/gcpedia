@@ -224,7 +224,7 @@ ve.init.mw.DesktopArticleTarget.prototype.setupLocalNoticeMessages = function ()
 	) ) {
 		// Show warning in unknown browsers that pass the support test
 		// Continue at own risk.
-		this.localNoticeMessages.push( 'visualeditor-browserwarning' );
+		//this.localNoticeMessages.push( 'visualeditor-browserwarning' );
 	}
 };
 
