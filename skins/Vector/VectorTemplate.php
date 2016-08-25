@@ -109,9 +109,9 @@ class VectorTemplate extends BaseTemplate {
 				</div>
 			</section>
 			<div class="row">
-			<div class="brand col-xs-8 col-sm-9 col-md-6">
-			<a href="http://www.canada.ca/en/index.html"><object type="image/svg+xml" tabindex="-1" data="<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo $wgScriptPath .'/skins/Vector/GCWeb/assets/sig-blk-fr.svg'; else echo $wgScriptPath .'/skins/Vector/GCWeb/assets/sig-blk-en.svg';?>"></object><span class="wb-inv">Government of Canada</span></a>
-			</div>
+				<div class="brand col-xs-6">
+				<a href="http://www.canada.ca/en/index.html"><object type="image/svg+xml" tabindex="-1" data="<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo $wgScriptPath .'/skins/Vector/GCWeb/assets/sig-blk-fr.svg'; else echo $wgScriptPath .'/skins/Vector/GCWeb/assets/sig-blk-en.svg';?>"></object><span class="wb-inv">Government of Canada</span></a>
+				</div>
 			<!--<section class="wb-mb-links col-xs-4 col-sm-3 visible-sm visible-xs" id="wb-glb-mn">
 			<h2>Search and menus</h2>
 			<ul class="list-inline text-right chvrn">
@@ -427,7 +427,7 @@ class VectorTemplate extends BaseTemplate {
 	 */
 	private function outputSearch() {
 		?>
-		<section id="wb-srch" class="col-xs-6 text-right">
+		<div class="col-xs-6 text-right"><section id="wb-srch" class="text-right">
 <h2>Search</h2>
 <form action="<?php $this->text( 'wgScript' ) ?>"  method="post" name="cse-search-box" role="search" class="form-inline">
 <div class="form-group">
@@ -442,7 +442,7 @@ class VectorTemplate extends BaseTemplate {
 <button type="submit" id="wb-srch-sub" class="btn btn-primary btn-small" name="wb-srch-sub"><span class="glyphicon-search glyphicon"></span><span class="wb-inv">Search</span></button>
 </div>
 </form>
-</section>
+</section></div>
 
 		
 		<!--<form
