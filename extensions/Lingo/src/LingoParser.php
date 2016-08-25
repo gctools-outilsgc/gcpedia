@@ -205,7 +205,7 @@ class LingoParser {
 		// Find all text in HTML.
 		$xpath = new DOMXpath( $doc );
 		$elements = $xpath->query(
-				"//*[not(ancestor-or-self::*[@class='noglossary'] or ancestor-or-self::a)][text()!=' ']/text()"
+				"//*[not(ancestor-or-self::*[@class='noglossary'] or ancestor-or-self::a or ancestor-or-self::wikiflv)][text()!=' ']/text()"
 		);
 		wfProfileOut( __METHOD__ . ' 2 xpath' );
 
