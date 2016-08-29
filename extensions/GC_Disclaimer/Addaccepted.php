@@ -12,7 +12,7 @@ function Addnewuser( $user )
 
 	$dbr = wfGetDB( DB_MASTER );
 	
-	$queryString = "INSERT INTO `accepted` (user_id, Username, date) VALUES ({$user->getId()}, \"{$user->getName()}\", '".date("d.m.y")."')";
+	$queryString = "INSERT INTO `accepted` (user_id, Username, date) VALUES ({$user->getId()}, \"" . str_ireplace( "'", "-*-", $user->getName() ) . "\", '".date("d.m.y")."')";
 	
 	$result = $dbr->query($queryString);
 	
