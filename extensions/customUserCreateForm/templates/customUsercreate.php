@@ -46,7 +46,7 @@ onmousemove = "
 		
 		//if( $this->data['useemail'] ) { ?>
 <!-- Email -->			
-		<label for='EmailName'> <?php $this->msg('validgcemail')?> <br /> <sub><?php $this->msg('validgcemailnote')?></sub>  </label>
+		<label for='EmailName'> <?php $this->msg('validgcemail')?> <br /> <small><?php $this->msg('validgcemailnote')?></small>  </label>
 		<br/>
 		
 		<input type='text' class='loginText' name="EmailName" id="EmailName"
