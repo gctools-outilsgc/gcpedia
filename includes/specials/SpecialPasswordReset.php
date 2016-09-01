@@ -69,6 +69,7 @@ class SpecialPasswordReset extends FormSpecialPage {
 			$a['Username'] = array(
 				'type' => 'text',
 				'label-message' => 'passwordreset-username',
+				'placeholder' => $this->msg( 'placeholder:firstlastname' )->plain(),
 			);
 
 			if ( $this->getUser()->isLoggedIn() ) {

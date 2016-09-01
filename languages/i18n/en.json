@@ -3840,5 +3840,6 @@
 	"api-error-blacklisted": "Please choose a different, descriptive title.",
 	"wet:gcintranetLink": "http://intranet.canada.ca/index-eng.asp?utm_source=gcpedia&utm_medium=gctools-banner&utm_campaign=generic",
 	"wet:gcconnexLink": "http://gcconnex.gc.ca/",
-	"topbar:langlink": "<a lang='fr' href='?uselang=fr'>Français</a>"
+	"topbar:langlink": "<a lang='fr' href='?uselang=fr'>Français</a>",
+	"placeholder:firstlastname": "Firstname.Lastname"
 }

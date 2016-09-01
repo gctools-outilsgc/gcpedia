@@ -634,11 +634,11 @@
 	"passwordreset-text-many": "{{PLURAL:$1|Remplissez un des champs pour recevoir un mot de passe temporaire par courriel.}}",
 	"passwordreset-disabled": "La réinitialisation des mots de passe a été désactivée sur ce wiki.",
 	"passwordreset-emaildisabled": "Les fonctionnalités e-mail ont été désactivées sur ce wiki.",
-	"passwordreset-username": "Nom d'utilisateur :",
+	"passwordreset-username": "Nom d'utilisateur&#160;:",
 	"passwordreset-domain": "Domaine :",
 	"passwordreset-capture": "Voir le courriel résultant ?",
 	"passwordreset-capture-help": "Si vous cochez cette case, le courriel (avec le mot de passe temporaire) vous sera affiché en même temps qu'il sera envoyé à l'utilisateur.",
-	"passwordreset-email": "Adresse de courriel :",
+	"passwordreset-email": "Adresse de courriel&#160;:",
 	"passwordreset-emailtitle": "Détails du compte sur {{SITENAME}}",
 	"passwordreset-emailtext-ip": "Quelqu'un (probablement vous, depuis l'adresse IP $1) a demandé un réinitialisation de votre mot de passe pour {{SITENAME}} ($4). {{PLURAL:$3|Le compte utilisateur suivant est associé|Les comptes utilisateurs suivants sont associés}} à cette adresse de courriel :\n\n$2\n\n{{PLURAL:$3|Ce mot de passe temporaire expirera|Ces mots de passe temporaires expireront}} dans {{PLURAL:$5|un jour|$5 jours}}. Vous devez maintenant vous connecter et choisir un nouveau mot de passe. Si cette demande ne provient pas de vous, ou que vous avez retrouvé votre mot de passe initial, et ne souhaitez plus le modifier, vous pouvez ignorer ce message et continuer à utiliser votre ancien mot de passe.",
 	"passwordreset-emailtext-user": "L'utilisateur $1 sur {{SITENAME}} a demandé un réinitialisation de votre mot de passe pour {{SITENAME}} ($4). {{PLURAL:$3|Le compte utilisateur suivant est associé|Les comptes utilisateurs suivants sont associés}} à cette adresse de courriel :\n\n$2\n\n{{PLURAL:$3|Ce mot de passe temporaire expirera|Ces mots de passe temporaires expireront}} dans {{PLURAL:$5|un jour|$5 jours}}. Vous devez maintenant vous connecter et choisir un nouveau mot de passe. Si cette demande ne provient pas de vous, ou que vous avez retrouvé votre mot de passe initial, et ne souhaitez plus le modifier, vous pouvez ignorer ce message et continuer à utiliser votre ancien mot de passe.",
@@ -3600,5 +3600,6 @@
 	"mw-widgets-titleinput-description-redirect": "redirection vers $1",
 	"wet:gcintranetLink": "http://intranet.canada.ca/index-fra.asp?utm_source=gcpedia&utm_medium=gctools-banner&utm_campaign=generic",
 	"wet:gcconnexLink": "http://gcconnex.gc.ca/",
-	"topbar:langlink": "<a lang='en' href='?uselang=en'>English</a>"
+	"topbar:langlink": "<a lang='en' href='?uselang=en'>English</a>",
+	"placeholder:firstlastname":"Prénom.Nom"
 }

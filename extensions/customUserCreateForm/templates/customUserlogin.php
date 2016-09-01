@@ -77,7 +77,7 @@ text-decoration: none;
 								this.value='Firstname.Lastname'; this.style.color='#666';this.style.fontStyle='italic';}" -->
 
 				<input type='text' class='loginText' name="wpName" id="wpName1"
-					value="<?php $this->text('name')?>" size='20' onfocus=" if(this.value == 'Firstname.Lastname') { this.value = '';this.style.color='#000';} " onblur="if(this.value == '') {this.value='Firstname.Lastname'; this.style.color='#666';this.style.fontStyle='italic';}"/> <br />
+					value="<?php $this->text('name')?>" size='20' placeholder="<?php $this->msg('placeholder:firstlastname') ?>" /> <br />
 		
 		
 		<p style="margin-top: 5px;">
