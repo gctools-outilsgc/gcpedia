@@ -272,7 +272,7 @@ if( $wgUser->isLoggedIn() ) {
 	</body>
 </html>
 	<?php
-	//exit; //kill process from rendering the actual page
+	exit; //kill process from rendering the actual page
 	}
 }
 
