@@ -231,16 +231,6 @@ th {
     -webkit-box-shadow: none !important;
             box-shadow: none !important;
     text-shadow: none !important; }
-  a,
-  a:visited {
-    text-decoration: underline; }
-  a[href]:after {
-    content: " (" attr(href) ")"; }
-  abbr[title]:after {
-    content: " (" attr(title) ")"; }
-  a[href^="#"]:after,
-  a[href^="javascript:"]:after {
-    content: ""; }
   pre,
   blockquote {
     border: 1px solid #999;
