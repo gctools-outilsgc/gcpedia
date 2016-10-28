@@ -3600,6 +3600,6 @@
 	"mw-widgets-titleinput-description-redirect": "redirection vers $1",
 	"wet:gcintranetLink": "http://intranet.canada.ca/index-fra.asp?utm_source=gcpedia&utm_medium=gctools-banner&utm_campaign=generic",
 	"wet:gcconnexLink": "http://gcconnex.gc.ca/",
-	"topbar:langlink": "<a lang='en' href='?uselang=en'>English</a>",
-	"placeholder:firstlastname":"Prénom.Nom"
+	"topbar:langlink": "<a lang='en' href='?setlang=en&uselang=en'>English</a>",
+	"placeholder:firstlastname": "Prénom.Nom"
 }
