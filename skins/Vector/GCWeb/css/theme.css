@@ -44,7 +44,7 @@ html {
 
 body {
   margin: 0;
-  padding-right: 1em; }
+  padding-right: 2em; }
 
 article,
 aside,
@@ -893,17 +893,6 @@ header * {
 
 header *:before,
 header *:after {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box; }
-
-.brand * {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box; }
-
-.brand *:before,
-.brand *:after {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box; }

@@ -109,9 +109,9 @@ class VectorTemplate extends BaseTemplate {
 				</div>
 			</section>
 			<div class="row">
-				<div class="brand col-xs-6">
-				<a href="http://www.canada.ca/en/index.html"><object type="image/svg+xml" tabindex="-1" data="<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo $wgScriptPath .'/skins/Vector/GCWeb/assets/sig-blk-fr.svg'; else echo $wgScriptPath .'/skins/Vector/GCWeb/assets/sig-blk-en.svg';?>"></object><span class="wb-inv">Government of Canada</span></a>
-				</div>
+			<div class="brand col-xs-6 col-sm-6 col-md-6">
+			<!--<a href="http://www.canada.ca/en/index.html">--><object type="image/svg+xml" tabindex="-1" data="<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo $wgScriptPath .'/skins/Vector/GCWeb/assets/sig-blk-fr.svg'; else echo $wgScriptPath .'/skins/Vector/GCWeb/assets/sig-blk-en.svg';?>"></object><span class="wb-inv"> Government of Canada</span><!--</a>-->
+			</div>
 			<!--<section class="wb-mb-links col-xs-4 col-sm-3 visible-sm visible-xs" id="wb-glb-mn">
 			<h2>Search and menus</h2>
 			<ul class="list-inline text-right chvrn">
@@ -126,7 +126,7 @@ class VectorTemplate extends BaseTemplate {
 			?>
 		</div>
 	</div>
-	    <div id="app-brand" class="visible-md visible-lg">
+	    <div id="app-brand">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-sm-3 ">
@@ -254,14 +254,14 @@ class VectorTemplate extends BaseTemplate {
 				</div>
 			</div>
 			<div id="mw-panel">
-				<div class="row">
-				<div class="brand col-xs-8 col-sm-9 col-md-6">
-					<a href="<?php echo htmlspecialchars( $this->data['nav_urls']['mainpage']['href'] ) ?>">
+				<!-- GCpedia icon -->
+				<a href="<?php echo htmlspecialchars( $this->data['nav_urls']['mainpage']['href'] ) ?>">
+				<div class="row"> 
+				<div class="brand col-xs-8 col-sm-9 col-md-6 ">
 					<img type="image/png" src="<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo $wgScriptPath .'/images/GCpedia_icon_slogan_Fra.png'; else echo $wgScriptPath .'/images/GCpedia_icon_slogan_Eng.png';?>"></object><span class="wb-inv">GCpedia</span>
-					</a>
-				</div>
-				</div>
-				<nav class="wb-sec" typeof="SiteNavigationElement" id="wb-sec" role="navigation">
+				</div></div></a>
+
+				<nav class="wb-sec" typeof="SiteNavigationElement" id="wb-sec" role="navigation"  style="display: block;">
 						<?php $this->renderPortals( $this->data['sidebar'] ); ?>
 				</nav>
 			</div>
@@ -319,11 +319,10 @@ class VectorTemplate extends BaseTemplate {
 			        </div>
 			    </div>
 			</footer>
-		</div>
 		<?php $this->printTrail(); ?>
-		<script src="<?php echo $wgScriptPath; ?>/skins/Vector/GCWeb/js/jquery-2.2.0.min.js"></script>
-		<script src="<?php echo $wgScriptPath; ?>/skins/Vector/GCWeb/js/wet-boew.min.js"></script>
-
+		<!--<script src="<?php echo $wgScriptPath; ?>/skins/Vector/GCWeb/js/jquery-2.2.0.min.js"></script>-->
+		<!--<script src="<?php echo $wgScriptPath; ?>/skins/Vector/GCWeb/js/wet-boew.min.js"></script>-->
+		</div>
 	</body>
 </html>
 <?php
@@ -429,14 +428,23 @@ class VectorTemplate extends BaseTemplate {
 		?>
 		<div class="col-xs-6 text-right"><section id="wb-srch" class="text-right">
 <h2>Search</h2>
-<form action="<?php $this->text( 'wgScript' ) ?>"  method="post" name="cse-search-box" role="search" class="form-inline">
+<form action="http://intranet.canada.ca/search-recherche/query-recherche-<?php global $wgLang;
+		if ($wgLang->getCode() == 'fr')
+			$lang3Code = 'fra';
+		else
+			$lang3Code = 'eng';
+ echo $lang3Code; ?>.aspx" method="get" name="cse-search-box" role="search" class="form-inline">
 <div class="form-group">
 <label for="wb-srch-q" class="wb-inv">Search website</label>
-<input id="searchInput" list="wb-srch-q-ac" class="wb-srch-q form-control" name="search" type="search" value="" size="27" maxlength="150" placeholder="<?php echo wfMessage( 'searchsuggest-search' )->text(); ?> GCpedia">
+<input id="search" list="wb-srch-q-ac" class="wb-srch-q form-control" name="q" type="search" value="" size="27" maxlength="150" placeholder="<?php echo wfMessage( 'searchsuggest-search-tools' )->text(); ?>">
 <datalist id="wb-srch-q-ac">
 <!--[if lte IE 9]><select><![endif]-->
 <!--[if lte IE 9]></select><![endif]-->
 </datalist>
+                <!-- hidden forms for federated search -->
+                <input type="hidden" name="a"  value="s">
+                <input type="hidden" name="s"  value="2">
+                <input type="hidden" name="chk3"  value="True">
 </div>
 <div class="form-group submit">
 <button type="submit" id="wb-srch-sub" class="btn btn-primary btn-small" name="wb-srch-sub"><span class="glyphicon-search glyphicon"></span><span class="wb-inv">Search</span></button>
@@ -639,7 +647,7 @@ class VectorTemplate extends BaseTemplate {
 					<?php
 					break;
 				case 'SEARCH':
-					/*?>
+					?>
 					<div id="p-search" role="search">
 						<h3<?php $this->html( 'userlangattributes' ) ?>>
 							<label for="searchInput"><?php $this->msg( 'search' ) ?></label>
@@ -673,7 +681,7 @@ class VectorTemplate extends BaseTemplate {
 							</div>
 						</form>
 					</div>
-					<?php*/
+					<?php
 
 					break;
 			}
