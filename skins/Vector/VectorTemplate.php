@@ -140,18 +140,25 @@ class VectorTemplate extends BaseTemplate {
                 </div>
                 <div class="col-sm-6 col-sm-offset-3 hidden-xs">
                     <div id="tool-link" class="pull-right">
-                    <div class="pull-right tool-link">
-                        <a href="<?php echo wfMsg('wet:gcintranetLink');?>">
-                        <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/intranet_icon.png';?>" alt="GCintranet"/><span class="bold-gc">GC</span>intranet</a>
-                        
-                    </div>
-                    <div class="pull-right tool-link">
-                        <a href="<?php echo wfMsg('wet:gcconnexLink');?>">
-                        <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/connex_icon.png';?>" alt="GCconnex" /><span class="bold-gc">GC</span>connex</a>
-                        
-                        
-                    </div>
 
+						<div class="pull-right tool-link">
+                        	<a href="<?php echo wfMsg('wet:gcdirectoryLink');?>">
+                            <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/directory_icon.png'?>" alt="GCDirectory" /><span class="bold-gc">GC</span><?php echo wfMsg('wet:barDirectory');?></a>
+
+                    	</div>
+
+	                    <div class="pull-right tool-link">
+	                        <a href="<?php echo wfMsg('wet:gcintranetLink');?>">
+	                        <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/intranet_icon.png';?>" alt="GCintranet"/><span class="bold-gc">GC</span>intranet</a>
+	                        
+	                    </div>
+
+	                    <div class="pull-right tool-link">
+	                        <a href="<?php echo wfMsg('wet:gcconnexLink');?>">
+	                        <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/connex_icon.png';?>" alt="GCconnex" /><span class="bold-gc">GC</span>connex</a>
+	                        
+	                    </div>
+	                    
                     </div>
                    
                 </div>

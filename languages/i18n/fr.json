@@ -3600,6 +3600,8 @@
 	"mw-widgets-titleinput-description-redirect": "redirection vers $1",
 	"wet:gcintranetLink": "http://intranet.canada.ca/index-fra.asp?utm_source=gcpedia&utm_medium=gctools-banner&utm_campaign=generic",
 	"wet:gcconnexLink": "http://gcconnex.gc.ca/",
+	"wet:barDirectory": "annuaire",
+	"wet:gcdirectoryLink": "http://gcannuaire-gcdirectory.gc.ca/fr/GCA/?pgid=002",
 	"topbar:langlink": "<a lang='en' href='?setlang=en&uselang=en'>English</a>",
 	"placeholder:firstlastname": "Prénom.Nom"
 }
