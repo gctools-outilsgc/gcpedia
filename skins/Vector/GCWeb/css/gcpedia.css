@@ -1,4 +1,4 @@
-﻿.btn-primary{
+.btn-primary{
 	color:#fff;
 	background-color:#1F1F72 !important;
 }
@@ -104,4 +104,19 @@
     width: 25px;
     margin:0 2px 3px 0;
 
+}
+
+/*Share to GCconnex action*/
+
+.gccon-share{
+    font-size:0.85em;
+    margin-right:8px;
+    margin-top: 7px;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid #047177;
+    padding:4px 7px;
+    border-radius: 4px;
+    
 }
