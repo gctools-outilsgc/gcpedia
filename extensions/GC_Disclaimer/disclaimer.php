@@ -70,12 +70,12 @@ function lastaccept( $lastdate ) {
 function showDisclaimer( &$out ) {
 	global $wgUser, $wgTitle, $wgLang, $wgOut, $wgScriptPath;
 	//$out->setHTMLTitle('GCpedia Disclaimer');
-	$userName = $wgUser->getName();
+	$userID = $wgUser->getId();
 	$timeout = true;
 	$dbw = wfGetDB( DB_MASTER );
 	
 	# select user from table
-	$queryString = "SELECT * FROM `accepted` WHERE username = \"$userName\" OR username = \"" . str_ireplace( "'", "-*-", $userName ) .'"';
+	$queryString = "SELECT * FROM `accepted` WHERE user_id = \"$userID\"";
 	$result = $dbw->query($queryString);
 	
 	 try{
