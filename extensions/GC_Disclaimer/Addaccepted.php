@@ -12,7 +12,7 @@ function Addnewuser( $user )
 
 	$dbr = wfGetDB( DB_MASTER );
 	
-	$queryString = "INSERT INTO `accepted` (user_id, Username, date) VALUES ({$user->getId()}, \"" . str_ireplace( "'", "-*-", $user->getName() ) . "\", '".date("d.m.y")."')";
+	$queryString = "INSERT INTO `tc_accepted` (user_id, username, date) VALUES ({$user->getId()}, \"" . str_ireplace( "'", "-*-", $user->getName() ) . "\", '".date("d.m.y")."')";
 	
 	$result = $dbr->query($queryString);
 	
@@ -49,20 +49,20 @@ class AddAccepted extends ApiBase {
 		$params = $this->extractRequestParams();
 		$q = $params['userid'];
 
-		$queryString = "SELECT 1 FROM `accepted` WHERE user_id = {$q}";
+		$queryString = "SELECT 1 FROM `tc_accepted` WHERE user_id = {$q}";
 		$result = $dbw->query($queryString);
 		$row = $dbw->fetchRow( $result );
 		
 		if($row[0]!='')
 		{
-			$queryString = "UPDATE IGNORE `accepted` SET date = '".date("d.m.y")."' WHERE user_id = {$q}";
+			$queryString = "UPDATE IGNORE `tc_accepted` SET date = '".date("d.m.y")."' WHERE user_id = {$q}";
 			$dbw->query($queryString);
-		}	
+		}
 		else
 		{
-			$queryString = "INSERT INTO `accepted` (username, date, user_id) VALUES (\"{$params['username']}\", '".date("d.m.y")."', $q)";
+			$queryString = "INSERT INTO `tc_accepted` (user_id, username, date) VALUES ($q, \"{$params['username']}\", '".date("d.m.y")."')";
 			$dbw->query($queryString);
-		}	
+		}
 		
 		return true;
 		

@@ -75,7 +75,7 @@ function showDisclaimer( &$out ) {
 	$dbw = wfGetDB( DB_MASTER );
 	
 	# select user from table
-	$queryString = "SELECT * FROM `accepted` WHERE user_id = \"$userID\"";
+	$queryString = "SELECT * FROM `tc_accepted` WHERE user_id = \"$userID\"";
 	$result = $dbw->query($queryString);
 	
 	 try{
@@ -432,28 +432,28 @@ function GC_DisclaimerSchemaUpdates( $updater = null ) {
 	if ( $updater === null ) { // <= 1.16 support
 		global $wgExtNewTables, $wgExtModifiedFields;
 		$wgExtNewTables[] = array(
-				'accepted',
+				'tc_accepted',
 				dirname( __FILE__ ) . '/GC_Disclaimer.sql'
 		);
 	} else { // >= 1.17 support
 		$db = $updater->getDB();
 
-		if ( $db->tableExists( 'accepted' ) ) {
+		if ( $db->tableExists( 'tc_accepted' ) ) {
 
-				$updater->addExtensionField(
-					'accepted',
+				/*$updater->addExtensionField(
+					'tc_accepted',
 					'user_id',
 					dirname( __FILE__ ) . '/GC_Disclaimer_add_user_id.sql'
 				);
 
 				$updater->addExtensionIndex(
-					'accepted',
+					'tc_accepted',
 					'PRIMARY',
 					dirname( __FILE__ ) . '/GC_Disclaimer_Pkey_user_id.sql'
-				);
+				);*/
 
 		} else {
-			$updater->addExtensionUpdate( array( 'addTable', 'accepted',
+			$updater->addExtensionUpdate( array( 'addTable', 'tc_accepted',
 					dirname( __FILE__ ) . '/GC_Disclaimer.sql', true ) );
 		}
 	}
