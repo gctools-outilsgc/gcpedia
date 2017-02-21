@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"mberthault"
+		]
+	},
+	"msc-desc": "Adds the <code>&lt;mscalendar&gt;</code> tag to insert calendars into wiki pages",
+	"msc-notfirstday": "Pas le premier jour... ",
+	"msc-change": "Confirmer",
+	"msc-remove": "Supprimer",
+	"msc-create": "Valider",
+	"msc-cancel": "Annuler",
+	"msc-eventname": "Nom Evt: ",
+	"msc-eventdate": "Date: ",
+	"msc-eventduration": "Duree en jours: ",
+	"msc-eventyearly": "Tous les ans",
+	"msc-eventedit": "Modifier Evt Calendrier",
+	"msc-eventcreate": "Creer Evt Calendrier",
+	"msc-today": "MAINTENANT",
+	"msc-todaylabel": "Sauter a la date du jour",
+	"msc-months": "Janvier,Fevrier,Mars,Avril,Mai,Juin,Juillet,Aout,Septembre,Octobre,Novembre,Decembre",
+	"msc-days": "Dimanche,Lundi,Mardi,Mercredi,Jeudi,Vendredi,Samedi"
+}

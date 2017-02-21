@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Martin Schwindl  <martin.schwindl@ratin.de>"
+		]
+	},
+	"msc-desc": "Adds the <code>&lt;mscalendar&gt;</code> tag to insert calendars into wiki pages",
+	"msc-notfirstday": "Vorsicht, dies ist eine Terminserie",
+	"msc-change": "Änderungen speichern",
+	"msc-remove": "Event löschen",
+	"msc-create": "Eintrag erstellen",
+	"msc-cancel": "Abbrechen",
+	"msc-eventname": "Name des Events: ",
+	"msc-eventdate": "Datum: ",
+	"msc-eventduration": "Dauer in Tagen: ",
+	"msc-eventyearly": "Jährlich wiederholen",
+	"msc-eventedit": "Kalendereintrag bearbeiten",
+	"msc-eventcreate": "Kalendereintrag erstellen",
+	"msc-today": "Heute",
+	"msc-todaylabel": "zum heutigen Datum springen",
+	"msc-months": "Januar,Februar,März,April,Mai,Juni,Juli,August,September,Oktober,November,Dezember",
+	"msc-days": "Sonntag,Montag,Dienstag,Mittwoch,Donnerstag,Freitag,Samstag"
+}
