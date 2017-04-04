@@ -22,7 +22,7 @@ $wgSitename = "GCpedia";
 $wgLocaltimezone = "America/Montreal";
 
 ## The protocol and server name to use in fully-qualified URLs
-$wgServer = "http://www.gcpedia.gc.ca";							// this can't be 192.168.X.X if you want the visual editor to work
+$wgServer = "http://www.gcpedia.gc.ca";							// this can't be 192.168.X.X if you want the Visual Editor / Collection extensions to work
 
 ## UPO means: this is also a user preference option
 
@@ -264,11 +264,6 @@ $wgDisclaimReset = 162; //time to reset disclaimer, in days
 require_once("$IP/extensions/Favorites/Favorites.php");
 $wgFavoritesPersonalURL = true;
 $wgUseIconFavorite = true;
-
-# Google Analytics 
-require_once( "$IP/extensions/googleAnalytics/googleAnalytics.php" );
-# Replace xxxxxxx-x with YOUR GoogleAnalytics UA number
-$wgGoogleAnalyticsAccount = "XXXXXXXXX";
 
 require_once( "$IP/extensions/ReplaceText/ReplaceText.php" );
 $wgGroupPermissions['bureaucrat']['replacetext'] = true;
