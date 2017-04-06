@@ -109,7 +109,6 @@ $wgGroupPermissions['sysop']['emailupdate'] = true;
 
 require_once "$IP/extensions/MagicNoNumberedHeadings/MagicNoNumberedHeadings.php";
 require_once "$IP/extensions/MagicNumberedHeadings/MagicNumberedHeadings.php";
-require_once "$IP/extensions/ROTedits/ROTedits.php";
 
 
 # End of automatically generated settings.
