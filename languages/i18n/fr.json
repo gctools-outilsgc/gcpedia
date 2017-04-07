@@ -3602,6 +3602,6 @@
 	"wet:gcconnexLink": "http://gcconnex.gc.ca/",
 	"wet:barDirectory": "annuaire",
 	"wet:gcdirectoryLink": "http://gcannuaire-gcdirectory.gc.ca/fr/GCA/?pgid=002",
-	"topbar:langlink": "<a lang='en' href='?setlang=en&uselang=en'>English</a>",
+	"topbar:langlink": "<a lang='en' href='?setlang=en&uselang=en{PARAM}'>English</a>",
 	"placeholder:firstlastname": "Prénom.Nom"
 }
