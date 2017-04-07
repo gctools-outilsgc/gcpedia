@@ -3717,8 +3717,8 @@ HTML
 		 *
 		 * Images are defined in ResourceLoaderEditToolbarModule.
 		 */
-		$thumbnailStart = '<div class="row"><div class="col-md-2"><div class="panel panel-default"><div class="panel-body">/n';
-		$thumbnailEnd = '/n</div></div></div></div>';
+		$thumbnailStart = '<div class="row"><div class="col-md-2"><div class="panel panel-default"><div class="panel-body">';
+		$thumbnailEnd = '</div></div></div></div>';
 		$toolarray = array(
 			array(
 				'id'     => 'mw-editbutton-bold',
