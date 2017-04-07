@@ -27,7 +27,7 @@ class customUsercreateTemplate extends QuickTemplate {
 		document.getElementById("EmailName").select();
 	}
 </script>
-<form name="userlogin2" id="userlogin2" method="post" action="<?php $this->text('action') ?>" 
+<form class="form-horizontal" role="form" name="userlogin2" id="userlogin2" method="post" action="<?php $this->text('action') ?>" 
 onmousemove = "
 /*if ( accept.value != 1 && accept.value != -1 )
 	accept.value = -1;*/
@@ -37,6 +37,7 @@ onmousemove = "
 	<?php $this->html('header'); /* pre-table point for form plugins... */ ?>
 	<?php if( @$this->haveData( 'languages' ) ) { ?><div id="languagelinks"><p><?php $this->html( 'languages' ); ?></p></div><?php } ?>
 		
+		<div class="col-md-8">
 		<?php $this->msg('mandatory') ?>
 	<br/>
 	<p>
@@ -45,8 +46,11 @@ onmousemove = "
 		include( 'domains/DomainList.php' );
 		
 		//if( $this->data['useemail'] ) { ?>
-<!-- Email -->			
-		<label for='EmailName'> <?php $this->msg('validgcemail')?> <br /> <small><?php $this->msg('validgcemailnote')?></small>  </label>
+<!-- Email -->	
+		<form class="form-horizontal" role="form" method="get" action="#">
+		<div class="form-group">
+		<h2>Email</h2>	
+		<label for='EmailName'> <p><?php $this->msg('validgcemail')?></p> <p> <small style="font-weight:normal;"><?php $this->msg('validgcemailnote')?></small>  </p></label>
 		<br/>
 		
 		<input type='text' class='loginText' name="EmailName" id="EmailName"
@@ -142,6 +146,7 @@ onmousemove = "
 					}
 					"
 				>
+				
 															
 				<?php
 				$optionNum = 0;
@@ -178,7 +183,7 @@ onmousemove = "
 	?>
 		
 		<?php $this->msg( 'yourdomainname' ) ?>
-		
+
 			<select name="wpDomain" value="<?php $this->text( 'domain' ) ?>"
 				
 				<?php echo $doms ?>
@@ -189,42 +194,55 @@ onmousemove = "
 	
 <!-- Username -->			
 	<label for='wpName2'> <?php $this->msg('accountname') ?> </label>	
-		<br />		
+			
 			<input type='text' class='loginText' name="wpName" id="wpName2"
-				style="position:relative; width:17em;"
+				style="position:relative; width:17em; border:0;"
 				value="" size='20'
 				readonly='readonly'
 				/><span id="AJAXtest"></span>
-
+		<br>
+		<p><small><?php $this->msg('accountname-info')?></small></p>
+	</div>
 		<br />
 		<br />
 <!-- Password -->		
-		<label for='wpPassword2'><?php $this->msg('yourpassword') ?></label>
-		<br />
+		<!-- INFO PANEL -->
+		<div style="float:right;" class="col-md-4 margin-right-lg">
+		<section class="panel panel-info">
+		<header class="panel-heading">
+		<h5 class="panel-title">Password requirements</h5></header>
+		<div class="panel-body">
+		<ul>
+		<li>At least 8 characters in length</li>
+		<li>At least one alphanumeric character</li>
+		<li>At least one number character</li>
+		<li>At least one special character (for example !, $, #, %, @)</li>
+		</ul>
+		<?php if ( $this->translator->translate( 'search' ) == 'Search' ) echo "<a href='http://www.gcpedia.gc.ca/wiki/Help:Creating_a_strong_password' target='_blank'><b>How to create a strong password</b></a>";    else echo "<a href = 'http://www.gcpedia.gc.ca/wiki/Aide:_Cr&#233er_un_mot_de_passe_efficace' target='_blank'> Comment cr&#233er un mot de passe efficace </a>"; ?>
+		</div></section></div>
+
+		<!-- PASSWORD FORM -->
 		
-			<input type='password' class='loginPassword' name="wpPassword" id="wpPassword2"
-				style="width:17em;"
-				value=""
-				size='20'
-				tabindex='3'
-				/>
-				<?php if ( $this->translator->translate( 'search' ) == 'Search' ) echo "<a href='http://www.gcpedia.gc.ca/wiki/Help:Creating_a_strong_password' target='_blank'><b>How to create a strong password</b></a>";    else echo "<a href = 'http://www.gcpedia.gc.ca/wiki/Aide:_Cr&#233er_un_mot_de_passe_efficace' target='_blank'> Comment cr&#233er un mot de passe efficace </a>"; ?>
-	<br />
-	
-<!-- Password Again -->		
-		<label for='wpRetype'><?php $this->msg('yourpasswordagain') ?></label>
-		<br />
-			<input type='password' class='loginPassword' name="wpRetype" id="wpRetype"
+	    <div class="form-group">
+			<h2>Password</h2>
+			<dl>
+			<dt><label for='wpPassword2'><p><?php $this->msg('yourpassword') ?></label></p></dt>
+			<dd><input type='password' class='loginPassword' name="wpPassword" id="wpPassword2" style="width:17em;"	value="" size='20'	tabindex='3'  />
+			</dd>
+			
+			<!-- Password Again -->		
+			<dt><label for='wpRetype'><p><?php $this->msg('yourpasswordagain') ?></label></p></dt>
+			<dd><input type='password' class='loginPassword' name="wpRetype" id="wpRetype"
 				value=""
 				size='20'
 				tabindex='4'
 				style="width:17em;"
-				onblur="
+				onkeyup="
 				if (wpPassword.value != '' && wpPassword.value == wpRetype.value){
-					document.getElementById('pwcheck').innerHTML='<?php $this->msg('passwordsmatch')?>';
+					changeGlyphOk();
 				}
 				else if ( wpPassword.value != wpRetype.value ) {
-					document.getElementById('pwcheck').innerHTML='<?php $this->msg('passwordsdontmatch')?>';
+					changeGlyphRemove();
 				}
 				
 				if ( wpEmail.value != '' && EmailName.value != '' && acceptv.value == 1  && wpPassword.value != '' && wpPassword.value == wpRetype.value ) {
@@ -233,79 +251,99 @@ onmousemove = "
 					wpCreateaccount.disabled=1;
 				}
 				"
-				/>
-				<span id="pwcheck"><strong><?php $this->msg('password-text')?></strong></span>
-		
-	<br /><br /><br /><br />
-		
-			
-			<p><?php if ( $this->translator->translate( 'search' ) == 'Search' ) echo 'Please review the <a style="font-weight:bold;" href="http://www.gcpedia.gc.ca/gcwiki/index.php/GCPEDIA:Terms_and_conditions_of_use" target="_blank"><u>terms and conditions of use</u></a>'; else echo 'Veuillez SVP examiner les <a style="font-weight:bold;" href="http://www.gcpedia.gc.ca/gcwiki/index.php/GCPEDIA:Conditions_d\'utilisation" target="_blank"><u>modalit&#233;s et conditions d&#8217;utilisation</u></a>'; ?> </p>
-			<input type='checkbox' name='accept' id='accept' tabindex='5' onchange="
-			acceptv.value = -1 * acceptv.value;
-			if ( wpEmail.value !='' && EmailName.value != '' && wpPassword.value != '' && wpPassword.value == wpRetype.value )
-			//	wpCreateaccount.value = acceptv.value;
-				if ( acceptv.value == '1' )
-					wpCreateaccount.disabled = 0;
-				else{
-					wpCreateaccount.disabled = 1;
-					wpName.select();
+			/></dd>
+			</dl>
+			<p>Passwords match: <span id="pwcheck" class="glyphicon glyphicon-remove text-danger"></span></p>
+			<script>
+				var re = new RegExp("#.*^(?=.{8,20})");
+				function changeGlyphOk(){
+					$('#pwcheck.glyphicon-remove').removeClass('glyphicon-remove').addClass('glyphicon-ok');
+					$('#pwcheck').removeClass('text-danger').addClass('text-success');
 				}
-			else if ( !wpCreateaccount.disabled ) wpCreateaccount.disabled = 1 " />
-			<label for='accept'><?php $this->msg('terms-conditions') ?> </label>
-			<input type='hidden' name='acceptv' value='-1' />
+				function changeGlyphRemove(){
+					$('#pwcheck.glyphicon-ok').removeClass('glyphicon-ok').addClass('glyphicon-remove');
+					$('#pwcheck').removeClass('text-success').addClass('text-danger');
+				}
+			</script>
 		
-		<br />
 		
-			<b><?php $this->msg('completeallfields')?></b><br />
-			<input type='submit' name="wpCreateaccount" id="wpCreateaccount"
-				tabindex='6'
-				disabled="disabled"
-				value="<?php $this->msg('createaccount') ?>"
-				onmousemove = "//sajax_do_call( 'AJAXtest', [wpName.value] , function( strin ) { document.getElementById('wpName2').value = strin.responseText; AJAXtest.value = strin.responseText; }  );"
-				/>
-			<!--<?php if( $this->data['createemail'] ) { ?>
-			 <input type='submit' name="wpCreateaccountMail" id="wpCreateaccountMail"
-				tabindex="9"
-				value="<?php //$this->msg('createaccountmail') ?>" /> 
-			<?php } ?>-->
+		<!-- END PASSWORD FORM -->
+		
+		<br>
+		<!-- TERMS & CONDITIONS -->
+		<h2>Terms and conditions</h2>
+		<p><?php if ( $this->translator->translate( 'search' ) == 'Search' ) echo 'Please review the <a style="font-weight:bold;" href="http://www.gcpedia.gc.ca/gcwiki/index.php/GCPEDIA:Terms_and_conditions_of_use" target="_blank"><u>terms and conditions of use</u></a>'; else echo 'Veuillez SVP examiner les <a style="font-weight:bold;" href="http://www.gcpedia.gc.ca/gcwiki/index.php/GCPEDIA:Conditions_d\'utilisation" target="_blank"><u>modalit&#233;s et conditions d&#8217;utilisation</u></a>'; ?> </p>
+
+		<input type='checkbox' name='accept' id='accept' tabindex='5' onchange="
+		acceptv.value = -1 * acceptv.value;
+		if ( wpEmail.value !='' && EmailName.value != '' && wpPassword.value != '' && wpPassword.value == wpRetype.value )
+		//	wpCreateaccount.value = acceptv.value;
+			if ( acceptv.value == '1' )
+				wpCreateaccount.disabled = 0;
+			else{
+				wpCreateaccount.disabled = 1;
+				wpName.select();
+			}
+		else if ( !wpCreateaccount.disabled ) wpCreateaccount.disabled = 1 " />
+		<label for='accept'><?php $this->msg('terms-conditions') ?> </label>
+		<input type='hidden' name='acceptv' value='-1' />
+		<!-- END TERMS -->
+		<br /><br>
+
+		<!-- CREATE ACCT BUTTON -->
+		<div class="alert alert-info"><p><?php $this->msg('completeallfields')?></p></div>
+		<input type='submit' name="wpCreateaccount" id="wpCreateaccount"
+			tabindex='6'
+			disabled="disabled"
+			value="<?php $this->msg('createaccount') ?>"
+			onmousemove = "//sajax_do_call( 'AJAXtest', [wpName.value] , function( strin ) { document.getElementById('wpName2').value = strin.responseText; AJAXtest.value = strin.responseText; }  );"
+			/>
+		<!--<?php if( $this->data['createemail'] ) { ?>
+		 <input type='submit' name="wpCreateaccountMail" id="wpCreateaccountMail"
+			tabindex="9"
+			value="<?php //$this->msg('createaccountmail') ?>" /> 
+		<?php } ?>-->
+		</div>
+		<!-- END CREATE ACCT BUTTON -->
+		</div></form>
 			
-		
-	
-<?php if( @$this->haveData( 'uselang' ) ) { ?><input type="hidden" name="uselang" value="<?php $this->text( 'uselang' ); ?>" /><?php } ?>
-<?php if( @$this->haveData( 'token' ) ) { ?><input type="hidden" name="wpCreateaccountToken" value="<?php $this->text( 'token' ); ?>" /><?php } ?>
-<br />	
-		
-</form>
-</div>
+		<?php if( @$this->haveData( 'uselang' ) ) { ?><input type="hidden" name="uselang" value="<?php $this->text( 'uselang' ); ?>" /><?php } ?>
+		<?php if( @$this->haveData( 'token' ) ) { ?><input type="hidden" name="wpCreateaccountToken" value="<?php $this->text( 'token' ); ?>" /><?php } ?>
+		<br />	
+				
+		</form>
+		</div>
 
-
-<div style='float:left; margin-left:3px;'>
-<?php if ( $this->translator->translate( 'search' ) == 'Search' )  echo " <br />
-	<strong>Frequently asked questions about creating an account</strong>
-	<ul>
-		<li><a href='http://www.gcpedia.gc.ca/wiki/Help:Frequently_asked_questions_about_creating_an_account#I.E2.80.99ve_created_my_account._What_happens_next.3F'  target='_blank'>I've created my account. What happens next? </a></li>
-		<li><a href='http://www.gcpedia.gc.ca/wiki/Help:Frequently_asked_questions_about_creating_an_account#I_did_not_receive_the_email_confirming_that_my_account_has_been_created._What_should_I_do.3F'  target='_blank'>I did not receive the email confirming that my account has been created. What should I do?</a></li>
-		<li><a href='http://www.gcpedia.gc.ca/wiki/Help:Frequently_asked_questions_about_creating_an_account#_Why_do_I_have_to_provide_my_Government_of_Canada_email_account_information.3F'  target='_blank'>Why do I have to provide my Government of Canada email account information?</a></li>
-		<li><a href='http://www.gcpedia.gc.ca/wiki/Help:Frequently_asked_questions_about_creating_an_account#_Why_does_GCPEDIA_create_my_user_name_for_me.3F'  target='_blank'>Why does GCPEDIA create my user name for me?</a></li>
-	</ul>
-	<br />
-	For more information or assistance, please <a href='mailto:admin.GCPEDIA@tbs-sct.gc.ca'> contact us</a>.
-	";
-	else echo " <br />
-	<strong>Foire aux questions sur la cr&#233ation d'un compte</strong>
-	<ul>
-		<li><a href='http://www.gcpedia.gc.ca/wiki/Aide:_Foire_aux_questions_sur_la_cr&#233ation_d&#146un_compte#J.E2.80.99ai_cr.C3.A9.C3.A9_mon_compte._Quelles_sont_les_.C3.A9tapes_suivantes.3F' target='_blank'> J'ai cr&#233&#233 mon compte. Quelles sont les &#233tapes suivantes? </a></li>
-		<li><a href='http://www.gcpedia.gc.ca/wiki/Aide:_Foire_aux_questions_sur_la_cr&#233ation_d&#146un_compte#Je_n.E2.80.99ai_pas_re.C3.A7u_le_courriel_confirmant_la_cr.C3.A9ation_de_mon_compte._Que_dois-je_faire.3F' target='_blank'> Je n'ai pas re&#231u de confirmation par courrier &#233lectronique que mon compte fut cr&#233&#233.  Que dois-je faire? </a></li>
-		<li><a href='http://www.gcpedia.gc.ca/wiki/Aide:_Foire_aux_questions_sur_la_cr&#233ation_d&#146un_compte#Pourquoi_dois-je_fournir_des_renseignements_sur_mon_compte_courriel_du_gouvernement_du_Canada.3F' target='_blank'> Pourquoi dois-je fournir des renseignements sur mon compte courriel du gouvernement du Canada? </a></li>
-		<li><a href='http://www.gcpedia.gc.ca/wiki/Aide:_Foire_aux_questions_sur_la_cr&#233ation_d&#146un_compte#Pourquoi_GCPEDIA_cr.C3.A9e-t-il_lui-m.C3.AAme_mon_nom_d.E2.80.99utilisateur.3F' target='_blank'> Pourquoi GCPEDIA cr&#233e-t-il lui-m&#234me mon nom d'utilisateur? </a></li>
-	</ul>
-	<br />
-	Si vous d&#233sirez des pr&#233cisions ou de l'aide, veuillez <a href = 'mailto:admin.GCPEDIA@tbs-sct.gc.ca'> communiquer avec nous </a>.
-	";
-	
-	?>
-</div>
-<div id="signupend"><?php $this->msgWiki( 'signupend' ); ?></div>
+		<!-- FAQ -->
+		<div style='float:left; margin-left:3px;'>
+		<?php if ( $this->translator->translate( 'search' ) == 'Search' )  echo " <br />
+			<h2>Frequently asked questions about creating an account</h2>
+			<ul>
+				<li><a href='http://www.gcpedia.gc.ca/wiki/Help:Frequently_asked_questions_about_creating_an_account#I.E2.80.99ve_created_my_account._What_happens_next.3F'  target='_blank'>I've created my account. What happens next? </a></li>
+				<li><a href='http://www.gcpedia.gc.ca/wiki/Help:Frequently_asked_questions_about_creating_an_account#I_did_not_receive_the_email_confirming_that_my_account_has_been_created._What_should_I_do.3F'  target='_blank'>I did not receive the email confirming that my account has been created. What should I do?</a></li>
+				<li><a href='http://www.gcpedia.gc.ca/wiki/Help:Frequently_asked_questions_about_creating_an_account#_Why_do_I_have_to_provide_my_Government_of_Canada_email_account_information.3F'  target='_blank'>Why do I have to provide my Government of Canada email account information?</a></li>
+				<li><a href='http://www.gcpedia.gc.ca/wiki/Help:Frequently_asked_questions_about_creating_an_account#_Why_does_GCPEDIA_create_my_user_name_for_me.3F'  target='_blank'>Why does GCPEDIA create my user name for me?</a></li>
+			</ul>
+			<br />
+			For more information or assistance, please <a href='mailto:admin.GCPEDIA@tbs-sct.gc.ca'> contact us</a>.
+			";
+			else echo " <br />
+			<strong>Foire aux questions sur la cr&#233ation d'un compte</strong>
+			<ul>
+				<li><a href='http://www.gcpedia.gc.ca/wiki/Aide:_Foire_aux_questions_sur_la_cr&#233ation_d&#146un_compte#J.E2.80.99ai_cr.C3.A9.C3.A9_mon_compte._Quelles_sont_les_.C3.A9tapes_suivantes.3F' target='_blank'> J'ai cr&#233&#233 mon compte. Quelles sont les &#233tapes suivantes? </a></li>
+				<li><a href='http://www.gcpedia.gc.ca/wiki/Aide:_Foire_aux_questions_sur_la_cr&#233ation_d&#146un_compte#Je_n.E2.80.99ai_pas_re.C3.A7u_le_courriel_confirmant_la_cr.C3.A9ation_de_mon_compte._Que_dois-je_faire.3F' target='_blank'> Je n'ai pas re&#231u de confirmation par courrier &#233lectronique que mon compte fut cr&#233&#233.  Que dois-je faire? </a></li>
+				<li><a href='http://www.gcpedia.gc.ca/wiki/Aide:_Foire_aux_questions_sur_la_cr&#233ation_d&#146un_compte#Pourquoi_dois-je_fournir_des_renseignements_sur_mon_compte_courriel_du_gouvernement_du_Canada.3F' target='_blank'> Pourquoi dois-je fournir des renseignements sur mon compte courriel du gouvernement du Canada? </a></li>
+				<li><a href='http://www.gcpedia.gc.ca/wiki/Aide:_Foire_aux_questions_sur_la_cr&#233ation_d&#146un_compte#Pourquoi_GCPEDIA_cr.C3.A9e-t-il_lui-m.C3.AAme_mon_nom_d.E2.80.99utilisateur.3F' target='_blank'> Pourquoi GCPEDIA cr&#233e-t-il lui-m&#234me mon nom d'utilisateur? </a></li>
+			</ul>
+			<br />
+			Si vous d&#233sirez des pr&#233cisions ou de l'aide, veuillez <a href = 'mailto:admin.GCPEDIA@tbs-sct.gc.ca'> communiquer avec nous </a>.
+			";
+			
+			?>
+		</div>
+		<!-- END FAQ -->
+		
+		<div id="signupend"><?php $this->msgWiki( 'signupend' ); ?></div>
 <?php
 
 	}
