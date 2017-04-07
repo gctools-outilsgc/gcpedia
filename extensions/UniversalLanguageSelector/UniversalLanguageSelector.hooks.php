@@ -82,7 +82,7 @@ class UniversalLanguageSelectorHooks {
 		if ( is_string( $wgULSGeoService ) ) {
 			$out->addModules( 'ext.uls.geoclient' );
 		} elseif ( $wgULSGeoService === true ) {
-			$out->addScript( '<script src="//meta.wikimedia.org/geoiplookup"></script>' );
+			//$out->addScript( '<script src="//meta.wikimedia.org/geoiplookup"></script>' );
 		}
 
 		if ( self::isToolbarEnabled( $out->getUser() ) ) {

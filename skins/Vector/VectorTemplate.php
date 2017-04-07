@@ -266,7 +266,7 @@ class VectorTemplate extends BaseTemplate {
 						  var js, fjs = d.getElementsByTagName(s)[0];
 						  if (d.getElementById(id)) return;
 						  js = d.createElement(s); js.id = id;
-						  js.src = "//gcconnex.gc.ca/mod/gc_api/widget/en/share-button.js";
+						  js.src = "//gcconnex-dev.redirectdevnull.ca/mod/gc_api/widget/en/share-button.js";
 						  fjs.parentNode.insertBefore(js, fjs);
 						}(document, 'script', 'gcconnex-jssdk'));</script>
 					

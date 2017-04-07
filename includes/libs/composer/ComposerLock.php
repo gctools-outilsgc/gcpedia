@@ -16,7 +16,7 @@ class ComposerLock {
 	}
 
 	public function getHash() {
-		return $this->contents['hash'];
+		return $this->contents['content-hash'];
 	}
 
 	/**

@@ -1,0 +1,9 @@
+.recentactivity .viewport { overflow: hidden; position: relative; }
+.recentactivity .overview { list-style: none; position: absolute; left: 0; top: 0; }
+.recentactivity .thumb .end,
+.recentactivity .thumb { background-color: #BBBBBB; border-radius: 5px;}
+.recentactivity .scrollbar { position: relative; float: right; width: 10px; }
+.recentactivity .track { background-color: #EFEFEF; height: 100%; width:7px; position: relative; padding: 0 1px; }
+.recentactivity .thumb { height: 20px; width: 7px; cursor: pointer; overflow: hidden; position: absolute; top: 0; }
+.recentactivity .thumb .end { overflow: hidden; height: 5px; width: 7px; }
+.recentactivity .disable{ display: none; }
