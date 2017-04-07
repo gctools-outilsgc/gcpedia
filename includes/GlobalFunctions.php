@@ -1507,11 +1507,22 @@ function wfMsgRealParam( $key, $args, $params, $useDB = true, $forContent = fals
 
 	$message = wfMsgGetKey( $key, $useDB, $forContent, $transform );
 	$message = wfMsgReplaceArgs( $message, $args );
-	
-	if ($params != null)
-		$params = "&".$params;
+	$newParams = "";
+	$newParamField = array();
+	if ($params != null){
+		$paramField = explode( '&', $params );
 		
-	$message = str_replace("{PARAM}", $params, $message);
+		foreach($paramField as $pF){
+			if(strpos($pF, 'uselang') === false || strpos($pF, 'setlang') === false )
+				array_push($newParamField, $pF);
+		}
+		
+		foreach ($newParamField as $para)
+			$newParams = "&".$para;
+	
+	}
+	
+	$message = str_replace("{PARAM}", $newParams, $message);
 		
 	return $message;
 }
