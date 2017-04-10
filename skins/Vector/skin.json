@@ -49,7 +49,8 @@
 		"skins.vector.js": {
 			"scripts": [
 				"collapsibleTabs.js",
-				"vector.js"
+				"vector.js",
+				"./GCWeb/js/rcb.js"
 			],
 			"position": "top",
 			"dependencies": [

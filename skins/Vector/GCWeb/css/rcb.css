@@ -1,0 +1,22 @@
+#p-personal li {
+	line-height: 2.125em;
+}
+
+/* ---help toggle--- */
+#helpToggle { 
+	color:blue; background-color:#ABEBC6; font: bold 12px sans-serif;
+	padding-left:5px; padding-right:5px; padding-top:2px; padding-bottom:2px; margin-left:5px;
+	position: relative; vertical-align: middle; bottom: 1px;}
+
+/* ---help bubble--- */
+#helpArea {-webkit-animation: fadeinbubble 2s 1; animation: fadeinbubble 2s 1;}
+#helpBubble { text-align:center; background-color:#ABEBC6; font: bold 12px sans-serif;
+	border: 3px solid #117A65; border-radius: 10px; max-width:290px;
+	position:relative; left:-50px; padding-top:5px; padding-bottom:5px; padding-left:2px; padding-right:2px; }
+#triangle-black, #triangle-green {width: 0; height: 0; border: solid 15px; position:relative; z-index:1;}
+#triangle-black {border-color: transparent transparent #117A65 transparent; top:-12px; left:100px;}
+#triangle-green {border-color: transparent transparent #ABEBC6 transparent; top:-8px; left:70px;}
+
+/* ---help bubble fade ins--- */
+@-webkit-keyframes fadeinbubble { 0%   {opacity: 0;} 100% {opacity: 1;}} /* Safari 4.0 - 8.0 */
+@keyframes fadeinbubble { 0%   {opacity: 0;} 100% {opacity: 1;}} /* Standard syntax */
