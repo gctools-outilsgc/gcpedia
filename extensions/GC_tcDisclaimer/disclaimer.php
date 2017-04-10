@@ -82,7 +82,7 @@ function showDisclaimer( &$out ) {
 		$row = $dbw->fetchRow( $result );
 		if(count($row)>1)
 		{
-			$timeout = lastaccept( $row[1] );
+			$timeout = lastaccept( $row[2] );
 		}
 	} catch( Exception $e ) {
 		$row = array(0);
