@@ -1,0 +1,8 @@
+{
+    "@metadata": {
+        "authors": [
+            "GC Hackathon Team"
+        ]
+    },
+    "rasw-desc": "Includes a live feed of created and updated pages on a page when including the <code>&lt;RASW/&gt;</code> tag. To only get changes related to one category, use <code>&lt;RASW category=''categoryname''/&gt;</code> "
+}
