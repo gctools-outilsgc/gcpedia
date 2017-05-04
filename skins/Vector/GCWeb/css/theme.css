@@ -10062,7 +10062,7 @@ html[lang='fr'].mediumview .fdbckpromo .accnt-prmry {
  */
 #wb-srch,
 .srchbox {
-  padding-top: 1em; }
+  padding-top: 0.37em; }
   #wb-srch input,
   #wb-srch button,
   .srchbox input,
@@ -10070,23 +10070,24 @@ html[lang='fr'].mediumview .fdbckpromo .accnt-prmry {
     border-radius: 0; }
   #wb-srch button,
   .srchbox button {
-    background-color: #335075;
+    background-color: #ededed;
+      color: #335075;
     border: 0;
-    border-color: #335075;
-    font-size: 17px; }
+    border-color: #ededed;
+    font-size: 16px; }
     #wb-srch button:hover, #wb-srch button:focus, #wb-srch button:active,
     .srchbox button:hover,
     .srchbox button:focus,
     .srchbox button:active {
-      background: #243850; }
+      background: #ededed; }
   #wb-srch .glyphicon,
   .srchbox .glyphicon {
     top: auto;
     vertical-align: middle; }
   #wb-srch input,
   .srchbox input {
-    background-color: #e0e0e0;
-    border-color: #e0e0e0;
+    background-color: #FFFFFF;
+    border-color: #FFFFFF;
     border-right: 0;
     border-style: solid;
     -webkit-box-shadow: none;

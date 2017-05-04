@@ -120,3 +120,14 @@
     border-radius: 4px;
     
 }
+
+div#mw-head{
+    position: absolute;
+    top: 52px !important;
+    right: 0;
+    width: 100%;  
+    
+}
+div#mw-panel{
+    top: 50px !important;
+}
