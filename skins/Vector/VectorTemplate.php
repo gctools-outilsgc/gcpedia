@@ -109,7 +109,7 @@ class VectorTemplate extends BaseTemplate {
                     
                     
                 </div>
-                <div class="col-lg-6 col-md-6 col-sm-7 hidden-sm hidden-xs">
+                <div class="col-lg-6 col-md-5 col-sm-7 hidden-sm hidden-xs">
                     <ul id="tool-link" class="pull-left list-unstyled mrgn-bttm-0">
 
 						<li class="pull-left tool-link">
@@ -137,16 +137,18 @@ class VectorTemplate extends BaseTemplate {
 	                    </li>
 	                    
                     </ul>
-                   
                 </div>
-                
-                
-                
-			<?php 
-			$this->outputSearch();
 
-
-			?>
+                <div id="wb-lng" class="visible-md visible-lg text-right col-sm-1">
+                	<div class="col-md-12">
+                		<ul class="list-inline margin-bottom-none">
+                			<li><?php echo wfMsg('topbar:langlink');?></li>
+                		</ul>
+                	</div>
+                </div>
+				<?php 
+				$this->outputSearch();
+				?>
             </div>
         </div>
         
@@ -436,7 +438,7 @@ class VectorTemplate extends BaseTemplate {
 	 */
 	private function outputSearch() {
 		?>
-		<div class="col-sm-5 col-lg-4 col-md-4 col-xs-5 text-right"><section id="wb-srch" class="text-right">
+		<div class="col-sm-5 col-lg-3 col-md-4 col-xs-5 text-right"><section id="wb-srch" class="text-right">
 <h2>Search</h2>
 <form action="http://intranet.canada.ca/search-recherche/query-recherche-<?php global $wgLang;
 		if ($wgLang->getCode() == 'fr')
