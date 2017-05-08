@@ -97,39 +97,10 @@ class VectorTemplate extends BaseTemplate {
 		$this->html( 'headelement' );
 		?>
 	<header role="banner">
-		<div id="wb-bnr" class="container-fluid">
-			<section id="wb-lng" class="text-right">
-				<h2 class="wb-inv">Language selection</h2>
-				<div class="row">
-				<div class="col-md-12">
-				<ul class="list-inline margin-bottom-none">
-				<li><?php echo wfMsg('topbar:langlink') ?></li>
-				</ul>
-				</div>
-				</div>
-			</section>
-			<div class="row">
-			<div class="brand col-xs-6 col-sm-6 col-md-6">
-			<!--<a href="http://www.canada.ca/en/index.html">--><object type="image/svg+xml" tabindex="-1" data="<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo $wgScriptPath .'/skins/Vector/GCWeb/assets/sig-blk-fr.svg'; else echo $wgScriptPath .'/skins/Vector/GCWeb/assets/sig-blk-en.svg';?>"></object><span class="wb-inv"> Government of Canada</span><!--</a>-->
-			</div>
-			<!--<section class="wb-mb-links col-xs-4 col-sm-3 visible-sm visible-xs" id="wb-glb-mn">
-			<h2>Search and menus</h2>
-			<ul class="list-inline text-right chvrn">
-			<li><a href="#mb-pnl" title="Search and menus" aria-controls="mb-pnl" class="overlay-lnk" role="button"><span class="glyphicon glyphicon-search"><span class="glyphicon glyphicon-th-list"><span class="wb-inv">Search and menus</span></span></span></a></li>
-			</ul>
-			<div id="mb-pnl"></div>
-			</section>-->
-			<?php 
-			$this->outputSearch();
-
-
-			?>
-		</div>
-	</div>
 	    <div id="app-brand">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-sm-3 ">
+                <div class="col-lg-2 col-md-2 col-xs-7">
                     <div class="app-name">
                     <a href="<?php echo htmlspecialchars( $this->data['nav_urls']['mainpage']['href'] ) ?>">
                         <span><span class="bold-gc">GC</span>p<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo  'é'; else echo 'e'; ?>dia</span>
@@ -138,30 +109,46 @@ class VectorTemplate extends BaseTemplate {
                     
                     
                 </div>
-                <div class="col-sm-6 col-sm-offset-3 hidden-xs">
-                    <div id="tool-link" class="pull-right">
+                <div class="col-lg-6 col-md-5 col-sm-7 hidden-sm hidden-xs">
+                    <ul id="tool-link" class="pull-left list-unstyled mrgn-bttm-0">
 
-						<div class="pull-right tool-link">
+						<li class="pull-left tool-link">
                         	<a href="<?php echo wfMsg('wet:gcdirectoryLink');?>">
-                            <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/directory_icon.png'?>" alt="GCDirectory" /><span class="bold-gc">GC</span><?php echo wfMsg('wet:barDirectory');?></a>
+                            <span class="bold-gc">GC</span><?php echo wfMsg('wet:barDirectory');?></a>
 
-                    	</div>
+                    	</li>
 
-	                    <div class="pull-right tool-link">
+	                    <li class="pull-left tool-link">
 	                        <a href="<?php echo wfMsg('wet:gcintranetLink');?>">
-	                        <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/intranet_icon.png';?>" alt="GCintranet"/><span class="bold-gc">GC</span>intranet</a>
+	                        <span class="bold-gc">GC</span>intranet</a>
 	                        
-	                    </div>
+	                    </li>
 
-	                    <div class="pull-right tool-link">
+	                    <li class="pull-left tool-link">
 	                        <a href="<?php echo wfMsg('wet:gcconnexLink');?>">
-	                        <img class="tool-link-icon" src="<?php echo $wgScriptPath.'/skins/Vector/images/connex_icon.png';?>" alt="GCconnex" /><span class="bold-gc">GC</span>connex</a>
+	                        <span class="bold-gc">GC</span>connex</a>
 	                        
-	                    </div>
+	                    </li>
+                        
+                        <li class="pull-left tool-link">
+	                        <a href="<?php echo wfMsg('wet:gccollabLink');?>">
+	                        <span class="bold-gc">GC</span>collab</a>
+	                        
+	                    </li>
 	                    
-                    </div>
-                   
+                    </ul>
                 </div>
+
+                <div id="wb-lng" class="visible-md visible-lg text-right col-sm-1">
+                	<div class="col-md-12">
+                		<ul class="list-inline margin-bottom-none">
+                			<li><?php echo wfMsg('topbar:langlink');?></li>
+                		</ul>
+                	</div>
+                </div>
+				<?php 
+				$this->outputSearch();
+				?>
             </div>
         </div>
         
@@ -451,7 +438,7 @@ class VectorTemplate extends BaseTemplate {
 	 */
 	private function outputSearch() {
 		?>
-		<div class="col-xs-6 text-right"><section id="wb-srch" class="text-right">
+		<div class="col-sm-5 col-lg-3 col-md-4 col-xs-5 text-right"><section id="wb-srch" class="text-right">
 <h2>Search</h2>
 <form action="http://intranet.canada.ca/search-recherche/query-recherche-<?php global $wgLang;
 		if ($wgLang->getCode() == 'fr')
@@ -461,7 +448,7 @@ class VectorTemplate extends BaseTemplate {
  echo $lang3Code; ?>.aspx" method="get" name="cse-search-box" role="search" class="form-inline">
 <div class="form-group">
 <label for="wb-srch-q" class="wb-inv">Search website</label>
-<input id="search" list="wb-srch-q-ac" class="wb-srch-q form-control" name="q" type="search" value="" size="27" maxlength="150" placeholder="<?php echo wfMessage( 'searchsuggest-search-tools' )->text(); ?>">
+<input id="search" list="wb-srch-q-ac" class="wb-srch-q form-control" name="q" type="search" value="" size="21" maxlength="150" placeholder="<?php echo wfMessage( 'searchsuggest-search-tools' )->text(); ?>">
 <datalist id="wb-srch-q-ac">
 <!--[if lte IE 9]><select><![endif]-->
 <!--[if lte IE 9]></select><![endif]-->
@@ -472,7 +459,7 @@ class VectorTemplate extends BaseTemplate {
                 <input type="hidden" name="chk3"  value="True">
 </div>
 <div class="form-group submit">
-<button type="submit" id="wb-srch-sub" class="btn btn-primary btn-small" name="wb-srch-sub"><span class="glyphicon-search glyphicon"></span><span class="wb-inv">Search</span></button>
+<button type="submit" id="wb-srch-sub" class="btn btn-small" name="wb-srch-sub"><span class="glyphicon-search glyphicon"></span><span class="wb-inv">Search</span></button>
 </div>
 </form>
 </section></div>
