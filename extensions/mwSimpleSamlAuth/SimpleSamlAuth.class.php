@@ -302,6 +302,7 @@ class SimpleSamlAuth {
 		global $wgSamlPostLogoutRedirect;
 		global $wgRequest;
 		global $wgTitle;
+		global $wgUser;
 
 		if ( $wgSamlRequirement >= SAML_LOGIN_ONLY || self::$as->isAuthenticated() ) {
 			if ( isset( $personal_urls['logout'] ) ) {
@@ -337,24 +338,21 @@ class SimpleSamlAuth {
 				}
 			}
 		}
-		else{		// add a separate SAML login link instead
-			if ( !self::$as->isAuthenticated() ) {
-				if ( $title->isSpecial( 'Userlogout' ) ) {
-					$link = self::$as->getLoginURL(
-						Title::newMainPage()->getFullUrl()
-					);
-				} else {
-					$url = $wgTitle->getFullUrl();
-					$link = self::$as->getLoginURL( $url );
-				}
-				$ssourl['userssologin'] = array_shift( $personal_urls );
-				$ssourl[] = array_shift( $personal_urls );
-				$ssourl[] = array_shift( $personal_urls );
-			
-				$ssourl[] = array( 'text' => wfMessage( 'simplesamlauth-login' )->text(),
-						'href' => $link );
-				$personal_urls = $ssourl + $personal_urls;
+		elseif ( !$wgUser->isLoggedIn() ) {		// add a separate SAML login link instead
+			if ( $title->isSpecial( 'Userlogout' ) ) {
+				$link = self::$as->getLoginURL(
+					Title::newMainPage()->getFullUrl()
+				);
+			} else {
+				$url = $wgTitle->getFullUrl();
+				$link = self::$as->getLoginURL( $url );
 			}
+			$ssourl['userssologin'] = array_shift( $personal_urls );
+			$ssourl[] = array_shift( $personal_urls );
+			
+			$ssourl[] = array( 'text' => wfMessage( 'simplesamlauth-login' )->text(),
+					'href' =>  $link );
+			$personal_urls = $ssourl + $personal_urls;
 		}
 		return true;
 	}
