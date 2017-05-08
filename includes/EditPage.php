@@ -3717,6 +3717,8 @@ HTML
 		 *
 		 * Images are defined in ResourceLoaderEditToolbarModule.
 		 */
+		$thumbnailStart = '<div class="row"><div class="col-md-2"><div class="panel panel-default"><div class="panel-body">';
+		$thumbnailEnd = '</div></div></div></div>';
 		$toolarray = array(
 			array(
 				'id'     => 'mw-editbutton-bold',
@@ -3759,6 +3761,13 @@ HTML
 				'close'  => ']]',
 				'sample' => wfMessage( 'image_sample' )->text(),
 				'tip'    => wfMessage( 'image_tip' )->text(),
+			) : false,
+			$imagesAvailable ? array(
+					'id'     => 'mw-editbutton-thumbnail',
+					'open'   => $thumbnailStart . '[['. $wgContLang->getNsText( NS_FILE ) . ':',
+					'close'  => ']]<div class="clearfix"></div>[[' . $wgContLang->getNsText( NS_MEDIA ) . ':' . wfMessage( 'image_sample' )->text() . '|View Larger]]' . $thumbnailEnd,
+					'sample' => wfMessage( 'image_sample' )->text(),
+					'tip'    => wfMessage( 'image_tip' )->text(),
 			) : false,
 			$imagesAvailable ? array(
 				'id'     => 'mw-editbutton-media',

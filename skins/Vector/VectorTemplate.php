@@ -103,7 +103,7 @@ class VectorTemplate extends BaseTemplate {
 				<div class="row">
 				<div class="col-md-12">
 				<ul class="list-inline margin-bottom-none">
-				<li><?php echo wfMsg('topbar:langlink') ?></li>
+				<li><?php echo wfMsgParam('topbar:langlink', $_SERVER['QUERY_STRING']) ?></li>
 				</ul>
 				</div>
 				</div>

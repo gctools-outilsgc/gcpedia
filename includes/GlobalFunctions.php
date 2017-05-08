@@ -1481,6 +1481,70 @@ function wfMessageFallback( /*...*/ ) {
  *
  * @return string
  */
+function wfMsgParam( $key , $params) {
+	wfDeprecated( __METHOD__, '1.21' );
+
+	$args = func_get_args();
+	array_shift( $args );
+	
+	return wfMsgRealParam( $key, $args , $params );
+}
+
+/**
+ * Really get a message
+ *
+ * @deprecated since 1.18
+ *
+ * @param string $key Key to get.
+ * @param array $args
+ * @param bool $useDB
+ * @param string|bool $forContent Language code, or false for user lang, true for content lang.
+ * @param bool $transform Whether or not to transform the message.
+ * @return string The requested message.
+ */
+function wfMsgRealParam( $key, $args, $params, $useDB = true, $forContent = false, $transform = true ) {
+	wfDeprecated( __METHOD__, '1.21' );
+
+	$message = wfMsgGetKey( $key, $useDB, $forContent, $transform );
+	$message = wfMsgReplaceArgs( $message, $args );
+	$newParams = "";
+	$newParamField = array();
+	if ($params != null){
+		$paramField = explode( '&', $params );
+		
+		foreach($paramField as $pF){
+			if(strpos($pF, 'uselang') === false || strpos($pF, 'setlang') === false )
+				array_push($newParamField, $pF);
+		}
+		
+		foreach ($newParamField as $para)
+			$newParams = "&".$para;
+	
+	}
+	
+	$message = str_replace("{PARAM}", $newParams, $message);
+		
+	return $message;
+}
+/**
+ * Get a message from anywhere, for the current user language.
+ *
+ * Use wfMsgForContent() instead if the message should NOT
+ * change depending on the user preferences.
+ *
+ * @deprecated since 1.18
+ *
+ * @param string $key Lookup key for the message, usually
+ *    defined in languages/Language.php
+ *
+ * Parameters to the message, which can be used to insert variable text into
+ * it, can be passed to this function in the following formats:
+ * - One per argument, starting at the second parameter
+ * - As an array in the second parameter
+ * These are not shown in the function definition.
+ *
+ * @return string
+ */
 function wfMsg( $key ) {
 	wfDeprecated( __METHOD__, '1.21' );
 
