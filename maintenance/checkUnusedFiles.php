@@ -35,7 +35,7 @@ class CheckUnusedFiles extends Maintenance {
 		foreach ( $result as $file ) {
 			if ( $file->img_size > $this->getOption( 'bound' ) * (1024*1024) ) {
 				$this->output( (int)( $file->img_size / (1024*1024) ) . "MB\n" );
-				$used = $dbr->query( 'SELECT * FROM ' . $dbr->tableName('page') . ' LEFT JOIN ' . $dbr->tableName('revision') . ' ON page_latest = rev_id LEFT JOIN ' . $dbr->tableName('text') . ' ON rev_text_id = old_id WHERE CONVERT( old_text USING latin1) COLLATE latin1_swedish_ci LIKE"%' . $file->img_name .'%"' );
+				$used = $dbr->query( 'SELECT * FROM ' . $dbr->tableName('page') . ' LEFT JOIN ' . $dbr->tableName('revision') . ' ON page_latest = rev_id LEFT JOIN ' . $dbr->tableName('text') . ' ON rev_text_id = old_id WHERE CONVERT( old_text USING latin1) COLLATE latin1_swedish_ci LIKE`%' . $file->img_name .'%`' );
 				if ( $used->numRows() < 1 ) {
 					$unused['num']++;
 					$unused['size'] += $file->img_size;
