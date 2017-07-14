@@ -18,8 +18,13 @@ class CheckUnusedFiles extends Maintenance {
 		$this->output( "Fetching file list...\n" );
 		$dbr = wfGetDB( DB_SLAVE );
 		$result = $dbr->select(
-			array( 'image' ),
-			array( 'img_name', 'img_size' ) );
+			array( 'image', 'imagelinks' ),
+			array( 'img_name', 'img_size', 'img_timestamp' ),
+			array( 'il_to IS NULL' ),
+			__METHOD__,
+			array(),
+			array( 'imagelinks' => array( 'LEFT JOIN', 'il_to = img_name' ) )
+		 );
 
 		$count = $result->numRows();
 		$this->output( "Found $count total files.\n" .
