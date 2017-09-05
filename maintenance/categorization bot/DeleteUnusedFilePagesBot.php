@@ -22,7 +22,7 @@ $outlog = fopen( dirname( __FILE__ ) . '/DeleteUnusedFilesPagesLog.txt', 'w' ); 
 
 
 // traverse file list and edit each file page, categorizing them
-foreach ( $pages as $page ){
+foreach ( $inlines as $page ){
 	$wiki->delete("File:".$page, "Deleted unused file by bot");
 	fwrite( $outlog, $page . "   Page Deleted \r\n");
 }
