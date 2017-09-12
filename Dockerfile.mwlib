@@ -1,0 +1,22 @@
+FROM ubuntu:16.04
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update
+RUN apt-get install -y gcc g++ make python python-dev python-virtualenv   \
+  libjpeg-dev libz-dev libfreetype6-dev liblcms2-dev                   \
+  libxml2-dev libxslt-dev                                             \
+  ocaml-nox git-core                                                  \
+  python-imaging python-lxml                                          \
+  texlive-latex-recommended ploticus dvipng imagemagick               \
+  pdftk
+RUN apt install -y python-pip
+
+RUN pip install --trusted-host pypi.pediapress.com -i http://pypi.pediapress.com/simple/ pyfribidi
+RUN pip install --trusted-host pypi.pediapress.com -i http://pypi.pediapress.com/simple/ mwlib
+RUN pip install --trusted-host pypi.pediapress.com -i http://pypi.pediapress.com/simple/ mwlib.rl
+
+RUN git clone https://github.com/pediapress/texvc
+RUN cd texvc; make; make install PREFIX=~/pp
+
+RUN mkdir /data/mwcache
+EXPOSE 8899
+CMD ["nserve","mw-qserve","nslave","--cachedir /data/mwcache"]
