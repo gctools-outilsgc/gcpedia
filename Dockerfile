@@ -10,7 +10,13 @@ RUN apt-get update && apt-get install -y \
     php7.0-mysql \
     php7.0-xml
 
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
 WORKDIR /var/www/html
+
+ARG COMPOSER_ALLOW_SUPERUSER=1
+ARG COMPOSER_NO_INTERACTION=1
+RUN composer install
 
 CMD apache2ctl -D FOREGROUND
 
