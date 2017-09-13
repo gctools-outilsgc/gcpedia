@@ -6,7 +6,7 @@ services:
   gcpedia:
     build: .
     ports:
-      - 8080:80
+      - 8800:80
     volumes:
       - .:/var/www/html
       - ./image:/var/www/html/image
@@ -47,7 +47,7 @@ services:
   # Database container for gcpedia, accessible from by the gcpedia container 
   # using the network host "gcpedia-db".
   # ###########################################################################
-  gcconnex-db:
+  gcpedia-db:
     image: library/mariadb:10.3
     volumes:
       - ./data/db:/var/lib/mysql
