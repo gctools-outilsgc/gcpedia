@@ -1,0 +1,58 @@
+version: '2'
+services:
+  # ###########################################################################
+  # The GCpedia container.  Will be accessible at http://localhost:8080
+  # ###########################################################################
+  gcpedia:
+    build: .
+    ports:
+      - 8080:80
+    volumes:
+      - .:/var/www/html
+      - ./image:/var/www/html/image
+    depends_on:
+      - gcconnex-db
+      - parsoid
+      - mwlib
+    environment:
+      - DOCKER=1
+
+  # ###########################################################################
+  # The parsoid container for the VisualEditor.
+  # Will be available to gcpedia at http://localhost:8142
+  # ###########################################################################
+  parsoid:
+    build:
+      context: .
+      dockerfile: Dockerfile.parsoid
+    ports:
+      - 8142:8142
+    depends_on:
+      - gcpedia
+
+  # ###########################################################################
+  # The mwlib container for the VisualEditor.
+  # Will be available to gcpedia at http://localhost:8899
+  # ###########################################################################
+  mwlib:
+    build:
+      context: .
+      dockerfile: Dockerfile.mwlib
+    ports:
+      - 8899:8899
+    depends_on:
+      - gcpedia
+
+  # ###########################################################################
+  # Database container for gcconnex, accessible from within gcconnex using the
+  # network host "gcpedia-db".
+  # ###########################################################################
+  gcconnex-db:
+    image: library/mariadb:10.3
+    volumes:
+      - ./data/db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=gcpedia
+      - MYSQL_DATABASE=wiki
+      - MYSQL_USER=wiki
+      - MYSQL_PASSWORD=gcpedia
