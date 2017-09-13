@@ -19,20 +19,20 @@ services:
 
   # ###########################################################################
   # The parsoid container for the VisualEditor.
-  # Will be available to gcpedia at http://localhost:8142
+  # Will be available to gcpedia at parsoid:8142
   # ###########################################################################
   parsoid:
     build:
       context: .
       dockerfile: Dockerfile.parsoid
     ports:
-      - 8142:8142
+      - 8142:8000
     depends_on:
       - gcpedia
 
   # ###########################################################################
   # The mwlib container for the VisualEditor.
-  # Will be available to gcpedia at http://localhost:8899
+  # Will be available to gcpedia at mwlib:8899
   # ###########################################################################
   mwlib:
     build:
@@ -44,8 +44,8 @@ services:
       - gcpedia
 
   # ###########################################################################
-  # Database container for gcconnex, accessible from within gcconnex using the
-  # network host "gcpedia-db".
+  # Database container for gcpedia, accessible from by the gcpedia container 
+  # using the network host "gcpedia-db".
   # ###########################################################################
   gcconnex-db:
     image: library/mariadb:10.3

@@ -7,16 +7,17 @@ RUN apt-get install -y gcc g++ make python python-dev python-virtualenv   \
   ocaml-nox git-core                                                  \
   python-imaging python-lxml                                          \
   texlive-latex-recommended ploticus dvipng imagemagick               \
-  pdftk
-RUN apt install -y python-pip
+  pdftk python-pip
+
+RUN mkdir mkdir /data; mkdir /data/mwcache
+RUN useradd mwlib
+RUN chown mwlib:mwlib /data/mwcache
 
 RUN pip install --trusted-host pypi.pediapress.com -i http://pypi.pediapress.com/simple/ pyfribidi
 RUN pip install --trusted-host pypi.pediapress.com -i http://pypi.pediapress.com/simple/ mwlib
 RUN pip install --trusted-host pypi.pediapress.com -i http://pypi.pediapress.com/simple/ mwlib.rl
+RUN pip install --trusted-host pypi.pediapress.com -i http://pypi.pediapress.com/simple/ pil
 
-RUN git clone https://github.com/pediapress/texvc
-RUN cd texvc; make; make install PREFIX=~/pp
-
-RUN mkdir /data/mwcache
 EXPOSE 8899
-CMD ["nserve","mw-qserve","nslave","--cachedir /data/mwcache"]
+USER mwlib
+CMD nserve & mw-qserve & nslave --cachedir /data/mwcache
