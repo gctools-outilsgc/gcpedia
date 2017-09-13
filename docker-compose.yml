@@ -11,7 +11,7 @@ services:
       - .:/var/www/html
       - ./image:/var/www/html/image
     depends_on:
-      - gcconnex-db
+      - gcpedia-db
       - parsoid
       - mwlib
     environment:
