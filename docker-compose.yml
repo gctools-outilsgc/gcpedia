@@ -41,10 +41,10 @@ services:
   # The Electron render service container for the ElectronPdfService Extension.
   # Will be available to gcpedia at elec-render:3000
   # ###########################################################################
-  elec-render:
-    image: msokk/electron-render-service
-    ports:
-      - 3000:3000
+ # elec-render:
+ #   image: msokk/electron-render-service
+ #   ports:
+ #     - 3000:3000
 
   # ###########################################################################
   # Database container for gcpedia, accessible from by the gcpedia container 

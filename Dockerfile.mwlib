@@ -1,22 +1,20 @@
-FROM ubuntu:16.04
+FROM ubuntu:14.04
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update
-RUN apt-get install -y gcc g++ make python python-dev python-virtualenv   \
-  libjpeg-dev libz-dev libfreetype6-dev liblcms2-dev                   \
-  libxml2-dev libxslt-dev                                             \
-  ocaml-nox git-core                                                  \
-  python-imaging python-lxml                                          \
-  texlive-latex-recommended ploticus dvipng imagemagick               \
-  pdftk python-pip
+RUN apt install -y gcc g++ make python python-pip python-dev\
+ python-virtualenv libjpeg-dev libz-dev libfreetype6-dev liblcms-dev\
+ libxml2-dev libxslt-dev ocaml-nox git-core python-imaging python-lxml\
+ texlive-latex-recommended ploticus dvipng imagemagick pdftk
+
+RUN pip install -i http://pypi.pediapress.com/simple/ mwlib
+RUN pip install -i http://pypi.pediapress.com/simple/ mwlib.rl
+RUN pip install gevent==1.0
 
 RUN mkdir mkdir /data; mkdir /data/mwcache
 RUN useradd mwlib
-RUN chown mwlib:mwlib /data/mwcache
+RUN chown -R mwlib:mwlib /data/mwcache
 
-RUN pip install --trusted-host pypi.pediapress.com -i http://pypi.pediapress.com/simple/ pyfribidi
-RUN pip install --trusted-host pypi.pediapress.com -i http://pypi.pediapress.com/simple/ mwlib
-RUN pip install --trusted-host pypi.pediapress.com -i http://pypi.pediapress.com/simple/ mwlib.rl
-RUN pip install --trusted-host pypi.pediapress.com -i http://pypi.pediapress.com/simple/ pil
+RUN apt install -y mediawiki-math
 
 EXPOSE 8899
 USER mwlib
