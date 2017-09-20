@@ -14,6 +14,8 @@ services:
       - gcpedia-db
     environment:
       - DOCKER=1
+      - DBHOST=gcpedia-db
+      - HOST=localhost
 
   # ###########################################################################
   # The parsoid container for the VisualEditor.
