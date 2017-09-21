@@ -1,6 +1,6 @@
 <?php
 
-// environment variables from docker-compose, etc
+// environment variables from docker-compose
 if (getenv('DBHOST') != '')
 	$dbhost = getenv('DBHOST');
 else
@@ -27,7 +27,7 @@ fwrite($local_settings, returnLocalSettingsText());
 fclose($local_settings);
 echo "LocalSettings.php setup complete\n";
 
-shell_exec("php /var/www/html/maintenance/update.php");		// some extensions being added will need db changes, update.php will handle that
+shell_exec("php /var/www/html/docker_gcpedia/maintenance/update.php");		// some extensions being added will need db changes, update.php will handle that
 
 echo "DB update complete\n  Install Complete!\n";
 
