@@ -8,11 +8,13 @@ RUN apt-get update && apt-get install -y \
     php7.0-intl \
     php7.0-mbstring \
     php7.0-mysql \
-    php7.0-xml
+    php7.0-xml \
+    curl
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-WORKDIR /var/www/html
+COPY . /var/www/html/docker_gcpedia
+WORKDIR /var/www/html/docker_gcpedia
 
 ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG COMPOSER_NO_INTERACTION=1

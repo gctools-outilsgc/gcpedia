@@ -14,8 +14,8 @@ else
 // first run regular cli install script
 shell_exec("php /var/www/html/maintenance/install.php --confpath=/var/www/html/ \
  --dbserver={$dbhost} --dbtype=mysql --dbuser=wiki --dbpass=gcpedia --dbname=wiki \
- --scriptpath='' --server='http://{$host}' --lang=en  \
- --pass=adminpassword 'GCpedia' 'admin' ");				// TODO: Add the parameters
+ --scriptpath=/docker_gcpedia --server='http://{$host}:8800' --lang=en  \
+ --pass=adminpassword 'GCpedia' 'admin' ");
 
 // then add extensions; some require extra configuration so the default install is not sufficient
 $local_settings = fopen("/var/www/html/LocalSettings.php", 'a');		// a for append

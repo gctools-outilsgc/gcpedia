@@ -8,8 +8,11 @@ services:
     ports:
       - 8800:80
     volumes:
-      - .:/var/www/html
-      - ./image:/var/www/html/image
+      - .:/var/www/html/docker_gcpedia
+      - ./image:/var/www/html/docker_gcpedia/image
+      - /var/www/html/docker_gcpedia/vendor
+    links:
+      - gcpedia-db
     depends_on:
       - gcpedia-db
     environment:
