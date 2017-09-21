@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     php7.0-mbstring \
     php7.0-mysql \
     php7.0-xml \
+    php7.0-curl \
     curl
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
