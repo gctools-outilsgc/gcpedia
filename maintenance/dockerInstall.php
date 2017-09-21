@@ -10,22 +10,26 @@ if (getenv('HOST') != '')
 	$host = getenv('HOST');
 else
 	$host = 'localhost';
+echo "Using dbhost: $dbhost   and host: $host \n";
 
 // first run regular cli install script
-shell_exec("php /var/www/html/maintenance/install.php --confpath=/var/www/html/ \
+shell_exec("php /var/www/html/docker_gcpedia/maintenance/install.php --confpath=/var/www/html/docker_gcpedia/ \
  --dbserver={$dbhost} --dbtype=mysql --dbuser=wiki --dbpass=gcpedia --dbname=wiki \
  --scriptpath=/docker_gcpedia --server='http://{$host}:8800' --lang=en  \
  --pass=adminpassword 'GCpedia' 'admin' ");
+echo "basic setup complete\n";
 
-// then add extensions; some require extra configuration so the default install is not sufficient
-$local_settings = fopen("/var/www/html/LocalSettings.php", 'a');		// a for append
+// then add extensions; some require extra configuration so this will get a bit long...
+$local_settings = fopen("/var/www/html/docker_gcpedia/LocalSettings.php", 'a');		// a for append
 
 // using single brackets as a simple way to prevent parsing of variable names, etc.
 fwrite($local_settings, returnLocalSettingsText());
 fclose($local_settings);
+echo "LocalSettings.php setup complete\n";
 
 shell_exec("php /var/www/html/maintenance/update.php");		// some extensions being added will need db changes, update.php will handle that
 
+echo "DB update complete\n  Install Complete!\n";
 
 function returnLocalSettingsText(){
 	return <<< 'EOD'
