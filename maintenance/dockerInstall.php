@@ -88,7 +88,7 @@ $wgVirtualRestConfig["modules"]["parsoid"] = array(
   // Use port 8142 if you use the Debian package
   "url" => "parsoid:8000",
   // Parsoid "domain", see below (optional)
-  //"domain" => "gcpedia",
+  "domain" => "localhost",
   // Parsoid "prefix", see below (optional)
   //"prefix" => "gcwiki"
 );
