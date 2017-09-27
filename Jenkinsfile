@@ -5,7 +5,7 @@ pipeline {
         stage('Build') { 
             steps { 
                 echo 'build docker image'
-                sh "docker build -t gcpedia:jenkinstest"
+                sh "docker build -t gcpedia:jenkinstest ."
             }
         }
         stage('Test'){
