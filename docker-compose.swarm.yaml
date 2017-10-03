@@ -4,7 +4,7 @@ services:
   # The GCpedia container.  Will be accessible at http://localhost:8080
   # ###########################################################################
   gcpedia:
-    build: .
+    image: phanoix/gcpedia
     ports:
       - 8800:80
     volumes:
@@ -42,9 +42,7 @@ services:
   # Will be available to gcpedia at parsoid:8142
   # ###########################################################################
   parsoid:
-    build:
-      context: .
-      dockerfile: Dockerfile.parsoid
+    image: phanoix/parsoid
     networks:
       - gcpedia-services
     deploy:
@@ -64,9 +62,7 @@ services:
   # Will be available to gcpedia at mwlib:8899
   # ###########################################################################
   mwlib:
-    build:
-      context: .
-      dockerfile: Dockerfile.mwlib
+    image: phanoix/mwlib
     networks:
       - gcpedia-services
     deploy:
