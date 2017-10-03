@@ -1,0 +1,140 @@
+version: '3.3'
+services:
+  # ###########################################################################
+  # The GCpedia container.  Will be accessible at http://localhost:8080
+  # ###########################################################################
+  gcpedia:
+    build: .
+    ports:
+      - 8800:80
+    volumes:
+      - type: volume
+        source: gcpedia_images
+        target: /var/www/html/docker_gcpedia/images
+    networks:
+      - gcpedia-services
+    resources:
+        limits:
+          cpus: '0.7'
+          memory: 200M
+        reservations:
+          cpus: '0.05'
+          memory: 50M
+    deploy:
+      replicas: 1
+    restart_policy:
+      condition: on-failure
+#  use this if gcpedia has already been installed and LocalSettings.php config created
+#    configs:
+#      - source: LocalSettings.php
+#        target: /var/www/html/docker_gcpedia/LocalSettings.php
+#        mode: 0444
+    environment:
+      - DOCKER=1
+      - DBHOST=gcpedia-db
+      - HOST=localhost
+      - PORT=8800
+# for single signon with GCconnex
+#      - USESAML=true
+
+  # ###########################################################################
+  # The parsoid container for the VisualEditor.
+  # Will be available to gcpedia at parsoid:8142
+  # ###########################################################################
+  parsoid:
+    build:
+      context: .
+      dockerfile: Dockerfile.parsoid
+    networks:
+      - gcpedia-services
+    resources:
+        limits:
+          cpus: '0.01'
+          memory: 200M
+        reservations:
+          cpus: '0.0001'
+          memory: 20M
+    deploy:
+      replicas: 2
+    restart_policy:
+      condition: on-failure
+
+  # ###########################################################################
+  # The mwlib service container for the Collection extension.
+  # Will be available to gcpedia at mwlib:8899
+  # ###########################################################################
+  mwlib:
+    build:
+      context: .
+      dockerfile: Dockerfile.mwlib
+    networks:
+      - gcpedia-services
+    resources:
+        limits:
+          cpus: '0.01'
+          memory: 200M
+        reservations:
+          cpus: '0.0001'
+          memory: 20M
+    deploy:
+      replicas: 2
+    restart_policy:
+      condition: on-failure
+
+  # ###########################################################################
+  # The Electron render service container for the ElectronPdfService Extension.
+  # Will be available to gcpedia at elec-render:3000
+  # ###########################################################################
+ # elec-render:
+ #   image: msokk/electron-render-service
+ #   networks:
+ #     - gcpedia-services
+ #   resources:
+ #       limits:
+ #         cpus: '0.01'
+ #         memory: 200M
+ #       reservations:
+ #         cpus: '0.0001'
+ #         memory: 20M
+ #   deploy:
+ #     replicas: 2
+ #   restart_policy:
+ #     condition: on-failure
+
+  # ###########################################################################
+  # Database container for gcpedia, accessible from by the gcpedia container 
+  # using the network host "gcpedia-db".
+  # ###########################################################################
+  gcpedia-db:
+    image: library/mariadb:10.3
+    volumes:
+      - type: volume
+        source: gcpedia_db
+        target: /var/lib/mysql
+    networks:
+      - gcpedia-services
+    resources:
+        limits:
+          cpus: '0.8'
+          memory: 2000M
+        reservations:
+          cpus: '0.2'
+          memory: 500M
+    deploy:
+      replicas: 1
+    restart_policy:
+      condition: on-failure
+    environment:
+      - MYSQL_ROOT_PASSWORD=gcpedia
+      - MYSQL_DATABASE=wiki
+      - MYSQL_USER=wiki
+      - MYSQL_PASSWORD=gcpedia
+
+
+volumes:
+  gcpedia_db:
+  gcpedia_images:
+
+networks:
+  gcpedia-services:
+    internal: true
