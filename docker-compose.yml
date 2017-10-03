@@ -9,7 +9,7 @@ services:
       - 8800:80
     volumes:
       - .:/var/www/html/docker_gcpedia
-      - ./image:/var/www/html/docker_gcpedia/image
+      - ./images:/var/www/html/docker_gcpedia/images
       - /var/www/html/docker_gcpedia/vendor
     links:
       - gcpedia-db
@@ -19,6 +19,8 @@ services:
       - DOCKER=1
       - DBHOST=gcpedia-db
       - HOST=localhost
+      - PORT=8800
+#      - USESAML=false
 
   # ###########################################################################
   # The parsoid container for the VisualEditor.

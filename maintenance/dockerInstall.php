@@ -7,15 +7,24 @@ else
 	$dbhost = 'gcpedia-db';
 
 if (getenv('HOST') != '')
-	$host = getenv('HOST');
+  $host = getenv('HOST');
 else
-	$host = 'localhost';
+  $host = 'localhost';
+if (getenv('PORT') != '')
+  $port = ":".getenv('PORT');
+else
+  $port = '';
+
+if (getenv('USESAML') != '')
+	$saml = getenv('USESAML');
+else
+	$saml = false;
 echo "Using dbhost: $dbhost   and host: $host \n";
 
 // first run regular cli install script
 shell_exec("php /var/www/html/docker_gcpedia/maintenance/install.php --confpath=/var/www/html/docker_gcpedia/ \
  --dbserver={$dbhost} --dbtype=mysql --dbuser=wiki --dbpass=gcpedia --dbname=wiki \
- --scriptpath=/docker_gcpedia --server='http://{$host}:8800' --lang=en  \
+ --scriptpath=/docker_gcpedia --server='http://{$host}{$port}' --lang=en  \
  --pass=adminpassword 'GCpedia' 'admin' ");
 echo "basic setup complete\n";
 
@@ -24,6 +33,7 @@ $local_settings = fopen("/var/www/html/docker_gcpedia/LocalSettings.php", 'a');	
 
 // using single brackets as a simple way to prevent parsing of variable names, etc.
 fwrite($local_settings, returnLocalSettingsText());
+if ($saml) fwrite($local_settings, returnLocalSettingsSAMLText());
 fclose($local_settings);
 echo "LocalSettings.php setup complete\n";
 
@@ -32,7 +42,28 @@ shell_exec("php /var/www/html/docker_gcpedia/maintenance/update.php");		// some 
 echo "DB update complete\n  Install Complete!\n";
 
 function returnLocalSettingsText(){
-	return <<< 'EOD'
+  return <<< 'EOD'
+# Disable EDIT for 'everyone'
+$wgGroupPermissions['*']['edit']              = false;
+
+# Disable for users, too: by default 'user' is allowed to edit, even if '*' is not.
+//REGULAR USER PERMISSIONS
+$wgGroupPermissions['user']['edit']           = true;
+$wgGroupPermissions['user']['move']           = true;
+$wgGroupPermissions['user']['delete']         = false;
+$wgGroupPermissions['user']['undelete']       = true;
+$wgGroupPermissions['user']['deletedhistory'] = true;
+
+$wgFileExtensions = array('pub','png','gif','jpg','jpeg','pdf','xls','docx','pptx','doc','ppt','svg','xml','mpg','swf','odp','odt','wmv','flv','vsd','mpp','ai','zip','txt','wpd','rtf','drf','xlsx','xlsm', 'oft');
+
+$wgUseAjax = true;
+
+$wgGroupPermissions['sysop']['deletelogentry'] = true;
+$wgGroupPermissions['sysop']['deleterevision'] = true;
+
+
+////  extensions
+
 wfLoadExtension( "ParserFunctions" );
 
 $wgUseAjax = true;
@@ -117,7 +148,7 @@ $wgCollectionFormats = array(
 $wgGroupPermissions["user"]["collectionsaveascommunitypage"] = true;
 $wgGroupPermissions["user"]["collectionsaveasuserpage"]      = true;
 
-$wgCollectionMaxArticles = 250;			// max # of articles per book
+$wgCollectionMaxArticles = 250;     // max # of articles per book
 
 
 ## Video Enableing Extensions
@@ -196,5 +227,34 @@ $wgShowExceptionDetails = true;
 
 wfLoadExtension( 'MsCalendar' );
 
+EOD;
+}
+function returnLocalSettingsSAMLText(){
+	return <<< 'EOD'
+require_once("$IP/extensions/mwSimpleSamlAuth/SimpleSamlAuth.php");
+
+//$wgSessionName = ini_get('session.name');
+// SAML_OPTIONAL // SAML_LOGIN_ONLY // SAML_REQUIRED //
+$wgSamlRequirement = SAML_OPTIONAL;
+// Should users be created if they don't exist in the database yet?
+$wgSamlCreateUser = true;
+
+// SAML attributes
+$wgSamlUsernameAttr = 'GCPedia_user';
+$wgSamlRealnameAttr = 'cn';
+$wgSamlMailAttr = 'GCPedia_email';
+
+// SimpleSamlPhp settings
+$wgSamlSspRoot = '/sites/simplesamlphp';
+$wgSamlAuthSource = 'elgg-idp';
+$wgSamlPostLogoutRedirect = NULL;
+
+// Array: [MediaWiki group][SAML attribute name][SAML expected value]
+// If the SAML assertion matches, the user is added to the MediaWiki group
+$wgSamlGroupMap = array(
+   'sysop' => array(
+        'groups' => array('admin'),
+    ),
+);
 EOD;
 }
