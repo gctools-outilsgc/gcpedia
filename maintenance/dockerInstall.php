@@ -24,7 +24,7 @@ echo "Using dbhost: $dbhost   and host: $host \n";
 // first run regular cli install script
 shell_exec("php /var/www/html/docker_gcpedia/maintenance/install.php --confpath=/var/www/html/docker_gcpedia/ \
  --dbserver={$dbhost} --dbtype=mysql --dbuser=wiki --dbpass=gcpedia --dbname=wiki \
- --scriptpath=/docker_gcpedia --server='http://{$host}{$port}' --lang=en  \
+ --scriptpath= --server='http://{$host}{$port}' --lang=en  \
  --pass=adminpassword 'GCpedia' 'admin' ");
 echo "basic setup complete\n";
 
