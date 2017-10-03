@@ -23,8 +23,11 @@ ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG COMPOSER_NO_INTERACTION=1
 RUN composer install
 
+RUN sed -i 's/\/var\/www\/html/\/var\/www\/html\/docker_gcpedia/' /etc/apache2/sites-available/000-default.conf
+
 CMD apache2ctl -D FOREGROUND
 
+# if you don't want to use docker-compose:
 # docker build -t gcpedia-apache-php .
 # docker run --name gcpedia-mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -e MYSQL_DATABASE=my_wiki -e MYSQL_USER=wiki -e MYSQL_PASSWORD=password -d mysql
 # docker run --name gcpedia -p 8080:80 -v `pwd`:/var/www/html --link gcpedia-mysql:mysql -d gcpedia-apache-php
