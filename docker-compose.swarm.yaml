@@ -13,17 +13,17 @@ services:
         target: /var/www/html/docker_gcpedia/images
     networks:
       - gcpedia-services
-    resources:
-        limits:
-          cpus: '0.4'
-          memory: 500M
-        reservations:
-          cpus: '0.05'
-          memory: 50M
     deploy:
       replicas: 1
-    restart_policy:
-      condition: on-failure
+      resources:
+          limits:
+            cpus: '0.4'
+            memory: 500M
+          reservations:
+            cpus: '0.05'
+            memory: 50M
+      restart_policy:
+        condition: on-failure
 #  use this if gcpedia has already been installed and LocalSettings.php config created
 #    configs:
 #      - source: LocalSettings.php
@@ -56,8 +56,8 @@ services:
           reservations:
             cpus: '0.001'
             memory: 20M
-    restart_policy:
-      condition: on-failure
+      restart_policy:
+        condition: on-failure
 
   # ###########################################################################
   # The mwlib service container for the Collection extension.
@@ -78,8 +78,8 @@ services:
           reservations:
             cpus: '0.001'
             memory: 20M
-    restart_policy:
-      condition: on-failure
+      restart_policy:
+        condition: on-failure
 
   # ###########################################################################
   # The Electron render service container for the ElectronPdfService Extension.
@@ -121,8 +121,8 @@ services:
           reservations:
             cpus: '0.2'
             memory: 500M
-    restart_policy:
-      condition: on-failure
+      restart_policy:
+        condition: on-failure
     environment:
       - MYSQL_ROOT_PASSWORD=gcpedia
       - MYSQL_DATABASE=wiki
