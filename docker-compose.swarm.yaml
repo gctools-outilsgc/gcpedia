@@ -61,21 +61,21 @@ services:
   # The mwlib service container for the Collection extension.
   # Will be available to gcpedia at mwlib:8899
   # ###########################################################################
-  mwlib:
-    image: phanoix/mwlib
-    networks:
-      - gcpedia-services
-    deploy:
-      replicas: 2
-      resources:
-          limits:
-            cpus: '0.01'
-            memory: 200M
-          reservations:
-            cpus: '0.001'
-            memory: 20M
-      restart_policy:
-        condition: on-failure
+#  mwlib:
+#    image: phanoix/mwlib
+#    networks:
+#      - gcpedia-services
+#    deploy:
+#      replicas: 2
+#      resources:
+#          limits:
+#            cpus: '0.01'
+#            memory: 200M
+#          reservations:
+#            cpus: '0.001'
+#            memory: 20M
+#      restart_policy:
+#        condition: on-failure
 
   # ###########################################################################
   # The Electron render service container for the ElectronPdfService Extension.
