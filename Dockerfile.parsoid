@@ -13,7 +13,7 @@ RUN apt-get update
 RUN apt-get install -y parsoid
 
 WORKDIR /etc/mediawiki/parsoid
-RUN  sed -i 's/localhost\/w/gcpedia\/docker_gcpedia/' config.yaml
+RUN  sed -i 's/localhost\/w/gcpedia/' config.yaml
 
 EXPOSE 8000
 
