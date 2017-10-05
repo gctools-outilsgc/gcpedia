@@ -32,10 +32,11 @@ services:
     environment:
       - DOCKER=1
       - DBHOST=gcpedia-db
-      - HOST=localhost
+      - HOST=gcpedia.tools.gc.ca
       - PORT=8800
 # for single signon with GCconnex
 #      - USESAML=true
+
 
   # ###########################################################################
   # The parsoid container for the VisualEditor.
@@ -124,8 +125,39 @@ services:
       - MYSQL_DATABASE=wiki
       - MYSQL_USER=wiki
       - MYSQL_PASSWORD=gcpedia
-
-
+  simplesaml:
+    image: cyns82/docker-saml
+    ports:
+      - 58080:80 
+      - 58443:443
+    volumes: 
+      - "/var/simplesamlphp/config/:/var/simplesamlphp/config/"
+      - "/var/simplesamlphp/metadata/:/var/simplesamlphp/metadata/" 
+      - "/var/simplesamlphp/cert/:/var/simplesamlphp/cert/"
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.8'
+        reservations:
+          cpus: '0.2'
+          memory: 500M
+      restart_policy:
+        condition: on-failure
+    secrets:
+      - source: my_crt
+        target: /var/simplesamlphp/cert/gcpedia.gc.ca.crt
+      - source: my_pem
+        target: /var/simplesamlphp/cert/gcpedia.gc.ca.pem
+      - source: my_config
+        target: /var/simplesamlphp/config/config.php
+secrets:
+  my_crt:
+    file: /var/simplesamlphp/cert/gcpedia.gc.ca.crt
+  my_pem:
+    file: /var/simplesamlphp/cert/gcpedia.gc.ca.pem
+  my_config:
+    file: /var/simplesamlphp/config/config.php
 volumes:
   gcpedia_db:
   gcpedia_images:
