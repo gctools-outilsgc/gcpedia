@@ -27,10 +27,10 @@ services:
   # ###########################################################################
   # Jenkins docker worker node.
   # ###########################################################################
-  parsoid:
+  jenkins_worker:
     image: vfarcic/jenkins-swarm-agent
     environment:
-      - COMMAND_OPTIONS="-master http://jenkins -username admin -password admin -labels 'docker-dev' -executors 5"
+      - "COMMAND_OPTIONS=-master http://jenkins:8080 -username admin -password admin -labels 'dockerDev' -executors 5"
     networks:
       - jenkins-workers
     volumes:
