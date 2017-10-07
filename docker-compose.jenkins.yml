@@ -18,14 +18,17 @@ services:
       replicas: 1
       resources:
         limits:
-          cpus: '0.1'
-          memory: 100M
+          cpus: '0.2'
+          memory: 1000M
         reservations:
           cpus: '0.05'
           memory: 50M
 
   # ###########################################################################
   # Jenkins docker worker node.
+  # requires Self-Organizing Swarm Plug-in Modules plugin
+  # it will connect to jenkins once it's set up and the plugin installed
+  # assuming you use the same uername + password as below
   # ###########################################################################
   jenkins_worker:
     image: vfarcic/jenkins-swarm-agent
@@ -40,8 +43,6 @@ services:
     deploy:
       mode: global
       resources:
-        limits:
-          cpus: '0.01'
         reservations:
           cpus: '0.001'
           memory: 20M
