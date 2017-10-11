@@ -39,52 +39,49 @@ class ApiFormatPhp extends ApiFormatBase {
 
 		switch ( $params['formatversion'] ) {
 			case 1:
-				$transforms = array(
-					'BC' => array(),
-					'Types' => array(),
+				$transforms = [
+					'BC' => [],
+					'Types' => [],
 					'Strip' => 'all',
-				);
+				];
 				break;
 
 			case 2:
 			case 'latest':
-				$transforms = array(
-					'Types' => array(),
+				$transforms = [
+					'Types' => [],
 					'Strip' => 'all',
-				);
+				];
 				break;
 
 			default:
-				$this->dieUsage( __METHOD__ . ': Unknown value for \'formatversion\'', 'unknownformatversion' );
+				// Should have been caught during parameter validation
+				$this->dieDebug( __METHOD__, 'Unknown value for \'formatversion\'' );
 		}
 		$text = serialize( $this->getResult()->getResultData( null, $transforms ) );
 
-		// Bug 66776: wfMangleFlashPolicy() is needed to avoid a nasty bug in
+		// T68776: wfMangleFlashPolicy() is needed to avoid a nasty bug in
 		// Flash, but what it does isn't friendly for the API. There's nothing
 		// we can do here that isn't actively broken in some manner, so let's
 		// just be broken in a useful manner.
 		if ( $this->getConfig()->get( 'MangleFlashPolicy' ) &&
 			in_array( 'wfOutputHandler', ob_list_handlers(), true ) &&
-			preg_match( '/\<\s*cross-domain-policy\s*\>/i', $text )
+			preg_match( '/\<\s*cross-domain-policy(?=\s|\>)/i', $text )
 		) {
-			$this->dieUsage(
-				'This response cannot be represented using format=php. ' .
-				'See https://bugzilla.wikimedia.org/show_bug.cgi?id=66776',
-				'internalerror'
-			);
+			$this->dieWithError( 'apierror-formatphp', 'internalerror' );
 		}
 
 		$this->printText( $text );
 	}
 
 	public function getAllowedParams() {
-		$ret = array(
-			'formatversion' => array(
-				ApiBase::PARAM_TYPE => array( 1, 2, 'latest' ),
+		$ret = parent::getAllowedParams() + [
+			'formatversion' => [
+				ApiBase::PARAM_TYPE => [ 1, 2, 'latest' ],
 				ApiBase::PARAM_DFLT => 1,
 				ApiBase::PARAM_HELP_MSG => 'apihelp-php-param-formatversion',
-			),
-		);
+			],
+		];
 		return $ret;
 	}
 }

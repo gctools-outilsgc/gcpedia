@@ -23,6 +23,8 @@
  * @author <evan@wikitravel.org>
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * @ingroup Actions
  */
@@ -49,7 +51,7 @@ class CreditsAction extends FormlessAction {
 			$s = $this->getCredits( -1 );
 		}
 
-		return Html::rawElement( 'div', array( 'id' => 'mw-credits' ), $s );
+		return Html::rawElement( 'div', [ 'id' => 'mw-credits' ], $s );
 	}
 
 	/**
@@ -125,9 +127,9 @@ class CreditsAction extends FormlessAction {
 			}
 		}
 
-		$real_names = array();
-		$user_names = array();
-		$anon_ips = array();
+		$real_names = [];
+		$user_names = [];
+		$anon_ips = [];
 
 		# Sift for real versus user names
 		/** @var $user User */
@@ -173,8 +175,8 @@ class CreditsAction extends FormlessAction {
 		}
 
 		# This is the big list, all mooshed together. We sift for blank strings
-		$fulllist = array();
-		foreach ( array( $real, $user, $anon, $others_link ) as $s ) {
+		$fulllist = [];
+		foreach ( [ $real, $user, $anon, $others_link ] as $s ) {
 			if ( $s !== false ) {
 				array_push( $fulllist, $s );
 			}
@@ -198,14 +200,15 @@ class CreditsAction extends FormlessAction {
 		if ( $this->canShowRealUserName() && !$user->isAnon() ) {
 			$real = $user->getRealName();
 		} else {
-			$real = false;
+			$real = $user->getName();
 		}
 
 		$page = $user->isAnon()
 			? SpecialPage::getTitleFor( 'Contributions', $user->getName() )
 			: $user->getUserPage();
 
-		return Linker::link( $page, htmlspecialchars( $real ? $real : $user->getName() ) );
+		return MediaWikiServices::getInstance()
+			->getLinkRenderer()->makeLink( $page, $real );
 	}
 
 	/**
@@ -231,11 +234,11 @@ class CreditsAction extends FormlessAction {
 	 * @return string HTML link
 	 */
 	protected function othersLink() {
-		return Linker::linkKnown(
+		return MediaWikiServices::getInstance()->getLinkRenderer()->makeKnownLink(
 			$this->getTitle(),
-			$this->msg( 'others' )->escaped(),
-			array(),
-			array( 'action' => 'credits' )
+			$this->msg( 'others' )->text(),
+			[],
+			[ 'action' => 'credits' ]
 		);
 	}
 }

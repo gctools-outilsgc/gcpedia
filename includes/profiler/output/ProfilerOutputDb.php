@@ -21,6 +21,8 @@
  * @ingroup Profiler
  */
 
+use Wikimedia\Rdbms\DBError;
+
 /**
  * Logs profiling data into the local DB
  *
@@ -33,18 +35,15 @@ class ProfilerOutputDb extends ProfilerOutput {
 
 	public function __construct( Profiler $collector, array $params ) {
 		parent::__construct( $collector, $params );
-		global $wgProfilePerHost;
 
 		// Initialize per-host profiling from config, back-compat if available
 		if ( isset( $this->params['perHost'] ) ) {
 			$this->perHost = $this->params['perHost'];
-		} elseif ( $wgProfilePerHost ) {
-			$this->perHost = $wgProfilePerHost;
 		}
 	}
 
 	public function canUse() {
-		# Do not log anything if database is readonly (bug 5375)
+		# Do not log anything if database is readonly (T7375)
 		return !wfReadOnly();
 	}
 
@@ -69,19 +68,19 @@ class ProfilerOutputDb extends ProfilerOutput {
 				$memorySum = $memorySum >= 0 ? $memorySum : 0;
 
 				$dbw->upsert( 'profiling',
-					array(
+					[
 						'pf_name' => $name,
 						'pf_count' => $eventCount,
 						'pf_time' => $timeSum,
 						'pf_memory' => $memorySum,
 						'pf_server' => $pfhost
-					),
-					array( array( 'pf_name', 'pf_server' ) ),
-					array(
+					],
+					[ [ 'pf_name', 'pf_server' ] ],
+					[
 						"pf_count=pf_count+{$eventCount}",
 						"pf_time=pf_time+{$timeSum}",
 						"pf_memory=pf_memory+{$memorySum}",
-					),
+					],
 					__METHOD__
 				);
 			}

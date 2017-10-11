@@ -21,6 +21,8 @@
  * @ingroup Ajax
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * @defgroup Ajax Ajax
  */
@@ -74,7 +76,7 @@ class AjaxDispatcher {
 				if ( !empty( $_GET["rsargs"] ) ) {
 					$this->args = $_GET["rsargs"];
 				} else {
-					$this->args = array();
+					$this->args = [];
 				}
 				break;
 			case 'post':
@@ -82,7 +84,7 @@ class AjaxDispatcher {
 				if ( !empty( $_POST["rsargs"] ) ) {
 					$this->args = $_POST["rsargs"];
 				} else {
-					$this->args = array();
+					$this->args = [];
 				}
 				break;
 			default:
@@ -90,7 +92,6 @@ class AjaxDispatcher {
 				# Or we could throw an exception:
 				# throw new MWException( __METHOD__ . ' called without any data (mode empty).' );
 		}
-
 	}
 
 	/**
@@ -135,6 +136,10 @@ class AjaxDispatcher {
 						$result = new AjaxResponse( $result );
 					}
 
+					// Make sure DB commit succeeds before sending a response
+					$lbFactory = MediaWikiServices::getInstance()->getDBLoadBalancerFactory();
+					$lbFactory->commitMasterChanges( __METHOD__ );
+
 					$result->sendHeaders();
 					$result->printText();
 
@@ -153,6 +158,5 @@ class AjaxDispatcher {
 				}
 			}
 		}
-
 	}
 }

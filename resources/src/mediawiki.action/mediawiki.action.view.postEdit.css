@@ -16,12 +16,12 @@
 	position: relative;
 	top: 0.6em;
 	left: -50%;
-	padding: .6em 3.6em .6em 1.1em;
+	padding: 0.6em 3.6em 0.6em 1.1em;
 	line-height: 1.5625em;
 	color: #626465;
 	background-color: #f4f4f4;
 	border: 1px solid #dcd9d9;
-	text-shadow: 0 0.0625em 0 rgba(255, 255, 255, 0.5);
+	text-shadow: 0 0.0625em 0 rgba( 255, 255, 255, 0.5 );
 	border-radius: 5px;
 	box-shadow: 0 2px 5px 0 #ccc;
 	-webkit-transition: all 0.25s ease-in-out;
@@ -32,7 +32,7 @@
 }
 
 .skin-monobook .postedit {
-	top: 6em !important;
+	top: 6em !important; /* stylelint-disable-line declaration-no-important */
 }
 
 .postedit-faded {
@@ -49,28 +49,28 @@
 
 .postedit-icon-checkmark {
 	/* @embed */
-	background-image: url(images/green-checkmark.png);
+	background-image: url( images/green-checkmark.png );
 	background-position: left;
 }
 
 .postedit-close {
 	position: absolute;
-	padding: 0 .8em;
+	padding: 0 0.8em;
 	right: 0;
 	top: 0;
 	font-size: 1.25em;
 	font-weight: bold;
 	line-height: 2.3em;
-	color: black;
-	text-shadow: 0 0.0625em 0 white;
+	color: #000;
+	text-shadow: 0 0.0625em 0 #fff;
 	text-decoration: none;
 	opacity: 0.2;
-	filter: alpha(opacity=20);
+	filter: alpha( opacity=20 );
 }
 
 .postedit-close:hover {
-	color: black;
+	color: #000;
 	text-decoration: none;
 	opacity: 0.4;
-	filter: alpha(opacity=40);
+	filter: alpha( opacity=40 );
 }

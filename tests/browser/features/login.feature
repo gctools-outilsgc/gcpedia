@@ -1,4 +1,4 @@
-@chrome @clean @firefox @internet_explorer_6 @internet_explorer_7 @internet_explorer_8 @internet_explorer_9 @internet_explorer_10 @phantomjs
+@chrome @firefox @vagrant
 Feature: Log in
 
   Background:
@@ -11,11 +11,11 @@ Feature: Log in
 
   Scenario: Log in without entering credentials
     When I log in without entering credentials
-    Then error box should be visible
+    Then error message should be displayed for username
 
   Scenario: Log in without entering password
     When I log in without entering password
-    Then error box should be visible
+    Then error message should be displayed for password
 
   Scenario: Log in with incorrect username
     When I log in with incorrect username
@@ -25,7 +25,6 @@ Feature: Log in
     When I log in with incorrect password
     Then error box should be visible
 
-  @login
   Scenario: Log in with valid credentials
-    When I am logged in
+    When I log in
     Then error box should not be visible

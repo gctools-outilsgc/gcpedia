@@ -1,9 +1,16 @@
 <?php
 
+use Wikimedia\TestingAccessWrapper;
+
 /**
  * @group FileRepo
  * @group FileBackend
  * @group medium
+ *
+ * @covers SwiftFileBackend
+ * @covers SwiftFileBackendDirList
+ * @covers SwiftFileBackendFileList
+ * @covers SwiftFileBackendList
  */
 class SwiftFileBackendTest extends MediaWikiTestCase {
 	/** @var TestingAccessWrapper Proxy to SwiftFileBackend */
@@ -13,7 +20,7 @@ class SwiftFileBackendTest extends MediaWikiTestCase {
 		parent::setUp();
 
 		$this->backend = TestingAccessWrapper::newFromObject(
-			new SwiftFileBackend( array(
+			new SwiftFileBackend( [
 				'name'             => 'local-swift-testing',
 				'class'            => 'SwiftFileBackend',
 				'wikiId'           => 'unit-testing',
@@ -22,77 +29,74 @@ class SwiftFileBackendTest extends MediaWikiTestCase {
 				'swiftUser'        => 'test:tester',
 				'swiftKey'         => 'testing',
 				'swiftTempUrlKey'  => 'b3968d0207b54ece87cccc06515a89d4' // unused
-			) )
+			] )
 		);
 	}
 
 	/**
-	 * @dataProvider provider_testSanitzeHdrs
-	 * @covers SwiftFileBackend::sanitzeHdrs
-	 * @covers SwiftFileBackend::getCustomHeaders
+	 * @dataProvider provider_testSanitizeHdrs
 	 */
-	public function testSanitzeHdrs( $raw, $sanitized ) {
-		$hdrs = $this->backend->sanitizeHdrs( array( 'headers' => $raw ) );
+	public function testSanitizeHdrs( $raw, $sanitized ) {
+		$hdrs = $this->backend->sanitizeHdrs( [ 'headers' => $raw ] );
 
 		$this->assertEquals( $hdrs, $sanitized, 'sanitizeHdrs() has expected result' );
 	}
 
-	public static function provider_testSanitzeHdrs() {
-		return array(
-			array(
-				array(
+	public static function provider_testSanitizeHdrs() {
+		return [
+			[
+				[
 					'content-length' => 345,
 					'content-type'   => 'image+bitmap/jpeg',
 					'content-disposition' => 'inline',
 					'content-duration' => 35.6363,
 					'content-Custom' => 'hello',
 					'x-content-custom' => 'hello'
-				),
-				array(
+				],
+				[
 					'content-disposition' => 'inline',
 					'content-duration' => 35.6363,
 					'content-custom' => 'hello',
 					'x-content-custom' => 'hello'
-				)
-			),
-			array(
-				array(
+				]
+			],
+			[
+				[
 					'content-length' => 345,
 					'content-type'   => 'image+bitmap/jpeg',
 					'content-Disposition' => 'inline; filename=xxx; ' . str_repeat( 'o', 1024 ),
 					'content-duration' => 35.6363,
 					'content-custom' => 'hello',
 					'x-content-custom' => 'hello'
-				),
-				array(
+				],
+				[
 					'content-disposition' => 'inline;filename=xxx',
 					'content-duration' => 35.6363,
 					'content-custom' => 'hello',
 					'x-content-custom' => 'hello'
-				)
-			),
-			array(
-				array(
+				]
+			],
+			[
+				[
 					'content-length' => 345,
 					'content-type'   => 'image+bitmap/jpeg',
-					'content-disposition' => 'filename='. str_repeat( 'o', 1024 ) . ';inline',
+					'content-disposition' => 'filename=' . str_repeat( 'o', 1024 ) . ';inline',
 					'content-duration' => 35.6363,
 					'content-custom' => 'hello',
 					'x-content-custom' => 'hello'
-				),
-				array(
+				],
+				[
 					'content-disposition' => '',
 					'content-duration' => 35.6363,
 					'content-custom' => 'hello',
 					'x-content-custom' => 'hello'
-				)
-			)
-		);
+				]
+			]
+		];
 	}
 
 	/**
 	 * @dataProvider provider_testGetMetadataHeaders
-	 * @covers SwiftFileBackend::getMetadataHeaders
 	 */
 	public function testGetMetadataHeaders( $raw, $sanitized ) {
 		$hdrs = $this->backend->getMetadataHeaders( $raw );
@@ -101,26 +105,25 @@ class SwiftFileBackendTest extends MediaWikiTestCase {
 	}
 
 	public static function provider_testGetMetadataHeaders() {
-		return array(
-			array(
-				array(
+		return [
+			[
+				[
 					'content-length' => 345,
 					'content-custom' => 'hello',
 					'x-content-custom' => 'hello',
 					'x-object-meta-custom' => 5,
 					'x-object-meta-sha1Base36' => 'a3deadfg...',
-				),
-				array(
+				],
+				[
 					'x-object-meta-custom' => 5,
 					'x-object-meta-sha1base36' => 'a3deadfg...',
-				)
-			)
-		);
+				]
+			]
+		];
 	}
 
 	/**
 	 * @dataProvider provider_testGetMetadata
-	 * @covers SwiftFileBackend::getMetadata
 	 */
 	public function testGetMetadata( $raw, $sanitized ) {
 		$hdrs = $this->backend->getMetadata( $raw );
@@ -129,20 +132,20 @@ class SwiftFileBackendTest extends MediaWikiTestCase {
 	}
 
 	public static function provider_testGetMetadata() {
-		return array(
-			array(
-				array(
+		return [
+			[
+				[
 					'content-length' => 345,
 					'content-custom' => 'hello',
 					'x-content-custom' => 'hello',
 					'x-object-meta-custom' => 5,
 					'x-object-meta-sha1Base36' => 'a3deadfg...',
-				),
-				array(
+				],
+				[
 					'custom' => 5,
 					'sha1base36' => 'a3deadfg...',
-				)
-			)
-		);
+				]
+			]
+		];
 	}
 }

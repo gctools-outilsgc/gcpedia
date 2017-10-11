@@ -130,8 +130,7 @@ CREATE TABLE /*_*/user (
   --
   user_editcount int,
 
-  -- Expiration date for user password. Use $user->expirePassword()
-  -- to force a password reset.
+  -- Expiration date for user password.
   user_password_expires varbinary(14) DEFAULT NULL
 
 ) /*$wgDBTableOptions*/;
@@ -161,11 +160,17 @@ CREATE TABLE /*_*/user_groups (
   -- with particular permissions. A user will have the combined
   -- permissions of any group they're explicitly in, plus
   -- the implicit '*' and 'user' groups.
-  ug_group varbinary(255) NOT NULL default ''
+  ug_group varbinary(255) NOT NULL default '',
+
+  -- Time at which the user group membership will expire. Set to
+  -- NULL for a non-expiring (infinite) membership.
+  ug_expiry varbinary(14) NULL default NULL,
+
+  PRIMARY KEY (ug_user, ug_group)
 ) /*$wgDBTableOptions*/;
 
-CREATE UNIQUE INDEX /*i*/ug_user_group ON /*_*/user_groups (ug_user,ug_group);
 CREATE INDEX /*i*/ug_group ON /*_*/user_groups (ug_group);
+CREATE INDEX /*i*/ug_expiry ON /*_*/user_groups (ug_expiry);
 
 -- Stores the groups the user has once belonged to.
 -- The user may still belong to these groups (check user_groups).
@@ -220,6 +225,32 @@ CREATE TABLE /*_*/user_properties (
 
 CREATE UNIQUE INDEX /*i*/user_properties_user_property ON /*_*/user_properties (up_user,up_property);
 CREATE INDEX /*i*/user_properties_property ON /*_*/user_properties (up_property);
+
+--
+-- This table contains a user's bot passwords: passwords that allow access to
+-- the account via the API with limited rights.
+--
+CREATE TABLE /*_*/bot_passwords (
+  -- User ID obtained from CentralIdLookup.
+  bp_user int NOT NULL,
+
+  -- Application identifier
+  bp_app_id varbinary(32) NOT NULL,
+
+  -- Password hashes, like user.user_password
+  bp_password tinyblob NOT NULL,
+
+  -- Like user.user_token
+  bp_token binary(32) NOT NULL default '',
+
+  -- JSON blob for MWRestrictions
+  bp_restrictions blob NOT NULL,
+
+  -- Grants allowed to the account when authenticated with this bot-password
+  bp_grants blob NOT NULL,
+
+  PRIMARY KEY ( bp_user, bp_app_id )
+) /*$wgDBTableOptions*/;
 
 --
 -- Core of the wiki: each page has an entry here which identifies
@@ -344,7 +375,7 @@ CREATE TABLE /*_*/revision (
 ) /*$wgDBTableOptions*/ MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;
 -- In case tables are created as MyISAM, use row hints for MySQL <5.0 to avoid 4GB limit
 
-CREATE UNIQUE INDEX /*i*/rev_page_id ON /*_*/revision (rev_page, rev_id);
+CREATE INDEX /*i*/rev_page_id ON /*_*/revision (rev_page, rev_id);
 CREATE INDEX /*i*/rev_timestamp ON /*_*/revision (rev_timestamp);
 CREATE INDEX /*i*/page_timestamp ON /*_*/revision (rev_page,rev_timestamp);
 CREATE INDEX /*i*/user_timestamp ON /*_*/revision (rev_user,rev_timestamp);
@@ -563,7 +594,7 @@ CREATE TABLE /*_*/categorylinks (
   -- conversion algorithm is run.  We store this so that we can update
   -- collations without reparsing all pages.
   -- Note: If you change the length of this field, you also need to change
-  -- code in LinksUpdate.php. See bug 25254.
+  -- code in LinksUpdate.php. See T27254.
   cl_sortkey_prefix varchar(255) binary NOT NULL default '',
 
   -- This isn't really used at present. Provided for an optional
@@ -594,13 +625,13 @@ CREATE INDEX /*i*/cl_sortkey ON /*_*/categorylinks (cl_to,cl_type,cl_sortkey,cl_
 -- Used by the API (and some extensions)
 CREATE INDEX /*i*/cl_timestamp ON /*_*/categorylinks (cl_to,cl_timestamp);
 
--- FIXME: Not used, delete this
-CREATE INDEX /*i*/cl_collation ON /*_*/categorylinks (cl_collation);
+-- Used when updating collation (e.g. updateCollation.php)
+CREATE INDEX /*i*/cl_collation_ext ON /*_*/categorylinks (cl_collation, cl_to, cl_type, cl_from);
 
 --
--- Track all existing categories.  Something is a category if 1) it has an en-
--- try somewhere in categorylinks, or 2) it once did.  Categories might not
--- have corresponding pages, so they need to be tracked separately.
+-- Track all existing categories. Something is a category if 1) it has an entry
+-- somewhere in categorylinks, or 2) it has a description page. Categories
+-- might not have corresponding pages, so they need to be tracked separately.
 --
 CREATE TABLE /*_*/category (
   -- Primary key
@@ -651,12 +682,19 @@ CREATE TABLE /*_*/externallinks (
   -- which allows for fast searching for all pages under example.com with the
   -- clause:
   --      WHERE el_index LIKE 'http://com.example.%'
-  el_index blob NOT NULL
+  el_index blob NOT NULL,
+
+  -- This is el_index truncated to 60 bytes to allow for sortable queries that
+  -- aren't supported by a partial index.
+  -- @todo Drop the default once this is deployed everywhere and code is populating it.
+  el_index_60 varbinary(60) NOT NULL default ''
 ) /*$wgDBTableOptions*/;
 
 CREATE INDEX /*i*/el_from ON /*_*/externallinks (el_from, el_to(40));
 CREATE INDEX /*i*/el_to ON /*_*/externallinks (el_to(60), el_from);
 CREATE INDEX /*i*/el_index ON /*_*/externallinks (el_index(60));
+CREATE INDEX /*i*/el_index_60 ON /*_*/externallinks (el_index_60, el_id);
+CREATE INDEX /*i*/el_from_index_60 ON /*_*/externallinks (el_from, el_index_60, el_id);
 
 --
 -- Track interlanguage links
@@ -778,7 +816,7 @@ CREATE TABLE /*_*/ipblocks (
   -- Size chosen to allow IPv6
   -- FIXME: these fields were originally blank for single-IP blocks,
   -- but now they are populated. No migration was ever done. They
-  -- should be fixed to be blank again for such blocks (bug 49504).
+  -- should be fixed to be blank again for such blocks (T51504).
   ipb_range_start tinyblob NOT NULL,
   ipb_range_end tinyblob NOT NULL,
 
@@ -836,14 +874,14 @@ CREATE TABLE /*_*/image (
   img_media_type ENUM("UNKNOWN", "BITMAP", "DRAWING", "AUDIO", "VIDEO", "MULTIMEDIA", "OFFICE", "TEXT", "EXECUTABLE", "ARCHIVE") default NULL,
 
   -- major part of a MIME media type as defined by IANA
-  -- see http://www.iana.org/assignments/media-types/
+  -- see https://www.iana.org/assignments/media-types/
   -- for "chemical" cf. http://dx.doi.org/10.1021/ci9803233 by the ACS
   img_major_mime ENUM("unknown", "application", "audio", "image", "text", "video", "message", "model", "multipart", "chemical") NOT NULL default "unknown",
 
   -- minor part of a MIME media type as defined by IANA
   -- the minor parts are not required to adher to any standard
   -- but should be consistent throughout the database
-  -- see http://www.iana.org/assignments/media-types/
+  -- see https://www.iana.org/assignments/media-types/
   img_minor_mime varbinary(100) NOT NULL default "unknown",
 
   -- Description field as entered by the uploader.
@@ -861,6 +899,8 @@ CREATE TABLE /*_*/image (
   img_sha1 varbinary(32) NOT NULL default ''
 ) /*$wgDBTableOptions*/;
 
+-- Used by Special:Newimages and ApiQueryAllImages
+CREATE INDEX /*i*/img_user_timestamp ON /*_*/image (img_user,img_timestamp);
 CREATE INDEX /*i*/img_usertext_timestamp ON /*_*/image (img_user_text,img_timestamp);
 -- Used by Special:ListFiles for sort-by-size
 CREATE INDEX /*i*/img_size ON /*_*/image (img_size);
@@ -1111,9 +1151,11 @@ CREATE INDEX /*i*/new_name_timestamp ON /*_*/recentchanges (rc_new,rc_namespace,
 CREATE INDEX /*i*/rc_ip ON /*_*/recentchanges (rc_ip);
 CREATE INDEX /*i*/rc_ns_usertext ON /*_*/recentchanges (rc_namespace, rc_user_text);
 CREATE INDEX /*i*/rc_user_text ON /*_*/recentchanges (rc_user_text, rc_timestamp);
+CREATE INDEX /*i*/rc_name_type_patrolled_timestamp ON /*_*/recentchanges (rc_namespace, rc_type, rc_patrolled, rc_timestamp);
 
 
 CREATE TABLE /*_*/watchlist (
+  wl_id int unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
   -- Key to user.user_id
   wl_user int unsigned NOT NULL,
 
@@ -1445,6 +1487,7 @@ CREATE TABLE /*_*/updatelog (
 
 -- A table to track tags for revisions, logs and recent changes.
 CREATE TABLE /*_*/change_tag (
+  ct_id int unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
   -- RCID for the change
   ct_rc_id int NULL,
   -- LOGID for the change
@@ -1467,6 +1510,7 @@ CREATE INDEX /*i*/change_tag_tag_id ON /*_*/change_tag (ct_tag,ct_rc_id,ct_rev_i
 -- Rollup table to pull a LIST of tags simply without ugly GROUP_CONCAT
 -- that only works on MySQL 4.1+
 CREATE TABLE /*_*/tag_summary (
+  ts_id int unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
   -- RCID for the change
   ts_rc_id int NULL,
   -- LOGID for the change
@@ -1497,34 +1541,13 @@ CREATE TABLE /*_*/l10n_cache (
 ) /*$wgDBTableOptions*/;
 CREATE INDEX /*i*/lc_lang_key ON /*_*/l10n_cache (lc_lang, lc_key);
 
--- Table for caching JSON message blobs for the resource loader
-CREATE TABLE /*_*/msg_resource (
-  -- Resource name
-  mr_resource varbinary(255) NOT NULL,
-  -- Language code
-  mr_lang varbinary(32) NOT NULL,
-  -- JSON blob
-  mr_blob mediumblob NOT NULL,
-  -- Timestamp of last update
-  mr_timestamp binary(14) NOT NULL
-) /*$wgDBTableOptions*/;
-CREATE UNIQUE INDEX /*i*/mr_resource_lang ON /*_*/msg_resource (mr_resource, mr_lang);
-
--- Table for administering which message is contained in which resource
-CREATE TABLE /*_*/msg_resource_links (
-  mrl_resource varbinary(255) NOT NULL,
-  -- Message key
-  mrl_message varbinary(255) NOT NULL
-) /*$wgDBTableOptions*/;
-CREATE UNIQUE INDEX /*i*/mrl_message_resource ON /*_*/msg_resource_links (mrl_message, mrl_resource);
-
 -- Table caching which local files a module depends on that aren't
 -- registered directly, used for fast retrieval of file dependency.
 -- Currently only used for tracking images that CSS depends on
 CREATE TABLE /*_*/module_deps (
   -- Module name
   md_module varbinary(255) NOT NULL,
-  -- Skin name
+  -- Module context vary (includes skin and language; called "md_skin" for legacy reasons)
   md_skin varbinary(32) NOT NULL,
   -- JSON blob with file dependencies
   md_deps mediumblob NOT NULL

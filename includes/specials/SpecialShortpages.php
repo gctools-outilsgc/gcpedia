@@ -21,6 +21,9 @@
  * @ingroup SpecialPage
  */
 
+use Wikimedia\Rdbms\ResultWrapper;
+use Wikimedia\Rdbms\IDatabase;
+
 /**
  * SpecialShortpages extends QueryPage. It is used to return the shortest
  * pages in the database.
@@ -38,23 +41,32 @@ class ShortPagesPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array(
-			'tables' => array( 'page' ),
-			'fields' => array(
+		$tables = [ 'page' ];
+		$conds = [
+			'page_namespace' => MWNamespace::getContentNamespaces(),
+			'page_is_redirect' => 0
+		];
+		$joinConds = [];
+		$options = [ 'USE INDEX' => [ 'page' => 'page_redirect_namespace_len' ] ];
+
+		// Allow extensions to modify the query
+		Hooks::run( 'ShortPagesQuery', [ &$tables, &$conds, &$joinConds, &$options ] );
+
+		return [
+			'tables' => $tables,
+			'fields' => [
 				'namespace' => 'page_namespace',
 				'title' => 'page_title',
 				'value' => 'page_len'
-			),
-			'conds' => array(
-				'page_namespace' => MWNamespace::getContentNamespaces(),
-				'page_is_redirect' => 0
-			),
-			'options' => array( 'USE INDEX' => 'page_redirect_namespace_len' )
-		);
+			],
+			'conds' => $conds,
+			'join_conds' => $joinConds,
+			'options' => $options
+		];
 	}
 
 	function getOrderFields() {
-		return array( 'page_len' );
+		return [ 'page_len' ];
 	}
 
 	/**
@@ -62,19 +74,7 @@ class ShortPagesPage extends QueryPage {
 	 * @param ResultWrapper $res
 	 */
 	function preprocessResults( $db, $res ) {
-		# There's no point doing a batch check if we aren't caching results;
-		# the page must exist for it to have been pulled out of the table
-		if ( !$this->isCached() || !$res->numRows() ) {
-			return;
-		}
-
-		$batch = new LinkBatch();
-		foreach ( $res as $row ) {
-			$batch->add( $row->namespace, $row->title );
-		}
-		$batch->execute();
-
-		$res->seek( 0 );
+		$this->executeLBFromResultWrapper( $res );
 	}
 
 	function sortDescending() {
@@ -91,23 +91,24 @@ class ShortPagesPage extends QueryPage {
 
 		$title = Title::makeTitleSafe( $result->namespace, $result->title );
 		if ( !$title ) {
-			return Html::element( 'span', array( 'class' => 'mw-invalidtitle' ),
+			return Html::element( 'span', [ 'class' => 'mw-invalidtitle' ],
 				Linker::getInvalidTitleDescription( $this->getContext(), $result->namespace, $result->title ) );
 		}
 
-		$hlink = Linker::linkKnown(
+		$linkRenderer = $this->getLinkRenderer();
+		$hlink = $linkRenderer->makeKnownLink(
 			$title,
-			$this->msg( 'hist' )->escaped(),
-			array(),
-			array( 'action' => 'history' )
+			$this->msg( 'hist' )->text(),
+			[],
+			[ 'action' => 'history' ]
 		);
 		$hlinkInParentheses = $this->msg( 'parentheses' )->rawParams( $hlink )->escaped();
 
 		if ( $this->isCached() ) {
-			$plink = Linker::link( $title );
+			$plink = $linkRenderer->makeLink( $title );
 			$exists = $title->exists();
 		} else {
-			$plink = Linker::linkKnown( $title );
+			$plink = $linkRenderer->makeKnownLink( $title );
 			$exists = true;
 		}
 

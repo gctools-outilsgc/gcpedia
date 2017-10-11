@@ -42,7 +42,7 @@ class JpegHandler extends ExifBitmapHandler {
 		return true;
 	}
 
-	function validateParam( $name, $value ) {
+	public function validateParam( $name, $value ) {
 		if ( $name === 'quality' ) {
 			return self::validateQuality( $value );
 		} else {
@@ -58,7 +58,7 @@ class JpegHandler extends ExifBitmapHandler {
 		return $value === 'low';
 	}
 
-	function makeParamString( $params ) {
+	public function makeParamString( $params ) {
 		// Prepend quality as "qValue-". This has to match parseParamString() below
 		$res = parent::makeParamString( $params );
 		if ( $res && isset( $params['quality'] ) ) {
@@ -67,7 +67,7 @@ class JpegHandler extends ExifBitmapHandler {
 		return $res;
 	}
 
-	function parseParamString( $str ) {
+	public function parseParamString( $str ) {
 		// $str contains "qlow-200px" or "200px" strings because thumb.php would strip the filename
 		// first - check if the string begins with "qlow-", and if so, treat it as quality.
 		// Pass the first portion, or the whole string if "qlow-" not found, to the parent
@@ -112,8 +112,8 @@ class JpegHandler extends ExifBitmapHandler {
 			wfDebug( __METHOD__ . ': ' . $e->getMessage() . "\n" );
 
 			/* This used to use 0 (ExifBitmapHandler::OLD_BROKEN_FILE) for the cases
-			 * 	* No metadata in the file
-			 * 	* Something is broken in the file.
+			 *   * No metadata in the file
+			 *   * Something is broken in the file.
 			 * However, if the metadata support gets expanded then you can't tell if the 0 is from
 			 * a broken file, or just no props found. A broken file is likely to stay broken, but
 			 * a file which had no props could have props once the metadata support is improved.
@@ -130,7 +130,7 @@ class JpegHandler extends ExifBitmapHandler {
 	 * @param array $params Rotate parameters.
 	 *    'rotation' clockwise rotation in degrees, allowed are multiples of 90
 	 * @since 1.21
-	 * @return bool
+	 * @return bool|MediaTransformError
 	 */
 	public function rotate( $file, $params ) {
 		global $wgJpegTran;

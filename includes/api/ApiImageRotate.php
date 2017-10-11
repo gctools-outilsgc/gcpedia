@@ -24,78 +24,69 @@
 class ApiImageRotate extends ApiBase {
 	private $mPageSet = null;
 
-	/**
-	 * Add all items from $values into the result
-	 * @param array $result Output
-	 * @param array $values Values to add
-	 * @param string $flag The name of the boolean flag to mark this element
-	 * @param string $name If given, name of the value
-	 */
-	private static function addValues( array &$result, $values, $flag = null, $name = null ) {
-		foreach ( $values as $val ) {
-			if ( $val instanceof Title ) {
-				$v = array();
-				ApiQueryBase::addTitleInfo( $v, $val );
-			} elseif ( $name !== null ) {
-				$v = array( $name => $val );
-			} else {
-				$v = $val;
-			}
-			if ( $flag !== null ) {
-				$v[$flag] = true;
-			}
-			$result[] = $v;
-		}
-	}
-
 	public function execute() {
 		$this->useTransactionalTimeLimit();
 
 		$params = $this->extractRequestParams();
 		$rotation = $params['rotation'];
 
-		$continuationManager = new ApiContinuationManager( $this, array(), array() );
+		$continuationManager = new ApiContinuationManager( $this, [], [] );
 		$this->setContinuationManager( $continuationManager );
 
 		$pageSet = $this->getPageSet();
 		$pageSet->execute();
 
-		$result = array();
+		$result = [];
 
-		self::addValues( $result, $pageSet->getInvalidTitlesAndReasons(), 'invalid' );
-		self::addValues( $result, $pageSet->getSpecialTitles(), 'special', 'title' );
-		self::addValues( $result, $pageSet->getMissingPageIDs(), 'missing', 'pageid' );
-		self::addValues( $result, $pageSet->getMissingRevisionIDs(), 'missing', 'revid' );
-		self::addValues( $result, $pageSet->getInterwikiTitlesAsResult() );
+		$result = $pageSet->getInvalidTitlesAndRevisions( [
+			'invalidTitles', 'special', 'missingIds', 'missingRevIds', 'interwikiTitles',
+		] );
+
+		// Check if user can add tags
+		if ( count( $params['tags'] ) ) {
+			$ableToTag = ChangeTags::canAddTagsAccompanyingChange( $params['tags'], $this->getUser() );
+			if ( !$ableToTag->isOK() ) {
+				$this->dieStatus( $ableToTag );
+			}
+		}
 
 		foreach ( $pageSet->getTitles() as $title ) {
-			$r = array();
+			$r = [];
 			$r['id'] = $title->getArticleID();
 			ApiQueryBase::addTitleInfo( $r, $title );
 			if ( !$title->exists() ) {
 				$r['missing'] = true;
+				if ( $title->isKnown() ) {
+					$r['known'] = true;
+				}
 			}
 
-			$file = wfFindFile( $title, array( 'latest' => true ) );
+			$file = wfFindFile( $title, [ 'latest' => true ] );
 			if ( !$file ) {
 				$r['result'] = 'Failure';
-				$r['errormessage'] = 'File does not exist';
+				$r['errors'] = $this->getErrorFormatter()->arrayFromStatus(
+					Status::newFatal( 'apierror-filedoesnotexist' )
+				);
 				$result[] = $r;
 				continue;
 			}
 			$handler = $file->getHandler();
 			if ( !$handler || !$handler->canRotate() ) {
 				$r['result'] = 'Failure';
-				$r['errormessage'] = 'File type cannot be rotated';
+				$r['errors'] = $this->getErrorFormatter()->arrayFromStatus(
+					Status::newFatal( 'apierror-filetypecannotberotated' )
+				);
 				$result[] = $r;
 				continue;
 			}
 
 			// Check whether we're allowed to rotate this file
-			$permError = $this->checkPermissions( $this->getUser(), $file->getTitle() );
-			if ( $permError !== null ) {
+			$permError = $this->checkTitleUserPermissions( $file->getTitle(), [ 'edit', 'upload' ] );
+			if ( $permError ) {
 				$r['result'] = 'Failure';
-				$r['errormessage'] = $permError;
+				$r['errors'] = $this->getErrorFormatter()->arrayFromStatus(
+					$this->errorArrayToStatus( $permError )
+				);
 				$result[] = $r;
 				continue;
 			}
@@ -103,33 +94,45 @@ class ApiImageRotate extends ApiBase {
 			$srcPath = $file->getLocalRefPath();
 			if ( $srcPath === false ) {
 				$r['result'] = 'Failure';
-				$r['errormessage'] = 'Cannot get local file path';
+				$r['errors'] = $this->getErrorFormatter()->arrayFromStatus(
+					Status::newFatal( 'apierror-filenopath' )
+				);
 				$result[] = $r;
 				continue;
 			}
 			$ext = strtolower( pathinfo( "$srcPath", PATHINFO_EXTENSION ) );
-			$tmpFile = TempFSFile::factory( 'rotate_', $ext );
+			$tmpFile = TempFSFile::factory( 'rotate_', $ext, wfTempDir() );
 			$dstPath = $tmpFile->getPath();
-			$err = $handler->rotate( $file, array(
-				"srcPath" => $srcPath,
-				"dstPath" => $dstPath,
-				"rotation" => $rotation
-			) );
+			$err = $handler->rotate( $file, [
+				'srcPath' => $srcPath,
+				'dstPath' => $dstPath,
+				'rotation' => $rotation
+			] );
 			if ( !$err ) {
 				$comment = wfMessage(
 					'rotate-comment'
 				)->numParams( $rotation )->inContentLanguage()->text();
-				$status = $file->upload( $dstPath,
-					$comment, $comment, 0, false, false, $this->getUser() );
+				$status = $file->upload(
+					$dstPath,
+					$comment,
+					$comment,
+					0,
+					false,
+					false,
+					$this->getUser(),
+					$params['tags'] ?: []
+				);
 				if ( $status->isGood() ) {
 					$r['result'] = 'Success';
 				} else {
 					$r['result'] = 'Failure';
-					$r['errormessage'] = $this->getErrorFormatter()->arrayFromStatus( $status );
+					$r['errors'] = $this->getErrorFormatter()->arrayFromStatus( $status );
 				}
 			} else {
 				$r['result'] = 'Failure';
-				$r['errormessage'] = $err->toText();
+				$r['errors'] = $this->getErrorFormatter()->arrayFromStatus(
+					Status::newFatal( ApiMessage::create( $err->getMsg() ) )
+				);
 			}
 			$result[] = $r;
 		}
@@ -153,28 +156,6 @@ class ApiImageRotate extends ApiBase {
 		return $this->mPageSet;
 	}
 
-	/**
-	 * Checks that the user has permissions to perform rotations.
-	 * @param User $user The user to check
-	 * @param Title $title
-	 * @return string|null Permission error message, or null if there is no error
-	 */
-	protected function checkPermissions( $user, $title ) {
-		$permissionErrors = array_merge(
-			$title->getUserPermissionsErrors( 'edit', $user ),
-			$title->getUserPermissionsErrors( 'upload', $user )
-		);
-
-		if ( $permissionErrors ) {
-			// Just return the first error
-			$msg = $this->parseMsg( $permissionErrors[0] );
-
-			return $msg['info'];
-		}
-
-		return null;
-	}
-
 	public function mustBePosted() {
 		return true;
 	}
@@ -184,15 +165,19 @@ class ApiImageRotate extends ApiBase {
 	}
 
 	public function getAllowedParams( $flags = 0 ) {
-		$result = array(
-			'rotation' => array(
-				ApiBase::PARAM_TYPE => array( '90', '180', '270' ),
+		$result = [
+			'rotation' => [
+				ApiBase::PARAM_TYPE => [ '90', '180', '270' ],
 				ApiBase::PARAM_REQUIRED => true
-			),
-			'continue' => array(
+			],
+			'continue' => [
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-continue',
-			),
-		);
+			],
+			'tags' => [
+				ApiBase::PARAM_TYPE => 'tags',
+				ApiBase::PARAM_ISMULTI => true,
+			],
+		];
 		if ( $flags ) {
 			$result += $this->getPageSet()->getFinalParams( $flags );
 		}
@@ -205,12 +190,12 @@ class ApiImageRotate extends ApiBase {
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=imagerotate&titles=File:Example.jpg&rotation=90&token=123ABC'
 				=> 'apihelp-imagerotate-example-simple',
 			'action=imagerotate&generator=categorymembers&gcmtitle=Category:Flip&gcmtype=file&' .
 				'rotation=180&token=123ABC'
 				=> 'apihelp-imagerotate-example-generator',
-		);
+		];
 	}
 }

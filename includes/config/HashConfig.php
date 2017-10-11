@@ -44,7 +44,7 @@ class HashConfig implements Config, MutableConfig {
 	/**
 	 * @param array $settings Any current settings to pre-load
 	 */
-	public function __construct( array $settings = array() ) {
+	public function __construct( array $settings = [] ) {
 		$this->settings = $settings;
 	}
 
@@ -67,7 +67,7 @@ class HashConfig implements Config, MutableConfig {
 	}
 
 	/**
-	 * @see Config::set
+	 * @see MutableConfig::set
 	 */
 	public function set( $name, $value ) {
 		$this->settings[$name] = $value;

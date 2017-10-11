@@ -243,7 +243,7 @@ interface Content {
 	 *
 	 * @since 1.21
 	 *
-	 * @param bool $hasLinks If it is known whether this content contains
+	 * @param bool|null $hasLinks If it is known whether this content contains
 	 *    links, provide this information here, to avoid redundant parsing to
 	 *    find out.
 	 *
@@ -381,7 +381,7 @@ interface Content {
 	 *
 	 * @since 1.21
 	 *
-	 * @param string|number $sectionId Section identifier as a number or string
+	 * @param string|int $sectionId Section identifier as a number or string
 	 * (e.g. 0, 1 or 'T-1'). The ID "0" retrieves the section before the first heading, "1" the
 	 * text between the first heading (included) and the second heading (excluded), etc.
 	 *
@@ -396,7 +396,7 @@ interface Content {
 	 *
 	 * @since 1.21
 	 *
-	 * @param string|number|null|bool $sectionId Section identifier as a number or string
+	 * @param string|int|null|bool $sectionId Section identifier as a number or string
 	 * (e.g. 0, 1 or 'T-1'), null/false or an empty string for the whole page
 	 * or 'new' for a new section.
 	 * @param Content $with New content of the section
@@ -445,7 +445,7 @@ interface Content {
 	 *
 	 * @return Content
 	 */
-	public function preloadTransform( Title $title, ParserOptions $parserOptions, $params = array() );
+	public function preloadTransform( Title $title, ParserOptions $parserOptions, $params = [] );
 
 	/**
 	 * Prepare Content for saving. Called before Content is saved by WikiPage::doEditContent() and in

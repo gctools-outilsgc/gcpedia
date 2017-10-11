@@ -19,17 +19,11 @@ class MessageCacheTest extends MediaWikiLangTestCase {
 	protected function configureLanguages() {
 		// for the test, we need the content language to be anything but English,
 		// let's choose e.g. German (de)
-		$langCode = 'de';
-		$langObj = Language::factory( $langCode );
-
-		$this->setMwGlobals( array(
-			'wgLanguageCode' => $langCode,
-			'wgLang' => $langObj,
-			'wgContLang' => $langObj,
-		) );
+		$this->setUserLang( 'de' );
+		$this->setContentLang( 'de' );
 	}
 
-	function addDBData() {
+	function addDBDataOnce() {
 		$this->configureLanguages();
 
 		// Set up messages and fallbacks ab -> ru -> de
@@ -89,20 +83,51 @@ class MessageCacheTest extends MediaWikiLangTestCase {
 	}
 
 	function provideMessagesForFallback() {
-		return array(
-			array( 'FallbackLanguageTest-Full', 'ab', 'ab' ),
-			array( 'FallbackLanguageTest-Partial', 'ab', 'ru' ),
-			array( 'FallbackLanguageTest-ContLang', 'ab', 'de' ),
-			array( 'FallbackLanguageTest-None', 'ab', false ),
+		return [
+			[ 'FallbackLanguageTest-Full', 'ab', 'ab' ],
+			[ 'FallbackLanguageTest-Partial', 'ab', 'ru' ],
+			[ 'FallbackLanguageTest-ContLang', 'ab', 'de' ],
+			[ 'FallbackLanguageTest-None', 'ab', false ],
 
 			// Existing message with customizations on the fallbacks
-			array( 'sunday', 'ab', 'амҽыш' ),
+			[ 'sunday', 'ab', 'амҽыш' ],
 
-			// bug 46579
-			array( 'FallbackLanguageTest-NoDervContLang', 'de', 'de/none' ),
+			// T48579
+			[ 'FallbackLanguageTest-NoDervContLang', 'de', 'de/none' ],
 			// UI language different from content language should only use de/none as last option
-			array( 'FallbackLanguageTest-NoDervContLang', 'fit', 'de/none' ),
-		);
+			[ 'FallbackLanguageTest-NoDervContLang', 'fit', 'de/none' ],
+		];
+	}
+
+	public function testReplaceMsg() {
+		global $wgContLang;
+
+		$messageCache = MessageCache::singleton();
+		$message = 'go';
+		$uckey = $wgContLang->ucfirst( $message );
+		$oldText = $messageCache->get( $message ); // "Ausführen"
+
+		$dbw = wfGetDB( DB_MASTER );
+		$dbw->startAtomic( __METHOD__ ); // simulate request and block deferred updates
+		$messageCache->replace( $uckey, 'Allez!' );
+		$this->assertEquals( 'Allez!',
+			$messageCache->getMsgFromNamespace( $uckey, 'de' ),
+			'Updates are reflected in-process immediately' );
+		$this->assertEquals( 'Allez!',
+			$messageCache->get( $message ),
+			'Updates are reflected in-process immediately' );
+		$this->makePage( 'Go', 'de', 'Race!' );
+		$dbw->endAtomic( __METHOD__ );
+
+		$this->assertEquals( 0,
+			DeferredUpdates::pendingUpdatesCount(),
+			'Post-commit deferred update triggers a run of all updates' );
+
+		$this->assertEquals( 'Race!', $messageCache->get( $message ), 'Correct final contents' );
+
+		$this->makePage( 'Go', 'de', $oldText );
+		$messageCache->replace( $uckey, $oldText ); // deferred update runs immediately
+		$this->assertEquals( $oldText, $messageCache->get( $message ), 'Content restored' );
 	}
 
 	/**
@@ -117,11 +142,11 @@ class MessageCacheTest extends MediaWikiLangTestCase {
 	}
 
 	function provideMessagesForFullKeys() {
-		return array(
-			array( 'MessageCacheTest-FullKeyTest/ru', 'ru', 'ru' ),
-			array( 'MessageCacheTest-FullKeyTest/ru', 'ab', 'ru' ),
-			array( 'MessageCacheTest-FullKeyTest/ru/foo', 'ru', false ),
-		);
+		return [
+			[ 'MessageCacheTest-FullKeyTest/ru', 'ru', 'ru' ],
+			[ 'MessageCacheTest-FullKeyTest/ru', 'ab', 'ru' ],
+			[ 'MessageCacheTest-FullKeyTest/ru/foo', 'ru', false ],
+		];
 	}
 
 	/**
@@ -133,17 +158,17 @@ class MessageCacheTest extends MediaWikiLangTestCase {
 	}
 
 	public function provideNormalizeKey() {
-		return array(
-			array( 'Foo', 'foo' ),
-			array( 'foo', 'foo' ),
-			array( 'fOo', 'fOo' ),
-			array( 'FOO', 'fOO' ),
-			array( 'Foo bar', 'foo_bar' ),
-			array( 'Ćab', 'ćab' ),
-			array( 'Ćab_e 3', 'ćab_e_3' ),
-			array( 'ĆAB', 'ćAB' ),
-			array( 'ćab', 'ćab' ),
-			array( 'ćaB', 'ćaB' ),
-		);
+		return [
+			[ 'Foo', 'foo' ],
+			[ 'foo', 'foo' ],
+			[ 'fOo', 'fOo' ],
+			[ 'FOO', 'fOO' ],
+			[ 'Foo bar', 'foo_bar' ],
+			[ 'Ćab', 'ćab' ],
+			[ 'Ćab_e 3', 'ćab_e_3' ],
+			[ 'ĆAB', 'ćAB' ],
+			[ 'ćab', 'ćab' ],
+			[ 'ćaB', 'ćaB' ],
+		];
 	}
 }

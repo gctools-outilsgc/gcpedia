@@ -46,7 +46,6 @@ node_modules/
 /tests/phpunit/phpunit.phar
 
 # Composer
-/vendor
 /composer.lock
 /composer.json
 /composer.local.json
@@ -72,3 +71,5 @@ Thumbs.db
 /.htaccess
 /.htpasswd
 /data
+/tests/phan/issues
+*.rej

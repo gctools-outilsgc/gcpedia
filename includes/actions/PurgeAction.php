@@ -21,10 +21,7 @@
  */
 
 /**
- * User-requested page cache purging.
- *
- * For users with 'purge', this will directly trigger the cache purging and
- * for users without that right, it will show a confirmation form.
+ * User-requested page cache purging
  *
  * @ingroup Actions
  */
@@ -44,34 +41,29 @@ class PurgeAction extends FormAction {
 		return '';
 	}
 
-	/**
-	 * Just get an empty form with a single submit button
-	 * @return array
-	 */
-	protected function getFormFields() {
-		return array();
-	}
-
 	public function onSubmit( $data ) {
 		return $this->page->doPurge();
 	}
 
-	/**
-	 * purge is slightly weird because it can be either formed or formless depending
-	 * on user permissions
-	 */
 	public function show() {
 		$this->setHeaders();
 
 		// This will throw exceptions if there's a problem
 		$this->checkCanExecute( $this->getUser() );
 
-		if ( $this->getUser()->isAllowed( 'purge' ) ) {
+		$user = $this->getUser();
+
+		if ( $user->pingLimiter( 'purge' ) ) {
+			// TODO: Display actionthrottledtext
+			return;
+		}
+
+		if ( $this->getRequest()->wasPosted() ) {
 			$this->redirectParams = wfArrayToCgi( array_diff_key(
 				$this->getRequest()->getQueryValues(),
-				array( 'title' => null, 'action' => null )
+				[ 'title' => null, 'action' => null ]
 			) );
-			if ( $this->onSubmit( array() ) ) {
+			if ( $this->onSubmit( [] ) ) {
 				$this->onSuccess();
 			}
 		} else {
@@ -83,12 +75,24 @@ class PurgeAction extends FormAction {
 		}
 	}
 
-	protected function alterForm( HTMLForm $form ) {
-		$form->setSubmitTextMsg( 'confirm_purge_button' );
+	protected function usesOOUI() {
+		return true;
 	}
 
-	protected function preText() {
-		return $this->msg( 'confirm-purge-top' )->parse();
+	protected function getFormFields() {
+		return [
+			'intro' => [
+				'type' => 'info',
+				'vertical-label' => true,
+				'raw' => true,
+				'default' => $this->msg( 'confirm-purge-top' )->parse()
+			]
+		];
+	}
+
+	protected function alterForm( HTMLForm $form ) {
+		$form->setWrapperLegendMsg( 'confirm-purge-title' );
+		$form->setSubmitTextMsg( 'confirm_purge_button' );
 	}
 
 	protected function postText() {
@@ -97,5 +101,9 @@ class PurgeAction extends FormAction {
 
 	public function onSuccess() {
 		$this->getOutput()->redirect( $this->getTitle()->getFullURL( $this->redirectParams ) );
+	}
+
+	public function doesWrites() {
+		return true;
 	}
 }

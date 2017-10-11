@@ -28,7 +28,7 @@
  */
 class MWOldPassword extends ParameterizedPassword {
 	protected function getDefaultParams() {
-		return array();
+		return [];
 	}
 
 	protected function getDelimiter() {
@@ -36,13 +36,19 @@ class MWOldPassword extends ParameterizedPassword {
 	}
 
 	public function crypt( $plaintext ) {
-		global $wgPasswordSalt;
-
-		if ( $wgPasswordSalt && count( $this->args ) === 1 ) {
+		if ( count( $this->args ) === 1 ) {
+			// Accept (but do not generate) salted passwords with :A: prefix.
+			// These are actually B-type passwords, but an error in a previous
+			// version of MediaWiki caused them to be written with an :A:
+			// prefix.
 			$this->hash = md5( $this->args[0] . '-' . md5( $plaintext ) );
 		} else {
-			$this->args = array();
+			$this->args = [];
 			$this->hash = md5( $plaintext );
+		}
+
+		if ( !is_string( $this->hash ) || strlen( $this->hash ) < 32 ) {
+			throw new PasswordError( 'Error when hashing password.' );
 		}
 	}
 }

@@ -40,7 +40,7 @@ class MockFSFile extends FSFile {
 
 	/**
 	 * August 22 – The theft of the Mona Lisa is discovered in the Louvre."
-	 * @bug 20281
+	 * T22281
 	 */
 	public function getSize() {
 		return 1911;
@@ -50,17 +50,13 @@ class MockFSFile extends FSFile {
 		return wfTimestamp( TS_MW );
 	}
 
-	public function getMimeType() {
-		return 'text/mock';
-	}
-
 	public function getProps( $ext = true ) {
-		return array(
+		return [
 			'fileExists' => $this->exists(),
 			'size' => $this->getSize(),
-			'file-mime' => $this->getMimeType(),
+			'file-mime' => 'text/mock',
 			'sha1' => $this->getSha1Base36(),
-		);
+		];
 	}
 
 	public function getSha1Base36( $recache = false ) {

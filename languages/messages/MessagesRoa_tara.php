@@ -12,13 +12,14 @@
  * @author Reder
  */
 
-$specialPageAliases = array(
-	'Allmessages'               => array( 'TutteLeMessagge' ),
-	'Preferences'               => array( 'Preferenze' ),
-	'Recentchanges'             => array( 'UrtemeCangiaminde' ),
-	'Statistics'                => array( 'Statisteche' ),
-	'Upload'                    => array( 'Carecaminde' ),
-	'Version'                   => array( 'Versione' ),
-	'Watchlist'                 => array( 'PàggeneCondrollete' ),
-);
+$fallback = 'it';
 
+$specialPageAliases = [
+	'Allmessages'               => [ 'TutteLeMessagge' ],
+	'Preferences'               => [ 'Preferenze' ],
+	'Recentchanges'             => [ 'UrtemeCangiaminde' ],
+	'Statistics'                => [ 'Statisteche' ],
+	'Upload'                    => [ 'Carecaminde' ],
+	'Version'                   => [ 'Versione' ],
+	'Watchlist'                 => [ 'PàggeneCondrollete' ],
+];

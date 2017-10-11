@@ -34,28 +34,27 @@ require_once __DIR__ . '/Benchmarker.php';
 class BenchWfIsWindows extends Benchmarker {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Benchmark for wfIsWindows.";
+		$this->addDescription( 'Benchmark for wfIsWindows.' );
 	}
 
 	public function execute() {
-		$this->bench( array(
-			array( 'function' => array( $this, 'wfIsWindows' ) ),
-			array( 'function' => array( $this, 'wfIsWindowsCached' ) ),
-		) );
-		print $this->getFormattedResults();
+		$this->bench( [
+			[ 'function' => [ $this, 'wfIsWindows' ] ],
+			[ 'function' => [ $this, 'wfIsWindowsCached' ] ],
+		] );
 	}
 
-	static function is_win() {
+	protected static function is_win() {
 		return substr( php_uname(), 0, 7 ) == 'Windows';
 	}
 
 	// bench function 1
-	function wfIsWindows() {
+	protected function wfIsWindows() {
 		return self::is_win();
 	}
 
 	// bench function 2
-	function wfIsWindowsCached() {
+	protected function wfIsWindowsCached() {
 		static $isWindows = null;
 		if ( $isWindows == null ) {
 			$isWindows = self::is_win();

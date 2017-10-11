@@ -34,7 +34,7 @@ class ResourceLoaderJqueryMsgModule extends ResourceLoaderFileModule {
 		$fileScript = parent::getScript( $context );
 
 		$tagData = Sanitizer::getRecognizedTagData();
-		$parserDefaults = array();
+		$parserDefaults = [];
 		$parserDefaults['allowedHtmlElements'] = array_merge(
 			array_keys( $tagData['htmlpairs'] ),
 			array_diff(
@@ -43,9 +43,26 @@ class ResourceLoaderJqueryMsgModule extends ResourceLoaderFileModule {
 			)
 		);
 
-		$dataScript = Xml::encodeJsCall( 'mw.jqueryMsg.setParserDefaults', array( $parserDefaults ) );
+		$mainDataScript = Xml::encodeJsCall( 'mw.jqueryMsg.setParserDefaults', [ $parserDefaults ] );
 
-		return $fileScript . $dataScript;
+		// Associative array mapping magic words (e.g. SITENAME)
+		// to their values.
+		$magicWords = [
+			'SITENAME' => $this->getConfig()->get( 'Sitename' ),
+		];
+
+		Hooks::run( 'ResourceLoaderJqueryMsgModuleMagicWords', [ $context, &$magicWords ] );
+
+		$magicWordExtendData = [
+			'magic' => $magicWords,
+		];
+
+		$magicWordDataScript = Xml::encodeJsCall( 'mw.jqueryMsg.setParserDefaults', [
+			$magicWordExtendData,
+			/* deep= */ true
+		] );
+
+		return $fileScript . $mainDataScript . $magicWordDataScript;
 	}
 
 	/**

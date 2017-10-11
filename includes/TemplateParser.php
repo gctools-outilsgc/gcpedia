@@ -1,4 +1,6 @@
 <?php
+use MediaWiki\MediaWikiServices;
+
 /**
  * Handles compiling Mustache templates into PHP rendering functions
  *
@@ -38,10 +40,10 @@ class TemplateParser {
 
 	/**
 	 * @param string $templateDir
-	 * @param boolean $forceRecompile
+	 * @param bool $forceRecompile
 	 */
 	public function __construct( $templateDir = null, $forceRecompile = false ) {
-		$this->templateDir = $templateDir ? $templateDir : __DIR__ . '/templates';
+		$this->templateDir = $templateDir ?: __DIR__ . '/templates';
 		$this->forceRecompile = $forceRecompile;
 	}
 
@@ -49,21 +51,14 @@ class TemplateParser {
 	 * Constructs the location of the the source Mustache template
 	 * @param string $templateName The name of the template
 	 * @return string
-	 * @throws UnexpectedValueException Disallows upwards directory traversal via $templateName
+	 * @throws UnexpectedValueException If $templateName attempts upwards directory traversal
 	 */
 	protected function getTemplateFilename( $templateName ) {
-		// Prevent upwards directory traversal using same methods as Title::secureAndSplit
+		// Prevent path traversal. Based on Language::isValidCode().
+		// This is for paranoia. The $templateName should never come from
+		// untrusted input.
 		if (
-			strpos( $templateName, '.' ) !== false &&
-			(
-				$templateName === '.' || $templateName === '..' ||
-				strpos( $templateName, './' ) === 0 ||
-				strpos( $templateName, '../' ) === 0 ||
-				strpos( $templateName, '/./' ) !== false ||
-				strpos( $templateName, '/../' ) !== false ||
-				substr( $templateName, -2 ) === '/.' ||
-				substr( $templateName, -3 ) === '/..'
-			)
+			strcspn( $templateName, ":/\\\000&<>'\"%" ) !== strlen( $templateName )
 		) {
 			throw new UnexpectedValueException( "Malformed \$templateName: $templateName" );
 		}
@@ -79,7 +74,9 @@ class TemplateParser {
 	 */
 	protected function getTemplate( $templateName ) {
 		// If a renderer has already been defined for this template, reuse it
-		if ( isset( $this->renderers[$templateName] ) && is_callable( $this->renderers[$templateName] ) ) {
+		if ( isset( $this->renderers[$templateName] ) &&
+			is_callable( $this->renderers[$templateName] )
+		) {
 			return $this->renderers[$templateName];
 		}
 
@@ -96,30 +93,30 @@ class TemplateParser {
 		$fastHash = md5( $fileContents );
 
 		// Fetch a secret key for building a keyed hash of the PHP code
-		$config = ConfigFactory::getDefaultInstance()->makeConfig( 'main' );
+		$config = MediaWikiServices::getInstance()->getMainConfig();
 		$secretKey = $config->get( 'SecretKey' );
 
 		if ( $secretKey ) {
 			// See if the compiled PHP code is stored in cache.
-			// CACHE_ACCEL throws an exception if no suitable object cache is present, so fall
-			// back to CACHE_ANYTHING.
-			$cache = ObjectCache::newAccelerator( CACHE_ANYTHING );
-			$key = wfMemcKey( 'template', $templateName, $fastHash );
+			$cache = ObjectCache::getLocalServerInstance( CACHE_ANYTHING );
+			$key = $cache->makeKey( 'template', $templateName, $fastHash );
 			$code = $this->forceRecompile ? null : $cache->get( $key );
 
+			if ( $code ) {
+				// Verify the integrity of the cached PHP code
+				$keyedHash = substr( $code, 0, 64 );
+				$code = substr( $code, 64 );
+				if ( $keyedHash !== hash_hmac( 'sha256', $code, $secretKey ) ) {
+					// If the integrity check fails, don't use the cached code
+					// We'll update the invalid cache below
+					$code = null;
+				}
+			}
 			if ( !$code ) {
 				$code = $this->compileForEval( $fileContents, $filename );
 
 				// Prefix the cached code with a keyed hash (64 hex chars) as an integrity check
 				$cache->set( $key, hash_hmac( 'sha256', $code, $secretKey ) . $code );
-			} else {
-				// Verify the integrity of the cached PHP code
-				$keyedHash = substr( $code, 0, 64 );
-				$code = substr( $code, 64 );
-				if ( $keyedHash !== hash_hmac( 'sha256', $code, $secretKey ) ) {
-					// Generate a notice if integrity check fails
-					trigger_error( "Template failed integrity check: {$filename}" );
-				}
 			}
 		// If there is no secret key available, don't use cache
 		} else {
@@ -170,13 +167,13 @@ class TemplateParser {
 		}
 		return LightnCandy::compile(
 			$code,
-			array(
+			[
 				// Do not add more flags here without discussion.
 				// If you do add more flags, be sure to update unit tests as well.
 				'flags' => LightnCandy::FLAG_ERROR_EXCEPTION,
 				'basedir' => $this->templateDir,
 				'fileext' => '.mustache',
-			)
+			]
 		);
 	}
 
@@ -186,10 +183,10 @@ class TemplateParser {
 	 * @code
 	 *     echo $templateParser->processTemplate(
 	 *         'ExampleTemplate',
-	 *         array(
+	 *         [
 	 *             'username' => $user->getName(),
 	 *             'message' => 'Hello!'
-	 *         )
+	 *         ]
 	 *     );
 	 * @endcode
 	 * @param string $templateName The name of the template
@@ -197,7 +194,7 @@ class TemplateParser {
 	 * @param array $scopes
 	 * @return string
 	 */
-	public function processTemplate( $templateName, $args, array $scopes = array() ) {
+	public function processTemplate( $templateName, $args, array $scopes = [] ) {
 		$template = $this->getTemplate( $templateName );
 		return call_user_func( $template, $args, $scopes );
 	}

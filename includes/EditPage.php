@@ -20,6 +20,10 @@
  * @file
  */
 
+use MediaWiki\Logger\LoggerFactory;
+use MediaWiki\MediaWikiServices;
+use Wikimedia\ScopedCallback;
+
 /**
  * The edit page/HTML interface (split from Article)
  * The actual database and text munging is still in Article,
@@ -201,6 +205,8 @@ class EditPage {
 
 	/** @var Article */
 	public $mArticle;
+	/** @var WikiPage */
+	private $page;
 
 	/** @var Title */
 	public $mTitle;
@@ -257,9 +263,6 @@ class EditPage {
 	public $tooBig = false;
 
 	/** @var bool */
-	public $kblength = false;
-
-	/** @var bool */
 	public $missingComment = false;
 
 	/** @var bool */
@@ -292,7 +295,7 @@ class EditPage {
 	/** @var bool Has a summary been preset using GET parameter &summary= ? */
 	public $hasPresetSummary = false;
 
-	/** @var bool */
+	/** @var Revision|bool */
 	public $mBaseRevision = false;
 
 	/** @var bool */
@@ -333,6 +336,9 @@ class EditPage {
 	/** @var string */
 	public $edittime = '';
 
+	/** @var integer */
+	private $editRevId = null;
+
 	/** @var string */
 	public $section = '';
 
@@ -357,14 +363,14 @@ class EditPage {
 	/** @var bool */
 	public $bot = true;
 
-	/** @var null|string */
-	public $contentModel = null;
+	/** @var string */
+	public $contentModel;
 
 	/** @var null|string */
 	public $contentFormat = null;
 
 	/** @var null|array */
-	public $changeTags = null;
+	private $changeTags = null;
 
 	# Placeholders for text injection by hooks (must be HTML)
 	# extensions should take care to _append_ to the present value
@@ -389,22 +395,46 @@ class EditPage {
 	/** @var bool */
 	protected $edit;
 
+	/** @var bool|int */
+	protected $contentLength = false;
+
 	/**
 	 * @var bool Set in ApiEditPage, based on ContentHandler::allowsDirectApiEditing
 	 */
 	private $enableApiEditOverride = false;
 
 	/**
+	 * @var IContextSource
+	 */
+	protected $context;
+
+	/**
+	 * @var bool Whether an old revision is edited
+	 */
+	private $isOldRev = false;
+
+	/**
+	 * @var bool Whether OOUI should be enabled here
+	 */
+	private $oouiEnabled = false;
+
+	/**
 	 * @param Article $article
 	 */
 	public function __construct( Article $article ) {
+		global $wgOOUIEditPage;
+
 		$this->mArticle = $article;
+		$this->page = $article->getPage(); // model object
 		$this->mTitle = $article->getTitle();
+		$this->context = $article->getContext();
 
 		$this->contentModel = $this->mTitle->getContentModel();
 
 		$handler = ContentHandler::getForModelID( $this->contentModel );
 		$this->contentFormat = $handler->getDefaultFormat();
+
+		$this->oouiEnabled = $wgOOUIEditPage;
 	}
 
 	/**
@@ -412,6 +442,14 @@ class EditPage {
 	 */
 	public function getArticle() {
 		return $this->mArticle;
+	}
+
+	/**
+	 * @since 1.28
+	 * @return IContextSource
+	 */
+	public function getContext() {
+		return $this->context;
 	}
 
 	/**
@@ -448,6 +486,14 @@ class EditPage {
 	}
 
 	/**
+	 * Check if the edit page is using OOUI controls
+	 * @return bool
+	 */
+	public function isOouiEnabled() {
+		return $this->oouiEnabled;
+	}
+
+	/**
 	 * Returns if the given content model is editable.
 	 *
 	 * @param string $modelId The ID of the content model to test. Use CONTENT_MODEL_XXX constants.
@@ -469,7 +515,10 @@ class EditPage {
 		$this->enableApiEditOverride = $enableOverride;
 	}
 
-	function submit() {
+	/**
+	 * @deprecated since 1.29, call edit directly
+	 */
+	public function submit() {
 		$this->edit();
 	}
 
@@ -484,10 +533,10 @@ class EditPage {
 	 * is made and all is well do we actually save and redirect to
 	 * the newly-edited page.
 	 */
-	function edit() {
+	public function edit() {
 		global $wgOut, $wgRequest, $wgUser;
 		// Allow extensions to modify/prevent this form or submission
-		if ( !Hooks::run( 'AlternateEdit', array( $this ) ) ) {
+		if ( !Hooks::run( 'AlternateEdit', [ $this ] ) ) {
 			return;
 		}
 
@@ -527,14 +576,42 @@ class EditPage {
 		if ( $permErrors ) {
 			wfDebug( __METHOD__ . ": User can't edit\n" );
 			// Auto-block user's IP if the account was "hard" blocked
-			$user = $wgUser;
-			DeferredUpdates::addCallableUpdate( function() use ( $user ) {
-				$user->spreadAnyEditBlock();
-			} );
-
+			if ( !wfReadOnly() ) {
+				$user = $wgUser;
+				DeferredUpdates::addCallableUpdate( function () use ( $user ) {
+					$user->spreadAnyEditBlock();
+				} );
+			}
 			$this->displayPermissionsError( $permErrors );
 
 			return;
+		}
+
+		$revision = $this->mArticle->getRevisionFetched();
+		// Disallow editing revisions with content models different from the current one
+		// Undo edits being an exception in order to allow reverting content model changes.
+		if ( $revision
+			&& $revision->getContentModel() !== $this->contentModel
+		) {
+			$prevRev = null;
+			if ( $this->undidRev ) {
+				$undidRevObj = Revision::newFromId( $this->undidRev );
+				$prevRev = $undidRevObj ? $undidRevObj->getPrevious() : null;
+			}
+			if ( !$this->undidRev
+				|| !$prevRev
+				|| $prevRev->getContentModel() !== $this->contentModel
+			) {
+				$this->displayViewSourcePage(
+					$this->getContentObject(),
+					$this->context->msg(
+						'contentmodelediterror',
+						$revision->getContentModel(),
+						$this->contentModel
+					)->plain()
+				);
+				return;
+			}
 		}
 
 		$this->isConflict = false;
@@ -572,9 +649,9 @@ class EditPage {
 			}
 
 			if ( !$this->mTitle->getArticleID() ) {
-				Hooks::run( 'EditFormPreloadText', array( &$this->textbox1, &$this->mTitle ) );
+				Hooks::run( 'EditFormPreloadText', [ &$this->textbox1, &$this->mTitle ] );
 			} else {
-				Hooks::run( 'EditFormInitialText', array( $this ) );
+				Hooks::run( 'EditFormInitialText', [ $this ] );
 			}
 
 		}
@@ -601,10 +678,14 @@ class EditPage {
 			);
 		}
 		# Ignore some permissions errors when a user is just previewing/viewing diffs
-		$remove = array();
+		$remove = [];
 		foreach ( $permErrors as $error ) {
 			if ( ( $this->preview || $this->diff )
-				&& ( $error[0] == 'blockedtext' || $error[0] == 'autoblockedtext' )
+				&& (
+					$error[0] == 'blockedtext' ||
+					$error[0] == 'autoblockedtext' ||
+					$error[0] == 'systemblockedtext'
+				)
 			) {
 				$remove[] = $error;
 			}
@@ -647,10 +728,24 @@ class EditPage {
 			throw new PermissionsError( $action, $permErrors );
 		}
 
-		Hooks::run( 'EditPage::showReadOnlyForm:initial', array( $this, &$wgOut ) );
+		$this->displayViewSourcePage(
+			$content,
+			$wgOut->formatPermissionsErrorMessage( $permErrors, 'edit' )
+		);
+	}
+
+	/**
+	 * Display a read-only View Source page
+	 * @param Content $content content object
+	 * @param string $errorMessage additional wikitext error message to display
+	 */
+	protected function displayViewSourcePage( Content $content, $errorMessage = '' ) {
+		global $wgOut;
+
+		Hooks::run( 'EditPage::showReadOnlyForm:initial', [ $this, &$wgOut ] );
 
 		$wgOut->setRobotPolicy( 'noindex,nofollow' );
-		$wgOut->setPageTitle( wfMessage(
+		$wgOut->setPageTitle( $this->context->msg(
 			'viewsource-title',
 			$this->getContextTitle()->getPrefixedText()
 		) );
@@ -658,8 +753,10 @@ class EditPage {
 		$wgOut->addHTML( $this->editFormPageTop );
 		$wgOut->addHTML( $this->editFormTextTop );
 
-		$wgOut->addWikiText( $wgOut->formatPermissionsErrorMessage( $permErrors, 'edit' ) );
-		$wgOut->addHTML( "<hr />\n" );
+		if ( $errorMessage !== '' ) {
+			$wgOut->addWikiText( $errorMessage );
+			$wgOut->addHTML( "<hr />\n" );
+		}
 
 		# If the user made changes, preserve them when showing the markup
 		# (This happens when a user is blocked during edit, for instance)
@@ -667,16 +764,21 @@ class EditPage {
 			$text = $this->textbox1;
 			$wgOut->addWikiMsg( 'viewyourtext' );
 		} else {
-			$text = $this->toEditText( $content );
+			try {
+				$text = $this->toEditText( $content );
+			} catch ( MWException $e ) {
+				# Serialize using the default format if the content model is not supported
+				# (e.g. for an old revision with a different model)
+				$text = $content->serialize();
+			}
 			$wgOut->addWikiMsg( 'viewsourcetext' );
 		}
 
 		$wgOut->addHTML( $this->editFormTextBeforeContent );
-		$this->showTextbox( $text, 'wpTextbox1', array( 'readonly' ) );
+		$this->showTextbox( $text, 'wpTextbox1', [ 'readonly' ] );
 		$wgOut->addHTML( $this->editFormTextAfterContent );
 
-		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'templatesUsed' ),
-			Linker::formatTemplates( $this->getTemplates() ) ) );
+		$wgOut->addHTML( $this->makeTemplatesOnThisPageList( $this->getTemplates() ) );
 
 		$wgOut->addModules( 'mediawiki.action.edit.collapsibleFooter' );
 
@@ -729,7 +831,7 @@ class EditPage {
 			$name = $this->mTitle->getSkinFromCssJsSubpage();
 			$skins = array_merge(
 				array_keys( Skin::getSkinNames() ),
-				array( 'common' )
+				[ 'common' ]
 			);
 			return !in_array( $name, $skins )
 				&& in_array( strtolower( $name ), $skins );
@@ -755,8 +857,11 @@ class EditPage {
 	 * @param WebRequest $request
 	 * @throws ErrorPageError
 	 */
-	function importFormData( &$request ) {
+	public function importFormData( &$request ) {
 		global $wgContLang, $wgUser;
+
+		# Allow users to change the mode for testing
+		$this->oouiEnabled = $request->getFuzzyBool( 'ooui', $this->oouiEnabled );
 
 		# Section edit can come from either the form or a link
 		$this->section = $request->getVal( 'wpSection', $request->getVal( 'section' ) );
@@ -799,6 +904,7 @@ class EditPage {
 			$this->sectiontitle = preg_replace( '/^\s*=+\s*(.*?)\s*=+\s*$/', '$1', $this->sectiontitle );
 
 			$this->edittime = $request->getVal( 'wpEdittime' );
+			$this->editRevId = $request->getIntOrNull( 'editRevId' );
 			$this->starttime = $request->getVal( 'wpStarttime' );
 
 			$undidRev = $request->getInt( 'wpUndidRevision' );
@@ -883,7 +989,7 @@ class EditPage {
 
 			$changeTags = $request->getVal( 'wpChangeTags' );
 			if ( is_null( $changeTags ) || $changeTags === '' ) {
-				$this->changeTags = array();
+				$this->changeTags = [];
 			} else {
 				$this->changeTags = array_filter( array_map( 'trim', explode( ',',
 					$changeTags ) ) );
@@ -895,6 +1001,7 @@ class EditPage {
 			$this->summary = '';
 			$this->sectiontitle = '';
 			$this->edittime = '';
+			$this->editRevId = null;
 			$this->starttime = wfTimestampNow();
 			$this->edit = false;
 			$this->preview = false;
@@ -906,7 +1013,7 @@ class EditPage {
 			$this->recreate = false;
 
 			// When creating a new section, we can preload a section title by passing it as the
-			// preloadtitle parameter in the URL (Bug 13100)
+			// preloadtitle parameter in the URL (T15100)
 			if ( $this->section == 'new' && $request->getVal( 'preloadtitle' ) ) {
 				$this->sectiontitle = $request->getVal( 'preloadtitle' );
 				// Once wpSummary isn't being use for setting section titles, we should delete this.
@@ -934,13 +1041,24 @@ class EditPage {
 		// May be overridden by revision.
 		$this->contentFormat = $request->getText( 'format', $this->contentFormat );
 
-		if ( !ContentHandler::getForModelID( $this->contentModel )
-			->isSupportedFormat( $this->contentFormat )
-		) {
+		try {
+			$handler = ContentHandler::getForModelID( $this->contentModel );
+		} catch ( MWUnknownContentModelException $e ) {
+			throw new ErrorPageError(
+				'editpage-invalidcontentmodel-title',
+				'editpage-invalidcontentmodel-text',
+				[ wfEscapeWikiText( $this->contentModel ) ]
+			);
+		}
+
+		if ( !$handler->isSupportedFormat( $this->contentFormat ) ) {
 			throw new ErrorPageError(
 				'editpage-notsupportedcontentformat-title',
 				'editpage-notsupportedcontentformat-text',
-				array( $this->contentFormat, ContentHandler::getLocalizedName( $this->contentModel ) )
+				[
+					wfEscapeWikiText( $this->contentFormat ),
+					wfEscapeWikiText( ContentHandler::getLocalizedName( $this->contentModel ) )
+				]
 			);
 		}
 
@@ -955,8 +1073,7 @@ class EditPage {
 			$this->section === 'new' ? 'MediaWiki:addsection-editintro' : '' );
 
 		// Allow extensions to modify form data
-		Hooks::run( 'EditPage::importFormData', array( $this, $request ) );
-
+		Hooks::run( 'EditPage::importFormData', [ $this, $request ] );
 	}
 
 	/**
@@ -966,6 +1083,7 @@ class EditPage {
 	 * for saving, preview parsing and so on...
 	 *
 	 * @param WebRequest $request
+	 * @return string|null
 	 */
 	protected function importContentFormData( &$request ) {
 		return; // Don't do anything, EditPage already extracted wpTextbox1
@@ -976,11 +1094,12 @@ class EditPage {
 	 * Called on the first invocation, e.g. when a user clicks an edit link
 	 * @return bool If the requested section is valid
 	 */
-	function initialiseForm() {
+	public function initialiseForm() {
 		global $wgUser;
-		$this->edittime = $this->mArticle->getTimestamp();
+		$this->edittime = $this->page->getTimestamp();
+		$this->editRevId = $this->page->getLatest();
 
-		$content = $this->getContentObject( false ); #TODO: track content object?!
+		$content = $this->getContentObject( false ); # TODO: track content object?!
 		if ( $content === false ) {
 			return false;
 		}
@@ -1033,7 +1152,7 @@ class EditPage {
 				$preload = $wgRequest->getVal( 'preload',
 					// Custom preload text for new sections
 					$this->section === 'new' ? 'MediaWiki:addsection-preload' : '' );
-				$params = $wgRequest->getArray( 'preloadparams', array() );
+				$params = $wgRequest->getArray( 'preloadparams', [] );
 
 				$content = $this->getPreloadedContent( $preload, $params );
 			}
@@ -1062,15 +1181,23 @@ class EditPage {
 						!$undorev->isDeleted( Revision::DELETED_TEXT ) &&
 						!$oldrev->isDeleted( Revision::DELETED_TEXT )
 					) {
-						$content = $this->mArticle->getUndoContent( $undorev, $oldrev );
+						$content = $this->page->getUndoContent( $undorev, $oldrev );
 
 						if ( $content === false ) {
 							# Warn the user that something went wrong
 							$undoMsg = 'failure';
 						} else {
-							$oldContent = $this->mArticle->getPage()->getContent( Revision::RAW );
+							$oldContent = $this->page->getContent( Revision::RAW );
 							$popts = ParserOptions::newFromUserAndLang( $wgUser, $wgContLang );
 							$newContent = $content->preSaveTransform( $this->mTitle, $wgUser, $popts );
+							if ( $newContent->getModel() !== $oldContent->getModel() ) {
+								// The undo may change content
+								// model if its reverting the top
+								// edit. This can result in
+								// mismatched content model/format.
+								$this->contentModel = $newContent->getModel();
+								$this->contentFormat = $oldrev->getContentFormat();
+							}
 
 							if ( $newContent->equals( $oldContent ) ) {
 								# Tell the user that the undo results in no change,
@@ -1086,12 +1213,12 @@ class EditPage {
 								if ( $firstrev && $firstrev->getId() == $undo ) {
 									$userText = $undorev->getUserText();
 									if ( $userText === '' ) {
-										$undoSummary = wfMessage(
+										$undoSummary = $this->context->msg(
 											'undo-summary-username-hidden',
 											$undo
 										)->inContentLanguage()->text();
 									} else {
-										$undoSummary = wfMessage(
+										$undoSummary = $this->context->msg(
 											'undo-summary',
 											$undo,
 											$userText
@@ -1100,7 +1227,7 @@ class EditPage {
 									if ( $this->summary === '' ) {
 										$this->summary = $undoSummary;
 									} else {
-										$this->summary = $undoSummary . wfMessage( 'colon-separator' )
+										$this->summary = $undoSummary . $this->context->msg( 'colon-separator' )
 											->inContentLanguage()->text() . $this->summary;
 									}
 									$this->undidRev = $undo;
@@ -1118,7 +1245,7 @@ class EditPage {
 					// Messages: undo-success, undo-failure, undo-norev, undo-nochange
 					$class = ( $undoMsg == 'success' ? '' : 'error ' ) . "mw-undo-{$undoMsg}";
 					$this->editFormPageTop .= $wgOut->parse( "<div class=\"{$class}\">" .
-						wfMessage( 'undo-' . $undoMsg )->plain() . '</div>', true, /* interface */true );
+						$this->context->msg( 'undo-' . $undoMsg )->plain() . '</div>', true, /* interface */true );
 				}
 
 				if ( $content === false ) {
@@ -1134,7 +1261,7 @@ class EditPage {
 	 * Get the content of the wanted revision, without section extraction.
 	 *
 	 * The result of this function can be used to compare user's input with
-	 * section replaced in its context (using WikiPage::replaceSection())
+	 * section replaced in its context (using WikiPage::replaceSectionAtRev())
 	 * to the original text of the edit.
 	 *
 	 * This differs from Article::getContent() that when a missing revision is
@@ -1151,15 +1278,31 @@ class EditPage {
 		}
 		$revision = $this->mArticle->getRevisionFetched();
 		if ( $revision === null ) {
-			if ( !$this->contentModel ) {
-				$this->contentModel = $this->getTitle()->getContentModel();
-			}
 			$handler = ContentHandler::getForModelID( $this->contentModel );
-
 			return $handler->makeEmptyContent();
 		}
 		$content = $revision->getContent( Revision::FOR_THIS_USER, $user );
 		return $content;
+	}
+
+	/**
+	 * Get the edit's parent revision ID
+	 *
+	 * The "parent" revision is the ancestor that should be recorded in this
+	 * page's revision history.  It is either the revision ID of the in-memory
+	 * article content, or in the case of a 3-way merge in order to rebase
+	 * across a recoverable edit conflict, the ID of the newer revision to
+	 * which we have rebased this page.
+	 *
+	 * @since 1.27
+	 * @return int Revision ID
+	 */
+	public function getParentRevId() {
+		if ( $this->parentRevId ) {
+			return $this->parentRevId;
+		} else {
+			return $this->mArticle->getRevIdFetched();
+		}
 	}
 
 	/**
@@ -1171,23 +1314,42 @@ class EditPage {
 	 * @return Content
 	 */
 	protected function getCurrentContent() {
-		$rev = $this->mArticle->getRevision();
+		$rev = $this->page->getRevision();
 		$content = $rev ? $rev->getContent( Revision::RAW ) : null;
 
 		if ( $content === false || $content === null ) {
-			if ( !$this->contentModel ) {
-				$this->contentModel = $this->getTitle()->getContentModel();
-			}
 			$handler = ContentHandler::getForModelID( $this->contentModel );
-
 			return $handler->makeEmptyContent();
-		} else {
-			# nasty side-effect, but needed for consistency
-			$this->contentModel = $rev->getContentModel();
-			$this->contentFormat = $rev->getContentFormat();
+		} elseif ( !$this->undidRev ) {
+			// Content models should always be the same since we error
+			// out if they are different before this point (in ->edit()).
+			// The exception being, during an undo, the current revision might
+			// differ from the prior revision.
+			$logger = LoggerFactory::getInstance( 'editpage' );
+			if ( $this->contentModel !== $rev->getContentModel() ) {
+				$logger->warning( "Overriding content model from current edit {prev} to {new}", [
+					'prev' => $this->contentModel,
+					'new' => $rev->getContentModel(),
+					'title' => $this->getTitle()->getPrefixedDBkey(),
+					'method' => __METHOD__
+				] );
+				$this->contentModel = $rev->getContentModel();
+			}
 
-			return $content;
+			// Given that the content models should match, the current selected
+			// format should be supported.
+			if ( !$content->isSupportedFormat( $this->contentFormat ) ) {
+				$logger->warning( "Current revision content format unsupported. Overriding {prev} to {new}", [
+
+					'prev' => $this->contentFormat,
+					'new' => $rev->getContentFormat(),
+					'title' => $this->getTitle()->getPrefixedDBkey(),
+					'method' => __METHOD__
+				] );
+				$this->contentFormat = $rev->getContentFormat();
+			}
 		}
+		return $content;
 	}
 
 	/**
@@ -1212,14 +1374,14 @@ class EditPage {
 	 *
 	 * @since 1.21
 	 */
-	protected function getPreloadedContent( $preload, $params = array() ) {
+	protected function getPreloadedContent( $preload, $params = [] ) {
 		global $wgUser;
 
 		if ( !empty( $this->mPreloadContent ) ) {
 			return $this->mPreloadContent;
 		}
 
-		$handler = ContentHandler::getForTitle( $this->getTitle() );
+		$handler = ContentHandler::getForModelID( $this->contentModel );
 
 		if ( $preload === '' ) {
 			return $handler->makeEmptyContent();
@@ -1228,7 +1390,7 @@ class EditPage {
 		$title = Title::newFromText( $preload );
 		# Check for existence to avoid getting MediaWiki:Noarticletext
 		if ( $title === null || !$title->exists() || !$title->userCan( 'read', $wgUser ) ) {
-			//TODO: somehow show a warning to the user!
+			// TODO: somehow show a warning to the user!
 			return $handler->makeEmptyContent();
 		}
 
@@ -1237,7 +1399,7 @@ class EditPage {
 			$title = $page->getRedirectTarget();
 			# Same as before
 			if ( $title === null || !$title->exists() || !$title->userCan( 'read', $wgUser ) ) {
-				//TODO: somehow show a warning to the user!
+				// TODO: somehow show a warning to the user!
 				return $handler->makeEmptyContent();
 			}
 			$page = WikiPage::factory( $title );
@@ -1247,7 +1409,7 @@ class EditPage {
 		$content = $page->getContent( Revision::RAW );
 
 		if ( !$content ) {
-			//TODO: somehow show a warning to the user!
+			// TODO: somehow show a warning to the user!
 			return $handler->makeEmptyContent();
 		}
 
@@ -1255,7 +1417,7 @@ class EditPage {
 			$converted = $content->convert( $handler->getModelID() );
 
 			if ( !$converted ) {
-				//TODO: somehow show a warning to the user!
+				// TODO: somehow show a warning to the user!
 				wfDebug( "Attempt to preload incompatible content: " .
 					"can't convert " . $content->getModel() .
 					" to " . $handler->getModelID() );
@@ -1276,7 +1438,7 @@ class EditPage {
 	 * @return bool
 	 * @private
 	 */
-	function tokenOk( &$request ) {
+	public function tokenOk( &$request ) {
 		global $wgUser;
 		$token = $request->getVal( 'wpEditToken' );
 		$this->mTokenOk = $wgUser->matchEditToken( $token );
@@ -1301,7 +1463,7 @@ class EditPage {
 	 * @param int $statusValue The status value (to check for new article status)
 	 */
 	protected function setPostEditCookie( $statusValue ) {
-		$revisionId = $this->mArticle->getLatest();
+		$revisionId = $this->page->getLatest();
 		$postEditKey = self::POST_EDIT_COOKIE_KEY_PREFIX . $revisionId;
 
 		$val = 'saved';
@@ -1312,14 +1474,14 @@ class EditPage {
 		}
 
 		$response = RequestContext::getMain()->getRequest()->response();
-		$response->setcookie( $postEditKey, $val, time() + self::POST_EDIT_COOKIE_DURATION, array(
+		$response->setCookie( $postEditKey, $val, time() + self::POST_EDIT_COOKIE_DURATION, [
 			'httpOnly' => false,
-		) );
+		] );
 	}
 
 	/**
 	 * Attempt submission
-	 * @param array $resultDetails See docs for $result in internalAttemptSave
+	 * @param array|bool $resultDetails See docs for $result in internalAttemptSave
 	 * @throws UserBlockedError|ReadOnlyError|ThrottledError|PermissionsError
 	 * @return Status The resulting status object.
 	 */
@@ -1330,7 +1492,7 @@ class EditPage {
 		$bot = $wgUser->isAllowed( 'bot' ) && $this->bot;
 		$status = $this->internalAttemptSave( $resultDetails, $bot );
 
-		Hooks::run( 'EditPage::attemptSave:after', array( $this, $status, $resultDetails ) );
+		Hooks::run( 'EditPage::attemptSave:after', [ $this, $status, $resultDetails ] );
 
 		return $status;
 	}
@@ -1360,6 +1522,11 @@ class EditPage {
 			}
 		}
 
+		// "wpExtraQueryRedirect" is a hidden input to modify
+		// after save URL and is not used by actual edit form
+		$request = RequestContext::getMain()->getRequest();
+		$extraQueryRedirect = $request->getVal( 'wpExtraQueryRedirect' );
+
 		switch ( $status->value ) {
 			case self::AS_HOOK_ERROR_EXPECTED:
 			case self::AS_CONTENT_TOO_BIG:
@@ -1378,11 +1545,18 @@ class EditPage {
 
 			case self::AS_CANNOT_USE_CUSTOM_MODEL:
 			case self::AS_PARSE_ERROR:
-				$wgOut->addWikiText( '<div class="error">' . $status->getWikiText() . '</div>' );
+				$wgOut->addWikiText( '<div class="error">' . "\n" . $status->getWikiText() . '</div>' );
 				return true;
 
 			case self::AS_SUCCESS_NEW_ARTICLE:
 				$query = $resultDetails['redirect'] ? 'redirect=no' : '';
+				if ( $extraQueryRedirect ) {
+					if ( $query === '' ) {
+						$query = $extraQueryRedirect;
+					} else {
+						$query = $query . '&' . $extraQueryRedirect;
+					}
+				}
 				$anchor = isset( $resultDetails['sectionanchor'] ) ? $resultDetails['sectionanchor'] : '';
 				$wgOut->redirect( $this->mTitle->getFullURL( $query ) . $anchor );
 				return false;
@@ -1394,7 +1568,7 @@ class EditPage {
 				// Give extensions a chance to modify URL query on update
 				Hooks::run(
 					'ArticleUpdateBeforeRedirect',
-					array( $this->mArticle, &$sectionanchor, &$extraQuery )
+					[ $this->mArticle, &$sectionanchor, &$extraQuery ]
 				);
 
 				if ( $resultDetails['redirect'] ) {
@@ -1404,6 +1578,14 @@ class EditPage {
 						$extraQuery = 'redirect=no&' . $extraQuery;
 					}
 				}
+				if ( $extraQueryRedirect ) {
+					if ( $extraQuery === '' ) {
+						$extraQuery = $extraQueryRedirect;
+					} else {
+						$extraQuery = $extraQuery . '&' . $extraQueryRedirect;
+					}
+				}
+
 				$wgOut->redirect( $this->mTitle->getFullURL( $extraQuery ) . $sectionanchor );
 				return false;
 
@@ -1440,7 +1622,7 @@ class EditPage {
 				// is if an extension hook aborted from inside ArticleSave.
 				// Render the status object into $this->hookError
 				// FIXME this sucks, we should just use the Status object throughout
-				$this->hookError = '<div class="error">' . $status->getWikitext() .
+				$this->hookError = '<div class="error">' ."\n" . $status->getWikiText() .
 					'</div>';
 				return true;
 		}
@@ -1457,14 +1639,7 @@ class EditPage {
 	 */
 	protected function runPostMergeFilters( Content $content, Status $status, User $user ) {
 		// Run old style post-section-merge edit filter
-		if ( !ContentHandler::runLegacyHooks( 'EditFilterMerged',
-			array( $this, $content, &$this->hookError, $this->summary ) )
-		) {
-			# Error messages etc. could be handled within the hook...
-			$status->fatal( 'hookaborted' );
-			$status->value = self::AS_HOOK_ERROR;
-			return false;
-		} elseif ( $this->hookError != '' ) {
+		if ( $this->hookError != '' ) {
 			# ...or the hook could be expecting us to produce an error
 			$status->fatal( 'hookaborted' );
 			$status->value = self::AS_HOOK_ERROR_EXPECTED;
@@ -1473,8 +1648,8 @@ class EditPage {
 
 		// Run new style post-section-merge edit filter
 		if ( !Hooks::run( 'EditFilterMergedContent',
-				array( $this->mArticle->getContext(), $content, $status, $this->summary,
-				$user, $this->minoredit ) )
+				[ $this->mArticle->getContext(), $content, $status, $this->summary,
+				$user, $this->minoredit ] )
 		) {
 			# Error messages etc. could be handled within the hook...
 			if ( $status->isGood() ) {
@@ -1519,7 +1694,7 @@ class EditPage {
 			// passed.
 			if ( $this->summary === '' ) {
 				$cleanSectionTitle = $wgParser->stripSectionName( $this->sectiontitle );
-				return wfMessage( 'newsectionsummary' )
+				return $this->context->msg( 'newsectionsummary' )
 					->rawParams( $cleanSectionTitle )->inContentLanguage()->text();
 			}
 		} elseif ( $this->summary !== '' ) {
@@ -1527,7 +1702,7 @@ class EditPage {
 			# This is a new section, so create a link to the new section
 			# in the revision summary.
 			$cleanSummary = $wgParser->stripSectionName( $this->summary );
-			return wfMessage( 'newsectionsummary' )
+			return $this->context->msg( 'newsectionsummary' )
 				->rawParams( $cleanSummary )->inContentLanguage()->text();
 		}
 		return $this->summary;
@@ -1557,13 +1732,13 @@ class EditPage {
 	 *   AS_BLOCKED_PAGE_FOR_USER. All that stuff needs to be cleaned up some
 	 * time.
 	 */
-	function internalAttemptSave( &$result, $bot = false ) {
+	public function internalAttemptSave( &$result, $bot = false ) {
 		global $wgUser, $wgRequest, $wgParser, $wgMaxArticleSize;
 		global $wgContentHandlerUseDB;
 
 		$status = Status::newGood();
 
-		if ( !Hooks::run( 'EditPage::attemptSave', array( $this ) ) ) {
+		if ( !Hooks::run( 'EditPage::attemptSave', [ $this ] ) ) {
 			wfDebug( "Hook 'EditPage::attemptSave' aborted article saving\n" );
 			$status->fatal( 'hookaborted' );
 			$status->value = self::AS_HOOK_ERROR;
@@ -1640,7 +1815,7 @@ class EditPage {
 		}
 		if ( !Hooks::run(
 			'EditFilter',
-			array( $this, $this->textbox1, $this->section, &$this->hookError, $this->summary ) )
+			[ $this, $this->textbox1, $this->section, &$this->hookError, $this->summary ] )
 		) {
 			# Error messages etc. could be handled within the hook...
 			$status->fatal( 'hookaborted' );
@@ -1655,14 +1830,16 @@ class EditPage {
 
 		if ( $wgUser->isBlockedFrom( $this->mTitle, false ) ) {
 			// Auto-block user's IP if the account was "hard" blocked
-			$wgUser->spreadAnyEditBlock();
+			if ( !wfReadOnly() ) {
+				$wgUser->spreadAnyEditBlock();
+			}
 			# Check block state against master, thus 'false'.
 			$status->setResult( false, self::AS_BLOCKED_PAGE_FOR_USER );
 			return $status;
 		}
 
-		$this->kblength = (int)( strlen( $this->textbox1 ) / 1024 );
-		if ( $this->kblength > $wgMaxArticleSize ) {
+		$this->contentLength = strlen( $this->textbox1 );
+		if ( $this->contentLength > $wgMaxArticleSize * 1024 ) {
 			// Error will be displayed by showEditForm()
 			$this->tooBig = true;
 			$status->setResult( false, self::AS_CONTENT_TOO_BIG );
@@ -1689,8 +1866,17 @@ class EditPage {
 			} elseif ( !$wgUser->isAllowed( 'editcontentmodel' ) ) {
 				$status->setResult( false, self::AS_NO_CHANGE_CONTENT_MODEL );
 				return $status;
-
 			}
+			// Make sure the user can edit the page under the new content model too
+			$titleWithNewContentModel = clone $this->mTitle;
+			$titleWithNewContentModel->setContentModel( $this->contentModel );
+			if ( !$titleWithNewContentModel->userCan( 'editcontentmodel', $wgUser )
+				|| !$titleWithNewContentModel->userCan( 'edit', $wgUser )
+			) {
+				$status->setResult( false, self::AS_NO_CHANGE_CONTENT_MODEL );
+				return $status;
+			}
+
 			$changingContentModel = true;
 			$oldContentModel = $this->mTitle->getContentModel();
 		}
@@ -1709,7 +1895,9 @@ class EditPage {
 			$status->value = self::AS_READ_ONLY_PAGE;
 			return $status;
 		}
-		if ( $wgUser->pingLimiter() || $wgUser->pingLimiter( 'linkpurge', 0 ) ) {
+		if ( $wgUser->pingLimiter() || $wgUser->pingLimiter( 'linkpurge', 0 )
+			|| ( $changingContentModel && $wgUser->pingLimiter( 'editcontentmodel' ) )
+		) {
 			$status->fatal( 'actionthrottledtext' );
 			$status->value = self::AS_RATE_LIMITED;
 			return $status;
@@ -1724,8 +1912,8 @@ class EditPage {
 
 		# Load the page data from the master. If anything changes in the meantime,
 		# we detect it by using page_latest like a token in a 1 try compare-and-swap.
-		$this->mArticle->loadPageData( 'fromdbmaster' );
-		$new = !$this->mArticle->exists();
+		$this->page->loadPageData( 'fromdbmaster' );
+		$new = !$this->page->exists();
 
 		if ( $new ) {
 			// Late check for create permission, just in case *PARANOIA*
@@ -1738,7 +1926,7 @@ class EditPage {
 
 			// Don't save a new page if it's blank or if it's a MediaWiki:
 			// message with content equivalent to default (allow empty pages
-			// in this case to disable messages, see bug 50124)
+			// in this case to disable messages, see T52124)
 			$defaultMessageText = $this->mTitle->getDefaultMessageText();
 			if ( $this->mTitle->getNamespace() === NS_MEDIAWIKI && $defaultMessageText !== false ) {
 				$defaultText = $defaultMessageText;
@@ -1777,19 +1965,23 @@ class EditPage {
 
 			# Article exists. Check for edit conflict.
 
-			$this->mArticle->clear(); # Force reload of dates, etc.
-			$timestamp = $this->mArticle->getTimestamp();
+			$this->page->clear(); # Force reload of dates, etc.
+			$timestamp = $this->page->getTimestamp();
+			$latest = $this->page->getLatest();
 
 			wfDebug( "timestamp: {$timestamp}, edittime: {$this->edittime}\n" );
 
-			if ( $timestamp != $this->edittime ) {
+			// Check editRevId if set, which handles same-second timestamp collisions
+			if ( $timestamp != $this->edittime
+				|| ( $this->editRevId !== null && $this->editRevId != $latest )
+			) {
 				$this->isConflict = true;
 				if ( $this->section == 'new' ) {
-					if ( $this->mArticle->getUserText() == $wgUser->getName() &&
-						$this->mArticle->getComment() == $this->newSectionSummary()
+					if ( $this->page->getUserText() == $wgUser->getName() &&
+						$this->page->getComment() == $this->newSectionSummary()
 					) {
 						// Probably a duplicate submission of a new comment.
-						// This can happen when squid resends a request after
+						// This can happen when CDN resends a request after
 						// a timeout but the first one actually went through.
 						wfDebug( __METHOD__
 							. ": duplicate new section submission; trigger edit conflict!\n" );
@@ -1822,17 +2014,27 @@ class EditPage {
 			if ( $this->isConflict ) {
 				wfDebug( __METHOD__
 					. ": conflict! getting section '{$this->section}' for time '{$this->edittime}'"
-					. " (article time '{$timestamp}')\n" );
-
-				$content = $this->mArticle->replaceSectionContent(
-					$this->section,
-					$textbox_content,
-					$sectionTitle,
-					$this->edittime
-				);
+					. " (id '{$this->editRevId}') (article time '{$timestamp}')\n" );
+				// @TODO: replaceSectionAtRev() with base ID (not prior current) for ?oldid=X case
+				// ...or disable section editing for non-current revisions (not exposed anyway).
+				if ( $this->editRevId !== null ) {
+					$content = $this->page->replaceSectionAtRev(
+						$this->section,
+						$textbox_content,
+						$sectionTitle,
+						$this->editRevId
+					);
+				} else {
+					$content = $this->page->replaceSectionContent(
+						$this->section,
+						$textbox_content,
+						$sectionTitle,
+						$this->edittime
+					);
+				}
 			} else {
 				wfDebug( __METHOD__ . ": getting section '{$this->section}'\n" );
-				$content = $this->mArticle->replaceSectionContent(
+				$content = $this->page->replaceSectionContent(
 					$this->section,
 					$textbox_content,
 					$sectionTitle
@@ -1899,7 +2101,7 @@ class EditPage {
 			} elseif ( $this->section != '' ) {
 				# Try to get a section anchor from the section source, redirect
 				# to edited section if header found.
-				# XXX: Might be better to integrate this into Article::replaceSection
+				# XXX: Might be better to integrate this into Article::replaceSectionAtRev
 				# for duplicate heading checking and maybe parsing.
 				$hasmatch = preg_match( "/^ *([=]{1,6})(.*?)(\\1) *\\n/i", $this->textbox1, $matches );
 				# We can't deal with anchors, includes, html etc in the header for now,
@@ -1935,25 +2137,27 @@ class EditPage {
 		}
 
 		// Check for length errors again now that the section is merged in
-		$this->kblength = (int)( strlen( $this->toEditText( $content ) ) / 1024 );
-		if ( $this->kblength > $wgMaxArticleSize ) {
+		$this->contentLength = strlen( $this->toEditText( $content ) );
+		if ( $this->contentLength > $wgMaxArticleSize * 1024 ) {
 			$this->tooBig = true;
 			$status->setResult( false, self::AS_MAX_ARTICLE_SIZE_EXCEEDED );
 			return $status;
 		}
 
-		$flags = EDIT_DEFER_UPDATES | EDIT_AUTOSUMMARY |
+		$flags = EDIT_AUTOSUMMARY |
 			( $new ? EDIT_NEW : EDIT_UPDATE ) |
 			( ( $this->minoredit && !$this->isNew ) ? EDIT_MINOR : 0 ) |
 			( $bot ? EDIT_FORCE_BOT : 0 );
 
-		$doEditStatus = $this->mArticle->doEditContent(
+		$doEditStatus = $this->page->doEditContent(
 			$content,
 			$this->summary,
 			$flags,
 			false,
 			$wgUser,
-			$content->getDefaultFormat()
+			$content->getDefaultFormat(),
+			$this->changeTags,
+			$this->undidRev
 		);
 
 		if ( !$doEditStatus->isOK() ) {
@@ -1962,7 +2166,7 @@ class EditPage {
 			// but don't show it for errors from extension hooks
 			$errors = $doEditStatus->getErrorsArray();
 			if ( in_array( $errors[0][0],
-					array( 'edit-gone-missing', 'edit-conflict', 'edit-already-exists' ) )
+					[ 'edit-gone-missing', 'edit-conflict', 'edit-already-exists' ] )
 			) {
 				$this->isConflict = true;
 				// Destroys data doEdit() put in $status->value but who cares
@@ -1980,22 +2184,11 @@ class EditPage {
 
 		$this->updateWatchlist();
 
-		if ( $this->changeTags && isset( $doEditStatus->value['revision'] ) ) {
-			// If a revision was created, apply any change tags that were requested
-			$addTags = $this->changeTags;
-			$revId = $doEditStatus->value['revision']->getId();
-			// Defer this both for performance and so that addTags() sees the rc_id
-			// since the recentchange entry addition is deferred first (bug T100248)
-			DeferredUpdates::addCallableUpdate( function() use ( $addTags, $revId ) {
-				ChangeTags::addTags( $addTags, null, $revId );
-			} );
-		}
-
 		// If the content model changed, add a log entry
 		if ( $changingContentModel ) {
 			$this->addContentModelChangeLogEntry(
 				$wgUser,
-				$oldContentModel,
+				$new ? false : $oldContentModel,
 				$this->contentModel,
 				$this->summary
 			);
@@ -2005,24 +2198,24 @@ class EditPage {
 	}
 
 	/**
-	 * @param Title $title
-	 * @param string $oldModel
+	 * @param User $user
+	 * @param string|false $oldModel false if the page is being newly created
 	 * @param string $newModel
 	 * @param string $reason
 	 */
 	protected function addContentModelChangeLogEntry( User $user, $oldModel, $newModel, $reason ) {
-		$log = new ManualLogEntry( 'contentmodel', 'change' );
+		$new = $oldModel === false;
+		$log = new ManualLogEntry( 'contentmodel', $new ? 'new' : 'change' );
 		$log->setPerformer( $user );
 		$log->setTarget( $this->mTitle );
 		$log->setComment( $reason );
-		$log->setParameters( array(
+		$log->setParameters( [
 			'4::oldmodel' => $oldModel,
 			'5::newmodel' => $newModel
-		) );
+		] );
 		$logid = $log->insert();
 		$log->publish( $logid );
 	}
-
 
 	/**
 	 * Register the change of watch status
@@ -2030,19 +2223,20 @@ class EditPage {
 	protected function updateWatchlist() {
 		global $wgUser;
 
-		if ( $wgUser->isLoggedIn()
-			&& $this->watchthis != $wgUser->isWatched( $this->mTitle, WatchedItem::IGNORE_USER_RIGHTS )
-		) {
-			$fname = __METHOD__;
-			$title = $this->mTitle;
-			$watch = $this->watchthis;
-
-			// Do this in its own transaction to reduce contention...
-			$dbw = wfGetDB( DB_MASTER );
-			$dbw->onTransactionIdle( function () use ( $dbw, $title, $watch, $wgUser, $fname ) {
-				WatchAction::doWatchOrUnwatch( $watch, $title, $wgUser );
-			} );
+		if ( !$wgUser->isLoggedIn() ) {
+			return;
 		}
+
+		$user = $wgUser;
+		$title = $this->mTitle;
+		$watch = $this->watchthis;
+		// Do this in its own transaction to reduce contention...
+		DeferredUpdates::addCallableUpdate( function () use ( $user, $title, $watch ) {
+			if ( $watch == $user->isWatched( $title, User::IGNORE_USER_RIGHTS ) ) {
+				return; // nothing to change
+			}
+			WatchAction::doWatchOrUnwatch( $watch, $title, $user );
+		} );
 	}
 
 	/**
@@ -2057,7 +2251,6 @@ class EditPage {
 	 * @return bool
 	 */
 	private function mergeChangesIntoContent( &$editContent ) {
-
 		$db = wfGetDB( DB_MASTER );
 
 		// This is the revision the editor started from
@@ -2082,6 +2275,8 @@ class EditPage {
 
 		if ( $result ) {
 			$editContent = $result;
+			// Update parentRevId to what we just merged.
+			$this->parentRevId = $currentRevision->getId();
 			return true;
 		}
 
@@ -2089,13 +2284,16 @@ class EditPage {
 	}
 
 	/**
-	 * @return Revision
+	 * @note: this method is very poorly named. If the user opened the form with ?oldid=X,
+	 *        one might think of X as the "base revision", which is NOT what this returns.
+	 * @return Revision Current version when the edit was started
 	 */
-	function getBaseRevision() {
+	public function getBaseRevision() {
 		if ( !$this->mBaseRevision ) {
 			$db = wfGetDB( DB_MASTER );
-			$this->mBaseRevision = Revision::loadFromTimestamp(
-				$db, $this->mTitle, $this->edittime );
+			$this->mBaseRevision = $this->editRevId
+				? Revision::newFromId( $this->editRevId, Revision::READ_LATEST )
+				: Revision::loadFromTimestamp( $db, $this->mTitle, $this->edittime );
 		}
 		return $this->mBaseRevision;
 	}
@@ -2134,7 +2332,7 @@ class EditPage {
 	 */
 	protected static function matchSpamRegexInternal( $text, $regexes ) {
 		foreach ( $regexes as $regex ) {
-			$matches = array();
+			$matches = [];
 			if ( preg_match( $regex, $text, $matches ) ) {
 				return $matches[0];
 			}
@@ -2142,7 +2340,7 @@ class EditPage {
 		return false;
 	}
 
-	function setHeaders() {
+	public function setHeaders() {
 		global $wgOut, $wgUser, $wgAjaxEditStash;
 
 		$wgOut->addModules( 'mediawiki.action.edit' );
@@ -2164,12 +2362,6 @@ class EditPage {
 			$wgOut->addModules( 'mediawiki.action.edit.editWarning' );
 		}
 
-		if ( $wgAjaxEditStash ) {
-			$wgOut->addModules( 'mediawiki.action.edit.stash' );
-		}
-
-		$wgOut->setRobotPolicy( 'noindex,nofollow' );
-
 		# Enabled article-related sidebar, toplinks, etc.
 		$wgOut->setArticleRelated( true );
 
@@ -2188,14 +2380,19 @@ class EditPage {
 		}
 
 		# Use the title defined by DISPLAYTITLE magic word when present
+		# NOTE: getDisplayTitle() returns HTML while getPrefixedText() returns plain text.
+		#       setPageTitle() treats the input as wikitext, which should be safe in either case.
 		$displayTitle = isset( $this->mParserOutput ) ? $this->mParserOutput->getDisplayTitle() : false;
 		if ( $displayTitle === false ) {
 			$displayTitle = $contextTitle->getPrefixedText();
 		}
-		$wgOut->setPageTitle( wfMessage( $msg, $displayTitle ) );
+		$wgOut->setPageTitle( $this->context->msg( $msg, $displayTitle ) );
 		# Transmit the name of the message to JavaScript for live preview
 		# Keep Resources.php/mediawiki.action.edit.preview in sync with the possible keys
-		$wgOut->addJsConfigVars( 'wgEditMessage', $msg );
+		$wgOut->addJsConfigVars( [
+			'wgEditMessage' => $msg,
+			'wgAjaxEditStash' => $wgAjaxEditStash,
+		] );
 	}
 
 	/**
@@ -2231,13 +2428,13 @@ class EditPage {
 				# there must be a description url to show a hint to shared repo
 				if ( $descUrl ) {
 					if ( !$this->mTitle->exists() ) {
-						$wgOut->wrapWikiMsg( "<div class=\"mw-sharedupload-desc-create\">\n$1\n</div>", array(
+						$wgOut->wrapWikiMsg( "<div class=\"mw-sharedupload-desc-create\">\n$1\n</div>", [
 									'sharedupload-desc-create', $file->getRepo()->getDisplayName(), $descUrl
-						) );
+						] );
 					} else {
-						$wgOut->wrapWikiMsg( "<div class=\"mw-sharedupload-desc-edit\">\n$1\n</div>", array(
+						$wgOut->wrapWikiMsg( "<div class=\"mw-sharedupload-desc-edit\">\n$1\n</div>", [
 									'sharedupload-desc-edit', $file->getRepo()->getDisplayName(), $descUrl
-						) );
+						] );
 					}
 				}
 			}
@@ -2246,14 +2443,13 @@ class EditPage {
 		# Show a warning message when someone creates/edits a user (talk) page but the user does not exist
 		# Show log extract when the user is currently blocked
 		if ( $namespace == NS_USER || $namespace == NS_USER_TALK ) {
-			$parts = explode( '/', $this->mTitle->getText(), 2 );
-			$username = $parts[0];
-			$user = User::newFromName( $username, false /* allow IP users*/ );
+			$username = explode( '/', $this->mTitle->getText(), 2 )[0];
+			$user = User::newFromName( $username, false /* allow IP users */ );
 			$ip = User::isIP( $username );
 			$block = Block::newFromTarget( $user, $user );
 			if ( !( $user && $user->isLoggedIn() ) && !$ip ) { # User does not exist
 				$wgOut->wrapWikiMsg( "<div class=\"mw-userpage-userdoesnotexist error\">\n$1\n</div>",
-					array( 'userpage-userdoesnotexist', wfEscapeWikiText( $username ) ) );
+					[ 'userpage-userdoesnotexist', wfEscapeWikiText( $username ) ] );
 			} elseif ( !is_null( $block ) && $block->getType() != Block::TYPE_AUTO ) {
 				# Show log extract if the user is currently blocked
 				LogEventsList::showLogExtract(
@@ -2261,52 +2457,54 @@ class EditPage {
 					'block',
 					MWNamespace::getCanonicalName( NS_USER ) . ':' . $block->getTarget(),
 					'',
-					array(
+					[
 						'lim' => 1,
 						'showIfEmpty' => false,
-						'msgKey' => array(
+						'msgKey' => [
 							'blocked-notice-logextract',
 							$user->getName() # Support GENDER in notice
-						)
-					)
+						]
+					]
 				);
 			}
 		}
 		# Try to add a custom edit intro, or use the standard one if this is not possible.
 		if ( !$this->showCustomIntro() && !$this->mTitle->exists() ) {
 			$helpLink = wfExpandUrl( Skin::makeInternalOrExternalUrl(
-				wfMessage( 'helppage' )->inContentLanguage()->text()
+				$this->context->msg( 'helppage' )->inContentLanguage()->text()
 			) );
 			if ( $wgUser->isLoggedIn() ) {
 				$wgOut->wrapWikiMsg(
 					// Suppress the external link icon, consider the help url an internal one
 					"<div class=\"mw-newarticletext plainlinks\">\n$1\n</div>",
-					array(
+					[
 						'newarticletext',
 						$helpLink
-					)
+					]
 				);
 			} else {
 				$wgOut->wrapWikiMsg(
 					// Suppress the external link icon, consider the help url an internal one
 					"<div class=\"mw-newarticletextanon plainlinks\">\n$1\n</div>",
-					array(
+					[
 						'newarticletextanon',
 						$helpLink
-					)
+					]
 				);
 			}
 		}
 		# Give a notice if the user is editing a deleted/moved page...
 		if ( !$this->mTitle->exists() ) {
-			LogEventsList::showLogExtract( $wgOut, array( 'delete', 'move' ), $this->mTitle,
+			$dbr = wfGetDB( DB_REPLICA );
+
+			LogEventsList::showLogExtract( $wgOut, [ 'delete', 'move' ], $this->mTitle,
 				'',
-				array(
+				[
 					'lim' => 10,
-					'conds' => array( "log_action != 'revision'" ),
+					'conds' => [ 'log_action != ' . $dbr->addQuotes( 'revision' ) ],
 					'showIfEmpty' => false,
-					'msgKey' => array( 'recreate-moveddeleted-warn' )
-				)
+					'msgKey' => [ 'recreate-moveddeleted-warn' ]
+				]
 			);
 		}
 	}
@@ -2356,8 +2554,7 @@ class EditPage {
 		}
 
 		if ( !$this->isSupportedContentModel( $content->getModel() ) ) {
-			throw new MWException( 'This content model is not supported: '
-				. ContentHandler::getLocalizedName( $content->getModel() ) );
+			throw new MWException( 'This content model is not supported: ' . $content->getModel() );
 		}
 
 		return $content->serialize( $this->contentFormat );
@@ -2372,7 +2569,7 @@ class EditPage {
 	 * content.
 	 *
 	 * @param string|null|bool $text Text to unserialize
-	 * @return Content The content object created from $text. If $text was false
+	 * @return Content|bool|null The content object created from $text. If $text was false
 	 *   or null, false resp. null will be  returned instead.
 	 *
 	 * @throws MWException If unserializing the text results in a Content
@@ -2388,8 +2585,7 @@ class EditPage {
 			$this->contentModel, $this->contentFormat );
 
 		if ( !$this->isSupportedContentModel( $content->getModel() ) ) {
-			throw new MWException( 'This content model is not supported: '
-				. ContentHandler::getLocalizedName( $content->getModel() ) );
+			throw new MWException( 'This content model is not supported: ' . $content->getModel() );
 		}
 
 		return $content;
@@ -2403,7 +2599,7 @@ class EditPage {
 	 * The $formCallback parameter is deprecated since MediaWiki 1.25. Please
 	 * use the EditPage::showEditForm:fields hook instead.
 	 */
-	function showEditForm( $formCallback = null ) {
+	public function showEditForm( $formCallback = null ) {
 		global $wgOut, $wgUser;
 
 		# need to parse the preview early so that we know which templates are used,
@@ -2415,13 +2611,26 @@ class EditPage {
 			$previewOutput = $this->getPreviewText();
 		}
 
-		Hooks::run( 'EditPage::showEditForm:initial', array( &$this, &$wgOut ) );
+		// Avoid PHP 7.1 warning of passing $this by reference
+		$editPage = $this;
+		Hooks::run( 'EditPage::showEditForm:initial', [ &$editPage, &$wgOut ] );
 
 		$this->setHeaders();
 
-		if ( $this->showHeader() === false ) {
+		$this->addTalkPageText();
+		$this->addEditNotices();
+
+		if ( !$this->isConflict &&
+			$this->section != '' &&
+			!$this->isSectionEditSupported() ) {
+			// We use $this->section to much before this and getVal('wgSection') directly in other places
+			// at this point we can't reset $this->section to '' to fallback to non-section editing.
+			// Someone is welcome to try refactoring though
+			$wgOut->showErrorPage( 'sectioneditnotsupported-title', 'sectioneditnotsupported-text' );
 			return;
 		}
+
+		$this->showHeader();
 
 		$wgOut->addHTML( $this->editFormPageTop );
 
@@ -2444,44 +2653,47 @@ class EditPage {
 		}
 
 		// @todo add EditForm plugin interface and use it here!
-		//       search for textarea1 and textares2, and allow EditForm to override all uses.
+		//       search for textarea1 and textarea2, and allow EditForm to override all uses.
 		$wgOut->addHTML( Html::openElement(
 			'form',
-			array(
+			[
+				'class' => $this->oouiEnabled ? 'mw-editform-ooui' : 'mw-editform-legacy',
 				'id' => self::EDITFORM_ID,
 				'name' => self::EDITFORM_ID,
 				'method' => 'post',
 				'action' => $this->getActionURL( $this->getContextTitle() ),
 				'enctype' => 'multipart/form-data'
-			)
+			]
 		) );
 
 		if ( is_callable( $formCallback ) ) {
 			wfWarn( 'The $formCallback parameter to ' . __METHOD__ . 'is deprecated' );
-			call_user_func_array( $formCallback, array( &$wgOut ) );
+			call_user_func_array( $formCallback, [ &$wgOut ] );
 		}
 
 		// Add an empty field to trip up spambots
 		$wgOut->addHTML(
-			Xml::openElement( 'div', array( 'id' => 'antispam-container', 'style' => 'display: none;' ) )
+			Xml::openElement( 'div', [ 'id' => 'antispam-container', 'style' => 'display: none;' ] )
 			. Html::rawElement(
 				'label',
-				array( 'for' => 'wpAntiSpam' ),
-				wfMessage( 'simpleantispam-label' )->parse()
+				[ 'for' => 'wpAntispam' ],
+				$this->context->msg( 'simpleantispam-label' )->parse()
 			)
 			. Xml::element(
 				'input',
-				array(
+				[
 					'type' => 'text',
 					'name' => 'wpAntispam',
 					'id' => 'wpAntispam',
 					'value' => ''
-				)
+				]
 			)
 			. Xml::closeElement( 'div' )
 		);
 
-		Hooks::run( 'EditPage::showEditForm:fields', array( &$this, &$wgOut ) );
+		// Avoid PHP 7.1 warning of passing $this by reference
+		$editPage = $this;
+		Hooks::run( 'EditPage::showEditForm:fields', [ &$editPage, &$wgOut ] );
 
 		// Put these up at the top to ensure they aren't lost on early form submission
 		$this->showFormBeforeText();
@@ -2497,9 +2709,9 @@ class EditPage {
 				: 'confirmrecreate';
 			$wgOut->addHTML(
 				'<div class="mw-confirm-recreate">' .
-					wfMessage( $key, $username, "<nowiki>$comment</nowiki>" )->parse() .
-				Xml::checkLabel( wfMessage( 'recreate' )->text(), 'wpRecreate', 'wpRecreate', false,
-					array( 'title' => Linker::titleAttrib( 'recreate' ), 'tabindex' => 1, 'id' => 'wpRecreate' )
+					$this->context->msg( $key, $username, "<nowiki>$comment</nowiki>" )->parse() .
+				Xml::checkLabel( $this->context->msg( 'recreate' )->text(), 'wpRecreate', 'wpRecreate', false,
+					[ 'title' => Linker::titleAttrib( 'recreate' ), 'tabindex' => 1, 'id' => 'wpRecreate' ]
 				) .
 				'</div>'
 			);
@@ -2514,7 +2726,7 @@ class EditPage {
 		# user preference is active, pass a hidden tag as wpIgnoreBlankSummary. This will stop the
 		# user being bounced back more than once in the event that a summary
 		# is not required.
-		#####
+		# ####
 		# For a bit more sophisticated detection of blank summaries, hash the
 		# automatic one and pass that in the hidden field wpAutoSummary.
 		if ( $this->missingSummary || ( $this->section == 'new' && $this->nosummary ) ) {
@@ -2532,7 +2744,7 @@ class EditPage {
 		if ( $this->hasPresetSummary ) {
 			// If a summary has been preset using &summary= we don't want to prompt for
 			// a different summary. Only prompt for a summary if the summary is blanked.
-			// (Bug 17416)
+			// (T19416)
 			$this->autoSumm = md5( '' );
 		}
 
@@ -2540,11 +2752,15 @@ class EditPage {
 		$wgOut->addHTML( Html::hidden( 'wpAutoSummary', $autosumm ) );
 
 		$wgOut->addHTML( Html::hidden( 'oldid', $this->oldid ) );
-		$wgOut->addHTML( Html::hidden( 'parentRevId',
-			$this->parentRevId ?: $this->mArticle->getRevIdFetched() ) );
+		$wgOut->addHTML( Html::hidden( 'parentRevId', $this->getParentRevId() ) );
 
 		$wgOut->addHTML( Html::hidden( 'format', $this->contentFormat ) );
 		$wgOut->addHTML( Html::hidden( 'model', $this->contentModel ) );
+
+		// following functions will need OOUI, enable it only once; here.
+		if ( $this->oouiEnabled ) {
+			$wgOut->enableOOUI();
+		}
 
 		if ( $this->section == 'new' ) {
 			$this->showSummaryInput( true, $this->summary );
@@ -2588,13 +2804,12 @@ class EditPage {
 
 		$wgOut->addHTML( $this->editFormTextAfterTools . "\n" );
 
-		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'templatesUsed' ),
-			Linker::formatTemplates( $this->getTemplates(), $this->preview, $this->section != '' ) ) );
+		$wgOut->addHTML( $this->makeTemplatesOnThisPageList( $this->getTemplates() ) );
 
-		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'hiddencats' ),
-			Linker::formatHiddenCategories( $this->mArticle->getHiddenCategories() ) ) );
+		$wgOut->addHTML( Html::rawElement( 'div', [ 'class' => 'hiddencats' ],
+			Linker::formatHiddenCategories( $this->page->getHiddenCategories() ) ) );
 
-		$wgOut->addHTML( Html::rawElement( 'div', array( 'class' => 'limitreport' ),
+		$wgOut->addHTML( Html::rawElement( 'div', [ 'class' => 'limitreport' ],
 			self::getPreviewLimitReport( $this->mParserOutput ) ) );
 
 		$wgOut->addModules( 'mediawiki.action.edit.collapsibleFooter' );
@@ -2604,7 +2819,7 @@ class EditPage {
 				$this->showConflict();
 			} catch ( MWContentSerializationException $ex ) {
 				// this can't really happen, but be nice if it does.
-				$msg = wfMessage(
+				$msg = $this->context->msg(
 					'content-failed-to-parse',
 					$this->contentModel,
 					$this->contentFormat,
@@ -2614,6 +2829,18 @@ class EditPage {
 			}
 		}
 
+		// Set a hidden field so JS knows what edit form mode we are in
+		if ( $this->isConflict ) {
+			$mode = 'conflict';
+		} elseif ( $this->preview ) {
+			$mode = 'preview';
+		} elseif ( $this->diff ) {
+			$mode = 'diff';
+		} else {
+			$mode = 'text';
+		}
+		$wgOut->addHTML( Html::hidden( 'mode', $mode, [ 'id' => 'mw-edit-mode' ] ) );
+
 		// Marker for detecting truncated form data.  This must be the last
 		// parameter sent in order to be of use, so do not move me.
 		$wgOut->addHTML( Html::hidden( 'wpUltimateParam', true ) );
@@ -2622,7 +2849,31 @@ class EditPage {
 		if ( !$wgUser->getOption( 'previewontop' ) ) {
 			$this->displayPreviewArea( $previewOutput, false );
 		}
+	}
 
+	/**
+	 * Wrapper around TemplatesOnThisPageFormatter to make
+	 * a "templates on this page" list.
+	 *
+	 * @param Title[] $templates
+	 * @return string HTML
+	 */
+	public function makeTemplatesOnThisPageList( array $templates ) {
+		$templateListFormatter = new TemplatesOnThisPageFormatter(
+			$this->context, MediaWikiServices::getInstance()->getLinkRenderer()
+		);
+
+		// preview if preview, else section if section, else false
+		$type = false;
+		if ( $this->preview ) {
+			$type = 'preview';
+		} elseif ( $this->section != '' ) {
+			$type = 'section';
+		}
+
+		return Html::rawElement( 'div', [ 'class' => 'templatesUsed' ],
+			$templateListFormatter->format( $templates, $type )
+		);
 	}
 
 	/**
@@ -2641,47 +2892,17 @@ class EditPage {
 		}
 	}
 
-	/**
-	 * @return bool
-	 */
 	protected function showHeader() {
-		global $wgOut, $wgUser, $wgMaxArticleSize, $wgLang;
+		global $wgOut, $wgUser;
 		global $wgAllowUserCss, $wgAllowUserJs;
 
-		if ( $this->mTitle->isTalkPage() ) {
-			$wgOut->addWikiMsg( 'talkpagetext' );
-		}
-
-		// Add edit notices
-		$editNotices = $this->mTitle->getEditNotices( $this->oldid );
-		if ( count( $editNotices ) ) {
-			$wgOut->addHTML( implode( "\n", $editNotices ) );
-		} else {
-			$msg = wfMessage( 'editnotice-notext' );
-			if ( !$msg->isDisabled() ) {
-				$wgOut->addHTML(
-					'<div class="mw-editnotice-notext">'
-					. $msg->parseAsBlock()
-					. '</div>'
-				);
-			}
-		}
-
 		if ( $this->isConflict ) {
-			$wgOut->wrapWikiMsg( "<div class='mw-explainconflict'>\n$1\n</div>", 'explainconflict' );
-			$this->edittime = $this->mArticle->getTimestamp();
+			$this->addExplainConflictHeader( $wgOut );
+			$this->editRevId = $this->page->getLatest();
 		} else {
-			if ( $this->section != '' && !$this->isSectionEditSupported() ) {
-				// We use $this->section to much before this and getVal('wgSection') directly in other places
-				// at this point we can't reset $this->section to '' to fallback to non-section editing.
-				// Someone is welcome to try refactoring though
-				$wgOut->showErrorPage( 'sectioneditnotsupported-title', 'sectioneditnotsupported-text' );
-				return false;
-			}
-
 			if ( $this->section != '' && $this->section != 'new' ) {
 				if ( !$this->summary && !$this->preview && !$this->diff ) {
-					$sectionTitle = self::extractSectionTitle( $this->textbox1 ); //FIXME: use Content object
+					$sectionTitle = self::extractSectionTitle( $this->textbox1 ); // FIXME: use Content object
 					if ( $sectionTitle !== false ) {
 						$this->summary = "/* $sectionTitle */ ";
 					}
@@ -2736,12 +2957,13 @@ class EditPage {
 					if ( !$revision->isCurrent() ) {
 						$this->mArticle->setOldSubtitle( $revision->getId() );
 						$wgOut->addWikiMsg( 'editingold' );
+						$this->isOldRev = true;
 					}
 				} elseif ( $this->mTitle->exists() ) {
 					// Something went wrong
 
 					$wgOut->wrapWikiMsg( "<div class='errorbox'>\n$1\n</div>\n",
-						array( 'missing-revision', $this->oldid ) );
+						[ 'missing-revision', $this->oldid ] );
 				}
 			}
 		}
@@ -2749,20 +2971,25 @@ class EditPage {
 		if ( wfReadOnly() ) {
 			$wgOut->wrapWikiMsg(
 				"<div id=\"mw-read-only-warning\">\n$1\n</div>",
-				array( 'readonlywarning', wfReadOnlyReason() )
+				[ 'readonlywarning', wfReadOnlyReason() ]
 			);
 		} elseif ( $wgUser->isAnon() ) {
 			if ( $this->formtype != 'preview' ) {
 				$wgOut->wrapWikiMsg(
-					"<div id='mw-anon-edit-warning'>\n$1\n</div>",
-					array( 'anoneditwarning',
+					"<div id='mw-anon-edit-warning' class='warningbox'>\n$1\n</div>",
+					[ 'anoneditwarning',
 						// Log-in link
-						'{{fullurl:Special:UserLogin|returnto={{FULLPAGENAMEE}}}}',
+						SpecialPage::getTitleFor( 'Userlogin' )->getFullURL( [
+							'returnto' => $this->getTitle()->getPrefixedDBkey()
+						] ),
 						// Sign-up link
-						'{{fullurl:Special:UserLogin/signup|returnto={{FULLPAGENAMEE}}}}' )
+						SpecialPage::getTitleFor( 'CreateAccount' )->getFullURL( [
+							'returnto' => $this->getTitle()->getPrefixedDBkey()
+						] )
+					]
 				);
 			} else {
-				$wgOut->wrapWikiMsg( "<div id=\"mw-anon-preview-warning\">\n$1</div>",
+				$wgOut->wrapWikiMsg( "<div id=\"mw-anon-preview-warning\" class=\"warningbox\">\n$1</div>",
 					'anonpreviewwarning'
 				);
 			}
@@ -2772,22 +2999,25 @@ class EditPage {
 				if ( $this->isWrongCaseCssJsPage ) {
 					$wgOut->wrapWikiMsg(
 						"<div class='error' id='mw-userinvalidcssjstitle'>\n$1\n</div>",
-						array( 'userinvalidcssjstitle', $this->mTitle->getSkinFromCssJsSubpage() )
+						[ 'userinvalidcssjstitle', $this->mTitle->getSkinFromCssJsSubpage() ]
 					);
 				}
 				if ( $this->getTitle()->isSubpageOf( $wgUser->getUserPage() ) ) {
+					$wgOut->wrapWikiMsg( '<div class="mw-usercssjspublic">$1</div>',
+						$this->isCssSubpage ? 'usercssispublic' : 'userjsispublic'
+					);
 					if ( $this->formtype !== 'preview' ) {
 						if ( $this->isCssSubpage && $wgAllowUserCss ) {
 							$wgOut->wrapWikiMsg(
 								"<div id='mw-usercssyoucanpreview'>\n$1\n</div>",
-								array( 'usercssyoucanpreview' )
+								[ 'usercssyoucanpreview' ]
 							);
 						}
 
 						if ( $this->isJsSubpage && $wgAllowUserJs ) {
 							$wgOut->wrapWikiMsg(
 								"<div id='mw-userjsyoucanpreview'>\n$1\n</div>",
-								array( 'userjsyoucanpreview' )
+								[ 'userjsyoucanpreview' ]
 							);
 						}
 					}
@@ -2795,68 +3025,31 @@ class EditPage {
 			}
 		}
 
-		if ( $this->mTitle->isProtected( 'edit' ) &&
-			MWNamespace::getRestrictionLevels( $this->mTitle->getNamespace() ) !== array( '' )
-		) {
-			# Is the title semi-protected?
-			if ( $this->mTitle->isSemiProtected() ) {
-				$noticeMsg = 'semiprotectedpagewarning';
-			} else {
-				# Then it must be protected based on static groups (regular)
-				$noticeMsg = 'protectedpagewarning';
-			}
-			LogEventsList::showLogExtract( $wgOut, 'protect', $this->mTitle, '',
-				array( 'lim' => 1, 'msgKey' => array( $noticeMsg ) ) );
-		}
-		if ( $this->mTitle->isCascadeProtected() ) {
-			# Is this page under cascading protection from some source pages?
-			list( $cascadeSources, /* $restrictions */ ) = $this->mTitle->getCascadeProtectionSources();
-			$notice = "<div class='mw-cascadeprotectedwarning'>\n$1\n";
-			$cascadeSourcesCount = count( $cascadeSources );
-			if ( $cascadeSourcesCount > 0 ) {
-				# Explain, and list the titles responsible
-				foreach ( $cascadeSources as $page ) {
-					$notice .= '* [[:' . $page->getPrefixedText() . "]]\n";
-				}
-			}
-			$notice .= '</div>';
-			$wgOut->wrapWikiMsg( $notice, array( 'cascadeprotectedwarning', $cascadeSourcesCount ) );
-		}
-		if ( !$this->mTitle->exists() && $this->mTitle->getRestrictions( 'create' ) ) {
-			LogEventsList::showLogExtract( $wgOut, 'protect', $this->mTitle, '',
-				array( 'lim' => 1,
-					'showIfEmpty' => false,
-					'msgKey' => array( 'titleprotectedwarning' ),
-					'wrap' => "<div class=\"mw-titleprotectedwarning\">\n$1</div>" ) );
-		}
+		$this->addPageProtectionWarningHeaders();
 
-		if ( $this->kblength === false ) {
-			$this->kblength = (int)( strlen( $this->textbox1 ) / 1024 );
-		}
+		$this->addLongPageWarningHeader();
 
-		if ( $this->tooBig || $this->kblength > $wgMaxArticleSize ) {
-			$wgOut->wrapWikiMsg( "<div class='error' id='mw-edit-longpageerror'>\n$1\n</div>",
-				array(
-					'longpageerror',
-					$wgLang->formatNum( $this->kblength ),
-					$wgLang->formatNum( $wgMaxArticleSize )
-				)
-			);
-		} else {
-			if ( !wfMessage( 'longpage-hint' )->isDisabled() ) {
-				$wgOut->wrapWikiMsg( "<div id='mw-edit-longpage-hint'>\n$1\n</div>",
-					array(
-						'longpage-hint',
-						$wgLang->formatSize( strlen( $this->textbox1 ) ),
-						strlen( $this->textbox1 )
-					)
-				);
-			}
-		}
 		# Add header copyright warning
 		$this->showHeaderCopyrightWarning();
+	}
 
-		return true;
+	/**
+	 * Helper function for summary input functions, which returns the neccessary
+	 * attributes for the input.
+	 *
+	 * @param array|null $inputAttrs Array of attrs to use on the input
+	 * @return array
+	 */
+	private function getSummaryInputAttributes( array $inputAttrs = null ) {
+		// Note: the maxlength is overridden in JS to 255 and to make it use UTF-8 bytes, not characters.
+		return ( is_array( $inputAttrs ) ? $inputAttrs : [] ) + [
+			'id' => 'wpSummary',
+			'name' => 'wpSummary',
+			'maxlength' => '200',
+			'tabindex' => '1',
+			'size' => 60,
+			'spellcheck' => 'true',
+		] + Linker::tooltipAndAccesskeyAttribs( 'summary' );
 	}
 
 	/**
@@ -2864,37 +3057,30 @@ class EditPage {
 	 * subclasses may reorganize the form.
 	 * Note that you do not need to worry about the label's for=, it will be
 	 * inferred by the id given to the input. You can remove them both by
-	 * passing array( 'id' => false ) to $userInputAttrs.
+	 * passing [ 'id' => false ] to $userInputAttrs.
 	 *
 	 * @param string $summary The value of the summary input
 	 * @param string $labelText The html to place inside the label
 	 * @param array $inputAttrs Array of attrs to use on the input
 	 * @param array $spanLabelAttrs Array of attrs to use on the span inside the label
 	 *
-	 * @return array An array in the format array( $label, $input )
+	 * @return array An array in the format [ $label, $input ]
 	 */
-	function getSummaryInput( $summary = "", $labelText = null,
+	public function getSummaryInput( $summary = "", $labelText = null,
 		$inputAttrs = null, $spanLabelAttrs = null
 	) {
-		// Note: the maxlength is overridden in JS to 255 and to make it use UTF-8 bytes, not characters.
-		$inputAttrs = ( is_array( $inputAttrs ) ? $inputAttrs : array() ) + array(
-			'id' => 'wpSummary',
-			'maxlength' => '200',
-			'tabindex' => '1',
-			'size' => 60,
-			'spellcheck' => 'true',
-		) + Linker::tooltipAndAccesskeyAttribs( 'summary' );
+		$inputAttrs = $this->getSummaryInputAttributes( $inputAttrs );
 
-		$spanLabelAttrs = ( is_array( $spanLabelAttrs ) ? $spanLabelAttrs : array() ) + array(
+		$spanLabelAttrs = ( is_array( $spanLabelAttrs ) ? $spanLabelAttrs : [] ) + [
 			'class' => $this->missingSummary ? 'mw-summarymissed' : 'mw-summary',
 			'id' => "wpSummaryLabel"
-		);
+		];
 
 		$label = null;
 		if ( $labelText ) {
 			$label = Xml::tags(
 				'label',
-				$inputAttrs['id'] ? array( 'for' => $inputAttrs['id'] ) : null,
+				$inputAttrs['id'] ? [ 'for' => $inputAttrs['id'] ] : null,
 				$labelText
 			);
 			$label = Xml::tags( 'span', $spanLabelAttrs, $label );
@@ -2902,7 +3088,36 @@ class EditPage {
 
 		$input = Html::input( 'wpSummary', $summary, 'text', $inputAttrs );
 
-		return array( $label, $input );
+		return [ $label, $input ];
+	}
+
+	/**
+	 * Same as self::getSummaryInput, but uses OOUI, instead of plain HTML.
+	 * Builds a standard summary input with a label.
+	 *
+	 * @param string $summary The value of the summary input
+	 * @param string $labelText The html to place inside the label
+	 * @param array $inputAttrs Array of attrs to use on the input
+	 *
+	 * @return OOUI\FieldLayout OOUI FieldLayout with Label and Input
+	 */
+	function getSummaryInputOOUI( $summary = "", $labelText = null, $inputAttrs = null ) {
+		$inputAttrs = OOUI\Element::configFromHtmlAttributes(
+			$this->getSummaryInputAttributes( $inputAttrs )
+		);
+
+		return new OOUI\FieldLayout(
+			new OOUI\TextInputWidget( [
+				'value' => $summary,
+				'infusable' => true,
+			] + $inputAttrs ),
+			[
+				'label' => new OOUI\HtmlSnippet( $labelText ),
+				'align' => 'top',
+				'id' => 'wpSummaryLabel',
+				'classes' => [ $this->missingSummary ? 'mw-summarymissed' : 'mw-summary' ],
+			]
+		);
 	}
 
 	/**
@@ -2912,7 +3127,8 @@ class EditPage {
 	 * @param string $summary The text of the summary to display
 	 */
 	protected function showSummaryInput( $isSubjectPreview, $summary = "" ) {
-		global $wgOut, $wgContLang;
+		global $wgOut;
+
 		# Add a class if 'missingsummary' is triggered to allow styling of the summary line
 		$summaryClass = $this->missingSummary ? 'mw-summarymissed' : 'mw-summary';
 		if ( $isSubjectPreview ) {
@@ -2924,15 +3140,23 @@ class EditPage {
 				return;
 			}
 		}
-		$summary = $wgContLang->recodeForEdit( $summary );
-		$labelText = wfMessage( $isSubjectPreview ? 'subject' : 'summary' )->parse();
-		list( $label, $input ) = $this->getSummaryInput(
-			$summary,
-			$labelText,
-			array( 'class' => $summaryClass ),
-			array()
-		);
-		$wgOut->addHTML( "{$label} {$input}" );
+
+		$labelText = $this->context->msg( $isSubjectPreview ? 'subject' : 'summary' )->parse();
+		if ( $this->oouiEnabled ) {
+			$wgOut->addHTML( $this->getSummaryInputOOUI(
+				$summary,
+				$labelText,
+				[ 'class' => $summaryClass ]
+			) );
+		} else {
+			list( $label, $input ) = $this->getSummaryInput(
+				$summary,
+				$labelText,
+				[ 'class' => $summaryClass ]
+			);
+			$wgOut->addHTML( "{$label} {$input}" );
+		}
+
 	}
 
 	/**
@@ -2952,15 +3176,16 @@ class EditPage {
 		global $wgParser;
 
 		if ( $isSubjectPreview ) {
-			$summary = wfMessage( 'newsectionsummary' )->rawParams( $wgParser->stripSectionName( $summary ) )
+			$summary = $this->context->msg( 'newsectionsummary' )
+				->rawParams( $wgParser->stripSectionName( $summary ) )
 				->inContentLanguage()->text();
 		}
 
 		$message = $isSubjectPreview ? 'subject-preview' : 'summary-preview';
 
-		$summary = wfMessage( $message )->parse()
+		$summary = $this->context->msg( $message )->parse()
 			. Linker::commentBlock( $summary, $this->mTitle, $isSubjectPreview );
-		return Xml::tags( 'div', array( 'class' => 'mw-summary-preview' ), $summary );
+		return Xml::tags( 'div', [ 'class' => 'mw-summary-preview' ], $summary );
 	}
 
 	protected function showFormBeforeText() {
@@ -2970,6 +3195,7 @@ class EditPage {
 <input type='hidden' value="{$section}" name="wpSection"/>
 <input type='hidden' value="{$this->starttime}" name="wpStarttime" />
 <input type='hidden' value="{$this->edittime}" name="wpEdittime" />
+<input type='hidden' value="{$this->editRevId}" name="editRevId" />
 <input type='hidden' value="{$this->scrolltop}" name="wpScrolltop" id="wpScrolltop" />
 
 HTML
@@ -3018,11 +3244,11 @@ HTML
 	 */
 	protected function showTextbox1( $customAttribs = null, $textoverride = null ) {
 		if ( $this->wasDeletedSinceLastEdit() && $this->formtype == 'save' ) {
-			$attribs = array( 'style' => 'display:none;' );
+			$attribs = [ 'style' => 'display:none;' ];
 		} else {
-			$classes = array(); // Textarea CSS
+			$classes = []; // Textarea CSS
 			if ( $this->mTitle->isProtected( 'edit' ) &&
-				MWNamespace::getRestrictionLevels( $this->mTitle->getNamespace() ) !== array( '' )
+				MWNamespace::getRestrictionLevels( $this->mTitle->getNamespace() ) !== [ '' ]
 			) {
 				# Is the title semi-protected?
 				if ( $this->mTitle->isSemiProtected() ) {
@@ -3036,8 +3262,12 @@ HTML
 					$classes[] = 'mw-textarea-cprotected';
 				}
 			}
+			# Is an old revision being edited?
+			if ( $this->isOldRev ) {
+				$classes[] = 'mw-textarea-oldrev';
+			}
 
-			$attribs = array( 'tabindex' => 1 );
+			$attribs = [ 'tabindex' => 1 ];
 
 			if ( is_array( $customAttribs ) ) {
 				$attribs += $customAttribs;
@@ -3059,46 +3289,28 @@ HTML
 	}
 
 	protected function showTextbox2() {
-		$this->showTextbox( $this->textbox2, 'wpTextbox2', array( 'tabindex' => 6, 'readonly' ) );
+		$this->showTextbox( $this->textbox2, 'wpTextbox2', [ 'tabindex' => 6, 'readonly' ] );
 	}
 
-	protected function showTextbox( $text, $name, $customAttribs = array() ) {
+	protected function showTextbox( $text, $name, $customAttribs = [] ) {
 		global $wgOut, $wgUser;
 
 		$wikitext = $this->safeUnicodeOutput( $text );
-		if ( strval( $wikitext ) !== '' ) {
-			// Ensure there's a newline at the end, otherwise adding lines
-			// is awkward.
-			// But don't add a newline if the ext is empty, or Firefox in XHTML
-			// mode will show an extra newline. A bit annoying.
-			$wikitext .= "\n";
-		}
+		$wikitext = $this->addNewLineAtEnd( $wikitext );
 
-		$attribs = $customAttribs + array(
-			'accesskey' => ',',
-			'id' => $name,
-			'cols' => $wgUser->getIntOption( 'cols' ),
-			'rows' => $wgUser->getIntOption( 'rows' ),
-			// Avoid PHP notices when appending preferences
-			// (appending allows customAttribs['style'] to still work).
-			'style' => ''
-		);
-
-		$pageLang = $this->mTitle->getPageLanguage();
-		$attribs['lang'] = $pageLang->getHtmlCode();
-		$attribs['dir'] = $pageLang->getDir();
+		$attribs = $this->buildTextboxAttribs( $name, $customAttribs, $wgUser );
 
 		$wgOut->addHTML( Html::textarea( $name, $wikitext, $attribs ) );
 	}
 
 	protected function displayPreviewArea( $previewOutput, $isOnTop = false ) {
 		global $wgOut;
-		$classes = array();
+		$classes = [];
 		if ( $isOnTop ) {
 			$classes[] = 'ontop';
 		}
 
-		$attribs = array( 'id' => 'wikiPreview', 'class' => implode( ' ', $classes ) );
+		$attribs = [ 'id' => 'wikiPreview', 'class' => implode( ' ', $classes ) ];
 
 		if ( $this->formtype != 'preview' ) {
 			$attribs['style'] = 'display: none;';
@@ -3111,8 +3323,8 @@ HTML
 		} else {
 			// Empty content container for LivePreview
 			$pageViewLang = $this->mTitle->getPageViewLanguage();
-			$attribs = array( 'lang' => $pageViewLang->getHtmlCode(), 'dir' => $pageViewLang->getDir(),
-				'class' => 'mw-content-' . $pageViewLang->getDir() );
+			$attribs = [ 'lang' => $pageViewLang->getHtmlCode(), 'dir' => $pageViewLang->getDir(),
+				'class' => 'mw-content-' . $pageViewLang->getDir() ];
 			$wgOut->addHTML( Html::rawElement( 'div', $attribs ) );
 		}
 
@@ -3122,7 +3334,7 @@ HTML
 			try {
 				$this->showDiff();
 			} catch ( MWContentSerializationException $ex ) {
-				$msg = wfMessage(
+				$msg = $this->context->msg(
 					'content-failed-to-parse',
 					$this->contentModel,
 					$this->contentFormat,
@@ -3141,14 +3353,14 @@ HTML
 	 */
 	protected function showPreview( $text ) {
 		global $wgOut;
-		if ( $this->mTitle->getNamespace() == NS_CATEGORY ) {
+		if ( $this->mArticle instanceof CategoryPage ) {
 			$this->mArticle->openShowCategory();
 		}
 		# This hook seems slightly odd here, but makes things more
 		# consistent for extensions.
-		Hooks::run( 'OutputPageBeforeHTML', array( &$wgOut, &$text ) );
+		Hooks::run( 'OutputPageBeforeHTML', [ &$wgOut, &$text ] );
 		$wgOut->addHTML( $text );
-		if ( $this->mTitle->getNamespace() == NS_CATEGORY ) {
+		if ( $this->mArticle instanceof CategoryPage ) {
 			$this->mArticle->closeShowCategory();
 		}
 	}
@@ -3160,7 +3372,7 @@ HTML
 	 * If this is a section edit, we'll replace the section as for final
 	 * save and then make a comparison.
 	 */
-	function showDiff() {
+	public function showDiff() {
 		global $wgUser, $wgContLang, $wgOut;
 
 		$oldtitlemsg = 'currentrev';
@@ -3178,22 +3390,26 @@ HTML
 		}
 
 		$textboxContent = $this->toEditContent( $this->textbox1 );
-
-		$newContent = $this->mArticle->replaceSectionContent(
-							$this->section, $textboxContent,
-							$this->summary, $this->edittime );
+		if ( $this->editRevId !== null ) {
+			$newContent = $this->page->replaceSectionAtRev(
+				$this->section, $textboxContent, $this->summary, $this->editRevId
+			);
+		} else {
+			$newContent = $this->page->replaceSectionContent(
+				$this->section, $textboxContent, $this->summary, $this->edittime
+			);
+		}
 
 		if ( $newContent ) {
-			ContentHandler::runLegacyHooks( 'EditPageGetDiffText', array( $this, &$newContent ) );
-			Hooks::run( 'EditPageGetDiffContent', array( $this, &$newContent ) );
+			Hooks::run( 'EditPageGetDiffContent', [ $this, &$newContent ] );
 
 			$popts = ParserOptions::newFromUserAndLang( $wgUser, $wgContLang );
 			$newContent = $newContent->preSaveTransform( $this->mTitle, $wgUser, $popts );
 		}
 
 		if ( ( $oldContent && !$oldContent->isEmpty() ) || ( $newContent && !$newContent->isEmpty() ) ) {
-			$oldtitle = wfMessage( $oldtitlemsg )->parse();
-			$newtitle = wfMessage( 'yourtext' )->parse();
+			$oldtitle = $this->context->msg( $oldtitlemsg )->parse();
+			$newtitle = $this->context->msg( 'yourtext' )->parse();
 
 			if ( !$oldContent ) {
 				$oldContent = $newContent->getContentHandler()->makeEmptyContent();
@@ -3220,7 +3436,7 @@ HTML
 	 */
 	protected function showHeaderCopyrightWarning() {
 		$msg = 'editpage-head-copy-warn';
-		if ( !wfMessage( $msg )->isDisabled() ) {
+		if ( !$this->context->msg( $msg )->isDisabled() ) {
 			global $wgOut;
 			$wgOut->wrapWikiMsg( "<div class='editpage-head-copywarn'>\n$1\n</div>",
 				'editpage-head-copy-warn' );
@@ -3237,8 +3453,8 @@ HTML
 	 */
 	protected function showTosSummary() {
 		$msg = 'editpage-tos-summary';
-		Hooks::run( 'EditPageTosSummary', array( $this->mTitle, &$msg ) );
-		if ( !wfMessage( $msg )->isDisabled() ) {
+		Hooks::run( 'EditPageTosSummary', [ $this->mTitle, &$msg ] );
+		if ( !$this->context->msg( $msg )->isDisabled() ) {
 			global $wgOut;
 			$wgOut->addHTML( '<div class="mw-tos-summary">' );
 			$wgOut->addWikiMsg( $msg );
@@ -3249,7 +3465,7 @@ HTML
 	protected function showEditTools() {
 		global $wgOut;
 		$wgOut->addHTML( '<div class="mw-editTools">' .
-			wfMessage( 'edittools' )->inContentLanguage()->parse() .
+			$this->context->msg( 'edittools' )->inContentLanguage()->parse() .
 			'</div>' );
 	}
 
@@ -3268,23 +3484,28 @@ HTML
 	 *
 	 * @param Title $title
 	 * @param string $format Output format, valid values are any function of a Message object
+	 * @param Language|string|null $langcode Language code or Language object.
 	 * @return string
 	 */
-	public static function getCopyrightWarning( $title, $format = 'plain' ) {
+	public static function getCopyrightWarning( $title, $format = 'plain', $langcode = null ) {
 		global $wgRightsText;
 		if ( $wgRightsText ) {
-			$copywarnMsg = array( 'copyrightwarning',
+			$copywarnMsg = [ 'copyrightwarning',
 				'[[' . wfMessage( 'copyrightpage' )->inContentLanguage()->text() . ']]',
-				$wgRightsText );
+				$wgRightsText ];
 		} else {
-			$copywarnMsg = array( 'copyrightwarning2',
-				'[[' . wfMessage( 'copyrightpage' )->inContentLanguage()->text() . ']]' );
+			$copywarnMsg = [ 'copyrightwarning2',
+				'[[' . wfMessage( 'copyrightpage' )->inContentLanguage()->text() . ']]' ];
 		}
 		// Allow for site and per-namespace customization of contribution/copyright notice.
-		Hooks::run( 'EditPageCopyrightWarning', array( $title, &$copywarnMsg ) );
+		Hooks::run( 'EditPageCopyrightWarning', [ $title, &$copywarnMsg ] );
 
+		$msg = call_user_func_array( 'wfMessage', $copywarnMsg )->title( $title );
+		if ( $langcode ) {
+			$msg->inLanguage( $langcode );
+		}
 		return "<div id=\"editpage-copywarn\">\n" .
-			call_user_func_array( 'wfMessage', $copywarnMsg )->$format() . "\n</div>";
+			$msg->$format() . "\n</div>";
 	}
 
 	/**
@@ -3299,24 +3520,24 @@ HTML
 			return '';
 		}
 
-		$limitReport = Html::rawElement( 'div', array( 'class' => 'mw-limitReportExplanation' ),
+		$limitReport = Html::rawElement( 'div', [ 'class' => 'mw-limitReportExplanation' ],
 			wfMessage( 'limitreport-title' )->parseAsBlock()
 		);
 
 		// Show/hide animation doesn't work correctly on a table, so wrap it in a div.
-		$limitReport .= Html::openElement( 'div', array( 'class' => 'preview-limit-report-wrapper' ) );
+		$limitReport .= Html::openElement( 'div', [ 'class' => 'preview-limit-report-wrapper' ] );
 
-		$limitReport .= Html::openElement( 'table', array(
+		$limitReport .= Html::openElement( 'table', [
 			'class' => 'preview-limit-report wikitable'
-		) ) .
+		] ) .
 			Html::openElement( 'tbody' );
 
 		foreach ( $output->getLimitReportData() as $key => $value ) {
 			if ( Hooks::run( 'ParserLimitReportFormat',
-				array( $key, &$value, &$limitReport, true, true )
+				[ $key, &$value, &$limitReport, true, true ]
 			) ) {
 				$keyMsg = wfMessage( $key );
-				$valueMsg = wfMessage( array( "$key-value-html", "$key-value" ) );
+				$valueMsg = wfMessage( [ "$key-value-html", "$key-value" ] );
 				if ( !$valueMsg->exists() ) {
 					$valueMsg = new RawMessage( '$1' );
 				}
@@ -3345,9 +3566,21 @@ HTML
 			$wgOut->addHTML( $this->getSummaryPreview( false, $this->summary ) );
 		}
 
-		$checkboxes = $this->getCheckboxes( $tabindex,
-			array( 'minor' => $this->minoredit, 'watch' => $this->watchthis ) );
-		$wgOut->addHTML( "<div class='editCheckboxes'>" . implode( $checkboxes, "\n" ) . "</div>\n" );
+		if ( $this->oouiEnabled ) {
+			$checkboxes = $this->getCheckboxesOOUI(
+				$tabindex,
+				[ 'minor' => $this->minoredit, 'watch' => $this->watchthis ]
+			);
+			$checkboxesHTML = new OOUI\HorizontalLayout( [ 'items' => $checkboxes ] );
+		} else {
+			$checkboxes = $this->getCheckboxes(
+				$tabindex,
+				[ 'minor' => $this->minoredit, 'watch' => $this->watchthis ]
+			);
+			$checkboxesHTML = implode( $checkboxes, "\n" );
+		}
+
+		$wgOut->addHTML( "<div class='editCheckboxes'>" . $checkboxesHTML . "</div>\n" );
 
 		// Show copyright warning.
 		$wgOut->addWikiText( $this->getCopywarn() );
@@ -3359,26 +3592,26 @@ HTML
 		$cancel = $this->getCancelLink();
 		if ( $cancel !== '' ) {
 			$cancel .= Html::element( 'span',
-				array( 'class' => 'mw-editButtons-pipe-separator' ),
-				wfMessage( 'pipe-separator' )->text() );
+				[ 'class' => 'mw-editButtons-pipe-separator' ],
+				$this->context->msg( 'pipe-separator' )->text() );
 		}
 
-		$message = wfMessage( 'edithelppage' )->inContentLanguage()->text();
+		$message = $this->context->msg( 'edithelppage' )->inContentLanguage()->text();
 		$edithelpurl = Skin::makeInternalOrExternalUrl( $message );
-		$attrs = array(
-			'target' => 'helpwindow',
-			'href' => $edithelpurl,
-		);
-		$edithelp = Html::linkButton( wfMessage( 'edithelp' )->text(),
-			$attrs, array( 'mw-ui-quiet' ) ) .
-			wfMessage( 'word-separator' )->escaped() .
-			wfMessage( 'newwindow' )->parse();
+		$edithelp =
+			Html::linkButton(
+				$this->context->msg( 'edithelp' )->text(),
+				[ 'target' => 'helpwindow', 'href' => $edithelpurl ],
+				[ 'mw-ui-quiet' ]
+			) .
+			$this->context->msg( 'word-separator' )->escaped() .
+			$this->context->msg( 'newwindow' )->parse();
 
 		$wgOut->addHTML( "	<span class='cancelLink'>{$cancel}</span>\n" );
 		$wgOut->addHTML( "	<span class='editHelp'>{$edithelp}</span>\n" );
 		$wgOut->addHTML( "</div><!-- editButtons -->\n" );
 
-		Hooks::run( 'EditPage::showStandardInputs:options', array( $this, $wgOut, &$tabindex ) );
+		Hooks::run( 'EditPage::showStandardInputs:options', [ $this, $wgOut, &$tabindex ] );
 
 		$wgOut->addHTML( "</div><!-- editOptions -->\n" );
 	}
@@ -3390,7 +3623,11 @@ HTML
 	protected function showConflict() {
 		global $wgOut;
 
-		if ( Hooks::run( 'EditPageBeforeConflictDiff', array( &$this, &$wgOut ) ) ) {
+		// Avoid PHP 7.1 warning of passing $this by reference
+		$editPage = $this;
+		if ( Hooks::run( 'EditPageBeforeConflictDiff', [ &$editPage, &$wgOut ] ) ) {
+			$this->incrementConflictStats();
+
 			$wgOut->wrapWikiMsg( '<h2>$1</h2>', "yourdiff" );
 
 			$content1 = $this->toEditContent( $this->textbox1 );
@@ -3400,8 +3637,8 @@ HTML
 			$de = $handler->createDifferenceEngine( $this->mArticle->getContext() );
 			$de->setContent( $content2, $content1 );
 			$de->showDiff(
-				wfMessage( 'yourtext' )->parse(),
-				wfMessage( 'storedversion' )->text()
+				$this->context->msg( 'yourtext' )->parse(),
+				$this->context->msg( 'storedversion' )->text()
 			);
 
 			$wgOut->wrapWikiMsg( '<h2>$1</h2>', "yourtext" );
@@ -3409,22 +3646,45 @@ HTML
 		}
 	}
 
+	protected function incrementConflictStats() {
+		$stats = MediaWikiServices::getInstance()->getStatsdDataFactory();
+		$stats->increment( 'edit.failures.conflict' );
+		// Only include 'standard' namespaces to avoid creating unknown numbers of statsd metrics
+		if (
+			$this->mTitle->getNamespace() >= NS_MAIN &&
+			$this->mTitle->getNamespace() <= NS_CATEGORY_TALK
+		) {
+			$stats->increment( 'edit.failures.conflict.byNamespaceId.' . $this->mTitle->getNamespace() );
+		}
+	}
+
 	/**
 	 * @return string
 	 */
 	public function getCancelLink() {
-		$cancelParams = array();
+		$cancelParams = [];
 		if ( !$this->isConflict && $this->oldid > 0 ) {
 			$cancelParams['oldid'] = $this->oldid;
+		} elseif ( $this->getContextTitle()->isRedirect() ) {
+			$cancelParams['redirect'] = 'no';
 		}
-		$attrs = array( 'id' => 'mw-editform-cancel' );
-
-		return Linker::linkKnown(
-			$this->getContextTitle(),
-			wfMessage( 'cancel' )->parse(),
-			Html::buttonAttributes( $attrs, array( 'mw-ui-quiet' ) ),
-			$cancelParams
-		);
+		if ( $this->oouiEnabled ) {
+			return new OOUI\ButtonWidget( [
+				'id' => 'mw-editform-cancel',
+				'href' => $this->getContextTitle()->getLinkUrl( $cancelParams ),
+				'label' => new OOUI\HtmlSnippet( $this->context->msg( 'cancel' )->parse() ),
+				'framed' => false,
+				'infusable' => true,
+				'flags' => 'destructive',
+			] );
+		} else {
+			return MediaWikiServices::getInstance()->getLinkRenderer()->makeKnownLink(
+				$this->getContextTitle(),
+				new HtmlArmor( $this->context->msg( 'cancel' )->parse() ),
+				Html::buttonAttributes( [ 'id' => 'mw-editform-cancel' ], [ 'mw-ui-quiet' ] ),
+				$cancelParams
+			);
+		}
 	}
 
 	/**
@@ -3437,7 +3697,7 @@ HTML
 	 * @return string
 	 */
 	protected function getActionURL( Title $title ) {
-		return $title->getLocalURL( array( 'action' => $this->action ) );
+		return $title->getLocalURL( [ 'action' => $this->action ] );
 	}
 
 	/**
@@ -3471,10 +3731,10 @@ HTML
 	 * @return bool|stdClass
 	 */
 	protected function getLastDelete() {
-		$dbr = wfGetDB( DB_SLAVE );
+		$dbr = wfGetDB( DB_REPLICA );
 		$data = $dbr->selectRow(
-			array( 'logging', 'user' ),
-			array(
+			[ 'logging', 'user' ],
+			[
 				'log_type',
 				'log_action',
 				'log_timestamp',
@@ -3485,24 +3745,24 @@ HTML
 				'log_params',
 				'log_deleted',
 				'user_name'
-			), array(
+			], [
 				'log_namespace' => $this->mTitle->getNamespace(),
 				'log_title' => $this->mTitle->getDBkey(),
 				'log_type' => 'delete',
 				'log_action' => 'delete',
 				'user_id=log_user'
-			),
+			],
 			__METHOD__,
-			array( 'LIMIT' => 1, 'ORDER BY' => 'log_timestamp DESC' )
+			[ 'LIMIT' => 1, 'ORDER BY' => 'log_timestamp DESC' ]
 		);
 		// Quick paranoid permission checks...
 		if ( is_object( $data ) ) {
 			if ( $data->log_deleted & LogPage::DELETED_USER ) {
-				$data->user_name = wfMessage( 'rev-deleted-user' )->escaped();
+				$data->user_name = $this->context->msg( 'rev-deleted-user' )->escaped();
 			}
 
 			if ( $data->log_deleted & LogPage::DELETED_COMMENT ) {
-				$data->log_comment = wfMessage( 'rev-deleted-comment' )->escaped();
+				$data->log_comment = $this->context->msg( 'rev-deleted-comment' )->escaped();
 			}
 		}
 
@@ -3514,11 +3774,9 @@ HTML
 	 * @throws MWException
 	 * @return string
 	 */
-	function getPreviewText() {
-		global $wgOut, $wgUser, $wgRawHtml, $wgLang;
+	public function getPreviewText() {
+		global $wgOut, $wgRawHtml, $wgLang;
 		global $wgAllowUserCss, $wgAllowUserJs;
-
-		$stats = $wgOut->getContext()->getStats();
 
 		if ( $wgRawHtml && !$this->mTokenOk ) {
 			// Could be an offsite preview attempt. This is very unsafe if
@@ -3529,9 +3787,10 @@ HTML
 				// string, which happens when you initially edit
 				// a category page, due to automatic preview-on-open.
 				$parsedNote = $wgOut->parse( "<div class='previewnote'>" .
-					wfMessage( 'session_fail_preview_html' )->text() . "</div>", true, /* interface */true );
+					$this->context->msg( 'session_fail_preview_html' )->text() . "</div>",
+					true, /* interface */true );
 			}
-			$stats->increment( 'edit.failures.session_loss' );
+			$this->incrementEditFailureStats( 'session_loss' );
 			return $parsedNote;
 		}
 
@@ -3543,7 +3802,7 @@ HTML
 			$previewHTML = '';
 			if ( !Hooks::run(
 				'AlternateEditPreview',
-				array( $this, &$content, &$previewHTML, &$this->mParserOutput ) )
+				[ $this, &$content, &$previewHTML, &$this->mParserOutput ] )
 			) {
 				return $previewHTML;
 			}
@@ -3551,27 +3810,23 @@ HTML
 			# provide a anchor link to the editform
 			$continueEditing = '<span class="mw-continue-editing">' .
 				'[[#' . self::EDITFORM_ID . '|' . $wgLang->getArrow() . ' ' .
-				wfMessage( 'continue-editing' )->text() . ']]</span>';
+				$this->context->msg( 'continue-editing' )->text() . ']]</span>';
 			if ( $this->mTriedSave && !$this->mTokenOk ) {
 				if ( $this->mTokenOkExceptSuffix ) {
-					$note = wfMessage( 'token_suffix_mismatch' )->plain();
-					$stats->increment( 'edit.failures.bad_token' );
+					$note = $this->context->msg( 'token_suffix_mismatch' )->plain();
+					$this->incrementEditFailureStats( 'bad_token' );
 				} else {
-					$note = wfMessage( 'session_fail_preview' )->plain();
-					$stats->increment( 'edit.failures.session_loss' );
+					$note = $this->context->msg( 'session_fail_preview' )->plain();
+					$this->incrementEditFailureStats( 'session_loss' );
 				}
 			} elseif ( $this->incompleteForm ) {
-				$note = wfMessage( 'edit_form_incomplete' )->plain();
+				$note = $this->context->msg( 'edit_form_incomplete' )->plain();
 				if ( $this->mTriedSave ) {
-					$stats->increment( 'edit.failures.incomplete_form' );
+					$this->incrementEditFailureStats( 'incomplete_form' );
 				}
 			} else {
-				$note = wfMessage( 'previewnote' )->plain() . ' ' . $continueEditing;
+				$note = $this->context->msg( 'previewnote' )->plain() . ' ' . $continueEditing;
 			}
-
-			$parserOptions = $this->mArticle->makeParserOptions( $this->mArticle->getContext() );
-			$parserOptions->setIsPreview( true );
-			$parserOptions->setIsSectionPreview( !is_null( $this->section ) && $this->section !== '' );
 
 			# don't parse non-wikitext pages, show message about preview
 			if ( $this->mTitle->isCssJsSubpage() || $this->mTitle->isCssOrJsPage() ) {
@@ -3601,7 +3856,7 @@ HTML
 				# Messages: usercsspreview, userjspreview, sitecsspreview, sitejspreview
 				if ( $level && $format ) {
 					$note = "<div id='mw-{$level}{$format}preview'>" .
-						wfMessage( "{$level}{$format}preview" )->text() .
+						$this->context->msg( "{$level}{$format}preview" )->text() .
 						' ' . $continueEditing . "</div>";
 				}
 			}
@@ -3612,37 +3867,21 @@ HTML
 				$content = $content->addSectionHeader( $this->summary );
 			}
 
-			$hook_args = array( $this, &$content );
-			ContentHandler::runLegacyHooks( 'EditPageGetPreviewText', $hook_args );
+			$hook_args = [ $this, &$content ];
 			Hooks::run( 'EditPageGetPreviewContent', $hook_args );
 
-			$parserOptions->enableLimitReport();
-
-			# For CSS/JS pages, we should have called the ShowRawCssJs hook here.
-			# But it's now deprecated, so never mind
-
-			$pstContent = $content->preSaveTransform( $this->mTitle, $wgUser, $parserOptions );
-			$scopedCallback = $parserOptions->setupFakeRevision(
-				$this->mTitle, $pstContent, $wgUser );
-			$parserOutput = $pstContent->getParserOutput( $this->mTitle, null, $parserOptions );
-
-			# Try to stash the edit for the final submission step
-			# @todo: different date format preferences cause cache misses
-			ApiStashEdit::stashEditFromPreview(
-				$this->getArticle(), $content, $pstContent,
-				$parserOutput, $parserOptions, $parserOptions, wfTimestampNow()
-			);
-
-			$parserOutput->setEditSectionTokens( false ); // no section edit links
-			$previewHTML = $parserOutput->getText();
+			$parserResult = $this->doPreviewParse( $content );
+			$parserOutput = $parserResult['parserOutput'];
+			$previewHTML = $parserResult['html'];
 			$this->mParserOutput = $parserOutput;
 			$wgOut->addParserOutputMetadata( $parserOutput );
 
 			if ( count( $parserOutput->getWarnings() ) ) {
 				$note .= "\n\n" . implode( "\n\n", $parserOutput->getWarnings() );
 			}
+
 		} catch ( MWContentSerializationException $ex ) {
-			$m = wfMessage(
+			$m = $this->context->msg(
 				'content-failed-to-parse',
 				$this->contentModel,
 				$this->contentFormat,
@@ -3654,29 +3893,69 @@ HTML
 
 		if ( $this->isConflict ) {
 			$conflict = '<h2 id="mw-previewconflict">'
-				. wfMessage( 'previewconflict' )->escaped() . "</h2>\n";
+				. $this->context->msg( 'previewconflict' )->escaped() . "</h2>\n";
 		} else {
 			$conflict = '<hr />';
 		}
 
 		$previewhead = "<div class='previewnote'>\n" .
-			'<h2 id="mw-previewheader">' . wfMessage( 'preview' )->escaped() . "</h2>" .
+			'<h2 id="mw-previewheader">' . $this->context->msg( 'preview' )->escaped() . "</h2>" .
 			$wgOut->parse( $note, true, /* interface */true ) . $conflict . "</div>\n";
 
 		$pageViewLang = $this->mTitle->getPageViewLanguage();
-		$attribs = array( 'lang' => $pageViewLang->getHtmlCode(), 'dir' => $pageViewLang->getDir(),
-			'class' => 'mw-content-' . $pageViewLang->getDir() );
+		$attribs = [ 'lang' => $pageViewLang->getHtmlCode(), 'dir' => $pageViewLang->getDir(),
+			'class' => 'mw-content-' . $pageViewLang->getDir() ];
 		$previewHTML = Html::rawElement( 'div', $attribs, $previewHTML );
 
 		return $previewhead . $previewHTML . $this->previewTextAfterContent;
 	}
 
+	private function incrementEditFailureStats( $failureType ) {
+		$stats = MediaWikiServices::getInstance()->getStatsdDataFactory();
+		$stats->increment( 'edit.failures.' . $failureType );
+	}
+
+	/**
+	 * Get parser options for a preview
+	 * @return ParserOptions
+	 */
+	protected function getPreviewParserOptions() {
+		$parserOptions = $this->page->makeParserOptions( $this->mArticle->getContext() );
+		$parserOptions->setIsPreview( true );
+		$parserOptions->setIsSectionPreview( !is_null( $this->section ) && $this->section !== '' );
+		$parserOptions->enableLimitReport();
+		return $parserOptions;
+	}
+
+	/**
+	 * Parse the page for a preview. Subclasses may override this class, in order
+	 * to parse with different options, or to otherwise modify the preview HTML.
+	 *
+	 * @param Content $content The page content
+	 * @return array with keys:
+	 *   - parserOutput: The ParserOutput object
+	 *   - html: The HTML to be displayed
+	 */
+	protected function doPreviewParse( Content $content ) {
+		global $wgUser;
+		$parserOptions = $this->getPreviewParserOptions();
+		$pstContent = $content->preSaveTransform( $this->mTitle, $wgUser, $parserOptions );
+		$scopedCallback = $parserOptions->setupFakeRevision(
+			$this->mTitle, $pstContent, $wgUser );
+		$parserOutput = $pstContent->getParserOutput( $this->mTitle, null, $parserOptions );
+		ScopedCallback::consume( $scopedCallback );
+		$parserOutput->setEditSectionTokens( false ); // no section edit links
+		return [
+			'parserOutput' => $parserOutput,
+			'html' => $parserOutput->getText() ];
+	}
+
 	/**
 	 * @return array
 	 */
-	function getTemplates() {
+	public function getTemplates() {
 		if ( $this->preview || $this->section != '' ) {
-			$templates = array();
+			$templates = [];
 			if ( !isset( $this->mParserOutput ) ) {
 				return $templates;
 			}
@@ -3695,17 +3974,17 @@ HTML
 	 * Shows a bulletin board style toolbar for common editing functions.
 	 * It can be disabled in the user preferences.
 	 *
-	 * @param $title Title object for the page being edited (optional)
+	 * @param Title $title Title object for the page being edited (optional)
 	 * @return string
 	 */
-	static function getEditToolbar( $title = null ) {
+	public static function getEditToolbar( $title = null ) {
 		global $wgContLang, $wgOut;
 		global $wgEnableUploads, $wgForeignFileRepos;
 
 		$imagesAvailable = $wgEnableUploads || count( $wgForeignFileRepos );
 		$showSignature = true;
 		if ( $title ) {
-			 $showSignature = MWNamespace::wantSignatures( $title->getNamespace() );
+			$showSignature = MWNamespace::wantSignatures( $title->getNamespace() );
 		}
 
 		/**
@@ -3717,78 +3996,78 @@ HTML
 		 *
 		 * Images are defined in ResourceLoaderEditToolbarModule.
 		 */
-		$toolarray = array(
-			array(
+		$toolarray = [
+			[
 				'id'     => 'mw-editbutton-bold',
 				'open'   => '\'\'\'',
 				'close'  => '\'\'\'',
 				'sample' => wfMessage( 'bold_sample' )->text(),
 				'tip'    => wfMessage( 'bold_tip' )->text(),
-			),
-			array(
+			],
+			[
 				'id'     => 'mw-editbutton-italic',
 				'open'   => '\'\'',
 				'close'  => '\'\'',
 				'sample' => wfMessage( 'italic_sample' )->text(),
 				'tip'    => wfMessage( 'italic_tip' )->text(),
-			),
-			array(
+			],
+			[
 				'id'     => 'mw-editbutton-link',
 				'open'   => '[[',
 				'close'  => ']]',
 				'sample' => wfMessage( 'link_sample' )->text(),
 				'tip'    => wfMessage( 'link_tip' )->text(),
-			),
-			array(
+			],
+			[
 				'id'     => 'mw-editbutton-extlink',
 				'open'   => '[',
 				'close'  => ']',
 				'sample' => wfMessage( 'extlink_sample' )->text(),
 				'tip'    => wfMessage( 'extlink_tip' )->text(),
-			),
-			array(
+			],
+			[
 				'id'     => 'mw-editbutton-headline',
 				'open'   => "\n== ",
 				'close'  => " ==\n",
 				'sample' => wfMessage( 'headline_sample' )->text(),
 				'tip'    => wfMessage( 'headline_tip' )->text(),
-			),
-			$imagesAvailable ? array(
+			],
+			$imagesAvailable ? [
 				'id'     => 'mw-editbutton-image',
 				'open'   => '[[' . $wgContLang->getNsText( NS_FILE ) . ':',
 				'close'  => ']]',
 				'sample' => wfMessage( 'image_sample' )->text(),
 				'tip'    => wfMessage( 'image_tip' )->text(),
-			) : false,
-			$imagesAvailable ? array(
+			] : false,
+			$imagesAvailable ? [
 				'id'     => 'mw-editbutton-media',
 				'open'   => '[[' . $wgContLang->getNsText( NS_MEDIA ) . ':',
 				'close'  => ']]',
 				'sample' => wfMessage( 'media_sample' )->text(),
 				'tip'    => wfMessage( 'media_tip' )->text(),
-			) : false,
-			array(
+			] : false,
+			[
 				'id'     => 'mw-editbutton-nowiki',
 				'open'   => "<nowiki>",
 				'close'  => "</nowiki>",
 				'sample' => wfMessage( 'nowiki_sample' )->text(),
 				'tip'    => wfMessage( 'nowiki_tip' )->text(),
-			),
-			$showSignature ? array(
+			],
+			$showSignature ? [
 				'id'     => 'mw-editbutton-signature',
-				'open'   => '--~~~~',
+				'open'   => wfMessage( 'sig-text', '~~~~' )->inContentLanguage()->text(),
 				'close'  => '',
 				'sample' => '',
 				'tip'    => wfMessage( 'sig_tip' )->text(),
-			) : false,
-			array(
+			] : false,
+			[
 				'id'     => 'mw-editbutton-hr',
 				'open'   => "\n----\n",
 				'close'  => '',
 				'sample' => '',
 				'tip'    => wfMessage( 'hr_tip' )->text(),
-			)
-		);
+			]
+		];
 
 		$script = 'mw.loader.using("mediawiki.toolbar", function () {';
 		foreach ( $toolarray as $tool ) {
@@ -3796,7 +4075,7 @@ HTML
 				continue;
 			}
 
-			$params = array(
+			$params = [
 				// Images are defined in ResourceLoaderEditToolbarModule
 				false,
 				// Note that we use the tip both for the ALT tag and the TITLE tag of the image.
@@ -3808,7 +4087,7 @@ HTML
 				$tool['close'],
 				$tool['sample'],
 				$tool['id'],
-			);
+			];
 
 			$script .= Xml::encodeJsCall(
 				'mw.toolbar.addButton',
@@ -3818,13 +4097,127 @@ HTML
 		}
 
 		$script .= '});';
-		$wgOut->addScript( ResourceLoader::makeInlineScript( $script ) );
 
 		$toolbar = '<div id="toolbar"></div>';
 
-		Hooks::run( 'EditPageBeforeEditToolbar', array( &$toolbar ) );
+		if ( Hooks::run( 'EditPageBeforeEditToolbar', [ &$toolbar ] ) ) {
+			// Only add the old toolbar cruft to the page payload if the toolbar has not
+			// been over-written by a hook caller
+			$wgOut->addScript( ResourceLoader::makeInlineScript( $script ) );
+		};
 
 		return $toolbar;
+	}
+
+	/**
+	 * Return an array of checkbox definitions.
+	 *
+	 * Array keys correspond to the `<input>` 'name' attribute to use for each checkbox.
+	 *
+	 * Array values are associative arrays with the following keys:
+	 *  - 'label-message' (required): message for label text
+	 *  - 'id' (required): 'id' attribute for the `<input>`
+	 *  - 'default' (required): default checkedness (true or false)
+	 *  - 'title-message' (optional): used to generate 'title' attribute for the `<label>`
+	 *  - 'tooltip' (optional): used to generate 'title' and 'accesskey' attributes
+	 *    from messages like 'tooltip-foo', 'accesskey-foo'
+	 *  - 'label-id' (optional): 'id' attribute for the `<label>`
+	 *  - 'legacy-name' (optional): short name for backwards-compatibility
+	 * @param array $checked Array of checkbox name (matching the 'legacy-name') => bool,
+	 *   where bool indicates the checked status of the checkbox
+	 * @return array
+	 */
+	protected function getCheckboxesDefinition( $checked ) {
+		global $wgUser;
+		$checkboxes = [];
+
+		// don't show the minor edit checkbox if it's a new page or section
+		if ( !$this->isNew && $wgUser->isAllowed( 'minoredit' ) ) {
+			$checkboxes['wpMinoredit'] = [
+				'id' => 'wpMinoredit',
+				'label-message' => 'minoredit',
+				// Uses messages: tooltip-minoredit, accesskey-minoredit
+				'tooltip' => 'minoredit',
+				'label-id' => 'mw-editpage-minoredit',
+				'legacy-name' => 'minor',
+				'default' => $checked['minor'],
+			];
+		}
+
+		if ( $wgUser->isLoggedIn() ) {
+			$checkboxes['wpWatchthis'] = [
+				'id' => 'wpWatchthis',
+				'label-message' => 'watchthis',
+				// Uses messages: tooltip-watch, accesskey-watch
+				'tooltip' => 'watch',
+				'label-id' => 'mw-editpage-watch',
+				'legacy-name' => 'watch',
+				'default' => $checked['watch'],
+			];
+		}
+
+		$editPage = $this;
+		Hooks::run( 'EditPageGetCheckboxesDefinition', [ $editPage, &$checkboxes ] );
+
+		return $checkboxes;
+	}
+
+	/**
+	 * Returns an array of html code of the following checkboxes old style:
+	 * minor and watch
+	 *
+	 * @param int $tabindex Current tabindex
+	 * @param array $checked See getCheckboxesDefinition()
+	 * @return array
+	 */
+	public function getCheckboxes( &$tabindex, $checked ) {
+		global $wgUseMediaWikiUIEverywhere;
+
+		$checkboxes = [];
+		$checkboxesDef = $this->getCheckboxesDefinition( $checked );
+
+		// Backwards-compatibility for the EditPageBeforeEditChecks hook
+		if ( !$this->isNew ) {
+			$checkboxes['minor'] = '';
+		}
+		$checkboxes['watch'] = '';
+
+		foreach ( $checkboxesDef as $name => $options ) {
+			$legacyName = isset( $options['legacy-name'] ) ? $options['legacy-name'] : $name;
+			$label = $this->context->msg( $options['label-message'] )->parse();
+			$attribs = [
+				'tabindex' => ++$tabindex,
+				'id' => $options['id'],
+			];
+			$labelAttribs = [
+				'for' => $options['id'],
+			];
+			if ( isset( $options['tooltip'] ) ) {
+				$attribs['accesskey'] = $this->context->msg( "accesskey-{$options['tooltip']}" )->text();
+				$labelAttribs['title'] = Linker::titleAttrib( $options['tooltip'], 'withaccess' );
+			}
+			if ( isset( $options['title-message'] ) ) {
+				$labelAttribs['title'] = $this->context->msg( $options['title-message'] )->text();
+			}
+			if ( isset( $options['label-id'] ) ) {
+				$labelAttribs['id'] = $options['label-id'];
+			}
+			$checkboxHtml =
+				Xml::check( $name, $options['default'], $attribs ) .
+				'&#160;' .
+				Xml::tags( 'label', $labelAttribs, $label );
+
+			if ( $wgUseMediaWikiUIEverywhere ) {
+				$checkboxHtml = Html::rawElement( 'div', [ 'class' => 'mw-ui-checkbox' ], $checkboxHtml );
+			}
+
+			$checkboxes[ $legacyName ] = $checkboxHtml;
+		}
+
+		// Avoid PHP 7.1 warning of passing $this by reference
+		$editPage = $this;
+		Hooks::run( 'EditPageBeforeEditChecks', [ &$editPage, &$checkboxes, &$tabindex ], '1.29' );
+		return $checkboxes;
 	}
 
 	/**
@@ -3837,100 +4230,148 @@ HTML
 	 *
 	 * @return array
 	 */
-	public function getCheckboxes( &$tabindex, $checked ) {
-		global $wgUser, $wgUseMediaWikiUIEverywhere;
+	public function getCheckboxesOOUI( &$tabindex, $checked ) {
+		$checkboxes = [];
+		$checkboxesDef = $this->getCheckboxesDefinition( $checked );
 
-		$checkboxes = array();
+		$origTabindex = $tabindex;
 
-		// don't show the minor edit checkbox if it's a new page or section
-		if ( !$this->isNew ) {
-			$checkboxes['minor'] = '';
-			$minorLabel = wfMessage( 'minoredit' )->parse();
-			if ( $wgUser->isAllowed( 'minoredit' ) ) {
-				$attribs = array(
-					'tabindex' => ++$tabindex,
-					'accesskey' => wfMessage( 'accesskey-minoredit' )->text(),
-					'id' => 'wpMinoredit',
-				);
-				$minorEditHtml =
-					Xml::check( 'wpMinoredit', $checked['minor'], $attribs ) .
-					"&#160;<label for='wpMinoredit' id='mw-editpage-minoredit'" .
-					Xml::expandAttributes( array( 'title' => Linker::titleAttrib( 'minoredit', 'withaccess' ) ) ) .
-					">{$minorLabel}</label>";
+		foreach ( $checkboxesDef as $name => $options ) {
+			$legacyName = isset( $options['legacy-name'] ) ? $options['legacy-name'] : $name;
 
-				if ( $wgUseMediaWikiUIEverywhere ) {
-					$checkboxes['minor'] = Html::openElement( 'div', array( 'class' => 'mw-ui-checkbox' ) ) .
-						$minorEditHtml .
-					Html::closeElement( 'div' );
-				} else {
-					$checkboxes['minor'] = $minorEditHtml;
-				}
+			$title = null;
+			$accesskey = null;
+			if ( isset( $options['tooltip'] ) ) {
+				$accesskey = $this->context->msg( "accesskey-{$options['tooltip']}" )->text();
+				$title = Linker::titleAttrib( $options['tooltip'], 'withaccess' );
 			}
-		}
+			if ( isset( $options['title-message'] ) ) {
+				$title = $this->context->msg( $options['title-message'] )->text();
+			}
+			if ( isset( $options['label-id'] ) ) {
+				$labelAttribs['id'] = $options['label-id'];
+			}
 
-		$watchLabel = wfMessage( 'watchthis' )->parse();
-		$checkboxes['watch'] = '';
-		if ( $wgUser->isLoggedIn() ) {
-			$attribs = array(
-				'tabindex' => ++$tabindex,
-				'accesskey' => wfMessage( 'accesskey-watch' )->text(),
-				'id' => 'wpWatchthis',
+			$checkboxes[ $legacyName ] = new OOUI\FieldLayout(
+				new OOUI\CheckboxInputWidget( [
+					'tabIndex' => ++$tabindex,
+					'accessKey' => $accesskey,
+					'id' => $options['id'],
+					'name' => $name,
+					'selected' => $options['default'],
+					'infusable' => true,
+				] ),
+				[
+					'align' => 'inline',
+					'label' => new OOUI\HtmlSnippet( $this->context->msg( $options['label-message'] )->parse() ),
+					'title' => $title,
+					'id' => isset( $options['label-id'] ) ? $options['label-id'] : null,
+				]
 			);
-			$watchThisHtml =
-				Xml::check( 'wpWatchthis', $checked['watch'], $attribs ) .
-				"&#160;<label for='wpWatchthis' id='mw-editpage-watch'" .
-				Xml::expandAttributes( array( 'title' => Linker::titleAttrib( 'watch', 'withaccess' ) ) ) .
-				">{$watchLabel}</label>";
-			if ( $wgUseMediaWikiUIEverywhere ) {
-				$checkboxes['watch'] = Html::openElement( 'div', array( 'class' => 'mw-ui-checkbox' ) ) .
-					$watchThisHtml .
-					Html::closeElement( 'div' );
-			} else {
-				$checkboxes['watch'] = $watchThisHtml;
+		}
+
+		// Backwards-compatibility hack to run the EditPageBeforeEditChecks hook. It's important,
+		// people have used it for the weirdest things completely unrelated to checkboxes...
+		// And if we're gonna run it, might as well allow its legacy checkboxes to be shown.
+		$legacyCheckboxes = $this->getCheckboxes( $origTabindex, $checked );
+		foreach ( $legacyCheckboxes as $name => $html ) {
+			if ( $html && !isset( $checkboxes[$name] ) ) {
+				$checkboxes[$name] = new OOUI\Widget( [ 'content' => new OOUI\HtmlSnippet( $html ) ] );
 			}
 		}
-		Hooks::run( 'EditPageBeforeEditChecks', array( &$this, &$checkboxes, &$tabindex ) );
+
 		return $checkboxes;
 	}
 
 	/**
 	 * Returns an array of html code of the following buttons:
-	 * save, diff, preview and live
+	 * save, diff and preview
 	 *
 	 * @param int $tabindex Current tabindex
 	 *
 	 * @return array
 	 */
 	public function getEditButtons( &$tabindex ) {
-		$buttons = array();
+		$buttons = [];
 
-		$attribs = array(
+		$labelAsPublish =
+			$this->mArticle->getContext()->getConfig()->get( 'EditSubmitButtonLabelPublish' );
+
+		// Can't use $this->isNew as that's also true if we're adding a new section to an extant page
+		if ( $labelAsPublish ) {
+			$buttonLabelKey = !$this->mTitle->exists() ? 'publishpage' : 'publishchanges';
+		} else {
+			$buttonLabelKey = !$this->mTitle->exists() ? 'savearticle' : 'savechanges';
+		}
+		$attribs = [
 			'id' => 'wpSave',
 			'name' => 'wpSave',
 			'tabindex' => ++$tabindex,
-		) + Linker::tooltipAndAccesskeyAttribs( 'save' );
-		$buttons['save'] = Html::submitButton( wfMessage( 'savearticle' )->text(),
-			$attribs, array( 'mw-ui-constructive' ) );
+		] + Linker::tooltipAndAccesskeyAttribs( 'save' );
 
-		++$tabindex; // use the same for preview and live preview
-		$attribs = array(
+		if ( $this->oouiEnabled ) {
+			$saveConfig = OOUI\Element::configFromHtmlAttributes( $attribs );
+			$buttons['save'] = new OOUI\ButtonInputWidget( [
+				// Support: IE 6 – Use <input>, otherwise it can't distinguish which button was clicked
+				'useInputTag' => true,
+				'flags' => [ 'constructive', 'primary' ],
+				'label' => $this->context->msg( $buttonLabelKey )->text(),
+				'infusable' => true,
+				'type' => 'submit',
+			] + $saveConfig );
+		} else {
+			$buttons['save'] = Html::submitButton(
+				$this->context->msg( $buttonLabelKey )->text(),
+				$attribs,
+				[ 'mw-ui-progressive' ]
+			);
+		}
+
+		$attribs = [
 			'id' => 'wpPreview',
 			'name' => 'wpPreview',
-			'tabindex' => $tabindex,
-		) + Linker::tooltipAndAccesskeyAttribs( 'preview' );
-		$buttons['preview'] = Html::submitButton( wfMessage( 'showpreview' )->text(),
-			$attribs );
-		$buttons['live'] = '';
-
-		$attribs = array(
+			'tabindex' => ++$tabindex,
+		] + Linker::tooltipAndAccesskeyAttribs( 'preview' );
+		if ( $this->oouiEnabled ) {
+			$previewConfig = OOUI\Element::configFromHtmlAttributes( $attribs );
+			$buttons['preview'] = new OOUI\ButtonInputWidget( [
+				// Support: IE 6 – Use <input>, otherwise it can't distinguish which button was clicked
+				'useInputTag' => true,
+				'label' => $this->context->msg( 'showpreview' )->text(),
+				'infusable' => true,
+				'type' => 'submit'
+			] + $previewConfig );
+		} else {
+			$buttons['preview'] = Html::submitButton(
+				$this->context->msg( 'showpreview' )->text(),
+				$attribs
+			);
+		}
+		$attribs = [
 			'id' => 'wpDiff',
 			'name' => 'wpDiff',
 			'tabindex' => ++$tabindex,
-		) + Linker::tooltipAndAccesskeyAttribs( 'diff' );
-		$buttons['diff'] = Html::submitButton( wfMessage( 'showdiff' )->text(),
-			$attribs );
+		] + Linker::tooltipAndAccesskeyAttribs( 'diff' );
+		if ( $this->oouiEnabled ) {
+			$diffConfig = OOUI\Element::configFromHtmlAttributes( $attribs );
+			$buttons['diff'] = new OOUI\ButtonInputWidget( [
+				// Support: IE 6 – Use <input>, otherwise it can't distinguish which button was clicked
+				'useInputTag' => true,
+				'label' => $this->context->msg( 'showdiff' )->text(),
+				'infusable' => true,
+				'type' => 'submit',
+			] + $diffConfig );
+		} else {
+			$buttons['diff'] = Html::submitButton(
+				$this->context->msg( 'showdiff' )->text(),
+				$attribs
+			);
+		}
 
-		Hooks::run( 'EditPageBeforeEditButtons', array( &$this, &$buttons, &$tabindex ) );
+		// Avoid PHP 7.1 warning of passing $this by reference
+		$editPage = $this;
+		Hooks::run( 'EditPageBeforeEditButtons', [ &$editPage, &$buttons, &$tabindex ] );
+
 		return $buttons;
 	}
 
@@ -3938,13 +4379,16 @@ HTML
 	 * Creates a basic error page which informs the user that
 	 * they have attempted to edit a nonexistent section.
 	 */
-	function noSuchSectionPage() {
+	public function noSuchSectionPage() {
 		global $wgOut;
 
-		$wgOut->prepareErrorPage( wfMessage( 'nosuchsectiontitle' ) );
+		$wgOut->prepareErrorPage( $this->context->msg( 'nosuchsectiontitle' ) );
 
-		$res = wfMessage( 'nosuchsectiontext', $this->section )->parseAsBlock();
-		Hooks::run( 'EditPageNoSuchSection', array( &$this, &$res ) );
+		$res = $this->context->msg( 'nosuchsectiontext', $this->section )->parseAsBlock();
+
+		// Avoid PHP 7.1 warning of passing $this by reference
+		$editPage = $this;
+		Hooks::run( 'EditPageNoSuchSection', [ &$editPage, &$res ] );
 		$wgOut->addHTML( $res );
 
 		$wgOut->returnToMain( false, $this->mTitle );
@@ -3962,7 +4406,7 @@ HTML
 		if ( is_array( $match ) ) {
 			$match = $wgLang->listToText( $match );
 		}
-		$wgOut->prepareErrorPage( wfMessage( 'spamprotectiontitle' ) );
+		$wgOut->prepareErrorPage( $this->context->msg( 'spamprotectiontitle' ) );
 
 		$wgOut->addHTML( '<div id="spamprotected">' );
 		$wgOut->addWikiMsg( 'spamprotectiontext' );
@@ -3977,7 +4421,7 @@ HTML
 		$wgOut->wrapWikiMsg( '<h2>$1</h2>', "yourtext" );
 		$this->showTextbox2();
 
-		$wgOut->addReturnTo( $this->getContextTitle(), array( 'action' => 'edit' ) );
+		$wgOut->addReturnTo( $this->getContextTitle(), [ 'action' => 'edit' ] );
 	}
 
 	/**
@@ -4026,11 +4470,9 @@ HTML
 	 * @return string
 	 */
 	protected function safeUnicodeOutput( $text ) {
-		global $wgContLang;
-		$codedText = $wgContLang->recodeForEdit( $text );
 		return $this->checkUnicodeCompliantBrowser()
-			? $codedText
-			: $this->makeSafe( $codedText );
+			? $text
+			: $this->makeSafe( $text );
 	}
 
 	/**
@@ -4047,7 +4489,7 @@ HTML
 	 */
 	private function makeSafe( $invalue ) {
 		// Armor existing references for reversibility.
-		$invalue = strtr( $invalue, array( "&#x" => "&#x0" ) );
+		$invalue = strtr( $invalue, [ "&#x" => "&#x0" ] );
 
 		$bytesleft = 0;
 		$result = "";
@@ -4113,6 +4555,179 @@ HTML
 			}
 		}
 		// reverse the transform that we made for reversibility reasons.
-		return strtr( $result, array( "&#x0" => "&#x" ) );
+		return strtr( $result, [ "&#x0" => "&#x" ] );
+	}
+
+	/**
+	 * @since 1.29
+	 */
+	protected function addEditNotices() {
+		global $wgOut;
+
+		$editNotices = $this->mTitle->getEditNotices( $this->oldid );
+		if ( count( $editNotices ) ) {
+			$wgOut->addHTML( implode( "\n", $editNotices ) );
+		} else {
+			$msg = $this->context->msg( 'editnotice-notext' );
+			if ( !$msg->isDisabled() ) {
+				$wgOut->addHTML(
+					'<div class="mw-editnotice-notext">'
+					. $msg->parseAsBlock()
+					. '</div>'
+				);
+			}
+		}
+	}
+
+	/**
+	 * @since 1.29
+	 */
+	protected function addTalkPageText() {
+		global $wgOut;
+
+		if ( $this->mTitle->isTalkPage() ) {
+			$wgOut->addWikiMsg( 'talkpagetext' );
+		}
+	}
+
+	/**
+	 * @since 1.29
+	 */
+	protected function addLongPageWarningHeader() {
+		global $wgMaxArticleSize, $wgOut, $wgLang;
+
+		if ( $this->contentLength === false ) {
+			$this->contentLength = strlen( $this->textbox1 );
+		}
+
+		if ( $this->tooBig || $this->contentLength > $wgMaxArticleSize * 1024 ) {
+			$wgOut->wrapWikiMsg( "<div class='error' id='mw-edit-longpageerror'>\n$1\n</div>",
+				[
+					'longpageerror',
+					$wgLang->formatNum( round( $this->contentLength / 1024, 3 ) ),
+					$wgLang->formatNum( $wgMaxArticleSize )
+				]
+			);
+		} else {
+			if ( !$this->context->msg( 'longpage-hint' )->isDisabled() ) {
+				$wgOut->wrapWikiMsg( "<div id='mw-edit-longpage-hint'>\n$1\n</div>",
+					[
+						'longpage-hint',
+						$wgLang->formatSize( strlen( $this->textbox1 ) ),
+						strlen( $this->textbox1 )
+					]
+				);
+			}
+		}
+	}
+
+	/**
+	 * @since 1.29
+	 */
+	protected function addPageProtectionWarningHeaders() {
+		global $wgOut;
+
+		if ( $this->mTitle->isProtected( 'edit' ) &&
+			MWNamespace::getRestrictionLevels( $this->mTitle->getNamespace() ) !== [ '' ]
+		) {
+			# Is the title semi-protected?
+			if ( $this->mTitle->isSemiProtected() ) {
+				$noticeMsg = 'semiprotectedpagewarning';
+			} else {
+				# Then it must be protected based on static groups (regular)
+				$noticeMsg = 'protectedpagewarning';
+			}
+			LogEventsList::showLogExtract( $wgOut, 'protect', $this->mTitle, '',
+				[ 'lim' => 1, 'msgKey' => [ $noticeMsg ] ] );
+		}
+		if ( $this->mTitle->isCascadeProtected() ) {
+			# Is this page under cascading protection from some source pages?
+			/** @var Title[] $cascadeSources */
+			list( $cascadeSources, /* $restrictions */ ) = $this->mTitle->getCascadeProtectionSources();
+			$notice = "<div class='mw-cascadeprotectedwarning'>\n$1\n";
+			$cascadeSourcesCount = count( $cascadeSources );
+			if ( $cascadeSourcesCount > 0 ) {
+				# Explain, and list the titles responsible
+				foreach ( $cascadeSources as $page ) {
+					$notice .= '* [[:' . $page->getPrefixedText() . "]]\n";
+				}
+			}
+			$notice .= '</div>';
+			$wgOut->wrapWikiMsg( $notice, [ 'cascadeprotectedwarning', $cascadeSourcesCount ] );
+		}
+		if ( !$this->mTitle->exists() && $this->mTitle->getRestrictions( 'create' ) ) {
+			LogEventsList::showLogExtract( $wgOut, 'protect', $this->mTitle, '',
+				[ 'lim' => 1,
+					'showIfEmpty' => false,
+					'msgKey' => [ 'titleprotectedwarning' ],
+					'wrap' => "<div class=\"mw-titleprotectedwarning\">\n$1</div>" ] );
+		}
+	}
+
+	/**
+	 * @param OutputPage $out
+	 * @since 1.29
+	 */
+	protected function addExplainConflictHeader( OutputPage $out ) {
+		$out->wrapWikiMsg( "<div class='mw-explainconflict'>\n$1\n</div>", 'explainconflict' );
+	}
+
+	/**
+	 * @param string $name
+	 * @param mixed[] $customAttribs
+	 * @param User $user
+	 * @return mixed[]
+	 * @since 1.29
+	 */
+	protected function buildTextboxAttribs( $name, array $customAttribs, User $user ) {
+		$attribs = $customAttribs + [
+				'accesskey' => ',',
+				'id' => $name,
+				'cols' => 80,
+				'rows' => 25,
+				// Avoid PHP notices when appending preferences
+				// (appending allows customAttribs['style'] to still work).
+				'style' => ''
+			];
+
+		// The following classes can be used here:
+		// * mw-editfont-default
+		// * mw-editfont-monospace
+		// * mw-editfont-sans-serif
+		// * mw-editfont-serif
+		$class = 'mw-editfont-' . $user->getOption( 'editfont' );
+
+		if ( isset( $attribs['class'] ) ) {
+			if ( is_string( $attribs['class'] ) ) {
+				$attribs['class'] .= ' ' . $class;
+			} elseif ( is_array( $attribs['class'] ) ) {
+				$attribs['class'][] = $class;
+			}
+		} else {
+			$attribs['class'] = $class;
+		}
+
+		$pageLang = $this->mTitle->getPageLanguage();
+		$attribs['lang'] = $pageLang->getHtmlCode();
+		$attribs['dir'] = $pageLang->getDir();
+
+		return $attribs;
+	}
+
+	/**
+	 * @param string $wikitext
+	 * @return string
+	 * @since 1.29
+	 */
+	protected function addNewLineAtEnd( $wikitext ) {
+		if ( strval( $wikitext ) !== '' ) {
+			// Ensure there's a newline at the end, otherwise adding lines
+			// is awkward.
+			// But don't add a newline if the text is empty, or Firefox in XHTML
+			// mode will show an extra newline. A bit annoying.
+			$wikitext .= "\n";
+			return $wikitext;
+		}
+		return $wikitext;
 	}
 }

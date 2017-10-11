@@ -1,8 +1,5 @@
 ( function ( mw, OO, $ ) {
 	/**
-	 * @class mw.ForeignUpload
-	 * @extends mw.Upload
-	 *
 	 * Used to represent an upload in progress on the frontend.
 	 *
 	 * Subclassed to upload to a foreign API, with no other goodies. Use
@@ -11,6 +8,9 @@
 	 * Note you can provide the {@link #target target} or not - if the first argument is
 	 * an object, we assume you want the default, and treat it as apiconfig
 	 * instead.
+	 *
+	 * @class mw.ForeignUpload
+	 * @extends mw.Upload
 	 *
 	 * @constructor
 	 * @param {string} [target] Used to set up the target
@@ -43,14 +43,17 @@
 		// However, if the target is a remote wiki, we must check the API
 		// to confirm that the target is one that this site is configured to
 		// support.
-		if ( this.target === 'local' ) {
+		if ( validTargets.length === 0 ) {
+			this.apiPromise = $.Deferred().reject( 'upload-dialog-disabled' );
+		} else if ( this.target === 'local' ) {
 			// If local uploads were requested, but they are disabled, fail.
 			if ( !mw.config.get( 'wgEnableUploads' ) ) {
-				throw new Error( 'Local uploads are disabled' );
+				this.apiPromise = $.Deferred().reject( 'uploaddisabledtext' );
+			} else {
+				// We'll ignore the CORS and centralauth stuff if the target is
+				// the local wiki.
+				this.apiPromise = $.Deferred().resolve( new mw.Api( apiconfig ) );
 			}
-			// We'll ignore the CORS and centralauth stuff if the target is
-			// the local wiki.
-			this.apiPromise = $.Deferred().resolve( new mw.Api( apiconfig ) );
 		} else {
 			api = new mw.Api();
 			this.apiPromise = api.get( {
@@ -76,7 +79,7 @@
 					}
 				}
 
-				throw new Error( 'Can not upload to requested foreign repo' );
+				return $.Deferred().reject( 'upload-foreign-cant-upload' );
 			} );
 		}
 
@@ -84,12 +87,6 @@
 		// actual API call methods to wait for the apiPromise to resolve
 		// before continuing.
 		mw.Upload.call( this, null );
-
-		if ( this.target !== 'local' ) {
-			// Keep these untranslated. We don't know the content language of the foreign wiki, best to
-			// stick to English in the text.
-			this.setComment( 'Cross-wiki upload from ' + location.host );
-		}
 	}
 
 	OO.inheritClass( ForeignUpload, mw.Upload );
@@ -110,7 +107,16 @@
 	 */
 
 	/**
+	 * @inheritdoc
+	 */
+	ForeignUpload.prototype.getApi = function () {
+		return this.apiPromise;
+	};
+
+	/**
 	 * Override from mw.Upload to make sure the API info is found and allowed
+	 *
+	 * @inheritdoc
 	 */
 	ForeignUpload.prototype.upload = function () {
 		var upload = this;
@@ -122,6 +128,8 @@
 
 	/**
 	 * Override from mw.Upload to make sure the API info is found and allowed
+	 *
+	 * @inheritdoc
 	 */
 	ForeignUpload.prototype.uploadToStash = function () {
 		var upload = this;

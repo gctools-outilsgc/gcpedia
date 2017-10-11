@@ -22,7 +22,7 @@ class FileBackendDBRepoWrapperTest extends MediaWikiTestCase {
 			->method( 'selectField' )
 			->will( $this->returnValue( $dbReturnValue ) );
 
-		$newPaths = $wrapperMock->getBackendPaths( array( $originalPath ), $latest );
+		$newPaths = $wrapperMock->getBackendPaths( [ $originalPath ], $latest );
 
 		$this->assertEquals(
 			$expectedBackendPath,
@@ -34,8 +34,8 @@ class FileBackendDBRepoWrapperTest extends MediaWikiTestCase {
 		$prefix = 'mwstore://' . $this->backendName . '/' . $this->repoName;
 		$mocksForCaching = $this->getMocks();
 
-		return array(
-			array(
+		return [
+			[
 				$mocksForCaching,
 				false,
 				$this->once(),
@@ -43,8 +43,8 @@ class FileBackendDBRepoWrapperTest extends MediaWikiTestCase {
 				$prefix . '-public/f/o/foobar.jpg',
 				$prefix . '-original/9/6/2/96246614d75ba1703bdfd5d7660bb57407aaf5d9',
 				'Public path translated correctly',
-			),
-			array(
+			],
+			[
 				$mocksForCaching,
 				false,
 				$this->never(),
@@ -52,8 +52,8 @@ class FileBackendDBRepoWrapperTest extends MediaWikiTestCase {
 				$prefix . '-public/f/o/foobar.jpg',
 				$prefix . '-original/9/6/2/96246614d75ba1703bdfd5d7660bb57407aaf5d9',
 				'LRU cache leveraged',
-			),
-			array(
+			],
+			[
 				$this->getMocks(),
 				true,
 				$this->once(),
@@ -61,8 +61,8 @@ class FileBackendDBRepoWrapperTest extends MediaWikiTestCase {
 				$prefix . '-public/f/o/foobar.jpg',
 				$prefix . '-original/9/6/2/96246614d75ba1703bdfd5d7660bb57407aaf5d9',
 				'Latest obtained',
-			),
-			array(
+			],
+			[
 				$this->getMocks(),
 				true,
 				$this->never(),
@@ -70,8 +70,8 @@ class FileBackendDBRepoWrapperTest extends MediaWikiTestCase {
 				$prefix . '-deleted/f/o/foobar.jpg',
 				$prefix . '-original/f/o/o/foobar',
 				'Deleted path translated correctly',
-			),
-			array(
+			],
+			[
 				$this->getMocks(),
 				true,
 				$this->once(),
@@ -79,8 +79,8 @@ class FileBackendDBRepoWrapperTest extends MediaWikiTestCase {
 				$prefix . '-public/b/a/baz.jpg',
 				$prefix . '-public/b/a/baz.jpg',
 				'Path left untouched if no sha1 can be found',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -99,40 +99,42 @@ class FileBackendDBRepoWrapperTest extends MediaWikiTestCase {
 			->will( $this->returnValue( '96246614d75ba1703bdfd5d7660bb57407aaf5d9' ) );
 
 		$backendMock->expects( $this->once() )
-			->method( 'getFileContentsMulti')
-			->will( $this->returnValue( array( $sha1Path => 'foo' ) ) );
+			->method( 'getFileContentsMulti' )
+			->will( $this->returnValue( [ $sha1Path => 'foo' ] ) );
 
-		$result = $wrapperMock->getFileContentsMulti( array( 'srcs' => array( $filenamePath ) ) );
+		$result = $wrapperMock->getFileContentsMulti( [ 'srcs' => [ $filenamePath ] ] );
 
 		$this->assertEquals(
-			array( $filenamePath => 'foo' ),
+			[ $filenamePath => 'foo' ],
 			$result,
 			'File contents paths translated properly'
 		);
 	}
 
 	protected function getMocks() {
-		$dbMock = $this->getMockBuilder( 'DatabaseMysql' )
+		$dbMock = $this->getMockBuilder( 'DatabaseMysqli' )
+			->disableOriginalClone()
 			->disableOriginalConstructor()
 			->getMock();
 
-		$backendMock = $this->getMock( 'FSFileBackend',
-			array(),
-			array( array(
-				'name' => $this->backendName,
-				'wikiId' => wfWikiId()
-			) ) );
+		$backendMock = $this->getMockBuilder( 'FSFileBackend' )
+			->setConstructorArgs( [ [
+					'name' => $this->backendName,
+					'wikiId' => wfWikiID()
+				] ] )
+			->getMock();
 
-		$wrapperMock = $this->getMock( 'FileBackendDBRepoWrapper',
-			array( 'getDB' ),
-			array( array(
-				'backend' => $backendMock,
-				'repoName' => $this->repoName,
-				'dbHandleFactory' => null
-			) ) );
+		$wrapperMock = $this->getMockBuilder( 'FileBackendDBRepoWrapper' )
+			->setMethods( [ 'getDB' ] )
+			->setConstructorArgs( [ [
+					'backend' => $backendMock,
+					'repoName' => $this->repoName,
+					'dbHandleFactory' => null
+				] ] )
+			->getMock();
 
 		$wrapperMock->expects( $this->any() )->method( 'getDB' )->will( $this->returnValue( $dbMock ) );
 
-		return array( $dbMock, $backendMock, $wrapperMock );
+		return [ $dbMock, $backendMock, $wrapperMock ];
 	}
 }

@@ -24,6 +24,8 @@
  * @ingroup SpecialPage
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * MediaWiki page data importer
  *
@@ -42,12 +44,17 @@ class SpecialImport extends SpecialPage {
 	private $history = true;
 	private $includeTemplates = false;
 	private $pageLinkDepth;
+	private $importSources;
 
 	/**
 	 * Constructor
 	 */
 	public function __construct() {
 		parent::__construct( 'Import', 'import' );
+	}
+
+	public function doesWrites() {
+		return true;
 	}
 
 	/**
@@ -66,6 +73,9 @@ class SpecialImport extends SpecialPage {
 
 		$this->getOutput()->addModules( 'mediawiki.special.import' );
 
+		$this->importSources = $this->getConfig()->get( 'ImportSources' );
+		Hooks::run( 'ImportSources', [ &$this->importSources ] );
+
 		$user = $this->getUser();
 		if ( !$user->isAllowedAny( 'import', 'importupload' ) ) {
 			throw new PermissionsError( 'import' );
@@ -77,11 +87,11 @@ class SpecialImport extends SpecialPage {
 		$errors = wfMergeErrorArrays(
 			$this->getPageTitle()->getUserPermissionsErrors(
 				'import', $user, true,
-				array( 'ns-specialprotected', 'badaccess-group0', 'badaccess-groups' )
+				[ 'ns-specialprotected', 'badaccess-group0', 'badaccess-groups' ]
 			),
 			$this->getPageTitle()->getUserPermissionsErrors(
 				'importupload', $user, true,
-				array( 'ns-specialprotected', 'badaccess-group0', 'badaccess-groups' )
+				[ 'ns-specialprotected', 'badaccess-group0', 'badaccess-groups' ]
 			)
 		);
 
@@ -136,16 +146,17 @@ class SpecialImport extends SpecialPage {
 			}
 			$this->interwiki = $this->fullInterwikiPrefix = $request->getVal( 'interwiki' );
 			// does this interwiki have subprojects?
-			$importSources = $this->getConfig()->get( 'ImportSources' );
-			$hasSubprojects = array_key_exists( $this->interwiki, $importSources );
-			if ( !$hasSubprojects && !in_array( $this->interwiki, $importSources ) ) {
+			$hasSubprojects = array_key_exists( $this->interwiki, $this->importSources );
+			if ( !$hasSubprojects && !in_array( $this->interwiki, $this->importSources ) ) {
 				$source = Status::newFatal( "import-invalid-interwiki" );
 			} else {
 				if ( $hasSubprojects ) {
 					$this->subproject = $request->getVal( 'subproject' );
 					$this->fullInterwikiPrefix .= ':' . $request->getVal( 'subproject' );
 				}
-				if ( $hasSubprojects && !in_array( $this->subproject, $importSources[$this->interwiki] ) ) {
+				if ( $hasSubprojects &&
+					!in_array( $this->subproject, $this->importSources[$this->interwiki] )
+				) {
 					$source = Status::newFatal( "import-invalid-interwiki" );
 				} else {
 					$this->history = $request->getCheck( 'interwikiHistory' );
@@ -167,7 +178,7 @@ class SpecialImport extends SpecialPage {
 		if ( !$source->isGood() ) {
 			$out->wrapWikiMsg(
 				"<p class=\"error\">\n$1\n</p>",
-				array( 'importfailed', $source->getWikiText() )
+				[ 'importfailed', $source->getWikiText() ]
 			);
 		} else {
 			$importer = new WikiImporter( $source->value, $this->getConfig() );
@@ -178,11 +189,11 @@ class SpecialImport extends SpecialPage {
 				if ( !$statusRootPage->isGood() ) {
 					$out->wrapWikiMsg(
 						"<p class=\"error\">\n$1\n</p>",
-						array(
+						[
 							'import-options-wrong',
 							$statusRootPage->getWikiText(),
 							count( $statusRootPage->getErrorsArray() )
-						)
+						]
 					);
 
 					return;
@@ -212,13 +223,13 @@ class SpecialImport extends SpecialPage {
 				# No source or XML parse error
 				$out->wrapWikiMsg(
 					"<p class=\"error\">\n$1\n</p>",
-					array( 'importfailed', $exception->getMessage() )
+					[ 'importfailed', $exception->getMessage() ]
 				);
 			} elseif ( !$result->isGood() ) {
 				# Zero revisions
 				$out->wrapWikiMsg(
 					"<p class=\"error\">\n$1\n</p>",
-					array( 'importfailed', $result->getWikiText() )
+					[ 'importfailed', $result->getWikiText() ]
 				);
 			} else {
 				# Success!
@@ -262,16 +273,16 @@ class SpecialImport extends SpecialPage {
 							!is_null( $defaultNamespace ) )
 					) . ' ' .
 					Html::namespaceSelector(
-						array(
+						[
 							'selected' => ( $isSameSourceAsBefore ?
 								$this->namespace :
 								( $defaultNamespace || '' ) ),
-						), array(
+						], [
 							'name' => "namespace",
 							// mw-import-namespace-interwiki, mw-import-namespace-upload
 							'id' => "mw-import-namespace-$sourceName",
 							'class' => 'namespaceselector',
-						)
+						]
 					) .
 					"</td>
 				</tr>
@@ -289,24 +300,23 @@ class SpecialImport extends SpecialPage {
 					) . ' ' .
 					Xml::input( 'rootpage', 50,
 						( $isSameSourceAsBefore ? $this->rootpage : '' ),
-						array(
+						[
 							// Should be "mw-import-rootpage-...", but we keep this inaccurate
 							// ID for legacy reasons
 							// mw-interwiki-rootpage-interwiki, mw-interwiki-rootpage-upload
 							'id' => "mw-interwiki-rootpage-$sourceName",
 							'type' => 'text'
-						)
+						]
 					) . ' ' .
 					"</td>
 				</tr>";
 	}
 
 	private function showForm() {
-		$action = $this->getPageTitle()->getLocalURL( array( 'action' => 'submit' ) );
+		$action = $this->getPageTitle()->getLocalURL( [ 'action' => 'submit' ] );
 		$user = $this->getUser();
 		$out = $this->getOutput();
 		$this->addHelpLink( '//meta.wikimedia.org/wiki/Special:MyLanguage/Help:Import', true );
-		$importSources = $this->getConfig()->get( 'ImportSources' );
 
 		if ( $user->isAllowed( 'importupload' ) ) {
 			$mappingSelection = $this->getMappingFormPart( 'upload' );
@@ -314,23 +324,23 @@ class SpecialImport extends SpecialPage {
 				Xml::fieldset( $this->msg( 'import-upload' )->text() ) .
 					Xml::openElement(
 						'form',
-						array(
+						[
 							'enctype' => 'multipart/form-data',
 							'method' => 'post',
 							'action' => $action,
 							'id' => 'mw-import-upload-form'
-						)
+						]
 					) .
 					$this->msg( 'importtext' )->parseAsBlock() .
 					Html::hidden( 'action', 'submit' ) .
 					Html::hidden( 'source', 'upload' ) .
-					Xml::openElement( 'table', array( 'id' => 'mw-import-table-upload' ) ) .
+					Xml::openElement( 'table', [ 'id' => 'mw-import-table-upload' ] ) .
 					"<tr>
 					<td class='mw-label'>" .
 					Xml::label( $this->msg( 'import-upload-filename' )->text(), 'xmlimport' ) .
 					"</td>
 					<td class='mw-input'>" .
-					Html::input( 'xmlimport', '', 'file', array( 'id' => 'xmlimport' ) ) . ' ' .
+					Html::input( 'xmlimport', '', 'file', [ 'id' => 'xmlimport' ] ) . ' ' .
 					"</td>
 				</tr>
 				<tr>
@@ -340,7 +350,7 @@ class SpecialImport extends SpecialPage {
 					<td class='mw-input'>" .
 					Xml::input( 'log-comment', 50,
 						( $this->sourceName === 'upload' ? $this->logcomment : '' ),
-						array( 'id' => 'mw-import-comment', 'type' => 'text' ) ) . ' ' .
+						[ 'id' => 'mw-import-comment', 'type' => 'text' ] ) . ' ' .
 					"</td>
 				</tr>
 				$mappingSelection
@@ -356,12 +366,12 @@ class SpecialImport extends SpecialPage {
 					Xml::closeElement( 'fieldset' )
 			);
 		} else {
-			if ( empty( $importSources ) ) {
+			if ( empty( $this->importSources ) ) {
 				$out->addWikiMsg( 'importnosources' );
 			}
 		}
 
-		if ( $user->isAllowed( 'import' ) && !empty( $importSources ) ) {
+		if ( $user->isAllowed( 'import' ) && !empty( $this->importSources ) ) {
 			# Show input field for import depth only if $wgExportMaxLinkDepth > 0
 			$importDepth = '';
 			if ( $this->getConfig()->get( 'ExportMaxLinkDepth' ) > 0 ) {
@@ -380,17 +390,17 @@ class SpecialImport extends SpecialPage {
 				Xml::fieldset( $this->msg( 'importinterwiki' )->text() ) .
 					Xml::openElement(
 						'form',
-						array(
+						[
 							'method' => 'post',
 							'action' => $action,
 							'id' => 'mw-import-interwiki-form'
-						)
+						]
 					) .
 					$this->msg( 'import-interwiki-text' )->parseAsBlock() .
 					Html::hidden( 'action', 'submit' ) .
 					Html::hidden( 'source', 'interwiki' ) .
 					Html::hidden( 'editToken', $user->getEditToken() ) .
-					Xml::openElement( 'table', array( 'id' => 'mw-import-table-interwiki' ) ) .
+					Xml::openElement( 'table', [ 'id' => 'mw-import-table-interwiki' ] ) .
 					"<tr>
 					<td class='mw-label'>" .
 					Xml::label( $this->msg( 'import-interwiki-sourcewiki' )->text(), 'interwiki' ) .
@@ -398,21 +408,21 @@ class SpecialImport extends SpecialPage {
 					<td class='mw-input'>" .
 					Xml::openElement(
 						'select',
-						array( 'name' => 'interwiki', 'id' => 'interwiki' )
+						[ 'name' => 'interwiki', 'id' => 'interwiki' ]
 					)
 			);
 
 			$needSubprojectField = false;
-			foreach ( $importSources as $key => $value ) {
+			foreach ( $this->importSources as $key => $value ) {
 				if ( is_int( $key ) ) {
 					$key = $value;
 				} elseif ( $value !== $key ) {
 					$needSubprojectField = true;
 				}
 
-				$attribs = array(
+				$attribs = [
 					'value' => $key,
-				);
+				];
 				if ( is_array( $value ) ) {
 					$attribs['data-subprojects'] = implode( ' ', $value );
 				}
@@ -430,12 +440,12 @@ class SpecialImport extends SpecialPage {
 				$out->addHTML(
 					Xml::openElement(
 						'select',
-						array( 'name' => 'subproject', 'id' => 'subproject' )
+						[ 'name' => 'subproject', 'id' => 'subproject' ]
 					)
 				);
 
-				$subprojectsToAdd = array();
-				foreach ( $importSources as $key => $value ) {
+				$subprojectsToAdd = [];
+				foreach ( $this->importSources as $key => $value ) {
 					if ( is_array( $value ) ) {
 						$subprojectsToAdd = array_merge( $subprojectsToAdd, $value );
 					}
@@ -459,7 +469,7 @@ class SpecialImport extends SpecialPage {
 					Xml::label( $this->msg( 'import-interwiki-sourcepage' )->text(), 'frompage' ) .
 					"</td>
 					<td class='mw-input'>" .
-					Xml::input( 'frompage', 50, $this->frompage, array( 'id' => 'frompage' ) ) .
+					Xml::input( 'frompage', 50, $this->frompage, [ 'id' => 'frompage' ] ) .
 					"</td>
 				</tr>
 				<tr>
@@ -494,7 +504,7 @@ class SpecialImport extends SpecialPage {
 					<td class='mw-input'>" .
 					Xml::input( 'log-comment', 50,
 						( $this->sourceName === 'interwiki' ? $this->logcomment : '' ),
-						array( 'id' => 'mw-interwiki-comment', 'type' => 'text' ) ) . ' ' .
+						[ 'id' => 'mw-interwiki-comment', 'type' => 'text' ] ) . ' ' .
 					"</td>
 				</tr>
 				$mappingSelection
@@ -526,6 +536,7 @@ class SpecialImport extends SpecialPage {
  */
 class ImportReporter extends ContextSource {
 	private $reason = false;
+	private $logTags = [];
 	private $mOriginalLogCallback = null;
 	private $mOriginalPageOutCallback = null;
 	private $mLogItemCount = 0;
@@ -538,14 +549,24 @@ class ImportReporter extends ContextSource {
 	 */
 	function __construct( $importer, $upload, $interwiki, $reason = false ) {
 		$this->mOriginalPageOutCallback =
-			$importer->setPageOutCallback( array( $this, 'reportPage' ) );
+			$importer->setPageOutCallback( [ $this, 'reportPage' ] );
 		$this->mOriginalLogCallback =
-			$importer->setLogItemCallback( array( $this, 'reportLogItem' ) );
-		$importer->setNoticeCallback( array( $this, 'reportNotice' ) );
+			$importer->setLogItemCallback( [ $this, 'reportLogItem' ] );
+		$importer->setNoticeCallback( [ $this, 'reportNotice' ] );
 		$this->mPageCount = 0;
 		$this->mIsUpload = $upload;
 		$this->mInterwiki = $interwiki;
 		$this->reason = $reason;
+	}
+
+	/**
+	 * Sets change tags to apply to the import log entry and null revision.
+	 *
+	 * @param array $tags
+	 * @since 1.29
+	 */
+	public function setChangeTags( array $tags ) {
+		$this->logTags = $tags;
 	}
 
 	function open() {
@@ -554,7 +575,7 @@ class ImportReporter extends ContextSource {
 
 	function reportNotice( $msg, array $params ) {
 		$this->getOutput()->addHTML(
-			Html::element( 'li', array(), $this->msg( $msg, $params )->text() )
+			Html::element( 'li', [], $this->msg( $msg, $params )->text() )
 		);
 	}
 
@@ -573,7 +594,7 @@ class ImportReporter extends ContextSource {
 	 * @param array $pageInfo
 	 * @return void
 	 */
-	function reportPage( $title, $foreignTitle, $revisionCount,
+	public function reportPage( $title, $foreignTitle, $revisionCount,
 			$successCount, $pageInfo ) {
 		$args = func_get_args();
 		call_user_func_array( $this->mOriginalPageOutCallback, $args );
@@ -584,40 +605,39 @@ class ImportReporter extends ContextSource {
 		}
 
 		$this->mPageCount++;
-
+		$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
 		if ( $successCount > 0 ) {
+			// <bdi> prevents jumbling of the versions count
+			// in RTL wikis in case the page title is LTR
 			$this->getOutput()->addHTML(
-				"<li>" . Linker::linkKnown( $title ) . " " .
+				"<li>" . $linkRenderer->makeLink( $title ) . " " .
+					"<bdi>" .
 					$this->msg( 'import-revision-count' )->numParams( $successCount )->escaped() .
+					"</bdi>" .
 					"</li>\n"
 			);
 
+			$logParams = [ '4:number:count' => $successCount ];
 			if ( $this->mIsUpload ) {
 				$detail = $this->msg( 'import-logentry-upload-detail' )->numParams(
 					$successCount )->inContentLanguage()->text();
-				if ( $this->reason ) {
-					$detail .= $this->msg( 'colon-separator' )->inContentLanguage()->text()
-						. $this->reason;
-				}
 				$action = 'upload';
 			} else {
-				$interwiki = '[[:' . $this->mInterwiki . ':' .
-					$foreignTitle->getFullText() . ']]';
+				$pageTitle = $foreignTitle->getFullText();
+				$fullInterwikiPrefix = $this->mInterwiki;
+				Hooks::run( 'ImportLogInterwikiLink', [ &$fullInterwikiPrefix, &$pageTitle ] );
+
+				$interwikiTitleStr = $fullInterwikiPrefix . ':' . $pageTitle;
+				$interwiki = '[[:' . $interwikiTitleStr . ']]';
 				$detail = $this->msg( 'import-logentry-interwiki-detail' )->numParams(
 					$successCount )->params( $interwiki )->inContentLanguage()->text();
-				if ( $this->reason ) {
-					$detail .= $this->msg( 'colon-separator' )->inContentLanguage()->text()
-						. $this->reason;
-				}
 				$action = 'interwiki';
+				$logParams['5:title-link:interwiki'] = $interwikiTitleStr;
 			}
-
-			$logEntry = new ManualLogEntry( 'import', $action );
-			$logEntry->setTarget( $title );
-			$logEntry->setComment( $detail );
-			$logEntry->setPerformer( $this->getUser() );
-			$logid = $logEntry->insert();
-			$logEntry->publish( $logid );
+			if ( $this->reason ) {
+				$detail .= $this->msg( 'colon-separator' )->inContentLanguage()->text()
+					. $this->reason;
+			}
 
 			$comment = $detail; // quick
 			$dbw = wfGetDB( DB_MASTER );
@@ -630,18 +650,35 @@ class ImportReporter extends ContextSource {
 				$this->getUser()
 			);
 
+			$nullRevId = null;
 			if ( !is_null( $nullRevision ) ) {
-				$nullRevision->insertOn( $dbw );
+				$nullRevId = $nullRevision->insertOn( $dbw );
 				$page = WikiPage::factory( $title );
 				# Update page record
 				$page->updateRevisionOn( $dbw, $nullRevision );
 				Hooks::run(
 					'NewRevisionFromEditComplete',
-					array( $page, $nullRevision, $latest, $this->getUser() )
+					[ $page, $nullRevision, $latest, $this->getUser() ]
 				);
 			}
+
+			// Create the import log entry
+			$logEntry = new ManualLogEntry( 'import', $action );
+			$logEntry->setTarget( $title );
+			$logEntry->setComment( $this->reason );
+			$logEntry->setPerformer( $this->getUser() );
+			$logEntry->setParameters( $logParams );
+			$logid = $logEntry->insert();
+			if ( count( $this->logTags ) ) {
+				$logEntry->setTags( $this->logTags );
+			}
+			// Make sure the null revision will be tagged as well
+			$logEntry->setAssociatedRevId( $nullRevId );
+
+			$logEntry->publish( $logid );
+
 		} else {
-			$this->getOutput()->addHTML( "<li>" . Linker::linkKnown( $title ) . " " .
+			$this->getOutput()->addHTML( "<li>" . $linkRenderer->makeKnownLink( $title ) . " " .
 				$this->msg( 'import-nonewrevisions' )->escaped() . "</li>\n" );
 		}
 	}

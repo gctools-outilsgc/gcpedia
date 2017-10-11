@@ -5,8 +5,11 @@
  * @class mw.special.upload
  * @singleton
  */
+
+/* eslint-disable no-use-before-define */
+/* global Uint8Array */
+
 ( function ( mw, $ ) {
-	/*jshint latedef:false */
 	var uploadWarning, uploadLicense,
 		ajaxUploadDestCheck = mw.config.get( 'wgAjaxUploadDestCheck' ),
 		$license = $( '#wpLicense' );
@@ -57,42 +60,54 @@
 		},
 
 		timeout: function () {
-			var $spinnerDestCheck;
+			var $spinnerDestCheck, title;
 			if ( !ajaxUploadDestCheck || this.nameToCheck === '' ) {
 				return;
 			}
 			$spinnerDestCheck = $.createSpinner().insertAfter( '#wpDestFile' );
+			title = mw.Title.newFromText( this.nameToCheck, mw.config.get( 'wgNamespaceIds' ).file );
 
 			( new mw.Api() ).get( {
+				formatversion: 2,
 				action: 'query',
-				titles: ( new mw.Title( this.nameToCheck, mw.config.get( 'wgNamespaceIds' ).file ) ).getPrefixedText(),
+				// If title is empty, user input is invalid, the API call will produce details about why
+				titles: title ? title.getPrefixedText() : this.nameToCheck,
 				prop: 'imageinfo',
-				iiprop: 'uploadwarning',
-				indexpageids: ''
+				iiprop: 'uploadwarning'
 			} ).done( function ( result ) {
-				var resultOut = '';
-				if ( result.query ) {
-					resultOut = result.query.pages[ result.query.pageids[ 0 ] ].imageinfo[ 0 ];
+				var
+					resultOut = '',
+					page = result.query.pages[ 0 ];
+				if ( page.imageinfo ) {
+					resultOut = page.imageinfo[ 0 ].html;
+				} else if ( page.invalidreason ) {
+					resultOut = mw.html.escape( page.invalidreason );
 				}
-				$spinnerDestCheck.remove();
 				uploadWarning.processResult( resultOut, uploadWarning.nameToCheck );
+			} ).always( function () {
+				$spinnerDestCheck.remove();
 			} );
 		},
 
 		processResult: function ( result, fileName ) {
-			this.setWarning( result.html );
-			this.responseCache[ fileName ] = result.html;
+			this.setWarning( result );
+			this.responseCache[ fileName ] = result;
 		},
 
 		setWarning: function ( warning ) {
-			$( '#wpDestFile-warning' ).html( warning );
+			var $warningBox = $( '#wpDestFile-warning' ),
+				$warning = $( $.parseHTML( warning ) );
+			mw.hook( 'wikipage.content' ).fire( $warning );
+			$warningBox.empty().append( $warning );
 
 			// Set a value in the form indicating that the warning is acknowledged and
 			// doesn't need to be redisplayed post-upload
 			if ( !warning ) {
 				$( '#wpDestFileWarningAck' ).val( '' );
+				$warningBox.removeAttr( 'class' );
 			} else {
 				$( '#wpDestFileWarningAck' ).val( '1' );
+				$warningBox.attr( 'class', 'mw-destfile-warning' );
 			}
 
 		}
@@ -115,19 +130,21 @@
 			$spinnerLicense = $.createSpinner().insertAfter( '#wpLicense' );
 
 			( new mw.Api() ).get( {
+				formatversion: 2,
 				action: 'parse',
 				text: '{{' + license + '}}',
 				title: $( '#wpDestFile' ).val() || 'File:Sample.jpg',
 				prop: 'text',
-				pst: ''
+				pst: true
 			} ).done( function ( result ) {
-				$spinnerLicense.remove();
 				uploadLicense.processResult( result, license );
+			} ).always( function () {
+				$spinnerLicense.remove();
 			} );
 		},
 
 		processResult: function ( result, license ) {
-			this.responseCache[ license ] = result.parse.text[ '*' ];
+			this.responseCache[ license ] = result.parse.text;
 			this.showPreview( this.responseCache[ license ] );
 		},
 
@@ -235,7 +252,7 @@
 				// Output result
 				if ( $( '#wpDestFile' ).length ) {
 					// Call decodeURIComponent function to remove possible URL-encoded characters
-					// from the file name (bug 30390). Especially likely with upload-form-url.
+					// from the file name (T32390). Especially likely with upload-form-url.
 					// decodeURIComponent can throw an exception if input is invalid utf-8
 					try {
 						$( '#wpDestFile' ).val( decodeURIComponent( fname ) );
@@ -252,6 +269,8 @@
 	$( function () {
 		/**
 		 * Is the FileAPI available with sufficient functionality?
+		 *
+		 * @return {boolean}
 		 */
 		function hasFileAPI() {
 			return window.FileReader !== undefined;
@@ -263,7 +282,7 @@
 		 *
 		 * TODO: Is there a way we can ask the browser what's supported in `<img>`s?
 		 *
-		 * TODO: Put SVG back after working around Firefox 7 bug <https://bugzilla.wikimedia.org/show_bug.cgi?id=31643>
+		 * TODO: Put SVG back after working around Firefox 7 bug <https://phabricator.wikimedia.org/T33643>
 		 *
 		 * @param {File} file
 		 * @return {boolean}
@@ -399,13 +418,16 @@
 
 					$( '#mw-upload-thumbnail .fileinfo' ).text( info );
 				};
+				img.onerror = function () {
+					// Can happen for example for invalid SVG files
+					clearPreview();
+				};
 				img.src = dataURL;
 			}, mw.config.get( 'wgFileCanRotate' ) ? function ( data ) {
 				try {
 					meta = mw.libs.jpegmeta( data, file.fileName );
-					// jscs:disable requireCamelCaseOrUpperCaseIdentifiers, disallowDanglingUnderscores
+					// eslint-disable-next-line no-underscore-dangle, camelcase
 					meta._binary_data = null;
-					// jscs:enable
 				} catch ( e ) {
 					meta = null;
 				}
@@ -426,7 +448,7 @@
 			var reader = new FileReader();
 			if ( callbackBinary && 'readAsBinaryString' in reader ) {
 				// To fetch JPEG metadata we need a binary string; start there.
-				// todo:
+				// TODO
 				reader.onload = function () {
 					callbackBinary( reader.result );
 
@@ -481,6 +503,9 @@
 
 		/**
 		 * Check if the file does not exceed the maximum size
+		 *
+		 * @param {File} file
+		 * @return {boolean}
 		 */
 		function checkMaxUploadSize( file ) {
 			var maxSize, $error;
@@ -513,10 +538,11 @@
 		if ( hasFileAPI() ) {
 			// Update thumbnail when the file selection control is updated.
 			$( '#wpUploadFile' ).change( function () {
+				var file;
 				clearPreview();
 				if ( this.files && this.files.length ) {
 					// Note: would need to be updated to handle multiple files.
-					var file = this.files[ 0 ];
+					file = this.files[ 0 ];
 
 					if ( !checkMaxUploadSize( file ) ) {
 						return;

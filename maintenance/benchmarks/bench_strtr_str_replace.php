@@ -41,32 +41,31 @@ function bfNormalizeTitleStrReplace( $str ) {
 class BenchStrtrStrReplace extends Benchmarker {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Benchmark for strtr() vs str_replace().";
+		$this->addDescription( 'Benchmark for strtr() vs str_replace().' );
 	}
 
 	public function execute() {
-		$this->bench( array(
-			array( 'function' => array( $this, 'benchstrtr' ) ),
-			array( 'function' => array( $this, 'benchstr_replace' ) ),
-			array( 'function' => array( $this, 'benchstrtr_indirect' ) ),
-			array( 'function' => array( $this, 'benchstr_replace_indirect' ) ),
-		) );
-		print $this->getFormattedResults();
+		$this->bench( [
+			[ 'function' => [ $this, 'benchstrtr' ] ],
+			[ 'function' => [ $this, 'benchstr_replace' ] ],
+			[ 'function' => [ $this, 'benchstrtr_indirect' ] ],
+			[ 'function' => [ $this, 'benchstr_replace_indirect' ] ],
+		] );
 	}
 
-	function benchstrtr() {
+	protected function benchstrtr() {
 		strtr( "[[MediaWiki:Some_random_test_page]]", "_", " " );
 	}
 
-	function benchstr_replace() {
+	protected function benchstr_replace() {
 		str_replace( "_", " ", "[[MediaWiki:Some_random_test_page]]" );
 	}
 
-	function benchstrtr_indirect() {
+	protected function benchstrtr_indirect() {
 		bfNormalizeTitleStrTr( "[[MediaWiki:Some_random_test_page]]" );
 	}
 
-	function benchstr_replace_indirect() {
+	protected function benchstr_replace_indirect() {
 		bfNormalizeTitleStrReplace( "[[MediaWiki:Some_random_test_page]]" );
 	}
 }

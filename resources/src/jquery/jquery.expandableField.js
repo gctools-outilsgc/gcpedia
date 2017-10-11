@@ -12,13 +12,15 @@
  *		$('#textbox').expandableField();
  *
  * Options:
- *
  */
 ( function ( $ ) {
 
 	$.expandableField = {
 		/**
 		 * Expand the field, make the callback
+		 *
+		 * @param {jQuery.Event} e Event
+		 * @param {Object} context
 		 */
 		expandField: function ( e, context ) {
 			context.config.beforeExpand.call( context.data.$field, context );
@@ -29,6 +31,9 @@
 		},
 		/**
 		 * Condense the field, make the callback
+		 *
+		 * @param {jQuery.Event} e Event
+		 * @param {Object} context
 		 */
 		condenseField: function ( e, context ) {
 			context.config.beforeCondense.call( context.data.$field, context );
@@ -40,7 +45,8 @@
 		/**
 		 * Sets the value of a property, and updates the widget accordingly
 		 *
-		 * @param {String} property Name of property
+		 * @param {Object} context
+		 * @param {string} property Name of property
 		 * @param {Mixed} value Value to set property with
 		 */
 		configure: function ( context, property, value ) {

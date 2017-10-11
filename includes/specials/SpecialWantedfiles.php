@@ -83,7 +83,7 @@ class WantedFilesPage extends WantedQueryPage {
 	 * KLUGE: The results may contain false positives for files
 	 * that exist e.g. in a shared repo.  Setting this at least
 	 * keeps them from showing up as redlinks in the output, even
-	 * if it doesn't fix the real problem (bug 6220).
+	 * if it doesn't fix the real problem (T8220).
 	 *
 	 * @note could also have existing links here from broken file
 	 * redirects.
@@ -106,43 +106,43 @@ class WantedFilesPage extends WantedQueryPage {
 	}
 
 	function getQueryInfo() {
-		return array(
-			'tables' => array(
+		return [
+			'tables' => [
 				'imagelinks',
 				'page',
 				'redirect',
 				'img1' => 'image',
 				'img2' => 'image',
-			),
-			'fields' => array(
+			],
+			'fields' => [
 				'namespace' => NS_FILE,
 				'title' => 'il_to',
 				'value' => 'COUNT(*)'
-			),
-			'conds' => array(
+			],
+			'conds' => [
 				'img1.img_name' => null,
 				// We also need to exclude file redirects
 				'img2.img_name' => null,
-			),
-			'options' => array( 'GROUP BY' => 'il_to' ),
-			'join_conds' => array(
-				'img1' => array( 'LEFT JOIN',
+			],
+			'options' => [ 'GROUP BY' => 'il_to' ],
+			'join_conds' => [
+				'img1' => [ 'LEFT JOIN',
 					'il_to = img1.img_name'
-				),
-				'page' => array( 'LEFT JOIN', array(
+				],
+				'page' => [ 'LEFT JOIN', [
 					'il_to = page_title',
 					'page_namespace' => NS_FILE,
-				) ),
-				'redirect' => array( 'LEFT JOIN', array(
+				] ],
+				'redirect' => [ 'LEFT JOIN', [
 					'page_id = rd_from',
 					'rd_namespace' => NS_FILE,
 					'rd_interwiki' => ''
-				) ),
-				'img2' => array( 'LEFT JOIN',
+				] ],
+				'img2' => [ 'LEFT JOIN',
 					'rd_title = img2.img_name'
-				)
-			)
-		);
+				]
+			]
+		];
 	}
 
 	protected function getGroupName() {

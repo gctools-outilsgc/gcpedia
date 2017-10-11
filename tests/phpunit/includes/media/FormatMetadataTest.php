@@ -33,7 +33,7 @@ class FormatMetadataTest extends MediaWikiMediaTestCase {
 		$this->assertNotNull( $dateIndex, 'Date entry exists in metadata' );
 		$this->assertEquals( '0000:01:00 00:02:27',
 			$meta['visible'][$dateIndex]['value'],
-			'File with invalid date metadata (bug 29471)' );
+			'File with invalid date metadata (T31471)' );
 	}
 
 	/**
@@ -52,19 +52,47 @@ class FormatMetadataTest extends MediaWikiMediaTestCase {
 	}
 
 	public function provideResolveMultivalueValue() {
-		return array(
-			'nonArray' => array( 'foo', 'foo' ),
-			'multiValue' => array( array( 'first', 'second', 'third', '_type' => 'ol' ), 'first' ),
-			'noType' => array( array( 'first', 'second', 'third' ), 'first' ),
-			'typeFirst' => array( array( '_type' => 'ol', 'first', 'second', 'third' ), 'first' ),
-			'multilang' => array(
-				array( 'en' => 'first', 'de' => 'Erste', '_type' => 'lang' ),
-				array( 'en' => 'first', 'de' => 'Erste', '_type' => 'lang' ),
-			),
-			'multilang-multivalue' => array(
-				array( 'en' => array( 'first', 'second' ), 'de' => array( 'Erste', 'Zweite' ), '_type' => 'lang' ),
-				array( 'en' => 'first', 'de' => 'Erste', '_type' => 'lang' ),
-			),
-		);
+		return [
+			'nonArray' => [
+				'foo',
+				'foo'
+			],
+			'multiValue' => [
+				[ 'first', 'second', 'third', '_type' => 'ol' ],
+				'first'
+			],
+			'noType' => [
+				[ 'first', 'second', 'third' ],
+				'first'
+			],
+			'typeFirst' => [
+				[ '_type' => 'ol', 'first', 'second', 'third' ],
+				'first'
+			],
+			'multilang' => [
+				[
+					'en' => 'first',
+					'de' => 'Erste',
+					'_type' => 'lang'
+				],
+				[
+					'en' => 'first',
+					'de' => 'Erste',
+					'_type' => 'lang'
+				],
+			],
+			'multilang-multivalue' => [
+				[
+					'en' => [ 'first', 'second' ],
+					'de' => [ 'Erste', 'Zweite' ],
+					'_type' => 'lang'
+				],
+				[
+					'en' => 'first',
+					'de' => 'Erste',
+					'_type' => 'lang'
+				],
+			],
+		];
 	}
 }

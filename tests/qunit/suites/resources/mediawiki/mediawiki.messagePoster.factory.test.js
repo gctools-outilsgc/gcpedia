@@ -7,7 +7,7 @@
 		}
 	} ) );
 
-	QUnit.test( 'register', 2, function ( assert ) {
+	QUnit.test( 'register', function ( assert ) {
 		var testMessagePosterConstructor = function () {};
 
 		mw.messagePoster.factory.register( TEST_MODEL, testMessagePosterConstructor );
@@ -21,7 +21,7 @@
 			function () {
 				mw.messagePoster.factory.register( TEST_MODEL, testMessagePosterConstructor );
 			},
-			new RegExp( 'The content model \'' + TEST_MODEL + '\' is already registered.' ),
+			new RegExp( 'Content model "' + TEST_MODEL + '" is already registered' ),
 			'Throws exception is same model is registered a second time'
 		);
 	} );

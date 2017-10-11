@@ -11,17 +11,17 @@
 
 .mw-badge-content {
 	font-weight: bold;
-	color: white;
+	color: #fff;
 	vertical-align: baseline;
-	text-shadow: 0 1px rgba(0, 0, 0, 0.4);
+	text-shadow: 0 1px rgba( 0, 0, 0, 0.4 );
 }
 
 .mw-badge-inline {
 	margin-left: 3px;
 	display: inline-block;
-	/* Hack for IE6 and IE7 (bug 47926) */
+	/* Hack for IE6 and IE7 (T49926) */
 	zoom: 1;
-	*display: inline;
+	*display: inline; /* stylelint-disable-line declaration-block-no-duplicate-properties */
 
 }
 .mw-badge-overlay {
@@ -32,5 +32,5 @@
 }
 
 .mw-badge-important {
-	background-color: #cc0000;
+	background-color: #c00;
 }

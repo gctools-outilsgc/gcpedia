@@ -28,10 +28,10 @@
  */
 abstract class RedirectSpecialPage extends UnlistedSpecialPage {
 	// Query parameters that can be passed through redirects
-	protected $mAllowedRedirectParams = array();
+	protected $mAllowedRedirectParams = [];
 
 	// Query parameters added by redirects
-	protected $mAddedRedirectParams = array();
+	protected $mAddedRedirectParams = [];
 
 	/**
 	 * @param string|null $subpage
@@ -41,7 +41,7 @@ abstract class RedirectSpecialPage extends UnlistedSpecialPage {
 		$query = $this->getRedirectQuery();
 		// Redirect to a page title with possible query parameters
 		if ( $redirect instanceof Title ) {
-			$url = $redirect->getFullURL( $query );
+			$url = $redirect->getFullUrlForRedirect( $query );
 			$this->getOutput()->redirect( $url );
 
 			return $redirect;
@@ -52,7 +52,7 @@ abstract class RedirectSpecialPage extends UnlistedSpecialPage {
 
 			return $redirect;
 		} else {
-			$class = get_class( $this );
+			$class = static::class;
 			throw new MWException( "RedirectSpecialPage $class doesn't redirect!" );
 		}
 	}
@@ -73,11 +73,11 @@ abstract class RedirectSpecialPage extends UnlistedSpecialPage {
 	 * @return array|bool
 	 */
 	public function getRedirectQuery() {
-		$params = array();
+		$params = [];
 		$request = $this->getRequest();
 
 		foreach ( array_merge( $this->mAllowedRedirectParams,
-				array( 'uselang', 'useskin', 'debug' ) // parameters which can be passed to all pages
+				[ 'uselang', 'useskin', 'debug' ] // parameters which can be passed to all pages
 			) as $arg ) {
 			if ( $request->getVal( $arg, null ) !== null ) {
 				$params[$arg] = $request->getVal( $arg );
@@ -120,7 +120,7 @@ abstract class SpecialRedirectToSpecial extends RedirectSpecialPage {
 
 	function __construct(
 		$name, $redirName, $redirSubpage = false,
-		$allowedRedirectParams = array(), $addedRedirectParams = array()
+		$allowedRedirectParams = [], $addedRedirectParams = []
 	) {
 		parent::__construct( $name );
 		$this->redirName = $redirName;
@@ -208,7 +208,7 @@ abstract class SpecialRedirectToSpecial extends RedirectSpecialPage {
 abstract class RedirectSpecialArticle extends RedirectSpecialPage {
 	function __construct( $name ) {
 		parent::__construct( $name );
-		$redirectParams = array(
+		$redirectParams = [
 			'action',
 			'redirect', 'rdfrom',
 			# Options for preloaded edits
@@ -222,9 +222,9 @@ abstract class RedirectSpecialArticle extends RedirectSpecialPage {
 			'redlink',
 			# Options for action=raw; missing ctype can break JS or CSS in some browsers
 			'ctype', 'maxage', 'smaxage',
-		);
+		];
 
-		Hooks::run( "RedirectSpecialArticleRedirectParams", array( &$redirectParams ) );
+		Hooks::run( "RedirectSpecialArticleRedirectParams", [ &$redirectParams ] );
 		$this->mAllowedRedirectParams = $redirectParams;
 	}
 }

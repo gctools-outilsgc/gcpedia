@@ -21,6 +21,9 @@
  * @ingroup Maintenance
  */
 
+use Wikimedia\Rdbms\DatabaseSqlite;
+use Wikimedia\Rdbms\DBError;
+
 /**
  * This class contains code common to different SQLite-related maintenance scripts
  *
@@ -49,15 +52,15 @@ class Sqlite {
 			throw new MWException( "Can't check SQL syntax: SQLite not found" );
 		}
 		if ( !is_array( $files ) ) {
-			$files = array( $files );
+			$files = [ $files ];
 		}
 
-		$allowedTypes = array_flip( array(
+		$allowedTypes = array_flip( [
 			'integer',
 			'real',
 			'text',
 			'blob', // NULL type is omitted intentionally
-		) );
+		] );
 
 		$db = DatabaseSqlite::newStandaloneInstance( ':memory:' );
 		try {

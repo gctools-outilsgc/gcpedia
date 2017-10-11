@@ -1,16 +1,15 @@
-/*global CompletenessTest, sinon */
-/*jshint evil: true */
+/* global sinon */
 ( function ( $, mw, QUnit ) {
 	'use strict';
 
-	var mwTestIgnore, mwTester, addons;
+	var addons;
 
 	/**
 	 * Add bogus to url to prevent IE crazy caching
 	 *
-	 * @param {String} value a relative path (eg. 'data/foo.js'
+	 * @param {string} value a relative path (eg. 'data/foo.js'
 	 * or 'data/test.php?foo=bar').
-	 * @return {String} Such as 'data/foo.js?131031765087663960'
+	 * @return {string} Such as 'data/foo.js?131031765087663960'
 	 */
 	QUnit.fixurl = function ( value ) {
 		return value + ( /\?/.test( value ) ? '&' : '?' )
@@ -22,12 +21,13 @@
 	 * Configuration
 	 */
 
-	// When a test() indicates asynchronicity with stop(),
-	// allow 30 seconds to pass before killing the test(),
-	// and assuming failure.
-	QUnit.config.testTimeout = 30 * 1000;
+	// For each test() that is asynchronous, allow this time to pass before
+	// killing the test and assuming timeout failure.
+	QUnit.config.testTimeout = 60 * 1000;
 
-	QUnit.config.requireExpects = true;
+	// Reduce default animation duration from 400ms to 0ms for unit tests
+	// eslint-disable-next-line no-underscore-dangle
+	$.fx.speeds._default = 0;
 
 	// Add a checkbox to QUnit header to toggle MediaWiki ResourceLoader debug mode.
 	QUnit.config.urlConfig.push( {
@@ -35,17 +35,6 @@
 		label: 'Enable ResourceLoaderDebug',
 		tooltip: 'Enable debug mode in ResourceLoader',
 		value: 'true'
-	} );
-
-	/**
-	 * CompletenessTest
-	 *
-	 * Adds toggle checkbox to header
-	 */
-	QUnit.config.urlConfig.push( {
-		id: 'completenesstest',
-		label: 'Run CompletenessTest',
-		tooltip: 'Run the completeness test'
 	} );
 
 	/**
@@ -125,42 +114,6 @@
 		};
 	}() );
 
-	// Initiate when enabled
-	if ( QUnit.urlParams.completenesstest ) {
-
-		// Return true to ignore
-		mwTestIgnore = function ( val, tester ) {
-
-			// Don't record methods of the properties of constructors,
-			// to avoid getting into a loop (prototype.constructor.prototype..).
-			// Since we're therefor skipping any injection for
-			// "new mw.Foo()", manually set it to true here.
-			if ( val instanceof mw.Map ) {
-				tester.methodCallTracker.Map = true;
-				return true;
-			}
-			if ( val instanceof mw.Title ) {
-				tester.methodCallTracker.Title = true;
-				return true;
-			}
-
-			// Don't record methods of the properties of a jQuery object
-			if ( val instanceof $ ) {
-				return true;
-			}
-
-			// Don't iterate over the module registry (the 'script' references would
-			// be listed as untested methods otherwise)
-			if ( val === mw.loader.moduleRegistry ) {
-				return true;
-			}
-
-			return false;
-		};
-
-		mwTester = new CompletenessTest( mw, mwTestIgnore );
-	}
-
 	/**
 	 * Reset mw.config and others to a fresh copy of the live config for each test(),
 	 * and restore it back to the live one afterwards.
@@ -171,15 +124,18 @@
 	 */
 	QUnit.newMwEnvironment = ( function () {
 		var warn, error, liveConfig, liveMessages,
+			MwMap = mw.config.constructor, // internal use only
 			ajaxRequests = [];
 
-		liveConfig = mw.config.values;
-		liveMessages = mw.messages.values;
+		liveConfig = mw.config;
+		liveMessages = mw.messages;
 
 		function suppressWarnings() {
-			warn = mw.log.warn;
-			error = mw.log.error;
-			mw.log.warn = mw.log.error = $.noop;
+			if ( warn === undefined ) {
+				warn = mw.log.warn;
+				error = mw.log.error;
+				mw.log.warn = mw.log.error = $.noop;
+			}
 		}
 
 		function restoreWarnings() {
@@ -202,14 +158,14 @@
 			// NOTE: It is important that we suppress warnings because extend() will also access
 			// deprecated properties and trigger deprecation warnings from mw.log#deprecate.
 			suppressWarnings();
-			copy = $.extend( {}, liveConfig, custom );
+			copy = $.extend( {}, liveConfig.get(), custom );
 			restoreWarnings();
 
 			return copy;
 		}
 
 		function freshMessagesCopy( custom ) {
-			return $.extend( /*deep=*/true, {}, liveMessages, custom );
+			return $.extend( /* deep */true, {}, liveMessages.get(), custom );
 		}
 
 		/**
@@ -235,8 +191,15 @@
 				setup: function () {
 
 					// Greetings, mock environment!
-					mw.config.values = freshConfigCopy( localEnv.config );
-					mw.messages.values = freshMessagesCopy( localEnv.messages );
+					mw.config = new MwMap();
+					mw.config.set( freshConfigCopy( localEnv.config ) );
+					mw.messages = new MwMap();
+					mw.messages.set( freshMessagesCopy( localEnv.messages ) );
+					// Update reference to mw.messages
+					mw.jqueryMsg.setParserDefaults( {
+						messages: mw.messages
+					} );
+
 					this.suppressWarnings = suppressWarnings;
 					this.restoreWarnings = restoreWarnings;
 
@@ -254,13 +217,17 @@
 					// Stop tracking ajax requests
 					$( document ).off( 'ajaxSend', trackAjax );
 
-					// Farewell, mock environment!
-					mw.config.values = liveConfig;
-					mw.messages.values = liveMessages;
-
 					// As a convenience feature, automatically restore warnings if they're
 					// still suppressed by the end of the test.
 					restoreWarnings();
+
+					// Farewell, mock environment!
+					mw.config = liveConfig;
+					mw.messages = liveMessages;
+					// Restore reference to mw.messages
+					mw.jqueryMsg.setParserDefaults( {
+						messages: liveMessages
+					} );
 
 					// Tests should use fake timers or wait for animations to complete
 					// Check for incomplete animations/requests/etc and throw if there are any.
@@ -273,6 +240,7 @@
 							);
 						} );
 						// Force animations to stop to give the next test a clean start
+						$.timers = [];
 						$.fx.stop();
 
 						throw new Error( 'Unfinished animations: ' + timers );
@@ -288,8 +256,11 @@
 							mw.log.warn( 'Pending requests does not match jQuery.active count' );
 						}
 						// Force requests to stop to give the next test a clean start
-						$.each( pending, function ( i, ajax ) {
-							mw.log.warn( 'Pending AJAX request #' + i, ajax.options );
+						$.each( ajaxRequests, function ( i, ajax ) {
+							mw.log.warn(
+								'AJAX request #' + i + ' (state: ' + ajax.xhr.state() + ')',
+								ajax.options
+							);
 							ajax.xhr.abort();
 						} );
 						ajaxRequests = [];
@@ -468,7 +439,7 @@
 		}
 	} ) );
 
-	QUnit.test( 'Setup', 3, function ( assert ) {
+	QUnit.test( 'Setup', function ( assert ) {
 		assert.equal( mw.html.escape( 'foo' ), 'mocked', 'setup() callback was ran.' );
 		assert.equal( mw.config.get( 'testVar' ), 'foo', 'config object applied' );
 		assert.equal( mw.messages.get( 'testMsg' ), 'Foo.', 'messages object applied' );
@@ -477,12 +448,12 @@
 		mw.messages.set( 'testMsg', 'Bar.' );
 	} );
 
-	QUnit.test( 'Teardown', 2, function ( assert ) {
+	QUnit.test( 'Teardown', function ( assert ) {
 		assert.equal( mw.config.get( 'testVar' ), 'foo', 'config object restored and re-applied after test()' );
 		assert.equal( mw.messages.get( 'testMsg' ), 'Foo.', 'messages object restored and re-applied after test()' );
 	} );
 
-	QUnit.test( 'Loader status', 2, function ( assert ) {
+	QUnit.test( 'Loader status', function ( assert ) {
 		var i, len, state,
 			modules = mw.loader.getModuleNames(),
 			error = [],
@@ -501,7 +472,7 @@
 		assert.deepEqual( missing, [], 'Modules in missing state' );
 	} );
 
-	QUnit.test( 'htmlEqual', 8, function ( assert ) {
+	QUnit.test( 'htmlEqual', function ( assert ) {
 		assert.htmlEqual(
 			'<div><p class="some classes" data-length="10">Child paragraph with <a href="http://example.com">A link</a></p>Regular text<span>A span</span></div>',
 			'<div><p data-length=\'10\'  class=\'some classes\'>Child paragraph with <a href=\'http://example.com\' >A link</a></p>Regular text<span>A span</span></div>',
@@ -553,7 +524,7 @@
 
 	QUnit.module( 'test.mediawiki.qunit.testrunner-after', QUnit.newMwEnvironment() );
 
-	QUnit.test( 'Teardown', 3, function ( assert ) {
+	QUnit.test( 'Teardown', function ( assert ) {
 		assert.equal( mw.html.escape( '<' ), '&lt;', 'teardown() callback was ran.' );
 		assert.equal( mw.config.get( 'testVar' ), null, 'config object restored to live in next module()' );
 		assert.equal( mw.messages.get( 'testMsg' ), null, 'messages object restored to live in next module()' );

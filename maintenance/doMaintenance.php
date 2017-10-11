@@ -25,6 +25,7 @@
  * @file
  * @ingroup Maintenance
  */
+use MediaWiki\MediaWikiServices;
 
 if ( !defined( 'RUN_MAINTENANCE_IF_MAIN' ) ) {
 	echo "This file must be included after Maintenance.php\n";
@@ -60,7 +61,7 @@ require_once "$IP/includes/AutoLoader.php";
 require_once "$IP/includes/profiler/ProfilerFunctions.php";
 
 # Start the profiler
-$wgProfiler = array();
+$wgProfiler = [];
 if ( file_exists( "$IP/StartProfiler.php" ) ) {
 	require "$IP/StartProfiler.php";
 }
@@ -97,7 +98,14 @@ $maintenance->finalSetup();
 require_once "$IP/includes/Setup.php";
 
 // Initialize main config instance
-$maintenance->setConfig( ConfigFactory::getDefaultInstance()->makeConfig( 'main' ) );
+$maintenance->setConfig( MediaWikiServices::getInstance()->getMainConfig() );
+
+// Sanity-check required extensions are installed
+$maintenance->checkRequiredExtensions();
+
+// A good time when no DBs have writes pending is around lag checks.
+// This avoids having long running scripts just OOM and lose all the updates.
+$maintenance->setAgentAndTriggers();
 
 // Do the work
 $maintenance->execute();
@@ -106,12 +114,13 @@ $maintenance->execute();
 $maintenance->globals();
 
 // Perform deferred updates.
-DeferredUpdates::doUpdates( 'commit' );
+$lbFactory = MediaWikiServices::getInstance()->getDBLoadBalancerFactory();
+$lbFactory->commitMasterChanges( $maintClass );
+DeferredUpdates::doUpdates();
 
 // log profiling info
 wfLogProfilingData();
 
 // Commit and close up!
-$factory = wfGetLBFactory();
-$factory->commitMasterChanges();
-$factory->shutdown();
+$lbFactory->commitMasterChanges( 'doMaintenance' );
+$lbFactory->shutdown( $lbFactory::SHUTDOWN_NO_CHRONPROT );

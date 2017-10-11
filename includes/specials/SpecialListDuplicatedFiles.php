@@ -24,6 +24,9 @@
  * @author Brian Wolff
  */
 
+use Wikimedia\Rdbms\ResultWrapper;
+use Wikimedia\Rdbms\IDatabase;
+
 /**
  * Special:ListDuplicatedFiles Lists all files where the current version is
  *   a duplicate of the current version of some other file.
@@ -54,18 +57,18 @@ class ListDuplicatedFilesPage extends QueryPage {
 	 * @return array
 	 */
 	public function getQueryInfo() {
-		return array(
-			'tables' => array( 'image' ),
-			'fields' => array(
+		return [
+			'tables' => [ 'image' ],
+			'fields' => [
 				'namespace' => NS_FILE,
 				'title' => 'MIN(img_name)',
 				'value' => 'count(*)'
-			),
-			'options' => array(
+			],
+			'options' => [
 				'GROUP BY' => 'img_sha1',
 				'HAVING' => 'count(*) > 1',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -75,18 +78,8 @@ class ListDuplicatedFilesPage extends QueryPage {
 	 * @param ResultWrapper $res
 	 */
 	function preprocessResults( $db, $res ) {
-		if ( $res->numRows() > 0 ) {
-			$linkBatch = new LinkBatch();
-
-			foreach ( $res as $row ) {
-				$linkBatch->add( $row->namespace, $row->title );
-			}
-
-			$res->seek( 0 );
-			$linkBatch->execute();
-		}
+		$this->executeLBFromResultWrapper( $res );
 	}
-
 
 	/**
 	 * @param Skin $skin
@@ -97,12 +90,12 @@ class ListDuplicatedFilesPage extends QueryPage {
 		// Future version might include a list of the first 5 duplicates
 		// perhaps separated by an "↔".
 		$image1 = Title::makeTitle( $result->namespace, $result->title );
-		$dupeSearch = SpecialPage::getTitleFor( 'FileDuplicateSearch', $image1->getDBKey() );
+		$dupeSearch = SpecialPage::getTitleFor( 'FileDuplicateSearch', $image1->getDBkey() );
 
 		$msg = $this->msg( 'listduplicatedfiles-entry' )
 			->params( $image1->getText() )
 			->numParams( $result->value - 1 )
-			->params( $dupeSearch->getPrefixedDBKey() );
+			->params( $dupeSearch->getPrefixedDBkey() );
 
 		return $msg->parse();
 	}

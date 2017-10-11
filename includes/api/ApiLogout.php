@@ -24,6 +24,8 @@
  * @file
  */
 
+use MediaWiki\Session\BotPasswordSessionProvider;
+
 /**
  * API module to allow users to log out of the wiki. API equivalent of
  * Special:Userlogout.
@@ -33,13 +35,32 @@
 class ApiLogout extends ApiBase {
 
 	public function execute() {
+		$session = MediaWiki\Session\SessionManager::getGlobalSession();
+
+		// Handle bot password logout specially
+		if ( $session->getProvider() instanceof BotPasswordSessionProvider ) {
+			$session->unpersist();
+			return;
+		}
+
+		// Make sure it's possible to log out
+		if ( !$session->canSetUser() ) {
+			$this->dieWithError(
+				[
+					'cannotlogoutnow-text',
+					$session->getProvider()->describe( $this->getErrorFormatter()->getLanguage() )
+				],
+				'cannotlogout'
+			);
+		}
+
 		$user = $this->getUser();
 		$oldName = $user->getName();
 		$user->logout();
 
 		// Give extensions to do something after user logout
 		$injected_html = '';
-		Hooks::run( 'UserLogoutComplete', array( &$user, &$injected_html, $oldName ) );
+		Hooks::run( 'UserLogoutComplete', [ &$user, &$injected_html, $oldName ] );
 	}
 
 	public function isReadMode() {
@@ -47,13 +68,13 @@ class ApiLogout extends ApiBase {
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=logout'
 				=> 'apihelp-logout-example-logout',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Logout';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Logout';
 	}
 }
