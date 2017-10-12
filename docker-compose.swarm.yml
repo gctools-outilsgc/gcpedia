@@ -65,6 +65,9 @@ services:
     image: msokk/electron-render-service
     networks:
       - gcpedia-services
+    environment:
+      - RENDERER_ACCESS_KEY: secret
+      - HOSTNAME:
     deploy:
       replicas: 1
       resources:
