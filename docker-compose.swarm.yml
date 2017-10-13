@@ -66,8 +66,14 @@ services:
     networks:
       - gcpedia-services
     environment:
+      # blank HOSTNAME is needed for swarm mode, everything else is showing defaults
       - RENDERER_ACCESS_KEY: secret
       - HOSTNAME:
+      - CONCURRENCY: 1
+      - TIMEOUT: 30
+      - WINDOW_WIDTH: 1024
+      - WINDOW_HEIGHT: 768
+      - PORT: 3000
     deploy:
       replicas: 1
       resources:
