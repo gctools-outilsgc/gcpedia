@@ -1,3 +1,7 @@
+== GCpedia ==
+Master branch: work in progress, mostly working upgraded to mediawiki 1.29
+GCpedia branch: almost identical to GCpedia production
+
 == MediaWiki ==
 
 MediaWiki is a free and open-source wiki software package written in PHP. It
