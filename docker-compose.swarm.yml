@@ -4,7 +4,7 @@ services:
   # The GCpedia container.  Will be accessible at http://localhost:8080
   # ###########################################################################
   gcpedia:
-    image: phanoix/gcpedia
+    image: gcpedia
     ports:
       - 8800:80
     volumes:
