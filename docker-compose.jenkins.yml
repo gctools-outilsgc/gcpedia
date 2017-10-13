@@ -46,7 +46,16 @@ services:
         reservations:
           cpus: '0.001'
           memory: 20M
-
+  
+  # ###########################################################################
+  # Local image registry container. 
+  # ###########################################################################
+  registry:
+    image: registry
+    networks:
+      - jenkins-workers
+    deploy:
+      replicas: 1
 
 volumes:
   jenkins_home:
