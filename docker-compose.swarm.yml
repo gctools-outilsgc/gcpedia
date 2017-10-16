@@ -83,8 +83,8 @@ services:
           reservations:
             cpus: '0.01'
             memory: 50M
-    restart_policy:
-      condition: on-failure
+      restart_policy:
+        condition: on-failure
 
   # ###########################################################################
   # Database container for gcpedia, accessible from by the gcpedia container 
