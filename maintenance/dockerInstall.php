@@ -130,25 +130,9 @@ $wgVisualEditorNamespaces =  array( NS_MAIN, NS_USER, NS_PROJECT );
 
 /** Visual Editor configuration END **/
 
-
-// Collection extension
-require_once "$IP/extensions/Collection/Collection.php";
-$wgCollectionMWServeURL = "mwlib:8899";
-
-$wgCollectionPODPartners = false;
-$wgCollectionFormats = array(
-      "rl" => "PDF", # enabled by default
-    "odf" => "ODT",
-//    "docbook" => "DocBook XML",
-//    "xhtml" => "XHTML 1.0 Transitional",
-//    "epub" => "e-book (EPUB)",
-//    "zim" => "Kiwix (OpenZIM)",
-);
-
-$wgGroupPermissions["user"]["collectionsaveascommunitypage"] = true;
-$wgGroupPermissions["user"]["collectionsaveasuserpage"]      = true;
-
-$wgCollectionMaxArticles = 250;     // max # of articles per book
+// pdf rendering service
+wfLoadExtension("ElectronPdfService");
+$wgElectronPdfServiceRESTbaseURL = '/api/rest_v1/page/pdf/';
 
 
 ## Video Enableing Extensions
