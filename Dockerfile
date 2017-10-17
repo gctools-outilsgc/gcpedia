@@ -19,7 +19,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 COPY . /var/www/html/docker_gcpedia
 WORKDIR /var/www/html/docker_gcpedia
 
-RUN git submodule update
+RUN git submodule update  --init --recursive
 ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG COMPOSER_NO_INTERACTION=1
 RUN composer install
