@@ -57,32 +57,31 @@ $wgGroupPermissions['user']['deletedhistory'] = true;
 $wgFileExtensions = array('pub','png','gif','jpg','jpeg','pdf','xls','docx','pptx','doc','ppt','svg','xml','mpg','swf','odp','odt','wmv','flv','vsd','mpp','ai','zip','txt','wpd','rtf','drf','xlsx','xlsm', 'oft');
 
 $wgUseAjax = true;
+$wgEnableAPI = true;
 
 $wgGroupPermissions['sysop']['deletelogentry'] = true;
 $wgGroupPermissions['sysop']['deleterevision'] = true;
 
 
 ////  extensions
-
 wfLoadExtension( "ParserFunctions" );
 
-$wgUseAjax = true;
-require_once "$IP/extensions/AjaxShowEditors/AjaxShowEditors.php";
-require_once "$IP/extensions/awards/awards.php";
-require_once "$IP/extensions/customUserCreateForm/customUserCreateForm.php";
+//require_once "$IP/extensions/AjaxShowEditors/AjaxShowEditors.php";
+//require_once "$IP/extensions/customUserCreateForm/customUserCreateForm.php";
 require_once "$IP/extensions/EmailUpdate/EmailUpdate.php";
 $wgGroupPermissions["sysop"]["emailupdate"] = true;
 require_once "$IP/extensions/MagicNoNumberedHeadings/MagicNoNumberedHeadings.php";
 require_once "$IP/extensions/MagicNumberedHeadings/MagicNumberedHeadings.php";
 
-$wgEnableAPI = true;
 require_once "$IP/extensions/UniversalLanguageSelector/UniversalLanguageSelector.php";
 $wgULSGeoService = false;
-require_once( "$IP/extensions/WikiEditor/WikiEditor.php" );
+
+wfLoadExtension( "WikiEditor" );
 # Enable WikiEditor toolbar as default (but still allow users to disable)
 $wgDefaultUserOptions["usebetatoolbar"] = 1;
 $wgDefaultUserOptions["usebetatoolbar-cgd"] = 0;
 $wgDefaultUserOptions["wikieditor-preview"] = 0;
+
 wfLoadExtension( "Cite" );
 wfLoadExtension( "DeletePagesForGood" );
 $wgGroupPermissions["*"]         ["deleteperm"] = false;
@@ -92,6 +91,7 @@ $wgGroupPermissions["sysop"]     ["deleteperm"] = false;
 $wgGroupPermissions["IMadmin"]   ["deleteperm"] = true;
 $wgGroupPermissions["IMadmin"]   ["delete"] = true;
 $wgGroupPermissions["IMadmin"]   ["undelete"] = true;
+
 wfLoadExtension( "Renameuser" );
 wfLoadExtension( "CharInsert" );
 wfLoadExtension( "TreeAndMenu" );
@@ -135,12 +135,6 @@ wfLoadExtension("ElectronPdfService");
 $wgElectronPdfServiceRESTbaseURL = '/api/rest_v1/page/pdf/';
 
 
-## Video Enableing Extensions
-require_once("$IP/extensions/FramedVideo/FramedVideo.php");
-include_once('extensions/wikiFlvPlayer/wikiFlvPlayer.php');
-require_once('extensions/ExtVideo/ExtVideo.php');
-
-
 require_once("$IP/extensions/intersection/DynamicPageList.php");
 # Configuration variables. Warning: These use DLP instead of DPL
 # for historical reasons (pretend Dynamic list of pages)
@@ -163,10 +157,7 @@ require_once("$IP/extensions/EditUser/EditUser.php");
 $wgGroupPermissions['bureaucrat']['edituser'] = true;
 $wgGroupPermissions['sysop']['edituser-exempt'] = true;
 
-require_once( "$IP/extensions/NewUserPage/NewUserPage.php" );
-
 require_once( "$IP/extensions/CategoryWatch/CategoryWatch.php" );
-require_once("extensions/tag_cloud.php");
 
 require_once "$IP/extensions/RSS/RSS.php";
 $wgRSSUrlWhitelist = array("*");
@@ -181,26 +172,14 @@ require_once("$IP/extensions/MobileFrontend/MobileFrontend.php");
 
 require_once("$IP/extensions/GC_Messages/GC_Messages.php");
 
-require_once( "$IP/extensions/GCRandomImage/GCRandomImage.php" );
-
-require_once("{$IP}/extensions/Poll/Poll.php");
-//wfLoadExtension( 'AJAXPoll' );
-require_once("$IP/extensions/AJAXPoll/AJAXPoll.php");
-
-/* Disclaimer */
-require_once("$IP/extensions/GC_tcDisclaimer/disclaimer.php");
-$wgDisclaimReset = 162; //time to reset disclaimer, in days
-
-# Add a Star icon for selecting favorites:
-# $wgUseIconFavorite = true; 
 # Add a "My Favorites" link to the personal URLs area:
 require_once("$IP/extensions/Favorites/Favorites.php");
 $wgFavoritesPersonalURL = true;
+# Add a Star icon for selecting favorites:
 $wgUseIconFavorite = true;
 
 require_once( "$IP/extensions/ReplaceText/ReplaceText.php" );
 $wgGroupPermissions['bureaucrat']['replacetext'] = true;
-require_once "$IP/extensions/wikiFlvPlayer/wikiFlvPlayer.php";
 
 require_once "$IP/extensions/UserMerge/UserMerge.php";
 $wgGroupPermissions['sysop']['usermerge'] = true;
@@ -208,8 +187,6 @@ $wgUserMergeUnmergeable = array( 'sysop', 'awesomeusers' );
  
 $wgShowSQLErrors = true;
 $wgShowExceptionDetails = true;
-
-wfLoadExtension( 'MsCalendar' );
 
 EOD;
 }
