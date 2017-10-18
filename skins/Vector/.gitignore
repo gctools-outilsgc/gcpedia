@@ -1,0 +1,41 @@
+# git-deploy status file:
+/.deploy
+
+# Editors
+*.kate-swp
+*~
+\#*#
+.#*
+.*.swp
+.project
+cscope.files
+cscope.out
+## NetBeans
+nbproject*
+project.index
+## Sublime
+sublime-*
+sftp-config.json
+
+# Building & testing
+/composer.lock
+/docs
+/node_modules
+/vendor
+
+# Operating systems
+## Mac OS X
+.DS_Store
+## Windows
+Thumbs.db
+
+# Misc
+.buildpath
+.classpath
+.idea
+.metadata*
+.settings
+/static*
+/tags
+/.htaccess
+/.htpasswd

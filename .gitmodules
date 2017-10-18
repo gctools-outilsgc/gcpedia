@@ -66,10 +66,6 @@
 	path = skins/MonoBook
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/skins/MonoBook
 	branch = REL1_29
-[submodule "skins/Vector"]
-	path = skins/Vector
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/skins/Vector
-	branch = REL1_29
 [submodule "extensions/CiteThisPage"]
 	path = extensions/CiteThisPage
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/CiteThisPage
