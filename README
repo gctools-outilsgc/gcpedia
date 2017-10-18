@@ -1,4 +1,4 @@
-!https://travis-ci.org/gctools-outilsgc/gcpedia.svg?branch=master!:https://travis-ci.org/gctools-outilsgc/gcpedia
+image:https://travis-ci.org/gctools-outilsgc/gcpedia.svg?branch=master["Build Status", link="https://travis-ci.org/gctools-outilsgc/gcpedia"]
 
 == GCpedia ==
 Master branch: work in progress, mostly working upgraded to mediawiki 1.29
