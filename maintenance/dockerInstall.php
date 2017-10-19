@@ -43,6 +43,10 @@ echo "DB update complete\n  Install Complete!\n";
 
 function returnLocalSettingsText(){
   return <<< 'EOD'
+
+$wgLocaltimezone = "America/Montreal";
+$wgLogo = "";
+  
 # Disable EDIT for 'everyone'
 $wgGroupPermissions['*']['edit']              = false;
 

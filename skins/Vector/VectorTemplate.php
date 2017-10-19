@@ -148,12 +148,11 @@ class VectorTemplate extends BaseTemplate {
 				</div>
 			</div>
 			<div id="mw-panel">
-				<!-- GCpedia icon -->
-				<a href="<?php echo htmlspecialchars( $this->data['nav_urls']['mainpage']['href'] ) ?>">
-				<div class="row"> 
-				<div class="brand col-xs-8 col-sm-9 col-md-6 ">
-					<img type="image/png" src="<?php global $wgLang, $wgScriptPath; if ($wgLang->getCode() == 'fr') echo $wgScriptPath .'/images/GCpedia_icon_slogan_Fra.png'; else echo $wgScriptPath .'/images/GCpedia_icon_slogan_Eng.png';?>"></object><span class="wb-inv">GCpedia</span>
-</div></div></a>
+				<div id="p-logo" role="banner"><a class="mw-wiki-logo" href="<?php
+					echo htmlspecialchars( $this->data['nav_urls']['mainpage']['href'] )
+					?>" <?php
+					echo Xml::expandAttributes( Linker::tooltipAndAccesskeyAttribs( 'p-logo' ) )
+					?>></a></div>
 				<?php $this->renderPortals( $this->data['sidebar'] ); ?>
 			</div>
 		</div>
