@@ -86,3 +86,6 @@
 	path = extensions/ElectronPdfService
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/ElectronPdfService
 	branch = REL1_29
+[submodule "extensions/CategoryTree"]
+	path = extensions/CategoryTree
+	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/CategoryTree
