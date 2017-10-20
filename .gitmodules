@@ -89,3 +89,6 @@
 [submodule "extensions/CategoryTree"]
 	path = extensions/CategoryTree
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/CategoryTree
+[submodule "extensions/EditUser"]
+	path = extensions/EditUser
+	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/EditUser
