@@ -44,6 +44,7 @@ echo "DB update complete\n  Install Complete!\n";
 function returnLocalSettingsText(){
   return <<< 'EOD'
 
+wfLoadSkin( 'Vector' );
 $wgLocaltimezone = "America/Montreal";
 $wgLogo = "";
   
