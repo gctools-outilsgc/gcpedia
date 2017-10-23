@@ -95,3 +95,6 @@
 [submodule "extensions/LookupUser"]
 	path = extensions/LookupUser
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/LookupUser
+[submodule "extensions/ReplaceText"]
+	path = extensions/ReplaceText
+	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/ReplaceText
