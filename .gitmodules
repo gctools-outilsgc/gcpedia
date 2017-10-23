@@ -98,3 +98,6 @@
 [submodule "extensions/ReplaceText"]
 	path = extensions/ReplaceText
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/ReplaceText
+[submodule "extensions/UserMerge"]
+	path = extensions/UserMerge
+	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/UserMerge
