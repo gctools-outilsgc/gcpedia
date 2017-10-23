@@ -104,3 +104,6 @@
 [submodule "extensions/CharInsert"]
 	path = extensions/CharInsert
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/CharInsert
+[submodule "extensions/CSS"]
+	path = extensions/CSS
+	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/CSS
