@@ -110,3 +110,6 @@
 [submodule "extensions/intersection"]
 	path = extensions/intersection
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/intersection
+[submodule "extensions/RSS"]
+	path = extensions/RSS
+	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/RSS
