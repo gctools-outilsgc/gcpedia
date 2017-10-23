@@ -107,3 +107,6 @@
 [submodule "extensions/CSS"]
 	path = extensions/CSS
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/CSS
+[submodule "extensions/intersection"]
+	path = extensions/intersection
+	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/intersection
