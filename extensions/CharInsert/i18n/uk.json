@@ -1,8 +1,0 @@
-{
-	"@metadata": {
-		"authors": [
-			"Ahonc"
-		]
-	},
-	"charinsert-desc": "Дозволяє створити JavaScript-блок для [[MediaWiki:Edittools|вставки нестандартних символів]]"
-}

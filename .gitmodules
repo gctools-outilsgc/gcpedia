@@ -101,3 +101,6 @@
 [submodule "extensions/UserMerge"]
 	path = extensions/UserMerge
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/UserMerge
+[submodule "extensions/CharInsert"]
+	path = extensions/CharInsert
+	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/CharInsert

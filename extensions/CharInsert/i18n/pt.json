@@ -1,8 +1,0 @@
-{
-	"@metadata": {
-		"authors": [
-			"Malafaya"
-		]
-	},
-	"charinsert-desc": "Permite a criação de uma caixa JavaScript para [[MediaWiki:Edittools|inserção de caracteres não \"standard\"]]"
-}

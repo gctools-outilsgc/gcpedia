@@ -1,8 +1,0 @@
-{
-	"@metadata": {
-		"authors": [
-			"Dalibor Bosits"
-		]
-	},
-	"charinsert-desc": "Omogućava stvaranje JavaScript polja za [[MediaWiki:Edittools|umetanje ne-standardnih znakova]]"
-}

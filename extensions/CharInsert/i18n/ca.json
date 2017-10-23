@@ -1,8 +1,0 @@
-{
-	"@metadata": {
-		"authors": [
-			"Jordi Roqué"
-		]
-	},
-	"charinsert-desc": "Permet la creació d'una caixa de JavaScript per a [[MediaWiki:Edittools|inserir caràcters no-estàndard]]"
-}
