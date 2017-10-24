@@ -164,7 +164,7 @@ $wgGroupPermissions['sysop']['edituser-exempt'] = true;
 
 require_once( "$IP/extensions/CategoryWatch/CategoryWatch.php" );
 
-require_once "$IP/extensions/RSS/RSS.php";
+wfLoadExtension("RSS");
 $wgRSSUrlWhitelist = array("*");
 $wgRSSUrlNumberOfAllowedRedirects = 1;
 
@@ -173,7 +173,7 @@ $wgGroupPermissions['sysop']['emailupdate'] = true;
 
 require_once( "$IP/extensions/Multilang/multilang.php" );
 
-require_once("$IP/extensions/MobileFrontend/MobileFrontend.php");
+wfLoadExtension("MobileFrontend");
 
 require_once("$IP/extensions/GC_Messages/GC_Messages.php");
 
@@ -186,7 +186,7 @@ $wgUseIconFavorite = true;
 require_once( "$IP/extensions/ReplaceText/ReplaceText.php" );
 $wgGroupPermissions['bureaucrat']['replacetext'] = true;
 
-require_once "$IP/extensions/UserMerge/UserMerge.php";
+wfLoadExtension( "UserMerge" );
 $wgGroupPermissions['sysop']['usermerge'] = true;
 $wgUserMergeUnmergeable = array( 'sysop', 'awesomeusers' );
  
