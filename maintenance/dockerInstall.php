@@ -152,7 +152,7 @@ $wgDLPAllowUnlimitedCategories = false; // Allow unlimited categories
 // cache altogether (inefficient, but results will never be outdated)
 $wgDLPMaxCacheTime = 60*60*24;          // How long to cache pages in seconds
 
-require_once "$IP/extensions/LookupUser/LookupUser.php";
+wfLoadExtension( "LookupUser" );
 $wgGroupPermissions['sysop']['lookupuser'] = true;
 
 
