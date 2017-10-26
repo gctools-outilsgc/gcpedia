@@ -20,7 +20,7 @@ COPY . /var/www/html/docker_gcpedia
 WORKDIR /var/www/html/docker_gcpedia
 
 RUN git submodule init
-RUN git submodule update --recursive
+RUN git submodule update --recursive --init
 ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG COMPOSER_NO_INTERACTION=1
 RUN composer install
