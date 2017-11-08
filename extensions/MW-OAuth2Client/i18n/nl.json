@@ -1,0 +1,16 @@
+{
+	"oauth2client": "OAuth2 Client",
+
+	"oauth2client-act-as-a-client-to-any-oauth2-server": "Act as a client to any OAuth2 server",
+	"oauth2client-couldnotconnect": "Kon geen verbinding maken met de OAuth2 server",
+	"oauth2client-header-link-text": "Aanmelden via $1",
+
+	"oauth2client-login-header": "Aanmelden via $1",
+	"oauth2client-you-can-login-to-this-wiki-with-oauth2": "U kunt zich aanmelden op deze wiki via uw $1 account",
+	"oauth2client-login-with-oauth2": "[[$1|Aanmelden via $2]]",
+	"oauth2client-youre-already-loggedin": "U bent al ingelogd.",
+
+	"oauth2client-logout-header": "$1 uitgelogd",
+	"oauth2client-logged-out": "U bent succesvol uitgelogd.",
+	"oauth2client-login-with-oauth2-again": "[[$1|U kunt u weer aanmelden via uw $2 account]]"
+}

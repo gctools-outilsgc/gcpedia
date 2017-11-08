@@ -1,24 +1,12 @@
 <?php
 
 // environment variables from docker-compose
-if (getenv('DBHOST') != '')
-	$dbhost = getenv('DBHOST');
-else
-	$dbhost = 'gcpedia-db';
+$dbhost = (getenv('DBHOST') != '') ? getenv('DBHOST') : 'gcpedia-db';
+$host = (getenv('HOST') != '') ? getenv('HOST') : 'localhost';
+$port = (getenv('PORT') != '') ? ":".getenv('PORT') : '';
+$saml = (getenv('USESAML') != '') ? getenv('USESAML') : false;
+$oauth = (getenv('OAUTH') != '') ? getenv('OAUTH') : false;
 
-if (getenv('HOST') != '')
-  $host = getenv('HOST');
-else
-  $host = 'localhost';
-if (getenv('PORT') != '')
-  $port = ":".getenv('PORT');
-else
-  $port = '';
-
-if (getenv('USESAML') != '')
-	$saml = getenv('USESAML');
-else
-	$saml = false;
 echo "Using dbhost: $dbhost   and host: $host \n";
 
 // first run regular cli install script
@@ -34,6 +22,7 @@ $local_settings = fopen("/var/www/html/docker_gcpedia/LocalSettings.php", 'a');	
 // using single brackets as a simple way to prevent parsing of variable names, etc.
 fwrite($local_settings, returnLocalSettingsText());
 if ($saml) fwrite($local_settings, returnLocalSettingsSAMLText());
+if ($oauth) fwrite($local_settings, returnLocalSettingsOAuthText());
 fclose($local_settings);
 echo "LocalSettings.php setup complete\n";
 
@@ -222,5 +211,22 @@ $wgSamlGroupMap = array(
         'groups' => array('admin'),
     ),
 );
+EOD;
+}
+function returnLocalSettingsOAuthText(){
+  return <<< 'EOD'
+
+wfLoadExtension( 'MW-OAuth2Client' );
+
+$wgOAuth2Client['client']['id'] = '';
+$wgOAuth2Client['client']['secret'] = '';
+
+$wgOAuth2Client['configuration']['authorize_endpoint'] = '';
+$wgOAuth2Client['configuration']['access_token_endpoint'] = '';
+$wgOAuth2Client['configuration']['api_endpoint'] = '';
+$wgOAuth2Client['configuration']['redirect_uri'] = '';
+
+$wgOAuth2Client['configuration']['username'] = 'username';
+$wgOAuth2Client['configuration']['email'] = 'email';
 EOD;
 }

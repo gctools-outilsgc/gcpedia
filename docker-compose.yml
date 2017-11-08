@@ -20,6 +20,7 @@ services:
       - DBHOST=gcpedia-db
       - HOST=localhost
       - PORT=8800
+      - OAUTH=true
 #      - USESAML=false
 
   # ###########################################################################
