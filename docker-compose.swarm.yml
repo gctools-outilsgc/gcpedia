@@ -61,6 +61,8 @@ services:
     image: msokk/electron-render-service
     networks:
       - gcpedia-services
+    ports:
+      - 3000:3000
     environment:
       # blank HOSTNAME is needed for swarm mode, everything else is showing defaults
       - RENDERER_ACCESS_KEY=secret
