@@ -225,8 +225,5 @@ $wgOAuth2Client['configuration']['authorize_endpoint'] = '';
 $wgOAuth2Client['configuration']['access_token_endpoint'] = '';
 $wgOAuth2Client['configuration']['api_endpoint'] = '';
 $wgOAuth2Client['configuration']['redirect_uri'] = '';
-
-$wgOAuth2Client['configuration']['username'] = 'username';
-$wgOAuth2Client['configuration']['email'] = 'email';
 EOD;
 }
