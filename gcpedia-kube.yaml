@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gcpedia
+  namespace: gctools-test
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+  selector: 
+    app: gcpedia
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: gcpedia-deployment
+  namespace: gctools-test
+spec:
+  replicas: 1
+  template: # create pods using pod definition in this template
+    metadata:
+      labels:
+        app: gcpedia
+    spec:
+      containers:
+      - name: gcpedia
+        image: localhost:5000/gctools-outilsgc/gcpedia:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: "DOCKER"
+          value: "1"
+        - name: "DBHOST"
+          value: "gcpedia-db.gctools-test"
+        - name: "HOST"
+          value: "gcpedia.dev"
+        - name: "PORT"
+          value: "80"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gcpedia-db
+  namespace: gctools-test
+spec:
+  clusterIP: None
+  ports: 
+    - protocol: TCP
+      port: 3306
+  selector:
+    app: gcpedia-db
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: gcpedia-db-deployment
+  namespace: gctools-test
+spec:
+  replicas: 1 # tells deployment to run 1 pod matching the template
+  template: # create pods using pod definition in this template
+    metadata:
+      labels:
+        app: gcpedia-db
+    spec:
+      containers:
+      - name: mysql
+        image: localhost:5000/mysql:5.6
+        ports:
+        - containerPort: 3306
+        env:
+        - name: "MYSQL_ROOT_PASSWORD"
+          value: "gcpedia"
+        - name: "MYSQL_DATABASE"
+          value: "wiki"
+        - name: "MYSQL_USER"
+          value: "wiki"
+        - name: "MYSQL_PASSWORD"
+          value: "gcpedia"
