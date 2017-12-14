@@ -1,0 +1,57 @@
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: gcpedia-db-volume
+spec:
+  capacity:
+    storage: 100Gi
+  persistentVolumeReclaimPolicy: "Retain"
+  storageClassName: gctools-test-gcpedia-db
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: 167.37.33.21
+    path: "/home/nfs/gcpedia-db"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: gcpedia-db-volume-claim
+  namespace: gctools-test
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gctools-test-gcpedia-db
+  resources:
+    requests:
+      storage: 200Gi
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: gcpedia-data-volume
+spec:
+  capacity:
+    storage: 2Gi
+  persistentVolumeReclaimPolicy: "Retain"
+  storageClassName: gctools-test-gcpedia-data
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: 167.37.33.21
+    path: "/home/nfs/gcpedia-data"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: gcpedia-data-volume-claim
+  namespace: gctools-test
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gctools-test-gcpedia-data
+  resources:
+    requests:
+      storage: 2Gi
+---
