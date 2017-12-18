@@ -15,6 +15,8 @@ RUN apk --no-cache add \
   php7-tokenizer \
   php7-openssl \
   php7-xml \
+  php7-simplexml \
+  php7-xmlwriter \
   php7-zlib \
   curl
 RUN mkdir /app && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -36,6 +38,9 @@ RUN \
     php7-gd \
     php7-json \
     php7-mysqli \
+    php7-mbstring \
+    php7-ctype \
+    php7-iconv \
     php7-xml \
   && apk update \
   && mkdir -p /var/www/html/vendor \
