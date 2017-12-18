@@ -36,7 +36,7 @@ spec:
         - name: "DBHOST"
           value: "gcpedia-db.gctools-test"
         - name: "HOST"
-          value: "gcpedia.lpss.me"
+          value: "gcpedia.gctools.nrc.ca"
         - name: "PORT"
           value: "80"
         volumeMounts:
