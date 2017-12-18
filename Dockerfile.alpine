@@ -18,10 +18,14 @@ RUN apk --no-cache add \
   php7-simplexml \
   php7-xmlwriter \
   php7-zlib \
+  git \
   curl
 RUN mkdir /app && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 WORKDIR /app
-COPY composer.json composer.json /app/
+COPY --chown=apache . /app/
+
+RUN git submodule init
+RUN git submodule update --recursive --init
 ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG COMPOSER_NO_INTERACTION=1
 RUN composer install
@@ -42,8 +46,8 @@ RUN \
     php7-ctype \
     php7-iconv \
     php7-xml \
+    git \
   && apk update \
-  && mkdir -p /var/www/html/vendor \
   && mkdir -p /data \
   && mkdir -p /run/apache2 \
   && chown apache /data \
@@ -56,8 +60,7 @@ RUN \
   && sed -i '/Options Indexes FollowSymLinks/c\\' /etc/apache2/httpd.conf \
   && sed -i '/<Directory "\/var\/www\/localhost\/htdocs">/c\<Directory "\/var\/www\/html">\nDirectoryIndex index.php\nOptions FollowSymLinks MultiViews\nAllowOverride All\nOrder allow,deny\nallow from all\n' /etc/apache2/httpd.conf
 
-COPY --from=0 /app/vendor/ /var/www/html/vendor/
-COPY --chown=apache . /var/www/html
+COPY --from=0 /app/ /var/www/html/
 
 WORKDIR /var/www/html
 EXPOSE 80
