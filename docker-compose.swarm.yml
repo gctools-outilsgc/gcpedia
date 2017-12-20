@@ -31,7 +31,8 @@ services:
       - DBHOST=gcpedia-db
       - HOST=wiki.gccollab.ca
       - PORT=
-      - OAUTH=true
+      - OPENID=true
+#      - OAUTH=true
 # for single signon with GCconnex
 #      - USESAML=true
 

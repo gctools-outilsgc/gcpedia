@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Xuacu"
+		]
+	},
+	"pluggableauth-desc": "Ufre un marcu p'autenticación y autorización coneutable",
+	"pluggableauth-not-authorized": "{{GENDER:$1|L'usuariu|La usuaria}} $1 nun ta {{GENDER:$1|autorizáu|autorizada}}.",
+	"pluggableauth-authentication-failure": "Fallu n'autenticación o autorización.",
+	"pluggableauth-authentication-workflow-failure": "Fallu nel procesu d'autenticación.",
+	"pluggableauth-loginbutton-label": "Aniciar sesión con PluggableAuth",
+	"pluggableauth-loginbutton-help": "Autentícate con PluggableAuth"
+}

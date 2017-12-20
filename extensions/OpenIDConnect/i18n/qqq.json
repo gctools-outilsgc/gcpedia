@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Cicalese",
+			"Raymond"
+		]
+	},
+	"openidconnect-desc": "{{desc|name=OpenID Connect|url=https://www.mediawiki.org/wiki/Extension:OpenID_Connect}}",
+	"selectopenidconnectissuer": "Title of OpenID Connect issuer selection page"
+}

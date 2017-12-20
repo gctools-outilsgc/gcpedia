@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Liuxinyu970226"
+		]
+	},
+	"pluggableauth-desc": "提供框架用于插接式身份认证和授权",
+	"pluggableauth-not-authorized": "{{GENDER:$1|用户}}$1未获授权。",
+	"pluggableauth-authentication-failure": "用户身份不能被验证。",
+	"pluggableauth-authentication-workflow-failure": "身份验证工作流失败。",
+	"pluggableauth-loginbutton-label": "通过PluggableAuth登录",
+	"pluggableauth-loginbutton-help": "使用PluggableAuth验证您的身份"
+}

@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Esketti"
+		]
+	},
+	"pluggableauth-desc": "Biedt een kader voor pluggable authenticatie en autorisatie",
+	"pluggableauth-not-authorized": "{{GENDER:$1|Gebruikers}} $1 niet toegestaan."
+}

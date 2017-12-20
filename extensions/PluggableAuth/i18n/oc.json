@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Cedric31"
+		]
+	},
+	"pluggableauth-not-authorized": "{{GENDER:$1|Utilizaire|Utilizaira}} $1 pas {{GENDER:$1|autorizat|autorizada}}."
+}

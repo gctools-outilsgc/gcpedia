@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Beta16"
+		]
+	},
+	"pluggableauth-not-authorized": "Utente $1 non {{GENDER:$1|autorizzato|autorizzata|autorizzato/a}}.",
+	"pluggableauth-loginbutton-label": "Accedi con PluggableAuth",
+	"pluggableauth-loginbutton-help": "Autenticati con PluggableAuth"
+}

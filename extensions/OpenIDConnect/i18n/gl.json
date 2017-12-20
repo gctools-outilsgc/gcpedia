@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Elisardojm"
+		]
+	},
+	"openidconnect-desc": "Proporciona autentificación usando OpenID xunto con PluggableAuth",
+	"selectopenidconnectissuer": "Seleccionar distribuidor de autenticación"
+}

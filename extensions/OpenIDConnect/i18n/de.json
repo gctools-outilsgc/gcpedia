@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Metalhead64"
+		]
+	},
+	"openidconnect-desc": "Ermöglicht eine Authentifizierung mithilfe OpenID Connect in Verbindung mit PluggableAuth",
+	"selectopenidconnectissuer": "Authentifizierungsgeber auswählen"
+}

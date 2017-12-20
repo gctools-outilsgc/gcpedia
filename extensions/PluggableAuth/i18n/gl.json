@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Elisardojm"
+		]
+	},
+	"pluggableauth-desc": "Proporciona o marco para anexar autenticación e autorización",
+	"pluggableauth-not-authorized": "{{GENDER:$1|O usuario|A usuaria}} $1 non está {{GENDER:$1|autorizado|autorizada}}.",
+	"pluggableauth-authentication-failure": "O usuario non pode autenticarse.",
+	"pluggableauth-authentication-workflow-failure": "Fallo no proceso de autenticación.",
+	"pluggableauth-loginbutton-label": "Conectarse con PluggableAuth",
+	"pluggableauth-loginbutton-help": "Autentícao con PluggableAuth"
+}

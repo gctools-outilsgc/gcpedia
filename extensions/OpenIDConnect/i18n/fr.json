@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Wladek92"
+		]
+	},
+	"openidconnect-desc": "Fournit une authentification en utilisant OpenID Connect en combinaison avec PluggableAuth",
+	"selectopenidconnectissuer": "Sélectionnez l'émetteur de l'authentification"
+}
