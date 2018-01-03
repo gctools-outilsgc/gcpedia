@@ -28,6 +28,7 @@ RUN composer install
 RUN sed -i 's/\/var\/www\/html/\/var\/www\/html\/docker_gcpedia/' /etc/apache2/sites-available/000-default.conf
 
 CMD apache2ctl -D FOREGROUND
+RUN a2enmod rewrite
 
 # if you don't want to use docker-compose:
 # docker build -t gcpedia-apache-php .

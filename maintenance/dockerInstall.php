@@ -17,6 +17,11 @@ shell_exec("php /var/www/html/docker_gcpedia/maintenance/install.php --confpath=
  --pass=adminpassword 'GCpedia' 'admin' ");
 echo "basic setup complete\n";
 
+// create an htaccess file for short urls
+$htaccess = fopen("/var/www/html/docker_gcpedia/.htaccess", 'a');   // a for append
+fwrite($htaccess, htaccessText());
+fclose($htaccess);
+
 // then add extensions; some require extra configuration so this will get a bit long...
 $local_settings = fopen("/var/www/html/docker_gcpedia/LocalSettings.php", 'a');		// a for append
 
@@ -34,6 +39,8 @@ echo "DB update complete\n  Install Complete!\n";
 
 function returnLocalSettingsText(){
   return <<< 'EOD'
+
+$wgArticlePath = "/$1";
 
 wfLoadSkin( 'Vector' );
 $wgLocaltimezone = "America/Montreal";
@@ -235,9 +242,20 @@ function returnLocalSettingsOpenIDText(){
 wfLoadExtension( 'PluggableAuth' );
 wfLoadExtension( 'OpenIDConnect' );
 
+$wgGroupPermissions['*']['autocreateaccount'] = true;
+
 $wgOpenIDConnect_Config[''] = [
     'clientID' => '',
     'clientsecret' => ''
 ];
+EOD;
+}
+function htaccessText(){
+  return <<< 'EOD'
+RewriteEngine On
+
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-f
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-d
+RewriteRule ^(.*)$ index.php [L]
 EOD;
 }
