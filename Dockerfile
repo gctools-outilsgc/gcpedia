@@ -25,7 +25,7 @@ ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG COMPOSER_NO_INTERACTION=1
 RUN composer install
 
-RUN sed -i 's/\/var\/www\/html/\/var\/www\/html\/docker_gcpedia\n\n\t<Directory \/var\/www\/html\/docker_gcpedia>\n\t\tOptions All\n\t\tAllowOverride All\n\t\tRequire All granted\n\t<\/Directory>/' /etc/apache2/sites-available/000-default.conf
+RUN sed -i 's/\/var\/www\/html/\/var\/www\/html\/docker_gcpedia\n\n\t<Directory \/var\/www\/html\/docker_gcpedia>\n\t\tOptions All\n\t\tAllowOverride All\n\t\tRequire all granted\n\t<\/Directory>/' /etc/apache2/sites-available/000-default.conf
 
 CMD apache2ctl -D FOREGROUND
 RUN a2enmod rewrite
