@@ -242,20 +242,22 @@ function returnLocalSettingsOpenIDText(){
 wfLoadExtension( 'PluggableAuth' );
 wfLoadExtension( 'OpenIDConnect' );
 
+$wgGroupPermissions['*']['createaccount'] = true;
 $wgGroupPermissions['*']['autocreateaccount'] = true;
+$wgOpenIDConnect_UseRealNameAsUserName = true;
 
 $wgOpenIDConnect_Config[''] = [
     'clientID' => '',
-    'clientsecret' => ''
+    'clientsecret' => '',
+    'scope' => ['openid', 'profile', 'email']
 ];
 EOD;
 }
 function htaccessText(){
   return <<< 'EOD'
 RewriteEngine On
-
 RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-f
 RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-d
-RewriteRule ^(.*)$ index.php [L]
+RewriteRule ^(.*)$ %{DOCUMENT_ROOT}/index.php [L]
 EOD;
 }

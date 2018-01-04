@@ -46,7 +46,7 @@
 		"wikimedia/wait-condition-loop": "1.0.1",
 		"wikimedia/wrappedstring": "2.2.0",
 		"zordius/lightncandy": "0.23",
-		"jumbojett/openid-connect-php": "^0.3.0"
+		"jumbojett/openid-connect-php": "0.3.0"
 	},
 	"require-dev": {
 		"composer/spdx-licenses": "1.1.4",
