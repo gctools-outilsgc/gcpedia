@@ -5,7 +5,7 @@ metadata:
   name: gcpedia-db-volume
 spec:
   capacity:
-    storage: 100Gi
+    storage: 200Gi
   persistentVolumeReclaimPolicy: "Retain"
   storageClassName: gctools-test-gcpedia-db
   accessModes:
