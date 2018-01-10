@@ -45,6 +45,29 @@ spec:
         - mountPath: /var/www/html/LocalSettings.php
           subPath: LocalSettings.php
           name: gcpedia-settings
+      - name: parsoid
+        image: localhost:5000/gctools-outilsgc/parsoid:latest
+        ports:
+        - containerPort: 8142
+      - name: render
+        image: localhost:5000/gctools-outilsgc/electron-render-service:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: "RENDERER_ACCESS_KEY"
+          value: "secret"
+        - name: HOSTNAME
+          value: ""
+        - name: "CONCURRENCY"
+          value: "1"
+        - name: "TIMEOUT"
+          value: "30"
+        - name: "WINDOW_WIDTH"
+          value: "1024"
+        - name: "WINDOW_HEIGHT"
+          value: "768"
+        - name: "PORT"
+          value: "3000"
       volumes:
       - name: gcpedia-data-volume
         persistentVolumeClaim:
