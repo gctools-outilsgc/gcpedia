@@ -252,6 +252,7 @@ $wgAutoloadLocalClasses = [
 	'CheckImages' => __DIR__ . '/maintenance/checkImages.php',
 	'CheckLanguageCLI' => __DIR__ . '/maintenance/language/checkLanguage.inc',
 	'CheckLess' => __DIR__ . '/maintenance/checkLess.php',
+	'CheckOldUnusedFilesAgain' => __DIR__ . '/maintenance/checkOldUnusedFilesAgain.php',
 	'CheckStorage' => __DIR__ . '/maintenance/storage/checkStorage.php',
 	'CheckSyntax' => __DIR__ . '/maintenance/checkSyntax.php',
 	'CheckUnusedFiles' => __DIR__ . '/maintenance/checkUnusedFiles.php',

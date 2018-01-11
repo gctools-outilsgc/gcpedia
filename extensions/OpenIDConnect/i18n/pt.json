@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Hamilton Abreu"
+		]
+	},
+	"openidconnect-desc": "Fornece capacidades de autenticação usando o OpenID Connect em conjunto com o PluggableAuth",
+	"selectopenidconnectissuer": "Selecionar emissor de autenticação"
+}

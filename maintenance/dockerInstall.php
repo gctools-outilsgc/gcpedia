@@ -6,6 +6,7 @@ $host = (getenv('HOST') != '') ? getenv('HOST') : 'localhost';
 $port = (getenv('PORT') != '') ? ":".getenv('PORT') : '';
 $saml = (getenv('USESAML') != '') ? getenv('USESAML') : false;
 $oauth = (getenv('OAUTH') != '') ? getenv('OAUTH') : false;
+$openid = (getenv('OPENID') != '') ? getenv('OPENID') : false;
 
 echo "Using dbhost: $dbhost   and host: $host \n";
 
@@ -16,6 +17,11 @@ shell_exec("php /var/www/html/docker_gcpedia/maintenance/install.php --confpath=
  --pass=adminpassword 'GCpedia' 'admin' ");
 echo "basic setup complete\n";
 
+// create an htaccess file for short urls
+$htaccess = fopen("/var/www/html/docker_gcpedia/.htaccess", 'a');   // a for append
+fwrite($htaccess, htaccessText());
+fclose($htaccess);
+
 // then add extensions; some require extra configuration so this will get a bit long...
 $local_settings = fopen("/var/www/html/docker_gcpedia/LocalSettings.php", 'a');		// a for append
 
@@ -23,6 +29,7 @@ $local_settings = fopen("/var/www/html/docker_gcpedia/LocalSettings.php", 'a');	
 fwrite($local_settings, returnLocalSettingsText());
 if ($saml) fwrite($local_settings, returnLocalSettingsSAMLText());
 if ($oauth) fwrite($local_settings, returnLocalSettingsOAuthText());
+if ($openid) fwrite($local_settings, returnLocalSettingsOpenIDText());
 fclose($local_settings);
 echo "LocalSettings.php setup complete\n";
 
@@ -32,6 +39,8 @@ echo "DB update complete\n  Install Complete!\n";
 
 function returnLocalSettingsText(){
   return <<< 'EOD'
+
+$wgArticlePath = "/$1";
 
 wfLoadSkin( 'Vector' );
 $wgLocaltimezone = "America/Montreal";
@@ -225,5 +234,30 @@ $wgOAuth2Client['configuration']['authorize_endpoint'] = '';
 $wgOAuth2Client['configuration']['access_token_endpoint'] = '';
 $wgOAuth2Client['configuration']['api_endpoint'] = '';
 $wgOAuth2Client['configuration']['redirect_uri'] = '';
+EOD;
+}
+function returnLocalSettingsOpenIDText(){
+  return <<< 'EOD'
+
+wfLoadExtension( 'PluggableAuth' );
+wfLoadExtension( 'OpenIDConnect' );
+
+$wgGroupPermissions['*']['createaccount'] = true;
+$wgGroupPermissions['*']['autocreateaccount'] = true;
+$wgOpenIDConnect_UseRealNameAsUserName = true;
+
+$wgOpenIDConnect_Config[''] = [
+    'clientID' => '',
+    'clientsecret' => '',
+    'scope' => ['openid', 'profile', 'email']
+];
+EOD;
+}
+function htaccessText(){
+  return <<< 'EOD'
+RewriteEngine On
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-f
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-d
+RewriteRule ^(.*)$ %{DOCUMENT_ROOT}/index.php [L]
 EOD;
 }

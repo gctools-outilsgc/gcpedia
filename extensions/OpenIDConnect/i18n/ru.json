@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Okras"
+		]
+	},
+	"openidconnect-desc": "Обеспечивает проверку подлинности с помощью OpenID Connect в сочетании с PluggableAuth",
+	"selectopenidconnectissuer": "Выберите источник аутентификации"
+}

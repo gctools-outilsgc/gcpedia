@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Revi"
+		]
+	},
+	"openidconnect-desc": "PluggableAuth와 같이 사용하여 OpenID 연결 지원",
+	"selectopenidconnectissuer": "인증 제공자 선택"
+}

@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Liuxinyu970226"
+		]
+	},
+	"openidconnect-desc": "提供使用OpenID连接与PluggableAuth结合的认证",
+	"selectopenidconnectissuer": "选择认证提供商"
+}

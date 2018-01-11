@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"cicalese"
+		]
+	},
+	"pluggableauth-desc": "Provides framework for pluggable authentication and authorization",
+	"pluggableauth-not-authorized": "{{GENDER:$1|User}} $1 not authorized.",
+	"pluggableauth-authentication-failure": "User cannot be authenticated.",
+	"pluggableauth-authentication-workflow-failure": "Authentication workflow failure.",
+	"pluggableauth-loginbutton-label": "Log in with PluggableAuth",
+	"pluggableauth-loginbutton-help": "Authenticates you with PluggableAuth"
+}

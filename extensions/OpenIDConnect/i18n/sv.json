@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Lokal Profil"
+		]
+	},
+	"openidconnect-desc": "Möjliggör autentisering med OpenID Connect i förbindelse med PluggableAuth",
+	"selectopenidconnectissuer": "Välj autentiseringsutfärdare"
+}

@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Robby"
+		]
+	},
+	"pluggableauth-not-authorized": "{{GENDER:$1|De Benotzer}} $1 ass net autoriséiert.",
+	"pluggableauth-authentication-failure": "Benotzer kann net authentifizéiert ginn.",
+	"pluggableauth-loginbutton-label": "Mat PluggableAuth aloggen",
+	"pluggableauth-loginbutton-help": "Authentifizéiert Iech mat PluggableAuth"
+}

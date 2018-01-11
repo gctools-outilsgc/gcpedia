@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Otokoume"
+		]
+	},
+	"openidconnect-desc": "PluggableAuth と合わせて、OpenID の接続を使用して認証を提供します",
+	"selectopenidconnectissuer": "認証の発行者を選択"
+}

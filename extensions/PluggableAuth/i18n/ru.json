@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kareyac"
+		]
+	},
+	"pluggableauth-authentication-failure": "Пользователь не может быть аутентифицирован."
+}

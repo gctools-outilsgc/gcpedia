@@ -18,9 +18,10 @@ services:
     environment:
       - DOCKER=1
       - DBHOST=gcpedia-db
-      - HOST=localhost
-      - PORT=8800
-      - OAUTH=true
+      - HOST=wiki.gccollab.ca
+      - PORT=
+      - OPENID=true
+#      - OAUTH=true
 #      - USESAML=false
 
   # ###########################################################################

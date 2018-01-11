@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bjankuloski06"
+		]
+	},
+	"openidconnect-desc": "Овозможува заверка со OpenID Connect која работи заедно со PluggableAuth",
+	"selectopenidconnectissuer": "Изберете издавач на заверката"
+}

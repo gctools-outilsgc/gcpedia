@@ -70,10 +70,6 @@
 	path = extensions/CiteThisPage
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/CiteThisPage
 	branch = REL1_29
-[submodule "vendor"]
-	path = vendor
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/vendor
-	branch = REL1_29
 [submodule "extensions/PdfHandler"]
 	path = extensions/PdfHandler
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/PdfHandler

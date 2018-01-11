@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ата"
+		]
+	},
+	"openidconnect-desc": "Забезпечує автентифікацію з допомогою OpenID Connect у поєднанні з PluggableAuth",
+	"selectopenidconnectissuer": "Виберіть джерело автентифікації"
+}
