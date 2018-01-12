@@ -196,7 +196,7 @@
 	"articlepage": "View content page",
 	"talk": "Discussion",
 	"views": "Views",
-	"toolbox": "Tools",
+	"toolbox": "Page information",
 	"userpage": "View user page",
 	"projectpage": "View project page",
 	"imagepage": "View file page",
@@ -2642,7 +2642,7 @@
 	"pageinfo-templates": "Transcluded {{PLURAL:$1|template|templates}} ($1)",
 	"pageinfo-transclusions": "{{PLURAL:$1|Page|Pages}} transcluded on ($1)",
 	"pageinfo-footer": "-",
-	"pageinfo-toolboxlink": "Page information",
+	"pageinfo-toolboxlink": "About page",
 	"pageinfo-redirectsto": "Redirects to",
 	"pageinfo-redirectsto-info": "info",
 	"pageinfo-contentpage": "Counted as a content page",
@@ -3844,5 +3844,6 @@
 	"wet:barDirectory": "directory",
 	"wet:gcdirectoryLink": "http://gcdirectory-gcannuaire.gc.ca/en/GCD/?pgid=002",
 	"topbar:langlink": "<a lang='fr' href='?setlang=fr&uselang=fr'>Français</a>",
-	"placeholder:firstlastname": "Firstname.Lastname"
+	"placeholder:firstlastname": "Firstname.Lastname",
+	"toolbox-actions": "Actions/Tools"
 }
