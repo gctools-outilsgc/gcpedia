@@ -361,8 +361,17 @@ class VectorTemplate extends BaseTemplate {
 		if ( !isset( $portals['ACTIONS'] ) ) {
 			$portals['ACTIONS'] = true;
 		}
+		
 		$toolbox = $this->getToolbox();
 		$actions = array();
+
+		// first item - move book creator activate/deactivate
+		if (isset($portals['coll-print_export'])){
+			$actions[book] = $portals['coll-print_export'][0];
+			unset($portals['coll-print_export'][0]);
+		}
+		
+		// next - stuff from the toolbox
 		foreach ( array( 'upload', 'specialpages' ) as $action ) {
 			if( isset($toolbox[$action]) ){
 				$actions[$action] = $toolbox[$action];
