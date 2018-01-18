@@ -273,9 +273,7 @@ class VectorTemplate extends BaseTemplate {
 					<img type="image/png" src="<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo $wgScriptPath .'/images/GCpedia_icon_slogan_Fra.png'; else echo $wgScriptPath .'/images/GCpedia_icon_slogan_Eng.png';?>"></object><span class="wb-inv">GCpedia</span>
 				</div></div></a>
 
-				<nav class="wb-sec" typeof="SiteNavigationElement" id="wb-sec" role="navigation"  style="display: block;">
-						<?php $this->renderPortals( $this->data['sidebar'] ); ?>
-				</nav>
+				<?php $this->renderPortals( $this->data['sidebar'] ); ?>
 			</div>
 		</div>
 		<div id="footer" role="contentinfo"<?php $this->html( 'userlangattributes' ) ?>>
