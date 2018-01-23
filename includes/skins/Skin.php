@@ -1317,7 +1317,7 @@ abstract class Skin extends ContextSource {
 					}
 					if ( isset($line[2]) ){
 						$descText = $this->msg( $line[2] );
-						if ( $msgText->exists() ) {
+						if ( $descText->exists() ) {
 							$desc = $descText->text();
 						} else {
 							$desc = $line[2];
