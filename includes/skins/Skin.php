@@ -1315,13 +1315,14 @@ abstract class Skin extends ContextSource {
 					} else {
 						$text = $line[1];
 					}
-					$descText = $this->msg( $line[2] );
-					if ( $msgText->exists() ) {
-						$desc = $descText->text();
-					} else {
-						$desc = $line[2];
+					if ( isset($line[2]) ){
+						$descText = $this->msg( $line[2] );
+						if ( $msgText->exists() ) {
+							$desc = $descText->text();
+						} else {
+							$desc = $line[2];
+						}
 					}
-
 					if ( preg_match( '/^(?i:' . wfUrlProtocols() . ')/', $link ) ) {
 						$href = $link;
 
