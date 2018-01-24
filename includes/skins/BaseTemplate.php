@@ -57,11 +57,15 @@ abstract class BaseTemplate extends QuickTemplate {
 	function getToolbox() {
 
 		$toolbox = array();
-		if ( isset( $this->data['nav_urls']['whatlinkshere'] )
-			&& $this->data['nav_urls']['whatlinkshere']
-		) {
-			$toolbox['whatlinkshere'] = $this->data['nav_urls']['whatlinkshere'];
-			$toolbox['whatlinkshere']['id'] = 't-whatlinkshere';
+		if ( isset( $this->data['nav_urls']['info'] ) && $this->data['nav_urls']['info'] ) {
+			$toolbox['info'] = $this->data['nav_urls']['info'];
+			$toolbox['info']['id'] = 't-info';
+		}
+		//stats link
+		if ( isset( $this->data['nav_urls']['info'] ) && $this->data['nav_urls']['info'] ) {
+			$toolbox['ga-stats'] = array( 'href' => '',
+											'text'	=> $this->msg( 'statistics' )->text());
+			$toolbox['ga-stats']['id'] = 'g-stats';
 		}
 		if ( isset( $this->data['nav_urls']['recentchangeslinked'] )
 			&& $this->data['nav_urls']['recentchangeslinked']
@@ -106,9 +110,11 @@ abstract class BaseTemplate extends QuickTemplate {
 				$toolbox['permalink']['id'] = 't-permalink';
 			}
 		}
-		if ( isset( $this->data['nav_urls']['info'] ) && $this->data['nav_urls']['info'] ) {
-			$toolbox['info'] = $this->data['nav_urls']['info'];
-			$toolbox['info']['id'] = 't-info';
+		if ( isset( $this->data['nav_urls']['whatlinkshere'] )
+			&& $this->data['nav_urls']['whatlinkshere']
+		) {
+			$toolbox['whatlinkshere'] = $this->data['nav_urls']['whatlinkshere'];
+			$toolbox['whatlinkshere']['id'] = 't-whatlinkshere';
 		}
 
 		Hooks::run( 'BaseTemplateToolbox', array( &$this, &$toolbox ) );
