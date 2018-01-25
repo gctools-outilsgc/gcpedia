@@ -42,13 +42,14 @@ sftp-config.json
 /StartProfiler.php
 
 # Building & testing
+npm-debug.log
 node_modules/
 /tests/phpunit/phpunit.phar
 
 # Composer
 /composer.lock
-/composer.json
 /composer.local.json
+/composer.phar
 
 # MediaWiki UI documentation
 /docs/kss/static

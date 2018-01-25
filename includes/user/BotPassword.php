@@ -411,7 +411,7 @@ class BotPassword implements IDBAccessObject {
 	 * @return array|false
 	 */
 	public static function canonicalizeLoginData( $username, $password ) {
-		$sep = BotPassword::getSeparator();
+		$sep = self::getSeparator();
 		// the strlen check helps minimize the password information obtainable from timing
 		if ( strlen( $password ) >= 32 && strpos( $username, $sep ) !== false ) {
 			// the separator is not valid in new usernames but might appear in legacy ones
@@ -437,7 +437,7 @@ class BotPassword implements IDBAccessObject {
 	 * @return Status On success, the good status's value is the new Session object
 	 */
 	public static function login( $username, $password, WebRequest $request ) {
-		global $wgEnableBotPasswords;
+		global $wgEnableBotPasswords, $wgPasswordAttemptThrottle;
 
 		if ( !$wgEnableBotPasswords ) {
 			return Status::newFatal( 'botpasswords-disabled' );
@@ -462,6 +462,20 @@ class BotPassword implements IDBAccessObject {
 			return Status::newFatal( 'nosuchuser', $name );
 		}
 
+		// Throttle
+		$throttle = null;
+		if ( !empty( $wgPasswordAttemptThrottle ) ) {
+			$throttle = new MediaWiki\Auth\Throttler( $wgPasswordAttemptThrottle, [
+				'type' => 'botpassword',
+				'cache' => ObjectCache::getLocalClusterInstance(),
+			] );
+			$result = $throttle->increase( $user->getName(), $request->getIP(), __METHOD__ );
+			if ( $result ) {
+				$msg = wfMessage( 'login-throttled' )->durationParams( $result['wait'] );
+				return Status::newFatal( $msg );
+			}
+		}
+
 		// Get the bot password
 		$bp = self::newFromUser( $user, $appId );
 		if ( !$bp ) {
@@ -480,6 +494,9 @@ class BotPassword implements IDBAccessObject {
 		}
 
 		// Ok! Create the session.
+		if ( $throttle ) {
+			$throttle->clear( $user->getName(), $request->getIP() );
+		}
 		return Status::newGood( $provider->newSessionForRequest( $user, $bp, $request ) );
 	}
 }
