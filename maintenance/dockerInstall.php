@@ -138,7 +138,7 @@ wfLoadExtension("ElectronPdfService");
 $wgElectronPdfServiceRESTbaseURL = '/api/rest_v1/page/pdf/';
 
 
-wfLoadExtension("DynamicPageList");
+wfLoadExtension("intersection");
 # Configuration variables. Warning: These use DLP instead of DPL
 # for historical reasons (pretend Dynamic list of pages)
 $wgDLPmaxCategories = 6;                // Maximum number of categories to look for
