@@ -12,11 +12,11 @@ div#footer {
 		padding: 0;
 
 		li {
-			color: #222;
 			margin: 0;
 			padding: 0;
 			padding-top: 0.5em;
 			padding-bottom: 0.5em;
+			color: #333;
 			font-size: 0.7em;
 		}
 	}
@@ -43,6 +43,15 @@ div#footer {
 			float: left;
 			margin-right: 1em;
 			line-height: 2em;
+		}
+	}
+}
+
+body.ltr {
+	div#footer {
+		#footer-places {
+			/* @noflip */
+			float: left;
 		}
 	}
 }

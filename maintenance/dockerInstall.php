@@ -138,7 +138,7 @@ wfLoadExtension("ElectronPdfService");
 $wgElectronPdfServiceRESTbaseURL = '/api/rest_v1/page/pdf/';
 
 
-require_once("$IP/extensions/intersection/DynamicPageList.php");
+wfLoadExtension("DynamicPageList");
 # Configuration variables. Warning: These use DLP instead of DPL
 # for historical reasons (pretend Dynamic list of pages)
 $wgDLPmaxCategories = 6;                // Maximum number of categories to look for
@@ -155,7 +155,7 @@ $wgGroupPermissions['sysop']['lookupuser'] = true;
 
 
 require_once "$IP/extensions/CategoryTree/CategoryTree.php";
-require_once("$IP/extensions/CSS/CSS.php");
+wfLoadExtension("CSS");
 require_once("$IP/extensions/EditUser/EditUser.php");
 $wgGroupPermissions['bureaucrat']['edituser'] = true;
 $wgGroupPermissions['sysop']['edituser-exempt'] = true;

@@ -22,6 +22,7 @@
 
 namespace Vector;
 
+use ConfigFactory;
 use CSSMin;
 use MediaWiki\MediaWikiServices;
 use ResourceLoaderContext;
@@ -43,7 +44,8 @@ class ResourceLoaderLessModule extends ResourceLoaderFileModule {
 		$printLogo = $config->get( 'VectorPrintLogo' );
 		if ( $printLogo ) {
 			$lessVars[ 'printLogo' ] = true;
-			$lessVars[ 'printLogoUrl' ] = CSSMin::buildUrlValue( $printLogo['url'] );
+			$lessVars[ 'printLogoUrl' ] = CSSMin::buildUrlValue(
+				CSSMin::encodeImageAsDataURI( $printLogo['url'] ) );
 			$lessVars[ 'printLogoWidth' ] = intval( $printLogo['width'] );
 			$lessVars[ 'printLogoHeight' ] = intval( $printLogo['height'] );
 		} else {

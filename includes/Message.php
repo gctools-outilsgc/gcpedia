@@ -419,7 +419,7 @@ class Message implements MessageSpecifier, Serializable {
 		}
 
 		if ( $value instanceof Message ) { // Message, RawMessage, ApiMessage, etc
-			$message = clone( $value );
+			$message = clone $value;
 		} elseif ( $value instanceof MessageSpecifier ) {
 			$message = new Message( $value );
 		} elseif ( is_string( $value ) ) {
@@ -488,7 +488,7 @@ class Message implements MessageSpecifier, Serializable {
 	 *
 	 * @since 1.17
 	 *
-	 * @param mixed ... Parameters as strings or arrays from
+	 * @param mixed $args,... Parameters as strings or arrays from
 	 *  Message::numParam() and the like, or a single array of parameters.
 	 *
 	 * @return Message $this
@@ -1123,11 +1123,29 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return string
 	 */
 	protected function replaceParameters( $message, $type = 'before', $format ) {
+		// A temporary marker for $1 parameters that is only valid
+		// in non-attribute contexts. However if the entire message is escaped
+		// then we don't want to use it because it will be mangled in all contexts
+		// and its unnessary as ->escaped() messages aren't html.
+		$marker = $format === self::FORMAT_ESCAPED ? '$' : '$\'"';
 		$replacementKeys = [];
 		foreach ( $this->parameters as $n => $param ) {
 			list( $paramType, $value ) = $this->extractParam( $param, $format );
-			if ( $type === $paramType ) {
-				$replacementKeys['$' . ( $n + 1 )] = $value;
+			if ( $type === 'before' ) {
+				if ( $paramType === 'before' ) {
+					$replacementKeys['$' . ( $n + 1 )] = $value;
+				} else /* $paramType === 'after' */ {
+					// To protect against XSS from replacing parameters
+					// inside html attributes, we convert $1 to $'"1.
+					// In the event that one of the parameters ends up
+					// in an attribute, either the ' or the " will be
+					// escaped, breaking the replacement and avoiding XSS.
+					$replacementKeys['$' . ( $n + 1 )] = $marker . ( $n + 1 );
+				}
+			} else {
+				if ( $paramType === 'after' ) {
+					$replacementKeys[$marker . ( $n + 1 )] = $value;
+				}
 			}
 		}
 		$message = strtr( $message, $replacementKeys );
@@ -1343,57 +1361,4 @@ class Message implements MessageSpecifier, Serializable {
 		$vars = $this->getLanguage()->$func( $vars );
 		return $this->extractParam( new RawMessage( $vars, $params ), $format );
 	}
-}
-
-/**
- * Variant of the Message class.
- *
- * Rather than treating the message key as a lookup
- * value (which is passed to the MessageCache and
- * translated as necessary), a RawMessage key is
- * treated as the actual message.
- *
- * All other functionality (parsing, escaping, etc.)
- * is preserved.
- *
- * @since 1.21
- */
-class RawMessage extends Message {
-
-	/**
-	 * Call the parent constructor, then store the key as
-	 * the message.
-	 *
-	 * @see Message::__construct
-	 *
-	 * @param string $text Message to use.
-	 * @param array $params Parameters for the message.
-	 *
-	 * @throws InvalidArgumentException
-	 */
-	public function __construct( $text, $params = [] ) {
-		if ( !is_string( $text ) ) {
-			throw new InvalidArgumentException( '$text must be a string' );
-		}
-
-		parent::__construct( $text, $params );
-
-		// The key is the message.
-		$this->message = $text;
-	}
-
-	/**
-	 * Fetch the message (in this case, the key).
-	 *
-	 * @return string
-	 */
-	public function fetchMessage() {
-		// Just in case the message is unset somewhere.
-		if ( $this->message === null ) {
-			$this->message = $this->key;
-		}
-
-		return $this->message;
-	}
-
 }

@@ -49,6 +49,17 @@ class VectorTemplate extends BaseTemplate {
 				unset( $this->data['action_urls'][$mode] );
 			}
 		}
+
+		// Reverse horizontally rendered navigation elements
+		if ( $this->data['rtl'] ) {
+			$this->data['view_urls'] =
+				array_reverse( $this->data['view_urls'] );
+			$this->data['namespace_urls'] =
+				array_reverse( $this->data['namespace_urls'] );
+			$this->data['personal_urls'] =
+				array_reverse( $this->data['personal_urls'] );
+		}
+
 		$this->data['pageLanguage'] =
 			$this->getSkin()->getTitle()->getPageViewLanguage()->getHtmlCode();
 
@@ -297,7 +308,7 @@ class VectorTemplate extends BaseTemplate {
 	}
 
 	/**
-	 * Render one or more navigations elements by name, automatically reversed by css
+	 * Render one or more navigations elements by name, automatically reveresed
 	 * when UI is in RTL mode
 	 *
 	 * @param array $elements
@@ -307,6 +318,9 @@ class VectorTemplate extends BaseTemplate {
 		// flexible arguments
 		if ( !is_array( $elements ) ) {
 			$elements = [ $elements ];
+			// If there's a series of elements, reverse them when in RTL mode
+		} elseif ( $this->data['rtl'] ) {
+			$elements = array_reverse( $elements );
 		}
 		// Render elements
 		foreach ( $elements as $name => $element ) {
@@ -438,10 +452,18 @@ class VectorTemplate extends BaseTemplate {
 								unset( $personalTools[ 'uls' ] );
 							}
 
-							echo $langSelector;
-							echo $notLoggedIn;
+							if ( !$this->data[ 'rtl' ] ) {
+								echo $langSelector;
+								echo $notLoggedIn;
+							}
+
 							foreach ( $personalTools as $key => $item ) {
 								echo $this->makeListItem( $key, $item );
+							}
+
+							if ( $this->data[ 'rtl' ] ) {
+								echo $notLoggedIn;
+								echo $langSelector;
 							}
 							?>
 						</ul>
@@ -518,7 +540,9 @@ class VectorTemplate extends BaseTemplate {
 
 		// Add CSS class 'collapsible' to links which are not marked as "primary"
 		if (
-			isset( $options['vector-collapsible'] ) && $options['vector-collapsible'] ) {
+			isset( $options['vector-collapsible'] ) && $options['vector-collapsible']
+			&& !( isset( $item['primary'] ) && $item['primary'] )
+		) {
 			$item['class'] = rtrim( 'collapsible ' . $item['class'], ' ' );
 		}
 

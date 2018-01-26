@@ -96,7 +96,10 @@ class LocalPasswordPrimaryAuthenticationProvider
 			__METHOD__
 		);
 		if ( !$row ) {
-			return AuthenticationResponse::newAbstain();
+			// Do not reveal whether its bad username or
+			// bad password to prevent username enumeration
+			// on private wikis. (T134100)
+			return $this->failResponse( $req );
 		}
 
 		$oldRow = clone $row;
@@ -297,7 +300,7 @@ class LocalPasswordPrimaryAuthenticationProvider
 				// Nothing we can do besides claim it, because the user isn't in
 				// the DB yet
 				if ( $req->username !== $user->getName() ) {
-					$req = clone( $req );
+					$req = clone $req;
 					$req->username = $user->getName();
 				}
 				$ret = AuthenticationResponse::newPass( $req->username );
