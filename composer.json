@@ -23,6 +23,7 @@
 		"ext-json": "*",
 		"ext-mbstring": "*",
 		"ext-xml": "*",
+		"jumbojett/openid-connect-php": "^0.3.0",
 		"liuggio/statsd-php-client": "1.0.18",
 		"mediawiki/at-ease": "1.1.0",
 		"oojs/oojs-ui": "0.23.0",
