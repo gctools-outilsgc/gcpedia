@@ -273,9 +273,7 @@ class VectorTemplate extends BaseTemplate {
 					<img type="image/png" src="<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo $wgScriptPath .'/images/GCpedia_icon_slogan_Fra.png'; else echo $wgScriptPath .'/images/GCpedia_icon_slogan_Eng.png';?>"></object><span class="wb-inv">GCpedia</span>
 				</div></div></a>
 
-				<nav class="wb-sec" typeof="SiteNavigationElement" id="wb-sec" role="navigation"  style="display: block;">
-						<?php $this->renderPortals( $this->data['sidebar'] ); ?>
-				</nav>
+				<?php $this->renderPortals( $this->data['sidebar'] ); ?>
 			</div>
 		</div>
 		<div id="footer" role="contentinfo"<?php $this->html( 'userlangattributes' ) ?>>
@@ -356,6 +354,29 @@ class VectorTemplate extends BaseTemplate {
 		if ( !isset( $portals['LANGUAGES'] ) ) {
 			$portals['LANGUAGES'] = true;
 		}
+
+		// split off some items from the toolbox
+		if ( !isset( $portals['ACTIONS'] ) ) {
+			$portals['ACTIONS'] = true;
+		}
+		
+		$toolbox = $this->getToolbox();
+		$actions = array();
+
+		// first item - move book creator activate/deactivate
+		if (isset($portals['coll-print_export'])){
+			$actions[book] = $portals['coll-print_export'][0];
+			unset($portals['coll-print_export'][0]);
+		}
+		
+		// next - stuff from the toolbox
+		foreach ( array( 'upload', 'specialpages' ) as $action ) {
+			if( isset($toolbox[$action]) ){
+				$actions[$action] = $toolbox[$action];
+				unset($toolbox[$action]);
+			}
+		}
+
 		// Render portals
 		foreach ( $portals as $name => $content ) {
 			if ( $content === false ) {
@@ -366,10 +387,13 @@ class VectorTemplate extends BaseTemplate {
 			$name = (string)$name;
 
 			switch ( $name ) {
+				case 'ACTIONS':			// split off from tools
+					$this->renderPortal( 'tba', $actions, 'toolbox-actions' );
+					break;
 				case 'SEARCH':
 					break;
 				case 'TOOLBOX':
-					$this->renderPortal( 'tb', $this->getToolbox(), 'toolbox', 'SkinTemplateToolboxEnd' );
+					$this->renderPortal( 'tb', $toolbox, 'toolbox', 'SkinTemplateToolboxEnd' );
 					break;
 				case 'LANGUAGES':
 					if ( $this->data['language_urls'] !== false ) {

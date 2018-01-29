@@ -1291,8 +1291,8 @@ abstract class Skin extends ContextSource {
 
 				if ( strpos( $line, '|' ) !== false ) { // sanity check
 					$line = MessageCache::singleton()->transform( $line, false, null, $this->getTitle() );
-					$line = array_map( 'trim', explode( '|', $line, 2 ) );
-					if ( count( $line ) !== 2 ) {
+					$line = array_map( 'trim', explode( '|', $line, 3 ) );
+					if ( count( $line ) !== 2 && count( $line ) !== 3 ) {
 						// Second sanity check, could be hit by people doing
 						// funky stuff with parserfuncs... (bug 33321)
 						continue;
@@ -1315,7 +1315,14 @@ abstract class Skin extends ContextSource {
 					} else {
 						$text = $line[1];
 					}
-
+					if ( isset($line[2]) ){
+						$descText = $this->msg( $line[2] );
+						if ( $descText->exists() ) {
+							$desc = $descText->text();
+						} else {
+							$desc = $line[2];
+						}
+					}
 					if ( preg_match( '/^(?i:' . wfUrlProtocols() . ')/', $link ) ) {
 						$href = $link;
 
@@ -1343,6 +1350,7 @@ abstract class Skin extends ContextSource {
 					$bar[$heading][] = array_merge( array(
 						'text' => $text,
 						'href' => $href,
+						'title' => $desc,
 						'id' => 'n-' . Sanitizer::escapeId( strtr( $line[1], ' ', '-' ), 'noninitial' ),
 						'active' => false
 					), $extraAttribs );

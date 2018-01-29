@@ -101,12 +101,14 @@ class CollectionHooks {
 		if ( !CollectionSession::isEnabled() ) {
 			$out[] = Array( 'text' => $sk->msg( 'coll-create_a_book' )->escaped(),
 				        'id' => 'coll-create_a_book',
-				        'href' => $booktitle->getLocalURL( array( 'bookcmd' => 'book_creator', 'referer' => $title->getPrefixedText() ) )
+						'href' => $booktitle->getLocalURL( array( 'bookcmd' => 'book_creator', 'referer' => $title->getPrefixedText() ) ),
+						'title' => $sk->msg( 'coll-create_a_book_tooltip' )->escaped()
 			       );
 		} else {
 			$out[] = Array( 'text' => $sk->msg( 'coll-book_creator_disable' )->escaped(),
 				        'id' => 'coll-book_creator_disable',
-					'href' => $booktitle->getLocalURL( array( 'bookcmd' => 'stop_book_creator', 'referer' => $title->getPrefixedText() ) )
+					'href' => $booktitle->getLocalURL( array( 'bookcmd' => 'stop_book_creator', 'referer' => $title->getPrefixedText() ) ),
+					'title' => $sk->msg( 'coll-book_creator_disable_tooltip' )->escaped()
 				 );
 		}
 
@@ -127,7 +129,8 @@ class CollectionHooks {
 			$params['writer'] = $writer;
 			$out[] = Array( 'text' => $sk->msg( 'coll-download_as', $wgCollectionFormats[$writer] )->escaped(),
 				        'id' => 'coll-download-as-' . $writer,
-					'href' => $booktitle->getLocalURL( $params )
+					'href' => $booktitle->getLocalURL( $params ),
+					'title' => $sk->msg( 'coll-download_as_tooltip', $wgCollectionFormats[$writer] )->escaped()
 				 );
 		}
 
