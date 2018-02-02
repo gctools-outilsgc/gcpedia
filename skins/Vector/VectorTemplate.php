@@ -281,7 +281,7 @@ class VectorTemplate extends BaseTemplate {
 		}
 		
 		$pageinfo['ga-stats'] = array( 'href' => '',
-									'text'	=> $this->msg( 'statistics' )->text());
+									'text'	=> wfMessage( 'statistics' )->text());
 		$pageinfo['ga-stats']['id'] = 'g-stats';
 		
 		$tmp = $toolbox['whatlinkshere'];
