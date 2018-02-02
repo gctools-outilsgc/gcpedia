@@ -22,16 +22,16 @@ services:
             cpus: '0.1'
             memory: 250M
 #  use this if gcpedia has already been installed and LocalSettings.php config created
-#    configs:
-#      - source: LocalSettings.php
-#        target: /var/www/html/docker_gcpedia/LocalSettings.php
-#        mode: 0444
+    configs:
+      - source: LocalSettings.php
+        target: /var/www/html/docker_gcpedia/LocalSettings.php
+        mode: 0444
     environment:
       - DOCKER=1
       - DBHOST=gcpedia-db
-      - HOST=wiki.gccollab.ca
+      - HOST=wiki.collab.test
       - PORT=
-      - OPENID=true
+      - OPENID=
 #      - OAUTH=true
 # for single signon with GCconnex
 #      - USESAML=true

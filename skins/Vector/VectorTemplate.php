@@ -66,6 +66,17 @@ class VectorTemplate extends BaseTemplate {
 		// Output HTML Page
 		$this->html( 'headelement' );
 		?>
+		<div class="collab-fip-header" style="height:35px; clear:both; background-color:white;">
+			<object type="image/svg+xml" tabindex="-1" role="img" data="<?php echo $wgScriptPath; ?>/skins/Vector/images/collab/sig-alt-en.svg" aria-label="Symbol of the Government of Canada" style="height:25px; float:left; padding:5px 10px;"></object>
+			<ul id="tool-links" class="" style="list-style:none; padding:5px; width:30%; margin: 0 auto;">
+				<?php //put a condition here for who can see these links! :3?>
+				<li style="float:left; margin: 0px 2%;"><a href="http://www.gcpedia.gc.ca/wiki/?setlang=en"><b>GC</b>pedia</a></li>
+				<li style="float:left; margin: 0px 2%;"><a href="http://intranet.canada.ca/index-eng.asp?utm_source=GCcollab&utm_medium=gctools-banner&utm_campaign=generic"><b>GC</b>intranet</a></li>
+				<li style="float:left; margin: 0px 2%;"><a href="https://gcdirectory-gcannuaire.gc.ca/en/GCD/?pgid=002"><b>GC</b>directory</a></li>
+				<li style="float:left; margin: 0px 2%;"><a href="https://gcconnex.gc.ca/"><b>GC</b>connex</a></li>
+				<li style="float:left; margin: 0px 2%;"><a href="https://gccollab.ca/"><b>GC</b>collab</a></li>
+			</ul>
+		</div>
 		<div id="mw-page-base" class="noprint"></div>
 		<div id="mw-head-base" class="noprint"></div>
 		<div id="content" class="mw-body" role="main">
@@ -149,7 +160,14 @@ class VectorTemplate extends BaseTemplate {
 		<div id="mw-navigation">
 			<h2><?php $this->msg( 'navigation-heading' ) ?></h2>
 
-			<div id="mw-head">
+			<div id="mw-head" style="top:35px;">
+				<style>
+					#app-brand-name:before{
+						content: ''; display: block; position: absolute; left: 166px; top: 0; width: 0; height: 0; border-top: 20px solid transparent; border-bottom: 22px solid transparent; border-left: 20px solid #6D4E86; clear: both;
+					}
+				</style>
+				<div id="app-brand-name"  style="background:#6D4E86; position:absolute; top:2px; clear:both; float:left; font-size:24px; color:white; padding:8px 45px 6px 45px;"><b>GC</b>wiki</div>
+				
 				<?php $this->renderNavigation( 'PERSONAL' ); ?>
 				<div id="left-navigation">
 					<?php $this->renderNavigation( [ 'NAMESPACES', 'VARIANTS' ] ); ?>
@@ -158,12 +176,16 @@ class VectorTemplate extends BaseTemplate {
 					<?php $this->renderNavigation( [ 'VIEWS', 'ACTIONS', 'SEARCH' ] ); ?>
 				</div>
 			</div>
-			<div id="mw-panel">
-				<div id="p-logo" role="banner"><a class="mw-wiki-logo" href="<?php
+			<div id="mw-panel" class="collab-wiki-nav" style="top:90px;">
+				
+				<div id="p-logo" role="banner" style="margin-bottom:40px;"><a class="mw-wiki-logo" href="<?php
 					echo htmlspecialchars( $this->data['nav_urls']['mainpage']['href'] )
 					?>" <?php
 					echo Xml::expandAttributes( Linker::tooltipAndAccesskeyAttribs( 'p-logo' ) )
-					?>></a></div>
+					?>>
+					<img src="<?php echo $wgScriptPath; ?>/skins/Vector/images/collab/collab_logo_en.png" type="image/png" style="width:100%;">
+				</a>
+				</div>
 				<?php $this->renderPortals( $this->data['sidebar'] ); ?>
 			</div>
 		</div>
@@ -204,7 +226,11 @@ class VectorTemplate extends BaseTemplate {
 			<?php
 			}
 			?>
+			
 			<div style="clear:both"></div>
+			<div id="app-brand-footer" style="border-top: 3px solid #6D4E86; bottom:0; width:100%; margin-top:5px;">
+				<object type="image/svg+xml" tabindex="-1" role="img" data="<?php echo $wgScriptPath; ?>/skins/Vector/images/collab/wmms-alt.svg" aria-label="Symbol of the Government of Canada" style="height:33px; float:right; padding:10px 15px;"></object>
+			</div>
 		</div>
 		<?php $this->printTrail(); ?>
 
