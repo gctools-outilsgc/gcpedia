@@ -255,6 +255,23 @@ class VectorTemplate extends BaseTemplate {
 		if ( !isset( $portals['LANGUAGES'] ) ) {
 			$portals['LANGUAGES'] = true;
 		}
+
+		// split off some items from the toolbox
+		if ( !isset( $portals['ACTIONS'] ) ) {
+				$portals['ACTIONS'] = true;
+		}
+			
+		$toolbox = $this->getToolbox();
+		$actions = array();
+
+		// next - stuff from the toolbox
+		foreach ( array( 'upload', 'specialpages' ) as $action ) {
+			if( isset($toolbox[$action]) ){
+				$actions[$action] = $toolbox[$action];
+				unset($toolbox[$action]);
+			}
+		}
+
 		// Render portals
 		foreach ( $portals as $name => $content ) {
 			if ( $content === false ) {
@@ -265,10 +282,13 @@ class VectorTemplate extends BaseTemplate {
 			$name = (string)$name;
 
 			switch ( $name ) {
+				case 'ACTIONS':			// split off from tools
+					$this->renderPortal( 'tba', $actions, 'toolbox-actions' );
+					break;
 				case 'SEARCH':
 					break;
 				case 'TOOLBOX':
-					$this->renderPortal( 'tb', $this->getToolbox(), 'toolbox', 'SkinTemplateToolboxEnd' );
+					$this->renderPortal( 'tb', $toolbox, 'toolbox', 'SkinTemplateToolboxEnd' );
 					break;
 				case 'LANGUAGES':
 					if ( $this->data['language_urls'] !== false ) {

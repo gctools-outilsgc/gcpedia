@@ -1322,8 +1322,8 @@ abstract class Skin extends ContextSource {
 
 				if ( strpos( $line, '|' ) !== false ) { // sanity check
 					$line = MessageCache::singleton()->transform( $line, false, null, $messageTitle );
-					$line = array_map( 'trim', explode( '|', $line, 2 ) );
-					if ( count( $line ) !== 2 ) {
+					$line = array_map( 'trim', explode( '|', $line, 3 ) );
+					if ( count( $line ) !== 2  && count( $line ) !== 3) {
 						// Second sanity check, could be hit by people doing
 						// funky stuff with parserfuncs... (T35321)
 						continue;
@@ -1345,6 +1345,14 @@ abstract class Skin extends ContextSource {
 						$text = $msgText->text();
 					} else {
 						$text = $line[1];
+					}
+					if ( isset($line[2]) ){
+						$descText = $this->msg( $line[2] );
+						if ( $descText->exists() ) {
+							$desc = $descText->text();
+						} else {
+							$desc = $line[2];
+						}
 					}
 
 					if ( preg_match( '/^(?i:' . wfUrlProtocols() . ')/', $link ) ) {
@@ -1370,13 +1378,24 @@ abstract class Skin extends ContextSource {
 							$href = 'INVALID-TITLE';
 						}
 					}
-
-					$bar[$heading][] = array_merge( [
-						'text' => $text,
-						'href' => $href,
-						'id' => Sanitizer::escapeIdForAttribute( 'n-' . strtr( $line[1], ' ', '-' ) ),
-						'active' => false,
-					], $extraAttribs );
+					
+					if ( isset($desc) ){
+						$bar[$heading][] = array_merge( [
+							'text' => $text,
+							'href' => $href,
+							'title' => $desc,
+							'id' => Sanitizer::escapeIdForAttribute( 'n-' . strtr( $line[1], ' ', '-' ) ),
+							'active' => false,
+						], $extraAttribs );
+					}
+					else{
+						$bar[$heading][] = array_merge( [
+							'text' => $text,
+							'href' => $href,
+							'id' => Sanitizer::escapeIdForAttribute( 'n-' . strtr( $line[1], ' ', '-' ) ),
+							'active' => false,
+						], $extraAttribs );
+					}
 				} else {
 					continue;
 				}
