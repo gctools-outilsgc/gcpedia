@@ -272,6 +272,26 @@ class VectorTemplate extends BaseTemplate {
 			}
 		}
 
+		// move some toolbox items to the top
+		$pageinfo = array();
+
+		if ( isset( $toolbox['info'] ) ){
+			$pageinfo['info'] = $toolbox['info'];
+			unset($toolbox['info']);
+		}
+		
+		$pageinfo['ga-stats'] = array( 'href' => '',
+									'text'	=> $this->msg( 'statistics' )->text());
+		$pageinfo['ga-stats']['id'] = 'g-stats';
+		
+		$tmp = $toolbox['whatlinkshere'];
+		unset($toolbox['whatlinkshere']);
+		
+		// now combine...
+		$pageinfo = array_merge($pageinfo, $toolbox);
+		$pageinfo['whatlinkshere'] = $tmp;
+		
+
 		// Render portals
 		foreach ( $portals as $name => $content ) {
 			if ( $content === false ) {
@@ -288,7 +308,7 @@ class VectorTemplate extends BaseTemplate {
 				case 'SEARCH':
 					break;
 				case 'TOOLBOX':
-					$this->renderPortal( 'tb', $toolbox, 'toolbox', 'SkinTemplateToolboxEnd' );
+					$this->renderPortal( 'tb', $pageinfo, 'toolbox', 'SkinTemplateToolboxEnd' );
 					break;
 				case 'LANGUAGES':
 					if ( $this->data['language_urls'] !== false ) {
