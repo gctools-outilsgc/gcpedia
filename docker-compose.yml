@@ -36,17 +36,6 @@ services:
       - 8142:8000
 
   # ###########################################################################
-  # The mwlib service container for the Collection extension.
-  # Will be available to gcpedia at mwlib:8899
-  # ###########################################################################
-  mwlib:
-    build:
-      context: .
-      dockerfile: Dockerfile.mwlib
-    ports:
-      - 8899:8899
-
-  # ###########################################################################
   # The Electron render service container for the ElectronPdfService Extension.
   # Will be available to gcpedia at elec-render:3000
   # ###########################################################################
