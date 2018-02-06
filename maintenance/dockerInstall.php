@@ -10,6 +10,14 @@ $openid = (getenv('OPENID') != '') ? getenv('OPENID') : false;
 
 echo "Using dbhost: $dbhost   and host: $host \n";
 
+// wait for db to be ready
+do{
+  sleep(1); // wait for the db container
+  $dbconnect = mysqli_connect($dbhost, 'wiki', 'gcpedia');
+}while(!$dbconnect);
+
+mysqli_close($dbconnect);
+
 // first run regular cli install script
 shell_exec("php /var/www/html/docker_gcpedia/maintenance/install.php --confpath=/var/www/html/docker_gcpedia/ \
  --dbserver={$dbhost} --dbtype=mysql --dbuser=wiki --dbpass=gcpedia --dbname=wiki \
