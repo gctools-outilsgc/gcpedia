@@ -12,13 +12,17 @@ echo "Using dbhost: $dbhost   and host: $host \n";
 
 // wait for db to be ready
 echo "Connecting to database..";
+$etmp = error_reporting(E_ERROR);     // don't need all the connection errors...
+
 do{
   echo ".";
   sleep(1); // wait for the db container
   $dbconnect = mysqli_connect($dbhost, 'wiki', 'gcpedia');
 }while(!$dbconnect);
+
 echo "Connected!";
 mysqli_close($dbconnect);
+error_reporting($etmp);     // revert error reporting to default
 
 // first run regular cli install script
 shell_exec("php /var/www/html/docker_gcpedia/maintenance/install.php --confpath=/var/www/html/docker_gcpedia/ \
