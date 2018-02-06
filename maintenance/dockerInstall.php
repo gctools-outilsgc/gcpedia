@@ -11,11 +11,13 @@ $openid = (getenv('OPENID') != '') ? getenv('OPENID') : false;
 echo "Using dbhost: $dbhost   and host: $host \n";
 
 // wait for db to be ready
+echo "Connecting to database..";
 do{
+  echo ".";
   sleep(1); // wait for the db container
   $dbconnect = mysqli_connect($dbhost, 'wiki', 'gcpedia');
 }while(!$dbconnect);
-
+echo "Connected!";
 mysqli_close($dbconnect);
 
 // first run regular cli install script

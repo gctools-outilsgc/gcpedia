@@ -37,6 +37,7 @@ LABEL maintainer="Ilia Salem"
 RUN \
   apk --no-cache add \
     apache2 \
+    php7 \
     php7-apache2 \
     php7-curl \
     php7-dom \
