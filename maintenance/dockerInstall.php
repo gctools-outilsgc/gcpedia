@@ -1,5 +1,9 @@
 <?php
 
+// check if install is needed
+if( file_exists("/var/www/html/docker_gcpedia/LocalSettings.php") )
+  exit("\nLocalSettings.php found, not running install.\n\n");
+
 // environment variables from docker-compose
 $dbhost = (getenv('DBHOST') != '') ? getenv('DBHOST') : 'gcpedia-db';
 $host = (getenv('HOST') != '') ? getenv('HOST') : 'localhost';

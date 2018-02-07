@@ -4,7 +4,7 @@ services:
   # The GCpedia container.  Will be accessible at http://localhost:8080
   # ###########################################################################
   gcpedia:
-    image: gcpedia:alpine
+    image: gcpedia
     ports:
       - 80:80
     volumes:
