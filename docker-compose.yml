@@ -12,6 +12,7 @@ services:
       - .:/var/www/html/docker_gcpedia
       - ./images:/var/www/html/docker_gcpedia/images
       - /var/www/html/docker_gcpedia/vendor
+      - /var/www/html/docker_gcpedia/docker
     links:
       - gcpedia-db
     depends_on:
