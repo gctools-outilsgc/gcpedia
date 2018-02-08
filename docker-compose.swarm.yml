@@ -7,6 +7,7 @@ services:
     image: gcpedia
     ports:
       - 80:80
+      - 443:443
     volumes:
       - type: volume
         source: gcpedia_images

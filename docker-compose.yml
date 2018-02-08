@@ -7,6 +7,7 @@ services:
     build: .
     ports:
       - 8800:80
+      - 8843:443
     volumes:
       - .:/var/www/html/docker_gcpedia
       - ./images:/var/www/html/docker_gcpedia/images

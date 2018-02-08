@@ -69,6 +69,7 @@ COPY --from=0 --chown=apache /app/ /var/www/html/docker_gcpedia/
 
 WORKDIR /var/www/html/docker_gcpedia
 EXPOSE 80
+EXPOSE 443
 
 RUN chmod +x docker/start.sh
 
