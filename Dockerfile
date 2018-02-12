@@ -65,7 +65,8 @@ RUN \
   && sed -i '/Options Indexes FollowSymLinks/c\\' /etc/apache2/httpd.conf \
   && sed -i '/<Directory "\/var\/www\/localhost\/htdocs">/c\<Directory "\/var\/www\/html\/docker_gcpedia">\nDirectoryIndex index.php\nOptions FollowSymLinks MultiViews\nAllowOverride All\nOrder allow,deny\nallow from all\n' /etc/apache2/httpd.conf
 
-COPY --from=0 --chown=apache /app/ /var/www/html/docker_gcpedia/
+COPY --from=0 /app/ /var/www/html/docker_gcpedia/
+RUN chown -R apache:apache /var/www/html/docker_gcpedia/
 
 WORKDIR /var/www/html/docker_gcpedia
 EXPOSE 80
