@@ -22,6 +22,7 @@ services:
       - /var/www/html/docker_gcpedia/extensions/Nuke
       - /var/www/html/docker_gcpedia/extensions/ParserFunctions
       - /var/www/html/docker_gcpedia/extensions/Renameuser
+      - /var/www/html/docker_gcpedia/extensions/WikiEditor
       - /var/www/html/docker_gcpedia/extensions/Cite
       - /var/www/html/docker_gcpedia/extensions/ImageMap
       - /var/www/html/docker_gcpedia/extensions/InputBox
@@ -53,7 +54,7 @@ services:
     environment:
       - DOCKER=1
       - DBHOST=gcpedia-db
-      - HOST=wiki.gccollab.ca
+      - HOST=wiki.gccollab.dev
       - PORT=
       - OPENID=true
 #      - OAUTH=true
