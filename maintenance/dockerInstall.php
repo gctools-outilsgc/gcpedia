@@ -4,6 +4,12 @@
 if( file_exists("/var/www/html/docker_gcpedia/LocalSettings.php") )
   exit("\nLocalSettings.php found, not running install.\n\n");
 
+$enabled = getenv('DOCKER') != ''; //are we in a Docker container?
+if (!$enabled) {
+  echo "This script should be run only in a properly configured Docker container environment.\n";
+  exit(1);
+}
+
 // environment variables from docker-compose
 $dbhost = (getenv('DBHOST') != '') ? getenv('DBHOST') : 'gcpedia-db';
 $host = (getenv('HOST') != '') ? getenv('HOST') : 'localhost';
