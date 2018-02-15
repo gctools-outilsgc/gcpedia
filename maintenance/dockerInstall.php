@@ -268,7 +268,7 @@ wfLoadExtension( 'OpenIDConnect' );
 
 $wgGroupPermissions['*']['createaccount'] = true;
 $wgGroupPermissions['*']['autocreateaccount'] = true;
-$wgOpenIDConnect_UseRealNameAsUserName = true;
+$wgOpenIDConnect_UseEmailNameAsUserName = true;
 
 $wgOpenIDConnect_Config[''] = [
     'clientID' => '',
