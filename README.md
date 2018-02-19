@@ -2,9 +2,9 @@
 
 # GCpedia
 
-Master branch: work in progress, mostly working upgraded to mediawiki 1.29
+Master branch: upgraded to mediawiki 1.30, for GCwiki
 
-GCpedia branch: almost identical to current GCpedia production
+GCpedia branch: current GCpedia production
 
 Both branches include Dockerfiles to build docker images as well as docker compose files for both docker-compose and docker stack/swarm
 A docker-compose file for setting up a jenkins + docker worker environment is also available.
