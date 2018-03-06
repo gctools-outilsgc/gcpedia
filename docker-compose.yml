@@ -17,6 +17,7 @@ services:
       - /var/www/html/docker_gcpedia/skins/CologneBlue
       - /var/www/html/docker_gcpedia/skins/Modern
       - /var/www/html/docker_gcpedia/skins/MonoBook
+      - /var/www/html/docker_gcpedia/skins/MinervaNeue
       - /var/www/html/docker_gcpedia/extensions/ConfirmEdit
       - /var/www/html/docker_gcpedia/extensions/Gadgets
       - /var/www/html/docker_gcpedia/extensions/Nuke
