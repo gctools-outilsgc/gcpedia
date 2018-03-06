@@ -183,7 +183,7 @@ class VectorTemplate extends BaseTemplate {
 					?>" <?php
 					echo Xml::expandAttributes( Linker::tooltipAndAccesskeyAttribs( 'p-logo' ) )
 					?>>
-					<img src="<?php echo $wgScriptPath; ?>/skins/Vector/images/collab/collab_logo_en.png" type="image/png" style="width:100%;">
+					<img src="<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo $wgScriptPath . '/skins/Vector/images/collab/collab_logo_fr.png'; else echo $wgScriptPath .'/skins/Vector/images/collab/collab_logo_en.png'; ?>" type="image/png" style="width:100%;">
 				</a>
 				</div>
 				<?php $this->renderPortals( $this->data['sidebar'] ); ?>
