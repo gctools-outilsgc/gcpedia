@@ -89,6 +89,7 @@ $wgEnableAPI = true;
 $wgGroupPermissions['sysop']['deletelogentry'] = true;
 $wgGroupPermissions['sysop']['deleterevision'] = true;
 
+$wgVectorUseIconWatch = false;
 
 ////  extensions
 wfLoadExtension( "ParserFunctions" );
