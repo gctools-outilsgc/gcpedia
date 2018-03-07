@@ -51,6 +51,7 @@ RUN \
     php7-session \
     php7-curl \
     php7-fileinfo  \
+    php7-zlib \
     git \
   && apk update \
   && mkdir -p /data \
