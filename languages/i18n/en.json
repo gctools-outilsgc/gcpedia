@@ -4096,7 +4096,7 @@
 	"feedback-thanks": "Thanks! Your feedback has been posted to the page \"[$2 $1]\".",
 	"feedback-thanks-title": "Thank you!",
 	"feedback-useragent": "User agent:",
-	"searchsuggest-search": "Search GCpedia",
+	"searchsuggest-search": "Search GCwiki",
 	"searchsuggest-search-tools": "Search GCTools",
 	"searchsuggest-containing": "containing...",
 	"api-error-badtoken": "Internal error: Bad token.",
