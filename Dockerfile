@@ -53,6 +53,7 @@ RUN \
     php7-fileinfo  \
     php7-zlib \
     php7-xmlreader \
+    php7-xmlwriter \
     git \
   && apk update \
   && mkdir -p /data \
