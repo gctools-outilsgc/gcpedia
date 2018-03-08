@@ -52,6 +52,7 @@ RUN \
     php7-curl \
     php7-fileinfo  \
     php7-zlib \
+    php7-xmlreader \
     git \
   && apk update \
   && mkdir -p /data \

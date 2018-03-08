@@ -30,7 +30,7 @@ services:
     environment:
       - DOCKER=1
       - DBHOST=gcpedia-db
-      - HOST=wiki.collab.test
+      - HOST=wiki.gccollab.test
       - PORT=
       - OPENID=
 #      - OAUTH=true

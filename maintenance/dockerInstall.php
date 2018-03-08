@@ -81,6 +81,7 @@ $wgGroupPermissions['user']['delete']         = false;
 $wgGroupPermissions['user']['undelete']       = true;
 $wgGroupPermissions['user']['deletedhistory'] = true;
 
+$wgEnableUploads = true;
 $wgFileExtensions = array('pub','png','gif','jpg','jpeg','pdf','xls','docx','pptx','doc','ppt','svg','xml','mpg','swf','odp','odt','wmv','flv','vsd','mpp','ai','zip','txt','wpd','rtf','drf','xlsx','xlsm', 'oft');
 
 $wgUseAjax = true;
