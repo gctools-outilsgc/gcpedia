@@ -27,6 +27,10 @@ services:
       - source: LocalSettings.php
         target: /var/www/html/docker_gcpedia/LocalSettings.php
         mode: 0444
+    configs:
+      - source: htaccess
+        target: /var/www/html/docker_gcpedia/.htaccess
+        mode: 0444
     environment:
       - DOCKER=1
       - DBHOST=gcpedia-db
@@ -119,3 +123,8 @@ networks:
   gcpedia-services:
     driver: overlay
     internal: true
+configs:
+  LocalSettings.php:
+    file: ./LocalSettings.php
+  htaccess:
+    file: ./.htaccess
