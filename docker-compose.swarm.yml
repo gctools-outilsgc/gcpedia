@@ -1,7 +1,7 @@
 version: '3.3'
 services:
   # ###########################################################################
-  # The GCpedia container.  Will be accessible at http://localhost:8080
+  # The GCpedia container.  Will be accessible at http://wiki.collab.test
   # ###########################################################################
   gcpedia:
     image: gcpedia
@@ -42,19 +42,19 @@ services:
   # The parsoid container for the VisualEditor.
   # Will be available to gcpedia at parsoid:8142
   # ###########################################################################
-#  parsoid:
-#    image: phanoix/parsoid
-#    networks:
-#      - gcpedia-services
-#    deploy:
-#      replicas: 1
-#      resources:
-#          limits:
-#            cpus: '0.1'
-#            memory: 250M
-#          reservations:
-#            cpus: '0.01'
-#            memory: 50M
+  parsoid:
+    image: phanoix/parsoid
+    networks:
+      - gcpedia-services
+    deploy:
+      replicas: 1
+      resources:
+          limits:
+            cpus: '0.1'
+            memory: 250M
+          reservations:
+            cpus: '0.01'
+            memory: 50M
 
   # ###########################################################################
   # The Electron render service container for the ElectronPdfService Extension.
