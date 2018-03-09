@@ -198,6 +198,7 @@ $wgGroupPermissions['sysop']['emailupdate'] = true;
 require_once( "$IP/extensions/Multilang/multilang.php" );
 
 wfLoadExtension("MobileFrontend");
+$wgMFAutodetectMobileView = true;
 
 require_once("$IP/extensions/GC_Messages/GC_Messages.php");
 
