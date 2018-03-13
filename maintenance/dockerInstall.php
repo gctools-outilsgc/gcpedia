@@ -269,7 +269,7 @@ function returnLocalSettingsOpenIDText(){
 wfLoadExtension( 'PluggableAuth' );
 wfLoadExtension( 'OpenIDConnect' );
 
-$wgGroupPermissions['*']['createaccount'] = true;
+$wgGroupPermissions['*']['createaccount'] = false;
 $wgGroupPermissions['*']['autocreateaccount'] = true;
 $wgOpenIDConnect_UseEmailNameAsUserName = true;
 
