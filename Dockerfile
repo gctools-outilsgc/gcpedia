@@ -72,6 +72,9 @@ COPY --from=0 /app/ /var/www/html/docker_gcpedia/
 RUN chown -R apache:apache /var/www/html/docker_gcpedia/
 
 WORKDIR /var/www/html/docker_gcpedia
+RUN mkdir /super
+RUN mv /var/www/html/docker_gcpedia/docker/secret.php /super/secret.php
+
 EXPOSE 80
 EXPOSE 443
 

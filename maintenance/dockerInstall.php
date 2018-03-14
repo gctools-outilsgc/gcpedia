@@ -63,6 +63,7 @@ echo "DB update complete\n  Install Complete!\n";
 
 function returnLocalSettingsText(){
   return <<< 'EOD'
+include('/super/secret.php');
 include('./config.php');
 EOD;
 }
