@@ -22,15 +22,22 @@ services:
           reservations:
             cpus: '0.1'
             memory: 250M
-#  use this if gcpedia has already been installed and LocalSettings.php config created
-    configs:
-      - source: LocalSettings.php
-        target: /var/www/html/docker_gcpedia/LocalSettings.php
-        mode: 0444
-    configs:
-      - source: htaccess
-        target: /var/www/html/docker_gcpedia/.htaccess
-        mode: 0444
+#  use this if gcpedia has already been installed and LocalSettings.php config created, safer to just do this manually with the docker service update command provided
+#  docker service update --config-add source=LocalSettings.php,target=/var/www/html/docker_gcpedia/LocalSettings.php,mode=0444 wiki
+#    configs:
+#      - source: LocalSettings.php
+#        target: /var/www/html/docker_gcpedia/LocalSettings.php
+#        mode: 0444
+#  docker service update --config-add source=htaccess,target=/var/www/html/docker_gcpedia/.htaccess,mode=0444 wiki
+#    configs:
+#      - source: htaccess
+#        target: /var/www/html/docker_gcpedia/.htaccess
+#        mode: 0444
+#  docker service update --secret-add source=wikiSecrets,target=/super/secret.php,mode=0440 wiki
+#    secrets:
+#      - source: wikiSecrets
+#        target: /super/secret.php
+#        mode: 0440
     environment:
       - DOCKER=1
       - DBHOST=gcpedia-db
