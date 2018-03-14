@@ -43,7 +43,7 @@ services:
       - DBHOST=gcpedia-db
       - HOST=wiki.gccollab.test
       - PORT=
-      - OPENID=
+      - OPENID=true
 #      - OAUTH=true
 # for single signon with GCconnex
 #      - USESAML=true
