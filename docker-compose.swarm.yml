@@ -123,8 +123,3 @@ networks:
   gcpedia-services:
     driver: overlay
     internal: true
-configs:
-  LocalSettings.php:
-    file: ./LocalSettings.php
-  htaccess:
-    file: ./.htaccess
