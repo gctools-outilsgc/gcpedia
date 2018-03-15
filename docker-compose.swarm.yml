@@ -33,10 +33,10 @@ services:
 #      - source: htaccess
 #        target: /var/www/html/docker_gcpedia/.htaccess
 #        mode: 0444
-#  docker service update --secret-add source=wikiSecrets,target=/super/secret.php,mode=0440 wiki
+#  docker service update --secret-add source=wikiSecrets,target=/super/secrets.php,mode=0440 wiki
 #    secrets:
 #      - source: wikiSecrets
-#        target: /super/secret.php
+#        target: /super/secrets.php
 #        mode: 0440
     environment:
       - DOCKER=1
