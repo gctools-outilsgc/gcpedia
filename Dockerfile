@@ -73,7 +73,7 @@ RUN chown -R apache:apache /var/www/html/docker_gcpedia/
 
 WORKDIR /var/www/html/docker_gcpedia
 RUN mkdir /super
-RUN mv /var/www/html/docker_gcpedia/docker/secret.php /super/secret.php
+RUN mv /var/www/html/docker_gcpedia/docker/secrets.php /super/secrets.php
 
 EXPOSE 80
 EXPOSE 443
