@@ -66,9 +66,10 @@ services:
   # Will be available to gcpedia at parsoid:8142
   # ###########################################################################
   parsoid:
-    build:
-      context: .
-      dockerfile: Dockerfile.parsoid
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile.parsoid
+    image: phanoix/parsoid:latest
     ports:
       - 8142:8000
 
