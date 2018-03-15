@@ -68,13 +68,9 @@ class VectorTemplate extends BaseTemplate {
 		?>
 		<div class="collab-fip-header" style="height:35px; clear:both; background-color:white;">
 			<object type="image/svg+xml" tabindex="-1" role="img" data="<?php echo $wgScriptPath; ?>/skins/Vector/images/collab/sig-alt-en.svg" aria-label="Symbol of the Government of Canada" style="height:25px; float:left; padding:5px 10px;"></object>
-			<ul id="tool-links" class="" style="list-style:none; padding:5px; width:30%; margin: 0 auto;">
-				<?php //put a condition here for who can see these links! :3?>
-				<li style="float:left; margin: 0px 2%;"><a href="http://www.gcpedia.gc.ca/wiki/?setlang=en"><b>GC</b>pedia</a></li>
-				<li style="float:left; margin: 0px 2%;"><a href="http://intranet.canada.ca/index-eng.asp?utm_source=GCcollab&utm_medium=gctools-banner&utm_campaign=generic"><b>GC</b>intranet</a></li>
-				<li style="float:left; margin: 0px 2%;"><a href="https://gcdirectory-gcannuaire.gc.ca/en/GCD/?pgid=002"><b>GC</b>directory</a></li>
-				<li style="float:left; margin: 0px 2%;"><a href="https://gcconnex.gc.ca/"><b>GC</b>connex</a></li>
-				<li style="float:left; margin: 0px 2%;"><a href="https://gccollab.ca/"><b>GC</b>collab</a></li>
+			<ul id="tool-links" class="" style="list-style:none; padding:5px; width:30%; margin: 0 auto; font-weight:bold;">
+				<li style="float:left; margin: 0px 2%;"><a href="https://account.gccollab.ca" style="color:#6b5088;"><span><img style="width:25px; display:inline-block; margin-right:3px;" src="<?php echo $wgScriptPath . '/skins/Vector/images/collab/mini_wiki_icon.png'; ?>" alt="gccollab"></span>Account</a></li>
+				<li style="float:left; margin: 0px 2%;"><a href="https://gccollab.ca/" style="color:#6b5088;"><span><img style="width:25px; display:inline-block; margin-right:3px;" src="<?php echo $wgScriptPath . '/skins/Vector/images/collab/mini_collab_icon.png'; ?>" alt="gccollab"></span>Collab</a></li>
 			</ul>
 		</div>
 		<div id="mw-page-base" class="noprint"></div>
