@@ -151,9 +151,9 @@ wfLoadExtension( "UserMerge" );
 $wgGroupPermissions['sysop']['usermerge'] = true;
 $wgUserMergeUnmergeable = array( 'sysop', 'awesomeusers' );
  
-$wgShowSQLErrors = true;
-$wgShowExceptionDetails = true;
+#$wgShowSQLErrors = true;
+#$wgShowExceptionDetails = true;
 
-#require_once "$IP/extensions/IframePage/IframePage.php";
-#$wgIframePageSrc= array( 'GCcollab' => 'https://gccollab.ca/', 'YouTube' => 'https://www.youtube.com/embed/' );
-#$wgIframePageAllowPath = true;
+require_once "$IP/extensions/IframePage/IframePage.php";
+$wgIframePageSrc= array( 'GCcollab' => 'https://gccollab.ca/', 'YouTube' => 'https://www.youtube.com/embed/' );
+$wgIframePageAllowPath = true;
