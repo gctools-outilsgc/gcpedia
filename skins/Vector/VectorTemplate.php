@@ -162,7 +162,7 @@ class VectorTemplate extends BaseTemplate {
 						content: ''; display: block; position: absolute; left: 166px; top: 0; width: 0; height: 0; border-top: 20px solid transparent; border-bottom: 22px solid transparent; border-left: 20px solid #6D4E86; clear: both;
 					}
 				</style>
-				<div id="app-brand-name"  style="background:#6D4E86; position:absolute; top:2px; clear:both; float:left; font-size:24px; color:white; padding:8px 61px 6px 65px;">wiki</div>
+				<div id="app-brand-name"  style="background:#6D4E86; position:absolute; top:2px; clear:both; float:left; font-size:24px; color:white; padding:8px 59px 6px 61px;">Wiki</div>
 				
 				<?php $this->renderNavigation( 'PERSONAL' ); ?>
 				<div id="left-navigation">
