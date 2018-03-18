@@ -50,6 +50,22 @@ class SkinVector extends SkinTemplate {
 		return $className;
 	}
 
+
+	public function addMetaTags() {
+		$out = $this->getOutput();
+
+		$category_array = $out->getCategories();
+		$category_string = (is_array($category_array)) ? implode($category_array) : '';
+		$timestamp = $this->getOutput()->getRevisionTimestamp();
+		$timestamp = preg_replace( '/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/', "$1-$2-$3 $4:$5:$6", $timestamp);
+
+		$out->addMeta( 'platform', 'gcpedia' );
+		$out->addMeta( 'dcterms.title', $this->getTitle() );
+		$out->addMeta( 'dcterms.type', $category_string );
+		$out->addMeta( 'dcterms.modified', $timestamp );
+		$out->addMeta( 'dcterms.description', strip_tags($out->mBodytext) );
+	}
+
 	/**
 	 * Enables the responsive mode
 	 */
@@ -72,6 +88,8 @@ class SkinVector extends SkinTemplate {
 		if ( $this->vectorConfig->get( 'VectorResponsive' ) ) {
 			$this->enableResponsiveMode();
 		}
+
+		$this->addMetaTags();
 
 		// Print styles are feature flagged.
 		// This flag can be removed when T169732 is resolved.
