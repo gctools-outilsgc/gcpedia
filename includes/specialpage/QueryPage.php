@@ -21,6 +21,10 @@
  * @ingroup SpecialPage
  */
 
+use Wikimedia\Rdbms\ResultWrapper;
+use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\DBError;
+
 /**
  * This is a class for doing query pages; since they're almost all the same,
  * we factor out some of the functionality into a superclass, and let
@@ -64,43 +68,43 @@ abstract class QueryPage extends SpecialPage {
 
 		if ( $qp === null ) {
 			// QueryPage subclass, Special page name
-			$qp = array(
-				array( 'AncientPagesPage', 'Ancientpages' ),
-				array( 'BrokenRedirectsPage', 'BrokenRedirects' ),
-				array( 'DeadendPagesPage', 'Deadendpages' ),
-				array( 'DoubleRedirectsPage', 'DoubleRedirects' ),
-				array( 'FileDuplicateSearchPage', 'FileDuplicateSearch' ),
-				array( 'ListDuplicatedFilesPage', 'ListDuplicatedFiles' ),
-				array( 'LinkSearchPage', 'LinkSearch' ),
-				array( 'ListredirectsPage', 'Listredirects' ),
-				array( 'LonelyPagesPage', 'Lonelypages' ),
-				array( 'LongPagesPage', 'Longpages' ),
-				array( 'MediaStatisticsPage', 'MediaStatistics' ),
-				array( 'MIMEsearchPage', 'MIMEsearch' ),
-				array( 'MostcategoriesPage', 'Mostcategories' ),
-				array( 'MostimagesPage', 'Mostimages' ),
-				array( 'MostinterwikisPage', 'Mostinterwikis' ),
-				array( 'MostlinkedCategoriesPage', 'Mostlinkedcategories' ),
-				array( 'MostlinkedTemplatesPage', 'Mostlinkedtemplates' ),
-				array( 'MostlinkedPage', 'Mostlinked' ),
-				array( 'MostrevisionsPage', 'Mostrevisions' ),
-				array( 'FewestrevisionsPage', 'Fewestrevisions' ),
-				array( 'ShortPagesPage', 'Shortpages' ),
-				array( 'UncategorizedCategoriesPage', 'Uncategorizedcategories' ),
-				array( 'UncategorizedPagesPage', 'Uncategorizedpages' ),
-				array( 'UncategorizedImagesPage', 'Uncategorizedimages' ),
-				array( 'UncategorizedTemplatesPage', 'Uncategorizedtemplates' ),
-				array( 'UnusedCategoriesPage', 'Unusedcategories' ),
-				array( 'UnusedimagesPage', 'Unusedimages' ),
-				array( 'WantedCategoriesPage', 'Wantedcategories' ),
-				array( 'WantedFilesPage', 'Wantedfiles' ),
-				array( 'WantedPagesPage', 'Wantedpages' ),
-				array( 'WantedTemplatesPage', 'Wantedtemplates' ),
-				array( 'UnwatchedpagesPage', 'Unwatchedpages' ),
-				array( 'UnusedtemplatesPage', 'Unusedtemplates' ),
-				array( 'WithoutInterwikiPage', 'Withoutinterwiki' ),
-			);
-			Hooks::run( 'wgQueryPages', array( &$qp ) );
+			$qp = [
+				[ 'AncientPagesPage', 'Ancientpages' ],
+				[ 'BrokenRedirectsPage', 'BrokenRedirects' ],
+				[ 'DeadendPagesPage', 'Deadendpages' ],
+				[ 'DoubleRedirectsPage', 'DoubleRedirects' ],
+				[ 'FileDuplicateSearchPage', 'FileDuplicateSearch' ],
+				[ 'ListDuplicatedFilesPage', 'ListDuplicatedFiles' ],
+				[ 'LinkSearchPage', 'LinkSearch' ],
+				[ 'ListredirectsPage', 'Listredirects' ],
+				[ 'LonelyPagesPage', 'Lonelypages' ],
+				[ 'LongPagesPage', 'Longpages' ],
+				[ 'MediaStatisticsPage', 'MediaStatistics' ],
+				[ 'MIMEsearchPage', 'MIMEsearch' ],
+				[ 'MostcategoriesPage', 'Mostcategories' ],
+				[ 'MostimagesPage', 'Mostimages' ],
+				[ 'MostinterwikisPage', 'Mostinterwikis' ],
+				[ 'MostlinkedCategoriesPage', 'Mostlinkedcategories' ],
+				[ 'MostlinkedTemplatesPage', 'Mostlinkedtemplates' ],
+				[ 'MostlinkedPage', 'Mostlinked' ],
+				[ 'MostrevisionsPage', 'Mostrevisions' ],
+				[ 'FewestrevisionsPage', 'Fewestrevisions' ],
+				[ 'ShortPagesPage', 'Shortpages' ],
+				[ 'UncategorizedCategoriesPage', 'Uncategorizedcategories' ],
+				[ 'UncategorizedPagesPage', 'Uncategorizedpages' ],
+				[ 'UncategorizedImagesPage', 'Uncategorizedimages' ],
+				[ 'UncategorizedTemplatesPage', 'Uncategorizedtemplates' ],
+				[ 'UnusedCategoriesPage', 'Unusedcategories' ],
+				[ 'UnusedimagesPage', 'Unusedimages' ],
+				[ 'WantedCategoriesPage', 'Wantedcategories' ],
+				[ 'WantedFilesPage', 'Wantedfiles' ],
+				[ 'WantedPagesPage', 'Wantedpages' ],
+				[ 'WantedTemplatesPage', 'Wantedtemplates' ],
+				[ 'UnwatchedpagesPage', 'Unwatchedpages' ],
+				[ 'UnusedtemplatesPage', 'Unusedtemplates' ],
+				[ 'WithoutInterwikiPage', 'Withoutinterwiki' ],
+			];
+			Hooks::run( 'wgQueryPages', [ &$qp ] );
 		}
 
 		return $qp;
@@ -165,7 +169,7 @@ abstract class QueryPage extends SpecialPage {
 	 * @since 1.18
 	 */
 	function getOrderFields() {
-		return array( 'value' );
+		return [ 'value' ];
 	}
 
 	/**
@@ -271,15 +275,18 @@ abstract class QueryPage extends SpecialPage {
 	 * @return array
 	 */
 	function linkParameters() {
-		return array();
+		return [];
 	}
 
 	/**
-	 * Some special pages (for example SpecialListusers) might not return the
+	 * Some special pages (for example SpecialListusers used to) might not return the
 	 * current object formatted, but return the previous one instead.
 	 * Setting this to return true will ensure formatResult() is called
 	 * one more time to make sure that the very last result is formatted
 	 * as well.
+	 *
+	 * @deprecated since 1.27
+	 *
 	 * @return bool
 	 */
 	function tryLastResult() {
@@ -299,7 +306,7 @@ abstract class QueryPage extends SpecialPage {
 			return 0;
 		}
 
-		$fname = get_class( $this ) . '::recache';
+		$fname = static::class . '::recache';
 		$dbw = wfGetDB( DB_MASTER );
 		if ( !$dbw ) {
 			return false;
@@ -312,38 +319,51 @@ abstract class QueryPage extends SpecialPage {
 			if ( $res ) {
 				$num = $res->numRows();
 				# Fetch results
-				$vals = array();
+				$vals = [];
 				foreach ( $res as $row ) {
 					if ( isset( $row->value ) ) {
 						if ( $this->usesTimestamps() ) {
 							$value = wfTimestamp( TS_UNIX,
 								$row->value );
 						} else {
-							$value = intval( $row->value ); // @bug 14414
+							$value = intval( $row->value ); // T16414
 						}
 					} else {
 						$value = 0;
 					}
 
-					$vals[] = array( 'qc_type' => $this->getName(),
-							'qc_namespace' => $row->namespace,
-							'qc_title' => $row->title,
-							'qc_value' => $value );
+					$vals[] = [
+						'qc_type' => $this->getName(),
+						'qc_namespace' => $row->namespace,
+						'qc_title' => $row->title,
+						'qc_value' => $value
+					];
 				}
 
-				$dbw->startAtomic( __METHOD__ );
-				# Clear out any old cached data
-				$dbw->delete( 'querycache', array( 'qc_type' => $this->getName() ), $fname );
-				# Save results into the querycache table on the master
-				if ( count( $vals ) ) {
-					$dbw->insert( 'querycache', $vals, __METHOD__ );
-				}
-				# Update the querycache_info record for the page
-				$dbw->delete( 'querycache_info', array( 'qci_type' => $this->getName() ), $fname );
-				$dbw->insert( 'querycache_info',
-					array( 'qci_type' => $this->getName(), 'qci_timestamp' => $dbw->timestamp() ),
-					$fname );
-				$dbw->endAtomic( __METHOD__ );
+				$dbw->doAtomicSection(
+					__METHOD__,
+					function ( IDatabase $dbw, $fname ) use ( $vals ) {
+						# Clear out any old cached data
+						$dbw->delete( 'querycache',
+							[ 'qc_type' => $this->getName() ],
+							$fname
+						);
+						# Save results into the querycache table on the master
+						if ( count( $vals ) ) {
+							$dbw->insert( 'querycache', $vals, $fname );
+						}
+						# Update the querycache_info record for the page
+						$dbw->delete( 'querycache_info',
+							[ 'qci_type' => $this->getName() ],
+							$fname
+						);
+						$dbw->insert( 'querycache_info',
+							[ 'qci_type' => $this->getName(),
+								'qci_timestamp' => $dbw->timestamp() ],
+							$fname
+						);
+					}
+				);
 			}
 		} catch ( DBError $e ) {
 			if ( !$ignoreErrors ) {
@@ -360,7 +380,7 @@ abstract class QueryPage extends SpecialPage {
 	 * @return IDatabase
 	 */
 	function getRecacheDB() {
-		return wfGetDB( DB_SLAVE, array( $this->getName(), 'QueryPage::recache', 'vslow' ) );
+		return wfGetDB( DB_REPLICA, [ $this->getName(), 'QueryPage::recache', 'vslow' ] );
 	}
 
 	/**
@@ -371,7 +391,7 @@ abstract class QueryPage extends SpecialPage {
 	 * @since 1.18
 	 */
 	public function reallyDoQuery( $limit, $offset = false ) {
-		$fname = get_class( $this ) . "::reallyDoQuery";
+		$fname = static::class . '::reallyDoQuery';
 		$dbr = $this->getRecacheDB();
 		$query = $this->getQueryInfo();
 		$order = $this->getOrderFields();
@@ -383,13 +403,13 @@ abstract class QueryPage extends SpecialPage {
 		}
 
 		if ( is_array( $query ) ) {
-			$tables = isset( $query['tables'] ) ? (array)$query['tables'] : array();
-			$fields = isset( $query['fields'] ) ? (array)$query['fields'] : array();
-			$conds = isset( $query['conds'] ) ? (array)$query['conds'] : array();
-			$options = isset( $query['options'] ) ? (array)$query['options'] : array();
-			$join_conds = isset( $query['join_conds'] ) ? (array)$query['join_conds'] : array();
+			$tables = isset( $query['tables'] ) ? (array)$query['tables'] : [];
+			$fields = isset( $query['fields'] ) ? (array)$query['fields'] : [];
+			$conds = isset( $query['conds'] ) ? (array)$query['conds'] : [];
+			$options = isset( $query['options'] ) ? (array)$query['options'] : [];
+			$join_conds = isset( $query['join_conds'] ) ? (array)$query['join_conds'] : [];
 
-			if ( count( $order ) ) {
+			if ( $order ) {
 				$options['ORDER BY'] = $order;
 			}
 
@@ -437,35 +457,54 @@ abstract class QueryPage extends SpecialPage {
 	 * @since 1.18
 	 */
 	public function fetchFromCache( $limit, $offset = false ) {
-		$dbr = wfGetDB( DB_SLAVE );
-		$options = array();
+		$dbr = wfGetDB( DB_REPLICA );
+		$options = [];
+
 		if ( $limit !== false ) {
 			$options['LIMIT'] = intval( $limit );
 		}
+
 		if ( $offset !== false ) {
 			$options['OFFSET'] = intval( $offset );
 		}
+
+		$order = $this->getCacheOrderFields();
 		if ( $this->sortDescending() ) {
-			$options['ORDER BY'] = 'qc_value DESC';
-		} else {
-			$options['ORDER BY'] = 'qc_value ASC';
+			foreach ( $order as &$field ) {
+				$field .= " DESC";
+			}
 		}
-		$res = $dbr->select( 'querycache', array( 'qc_type',
+		if ( $order ) {
+			$options['ORDER BY'] = $order;
+		}
+
+		return $dbr->select( 'querycache',
+				[ 'qc_type',
 				'namespace' => 'qc_namespace',
 				'title' => 'qc_title',
-				'value' => 'qc_value' ),
-				array( 'qc_type' => $this->getName() ),
-				__METHOD__, $options
+				'value' => 'qc_value' ],
+				[ 'qc_type' => $this->getName() ],
+				__METHOD__,
+				$options
 		);
-		return $dbr->resultObject( $res );
+	}
+
+	/**
+	 * Return the order fields for fetchFromCache. Default is to always use
+	 * "ORDER BY value" which was the default prior to this function.
+	 * @return array
+	 * @since 1.29
+	 */
+	function getCacheOrderFields() {
+		return [ 'value' ];
 	}
 
 	public function getCachedTimestamp() {
 		if ( is_null( $this->cachedTimestamp ) ) {
-			$dbr = wfGetDB( DB_SLAVE );
-			$fname = get_class( $this ) . '::getCachedTimestamp';
+			$dbr = wfGetDB( DB_REPLICA );
+			$fname = static::class . '::getCachedTimestamp';
 			$this->cachedTimestamp = $dbr->selectField( 'querycache_info', 'qci_timestamp',
-				array( 'qci_type' => $this->getName() ), $fname );
+				[ 'qci_type' => $this->getName() ], $fname );
 		}
 		return $this->cachedTimestamp;
 	}
@@ -474,12 +513,56 @@ abstract class QueryPage extends SpecialPage {
 	 * Returns limit and offset, as returned by $this->getRequest()->getLimitOffset().
 	 * Subclasses may override this to further restrict or modify limit and offset.
 	 *
-	 * @since 1.26
+	 * @note Restricts the offset parameter, as most query pages have inefficient paging
 	 *
+	 * Its generally expected that the returned limit will not be 0, and the returned
+	 * offset will be less than the max results.
+	 *
+	 * @since 1.26
 	 * @return int[] list( $limit, $offset )
 	 */
 	protected function getLimitOffset() {
-		return $this->getRequest()->getLimitOffset();
+		list( $limit, $offset ) = $this->getRequest()->getLimitOffset();
+		if ( $this->getConfig()->get( 'MiserMode' ) ) {
+			$maxResults = $this->getMaxResults();
+			// Can't display more than max results on a page
+			$limit = min( $limit, $maxResults );
+			// Can't skip over more than the end of $maxResults
+			$offset = min( $offset, $maxResults + 1 );
+		}
+		return [ $limit, $offset ];
+	}
+
+	/**
+	 * What is limit to fetch from DB
+	 *
+	 * Used to make it appear the DB stores less results then it actually does
+	 * @param int $uiLimit Limit from UI
+	 * @param int $uiOffset Offset from UI
+	 * @return int Limit to use for DB (not including extra row to see if at end)
+	 */
+	protected function getDBLimit( $uiLimit, $uiOffset ) {
+		$maxResults = $this->getMaxResults();
+		if ( $this->getConfig()->get( 'MiserMode' ) ) {
+			$limit = min( $uiLimit + 1, $maxResults - $uiOffset );
+			return max( $limit, 0 );
+		} else {
+			return $uiLimit + 1;
+		}
+	}
+
+	/**
+	 * Get max number of results we can return in miser mode.
+	 *
+	 * Most QueryPage subclasses use inefficient paging, so limit the max amount we return
+	 * This matters for uncached query pages that might otherwise accept an offset of 3 million
+	 *
+	 * @since 1.27
+	 * @return int
+	 */
+	protected function getMaxResults() {
+		// Max of 10000, unless we store more than 10000 in query cache.
+		return max( $this->getConfig()->get( 'QueryCacheLimit' ), 10000 );
 	}
 
 	/**
@@ -509,16 +592,15 @@ abstract class QueryPage extends SpecialPage {
 		if ( $this->limit == 0 && $this->offset == 0 ) {
 			list( $this->limit, $this->offset ) = $this->getLimitOffset();
 		}
-
+		$dbLimit = $this->getDBLimit( $this->limit, $this->offset );
 		// @todo Use doQuery()
 		if ( !$this->isCached() ) {
 			# select one extra row for navigation
-			$res = $this->reallyDoQuery( $this->limit + 1, $this->offset );
+			$res = $this->reallyDoQuery( $dbLimit, $this->offset );
 		} else {
 			# Get the cached result, select one extra row for navigation
-			$res = $this->fetchFromCache( $this->limit + 1, $this->offset );
+			$res = $this->fetchFromCache( $dbLimit, $this->offset );
 			if ( !$this->listoutput ) {
-
 				# Fetch the timestamp of this update
 				$ts = $this->getCachedTimestamp();
 				$lang = $this->getLanguage();
@@ -553,7 +635,7 @@ abstract class QueryPage extends SpecialPage {
 		$dbr = $this->getRecacheDB();
 		$this->preprocessResults( $dbr, $res );
 
-		$out->addHTML( Xml::openElement( 'div', array( 'class' => 'mw-spcontent' ) ) );
+		$out->addHTML( Xml::openElement( 'div', [ 'class' => 'mw-spcontent' ] ) );
 
 		# Top header and navigation
 		if ( $this->shownavigation ) {
@@ -563,8 +645,11 @@ abstract class QueryPage extends SpecialPage {
 					min( $this->numRows, $this->limit ), # do not show the one extra row, if exist
 					$this->offset + 1, ( min( $this->numRows, $this->limit ) + $this->offset ) )->parseAsBlock() );
 				# Disable the "next" link when we reach the end
+				$miserMaxResults = $this->getConfig()->get( 'MiserMode' )
+					&& ( $this->offset + $this->limit >= $this->getMaxResults() );
+				$atEnd = ( $this->numRows <= $this->limit ) || $miserMaxResults;
 				$paging = $this->getLanguage()->viewPrevNext( $this->getPageTitle( $par ), $this->offset,
-					$this->limit, $this->linkParameters(), ( $this->numRows <= $this->limit ) );
+					$this->limit, $this->linkParameters(), $atEnd );
 				$out->addHTML( '<p>' . $paging . '</p>' );
 			} else {
 				# No results to show, so don't bother with "showing X of Y" etc.
@@ -608,7 +693,7 @@ abstract class QueryPage extends SpecialPage {
 		global $wgContLang;
 
 		if ( $num > 0 ) {
-			$html = array();
+			$html = [];
 			if ( !$this->listoutput ) {
 				$html[] = $this->openList( $offset );
 			}
@@ -620,12 +705,9 @@ abstract class QueryPage extends SpecialPage {
 				// @codingStandardsIgnoreEnd
 				$line = $this->formatResult( $skin, $row );
 				if ( $line ) {
-					$attr = ( isset( $row->usepatrol ) && $row->usepatrol && $row->patrolled == 0 )
-						? ' class="not-patrolled"'
-						: '';
 					$html[] = $this->listoutput
 						? $line
-						: "<li{$attr}>{$line}</li>\n";
+						: "<li>{$line}</li>\n";
 				}
 			}
 
@@ -634,12 +716,9 @@ abstract class QueryPage extends SpecialPage {
 				$row = null;
 				$line = $this->formatResult( $skin, $row );
 				if ( $line ) {
-					$attr = ( isset( $row->usepatrol ) && $row->usepatrol && $row->patrolled == 0 )
-						? ' class="not-patrolled"'
-						: '';
 					$html[] = $this->listoutput
 						? $line
-						: "<li{$attr}>{$line}</li>\n";
+						: "<li>{$line}</li>\n";
 				}
 			}
 
@@ -768,5 +847,29 @@ abstract class QueryPage extends SpecialPage {
 
 	function feedUrl() {
 		return $this->getPageTitle()->getFullURL();
+	}
+
+	/**
+	 * Creates a new LinkBatch object, adds all pages from the passed ResultWrapper (MUST include
+	 * title and optional the namespace field) and executes the batch. This operation will pre-cache
+	 * LinkCache information like page existence and information for stub color and redirect hints.
+	 *
+	 * @param ResultWrapper $res The ResultWrapper object to process. Needs to include the title
+	 *  field and namespace field, if the $ns parameter isn't set.
+	 * @param null $ns Use this namespace for the given titles in the ResultWrapper object,
+	 *  instead of the namespace value of $res.
+	 */
+	protected function executeLBFromResultWrapper( ResultWrapper $res, $ns = null ) {
+		if ( !$res->numRows() ) {
+			return;
+		}
+
+		$batch = new LinkBatch;
+		foreach ( $res as $row ) {
+			$batch->add( $ns !== null ? $ns : $row->namespace, $row->title );
+		}
+		$batch->execute();
+
+		$res->seek( 0 );
 	}
 }

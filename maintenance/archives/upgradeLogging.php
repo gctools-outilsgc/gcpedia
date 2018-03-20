@@ -23,6 +23,8 @@
 
 require __DIR__ . '/../commandLine.inc';
 
+use Wikimedia\Rdbms\IMaintainableDatabase;
+
 /**
  * Maintenance script that upgrade for log_id/log_deleted fields in a
  * replication-safe way.
@@ -32,14 +34,14 @@ require __DIR__ . '/../commandLine.inc';
 class UpdateLogging {
 
 	/**
-	 * @var DatabaseBase
+	 * @var IMaintainableDatabase
 	 */
 	public $dbw;
 	public $batchSize = 1000;
 	public $minTs = false;
 
 	function execute() {
-		$this->dbw = wfGetDB( DB_MASTER );
+		$this->dbw = $this->getDB( DB_MASTER );
 		$logging = $this->dbw->tableName( 'logging' );
 		$logging_1_10 = $this->dbw->tableName( 'logging_1_10' );
 		$logging_pre_1_10 = $this->dbw->tableName( 'logging_pre_1_10' );
@@ -156,17 +158,17 @@ EOT;
 			if ( $copyPos === null ) {
 				$conds = false;
 			} else {
-				$conds = array( 'log_timestamp > ' . $this->dbw->addQuotes( $copyPos ) );
+				$conds = [ 'log_timestamp > ' . $this->dbw->addQuotes( $copyPos ) ];
 			}
 			$srcRes = $this->dbw->select( $srcTable, '*', $conds, __METHOD__,
-				array( 'LIMIT' => $batchSize, 'ORDER BY' => 'log_timestamp' ) );
+				[ 'LIMIT' => $batchSize, 'ORDER BY' => 'log_timestamp' ] );
 
 			if ( !$srcRes->numRows() ) {
 				# All done
 				break;
 			}
 
-			$batch = array();
+			$batch = [];
 			foreach ( $srcRes as $srcRow ) {
 				$batch[] = (array)$srcRow;
 			}
@@ -180,18 +182,18 @@ EOT;
 
 	function copyExactMatch( $srcTable, $dstTable, $copyPos ) {
 		$numRowsCopied = 0;
-		$srcRes = $this->dbw->select( $srcTable, '*', array( 'log_timestamp' => $copyPos ), __METHOD__ );
-		$dstRes = $this->dbw->select( $dstTable, '*', array( 'log_timestamp' => $copyPos ), __METHOD__ );
+		$srcRes = $this->dbw->select( $srcTable, '*', [ 'log_timestamp' => $copyPos ], __METHOD__ );
+		$dstRes = $this->dbw->select( $dstTable, '*', [ 'log_timestamp' => $copyPos ], __METHOD__ );
 
 		if ( $srcRes->numRows() ) {
 			$srcRow = $srcRes->fetchObject();
 			$srcFields = array_keys( (array)$srcRow );
 			$srcRes->seek( 0 );
-			$dstRowsSeen = array();
+			$dstRowsSeen = [];
 
 			# Make a hashtable of rows that already exist in the destination
 			foreach ( $dstRes as $dstRow ) {
-				$reducedDstRow = array();
+				$reducedDstRow = [];
 				foreach ( $srcFields as $field ) {
 					$reducedDstRow[$field] = $dstRow->$field;
 				}

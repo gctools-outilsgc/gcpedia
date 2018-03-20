@@ -18,6 +18,8 @@
  * @author Daniel Friesen
  * @file
  */
+use Liuggio\StatsdClient\Factory\StatsdDataFactory;
+use MediaWiki\MediaWikiServices;
 
 /**
  * An IContextSource implementation which will inherit context from another source
@@ -68,12 +70,11 @@ class DerivativeContext extends ContextSource implements MutableContext {
 	private $config;
 
 	/**
-	 * @var Stats
+	 * @var Timing
 	 */
-	private $stats;
+	private $timing;
 
 	/**
-	 * Constructor
 	 * @param IContextSource $context Context to inherit from
 	 */
 	public function __construct( IContextSource $context ) {
@@ -105,13 +106,24 @@ class DerivativeContext extends ContextSource implements MutableContext {
 	/**
 	 * Get the stats object
 	 *
-	 * @return BufferingStatsdDataFactory
+	 * @deprecated since 1.27 use a StatsdDataFactory from MediaWikiServices (preferably injected)
+	 *
+	 * @return IBufferingStatsdDataFactory
 	 */
 	public function getStats() {
-		if ( !is_null( $this->stats ) ) {
-			return $this->stats;
+		return MediaWikiServices::getInstance()->getStatsdDataFactory();
+	}
+
+	/**
+	 * Get the timing object
+	 *
+	 * @return Timing
+	 */
+	public function getTiming() {
+		if ( !is_null( $this->timing ) ) {
+			return $this->timing;
 		} else {
-			return $this->getContext()->getStats();
+			return $this->getContext()->getTiming();
 		}
 	}
 
@@ -311,10 +323,12 @@ class DerivativeContext extends ContextSource implements MutableContext {
 	 * it would set only the original context, and not take
 	 * into account any changes.
 	 *
+	 * @param string|string[]|MessageSpecifier $key Message key, or array of keys,
+	 *   or a MessageSpecifier.
 	 * @param mixed $args,... Arguments to wfMessage
 	 * @return Message
 	 */
-	public function msg() {
+	public function msg( $key ) {
 		$args = func_get_args();
 
 		return call_user_func_array( 'wfMessage', $args )->setContext( $this );

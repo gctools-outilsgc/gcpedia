@@ -33,10 +33,9 @@ class ApiFormatRaw extends ApiFormatBase {
 	private $errorFallback;
 	private $mFailWithHTTPError = false;
 
-
 	/**
 	 * @param ApiMain $main
-	 * @param ApiFormatBase |null $errorFallback Object to fall back on for errors
+	 * @param ApiFormatBase|null $errorFallback Object to fall back on for errors
 	 */
 	public function __construct( ApiMain $main, ApiFormatBase $errorFallback = null ) {
 		parent::__construct( $main, 'raw' );
@@ -50,7 +49,7 @@ class ApiFormatRaw extends ApiFormatBase {
 	public function getMimeType() {
 		$data = $this->getResult()->getResultData();
 
-		if ( isset( $data['error'] ) ) {
+		if ( isset( $data['error'] ) || isset( $data['errors'] ) ) {
 			return $this->errorFallback->getMimeType();
 		}
 
@@ -61,9 +60,20 @@ class ApiFormatRaw extends ApiFormatBase {
 		return $data['mime'];
 	}
 
-	public function initPrinter( $unused = false ) {
+	public function getFilename() {
 		$data = $this->getResult()->getResultData();
 		if ( isset( $data['error'] ) ) {
+			return $this->errorFallback->getFilename();
+		} elseif ( !isset( $data['filename'] ) || $this->getIsWrappedHtml() || $this->getIsHtml() ) {
+			return parent::getFilename();
+		} else {
+			return $data['filename'];
+		}
+	}
+
+	public function initPrinter( $unused = false ) {
+		$data = $this->getResult()->getResultData();
+		if ( isset( $data['error'] ) || isset( $data['errors'] ) ) {
 			$this->errorFallback->initPrinter( $unused );
 			if ( $this->mFailWithHTTPError ) {
 				$this->getMain()->getRequest()->response()->statusHeader( 400 );
@@ -75,7 +85,7 @@ class ApiFormatRaw extends ApiFormatBase {
 
 	public function closePrinter() {
 		$data = $this->getResult()->getResultData();
-		if ( isset( $data['error'] ) ) {
+		if ( isset( $data['error'] ) || isset( $data['errors'] ) ) {
 			$this->errorFallback->closePrinter();
 		} else {
 			parent::closePrinter();
@@ -84,7 +94,7 @@ class ApiFormatRaw extends ApiFormatBase {
 
 	public function execute() {
 		$data = $this->getResult()->getResultData();
-		if ( isset( $data['error'] ) ) {
+		if ( isset( $data['error'] ) || isset( $data['errors'] ) ) {
 			$this->errorFallback->execute();
 			return;
 		}

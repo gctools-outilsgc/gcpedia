@@ -19,27 +19,27 @@ class MWExceptionTest extends MediaWikiTestCase {
 	 * @dataProvider provideTextUseOutputPage
 	 * @covers MWException::useOutputPage
 	 */
-	public function testUseOutputPage( $expected, $wgLang, $wgFullyInitialised, $wgOut ) {
-		$this->setMwGlobals( array(
-			'wgLang' => $wgLang,
+	public function testUseOutputPage( $expected, $langObj, $wgFullyInitialised, $wgOut ) {
+		$this->setMwGlobals( [
+			'wgLang' => $langObj,
 			'wgFullyInitialised' => $wgFullyInitialised,
 			'wgOut' => $wgOut,
-		) );
+		] );
 
 		$e = new MWException();
 		$this->assertEquals( $expected, $e->useOutputPage() );
 	}
 
 	public function provideTextUseOutputPage() {
-		return array(
-			// expected, wgLang, wgFullyInitialised, wgOut
-			array( false, null, null, null ),
-			array( false, $this->getMockLanguage(), null, null ),
-			array( false, $this->getMockLanguage(), true, null ),
-			array( false, null, true, null ),
-			array( false, null, null, true ),
-			array( true, $this->getMockLanguage(), true, true ),
-		);
+		return [
+			// expected, langObj, wgFullyInitialised, wgOut
+			[ false, null, null, null ],
+			[ false, $this->getMockLanguage(), null, null ],
+			[ false, $this->getMockLanguage(), true, null ],
+			[ false, null, true, null ],
+			[ false, null, null, true ],
+			[ true, $this->getMockLanguage(), true, true ],
+		];
 	}
 
 	private function getMockLanguage() {
@@ -52,19 +52,19 @@ class MWExceptionTest extends MediaWikiTestCase {
 	 * @dataProvider provideUseMessageCache
 	 * @covers MWException::useMessageCache
 	 */
-	public function testUseMessageCache( $expected, $wgLang ) {
-		$this->setMwGlobals( array(
-			'wgLang' => $wgLang,
-		) );
+	public function testUseMessageCache( $expected, $langObj ) {
+		$this->setMwGlobals( [
+			'wgLang' => $langObj,
+		] );
 		$e = new MWException();
 		$this->assertEquals( $expected, $e->useMessageCache() );
 	}
 
 	public function provideUseMessageCache() {
-		return array(
-			array( false, null ),
-			array( true, $this->getMockLanguage() ),
-		);
+		return [
+			[ false, null ],
+			[ true, $this->getMockLanguage() ],
+		];
 	}
 
 	/**
@@ -76,69 +76,22 @@ class MWExceptionTest extends MediaWikiTestCase {
 	}
 
 	/**
-	 * @dataProvider provideRunHooks
-	 * @covers MWException::runHooks
-	 */
-	public function testRunHooks( $wgExceptionHooks, $name, $args, $expectedReturn ) {
-		$this->setMwGlobals( array(
-			'wgExceptionHooks' => $wgExceptionHooks,
-		) );
-		$e = new MWException();
-		$this->assertEquals( $expectedReturn, $e->runHooks( $name, $args ) );
-	}
-
-	public static function provideRunHooks() {
-		return array(
-			array( null, null, null, null ),
-			array( array(), 'name', array(), null ),
-			array( array( 'name' => false ), 'name', array(), null ),
-			array(
-				array( 'mockHook' => array( 'MWExceptionTest::mockHook' ) ),
-				'mockHook', array(), 'YAY.[]'
-			),
-			array(
-				array( 'mockHook' => array( 'MWExceptionTest::mockHook' ) ),
-				'mockHook', array( 'a' ), 'YAY.{"1":"a"}'
-			),
-			array(
-				array( 'mockHook' => array( 'MWExceptionTest::mockHook' ) ),
-				'mockHook', array( null ), null
-			),
-		);
-	}
-
-	/**
-	 * Used in conjunction with provideRunHooks and testRunHooks as a mock callback for a hook
-	 */
-	public static function mockHook() {
-		$args = func_get_args();
-		if ( !$args[0] instanceof MWException ) {
-			return '$caller not instance of MWException';
-		}
-		unset( $args[0] );
-		if ( array_key_exists( 1, $args ) && $args[1] === null ) {
-			return null;
-		}
-		return 'YAY.' . json_encode( $args );
-	}
-
-	/**
 	 * @dataProvider provideIsCommandLine
 	 * @covers MWException::isCommandLine
 	 */
 	public function testisCommandLine( $expected, $wgCommandLineMode ) {
-		$this->setMwGlobals( array(
+		$this->setMwGlobals( [
 			'wgCommandLineMode' => $wgCommandLineMode,
-		) );
+		] );
 		$e = new MWException();
 		$this->assertEquals( $expected, $e->isCommandLine() );
 	}
 
 	public static function provideIsCommandLine() {
-		return array(
-			array( false, null ),
-			array( true, true ),
-		);
+		return [
+			[ false, null ],
+			[ true, true ],
+		];
 	}
 
 	/**
@@ -156,10 +109,10 @@ class MWExceptionTest extends MediaWikiTestCase {
 	}
 
 	public static function provideExceptionClasses() {
-		return array(
-			array( 'Exception' ),
-			array( 'MWException' ),
-		);
+		return [
+			[ 'Exception' ],
+			[ 'MWException' ],
+		];
 	}
 
 	/**
@@ -173,9 +126,8 @@ class MWExceptionTest extends MediaWikiTestCase {
 	 * @dataProvider provideJsonSerializedKeys
 	 */
 	public function testJsonserializeexceptionKeys( $expectedKeyType, $exClass, $key ) {
-
 		# Make sure we log a backtrace:
-		$this->setMwGlobals( array( 'wgLogExceptionBacktrace' => true ) );
+		$this->setMwGlobals( [ 'wgLogExceptionBacktrace' => true ] );
 
 		$json = json_decode(
 			MWExceptionHandler::jsonSerializeException( new $exClass() )
@@ -193,17 +145,17 @@ class MWExceptionTest extends MediaWikiTestCase {
 	 * Returns test cases: exception class, key name, gettype()
 	 */
 	public static function provideJsonSerializedKeys() {
-		$testCases = array();
-		foreach ( array( 'Exception', 'MWException' ) as $exClass ) {
-			$exTests = array(
-				array( 'string', $exClass, 'id' ),
-				array( 'string', $exClass, 'file' ),
-				array( 'integer', $exClass, 'line' ),
-				array( 'string', $exClass, 'message' ),
-				array( 'null', $exClass, 'url' ),
+		$testCases = [];
+		foreach ( [ 'Exception', 'MWException' ] as $exClass ) {
+			$exTests = [
+				[ 'string', $exClass, 'id' ],
+				[ 'string', $exClass, 'file' ],
+				[ 'integer', $exClass, 'line' ],
+				[ 'string', $exClass, 'message' ],
+				[ 'null', $exClass, 'url' ],
 				# Backtrace only enabled with wgLogExceptionBacktrace = true
-				array( 'array', $exClass, 'backtrace' ),
-			);
+				[ 'array', $exClass, 'backtrace' ],
+			];
 			$testCases = array_merge( $testCases, $exTests );
 		}
 		return $testCases;
@@ -216,7 +168,7 @@ class MWExceptionTest extends MediaWikiTestCase {
 	 * @covers MWExceptionHandler::jsonSerializeException
 	 */
 	public function testJsonserializeexceptionBacktracingEnabled() {
-		$this->setMwGlobals( array( 'wgLogExceptionBacktrace' => true ) );
+		$this->setMwGlobals( [ 'wgLogExceptionBacktrace' => true ] );
 		$json = json_decode(
 			MWExceptionHandler::jsonSerializeException( new Exception() )
 		);
@@ -230,12 +182,11 @@ class MWExceptionTest extends MediaWikiTestCase {
 	 * @covers MWExceptionHandler::jsonSerializeException
 	 */
 	public function testJsonserializeexceptionBacktracingDisabled() {
-		$this->setMwGlobals( array( 'wgLogExceptionBacktrace' => false ) );
+		$this->setMwGlobals( [ 'wgLogExceptionBacktrace' => false ] );
 		$json = json_decode(
 			MWExceptionHandler::jsonSerializeException( new Exception() )
 		);
 		$this->assertObjectNotHasAttribute( 'backtrace', $json );
-
 	}
 
 }

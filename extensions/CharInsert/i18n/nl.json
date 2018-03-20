@@ -1,8 +1,0 @@
-{
-	"@metadata": {
-		"authors": [
-			"Siebrand"
-		]
-	},
-	"charinsert-desc": "Maakt het mogelijk [[MediaWiki:Edittools|niet-standaard karakters]] in te voeren vanuit een deelvenster via JavaScript"
-}

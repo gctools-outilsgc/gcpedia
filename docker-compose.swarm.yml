@@ -1,12 +1,13 @@
 version: '3.3'
 services:
   # ###########################################################################
-  # The GCpedia container.  Will be accessible at http://localhost:8080
+  # The GCpedia container.  Will be accessible at http://wiki.collab.test
   # ###########################################################################
   gcpedia:
     image: phanoix/gcpedia
     ports:
-      - 8800:80
+      - 80:80
+      - 443:443
     volumes:
       - type: volume
         source: gcpedia_images
@@ -16,24 +17,34 @@ services:
     deploy:
       replicas: 1
       resources:
-          limits:
-            cpus: '0.4'
-            memory: 500M
+        #  limits:
+        #    cpus: '6'
           reservations:
-            cpus: '0.05'
-            memory: 50M
-      restart_policy:
-        condition: on-failure
-#  use this if gcpedia has already been installed and LocalSettings.php config created
+            cpus: '0.4'
+            memory: 250M
+#  use this if gcpedia has already been installed and LocalSettings.php config created, safer to just do this manually with the docker service update command provided
+#  docker service update --config-add source=LocalSettings.php,target=/var/www/html/docker_gcpedia/LocalSettings.php,mode=0444 wiki
 #    configs:
 #      - source: LocalSettings.php
 #        target: /var/www/html/docker_gcpedia/LocalSettings.php
 #        mode: 0444
+#  docker service update --config-add source=htaccess,target=/var/www/html/docker_gcpedia/.htaccess,mode=0444 wiki
+#    configs:
+#      - source: htaccess
+#        target: /var/www/html/docker_gcpedia/.htaccess
+#        mode: 0444
+#  docker service update --secret-add source=wikiSecrets,target=/super/secrets.php,mode=0440 wiki
+#    secrets:
+#      - source: wikiSecrets
+#        target: /super/secrets.php
+#        mode: 0440
     environment:
       - DOCKER=1
       - DBHOST=gcpedia-db
-      - HOST=gcpedia.tools.gc.ca
-      - PORT=8800
+      - HOST=wiki.gccollab.test
+      - PORT=
+      - OPENID=true
+#      - OAUTH=true
 # for single signon with GCconnex
 #      - USESAML=true
 
@@ -47,56 +58,43 @@ services:
     networks:
       - gcpedia-services
     deploy:
-      replicas: 2
+      replicas: 1
       resources:
           limits:
-            cpus: '0.01'
-            memory: 200M
+            cpus: '0.5'
+            memory: 250M
           reservations:
-            cpus: '0.001'
-            memory: 20M
-      restart_policy:
-        condition: on-failure
-
-  # ###########################################################################
-  # The mwlib service container for the Collection extension.
-  # Will be available to gcpedia at mwlib:8899
-  # ###########################################################################
-#  mwlib:
-#    image: phanoix/mwlib
-#    networks:
-#      - gcpedia-services
-#    deploy:
-#      replicas: 2
-#      resources:
-#          limits:
-#            cpus: '0.01'
-#            memory: 200M
-#          reservations:
-#            cpus: '0.001'
-#            memory: 20M
-#      restart_policy:
-#        condition: on-failure
+            cpus: '0.1'
+            memory: 50M
 
   # ###########################################################################
   # The Electron render service container for the ElectronPdfService Extension.
   # Will be available to gcpedia at elec-render:3000
   # ###########################################################################
- # elec-render:
- #   image: msokk/electron-render-service
- #   networks:
- #     - gcpedia-services
- #   deploy:
- #     replicas: 2
- #     resources:
- #         limits:
- #           cpus: '0.01'
- #           memory: 200M
- #         reservations:
- #           cpus: '0.0001'
- #           memory: 20M
- #   restart_policy:
- #     condition: on-failure
+  elec-render:
+    image: msokk/electron-render-service
+    networks:
+      - gcpedia-services
+    ports:
+      - 3000:3000
+    environment:
+      # blank HOSTNAME is needed for swarm mode, everything else is showing defaults
+      - RENDERER_ACCESS_KEY=secret
+      - HOSTNAME=
+      - CONCURRENCY=1
+      - TIMEOUT=30
+      - WINDOW_WIDTH=1024
+      - WINDOW_HEIGHT=768
+      - PORT=3000
+    deploy:
+      replicas: 1
+      resources:
+          limits:
+            cpus: '0.5'
+            memory: 250M
+          reservations:
+            cpus: '0.1'
+            memory: 50M
 
   # ###########################################################################
   # Database container for gcpedia, accessible from by the gcpedia container 
@@ -113,53 +111,17 @@ services:
     deploy:
       replicas: 1
       resources:
-          limits:
-            cpus: '0.8'
+        #  limits:
+        #    cpus: '6'
           reservations:
             cpus: '0.2'
             memory: 500M
-      restart_policy:
-        condition: on-failure
     environment:
       - MYSQL_ROOT_PASSWORD=gcpedia
       - MYSQL_DATABASE=wiki
       - MYSQL_USER=wiki
       - MYSQL_PASSWORD=gcpedia
       
-      
-  simplesaml:
-    image: cyns82/docker-saml
-    ports:
-      - 58080:80 
-      - 58443:443
-    volumes: 
-      - "/var/simplesamlphp/config/:/var/simplesamlphp/config/"
-      - "/var/simplesamlphp/metadata/:/var/simplesamlphp/metadata/" 
-    deploy:
-      replicas: 1
-      resources:
-        limits:
-          cpus: '0.1'
-          memory: 150M
-        reservations:
-          cpus: '0.05'
-          memory: 50M
-      restart_policy:
-        condition: on-failure
-    secrets:
-      - source: my_crt
-        target: /var/simplesamlphp/cert/gcpedia.gc.ca.crt
-      - source: my_pem
-        target: /var/simplesamlphp/cert/gcpedia.gc.ca.pem
-      - source: my_config
-        target: /var/simplesamlphp/config/config.php
-secrets:
-  my_crt:
-    file: /var/simplesamlphp/cert/gcpedia.gc.ca.crt
-  my_pem:
-    file: /var/simplesamlphp/cert/gcpedia.gc.ca.pem
-  my_config:
-    file: /var/simplesamlphp/config/config.php
 volumes:
   gcpedia_db:
   gcpedia_images:

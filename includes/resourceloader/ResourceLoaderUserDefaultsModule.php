@@ -1,6 +1,6 @@
 <?php
 /**
- * Resource loader module for default user preferences.
+ * ResourceLoader module for default user preferences.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
  */
 class ResourceLoaderUserDefaultsModule extends ResourceLoaderModule {
 
-	protected $targets = array( 'desktop', 'mobile' );
+	protected $targets = [ 'desktop', 'mobile' ];
 
 	/**
 	 * @return bool
@@ -37,12 +37,12 @@ class ResourceLoaderUserDefaultsModule extends ResourceLoaderModule {
 
 	/**
 	 * @param ResourceLoaderContext $context
-	 * @return string
+	 * @return string JavaScript code
 	 */
 	public function getScript( ResourceLoaderContext $context ) {
 		return Xml::encodeJsCall(
 			'mw.user.options.set',
-			array( User::getDefaultOptions() ),
+			[ User::getDefaultOptions() ],
 			ResourceLoader::inDebugMode()
 		);
 	}

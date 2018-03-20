@@ -71,14 +71,11 @@ interface HistoryBlob {
  * Improves compression ratio by concatenating like objects before gzipping
  */
 class ConcatenatedGzipHistoryBlob implements HistoryBlob {
-	public $mVersion = 0, $mCompressed = false, $mItems = array(), $mDefaultHash = '';
+	public $mVersion = 0, $mCompressed = false, $mItems = [], $mDefaultHash = '';
 	public $mSize = 0;
 	public $mMaxSize = 10000000;
 	public $mMaxCount = 100;
 
-	/**
-	 * Constructor
-	 */
 	public function __construct() {
 		if ( !function_exists( 'gzdeflate' ) ) {
 			throw new MWException( "Need zlib support to read or write this "
@@ -165,7 +162,7 @@ class ConcatenatedGzipHistoryBlob implements HistoryBlob {
 	 */
 	function __sleep() {
 		$this->compress();
-		return array( 'mVersion', 'mCompressed', 'mItems', 'mDefaultHash' );
+		return [ 'mVersion', 'mCompressed', 'mItems', 'mDefaultHash' ];
 	}
 
 	function __wakeup() {
@@ -194,7 +191,7 @@ class HistoryBlobStub {
 	 * blob. By keeping the last-used one open, we avoid redundant
 	 * unserialization and decompression overhead.
 	 */
-	protected static $blobCache = array();
+	protected static $blobCache = [];
 
 	/** @var int */
 	public $mOldId;
@@ -239,17 +236,17 @@ class HistoryBlobStub {
 	}
 
 	/**
-	 * @return string
+	 * @return string|false
 	 */
 	function getText() {
 		if ( isset( self::$blobCache[$this->mOldId] ) ) {
 			$obj = self::$blobCache[$this->mOldId];
 		} else {
-			$dbr = wfGetDB( DB_SLAVE );
+			$dbr = wfGetDB( DB_REPLICA );
 			$row = $dbr->selectRow(
 				'text',
-				array( 'old_flags', 'old_text' ),
-				array( 'old_id' => $this->mOldId )
+				[ 'old_flags', 'old_text' ],
+				[ 'old_id' => $this->mOldId ]
 			);
 
 			if ( !$row ) {
@@ -263,7 +260,7 @@ class HistoryBlobStub {
 				if ( !isset( $parts[1] ) || $parts[1] == '' ) {
 					return false;
 				}
-				$row->old_text = ExternalStore::fetchFromUrl( $url );
+				$row->old_text = ExternalStore::fetchFromURL( $url );
 
 			}
 
@@ -287,7 +284,7 @@ class HistoryBlobStub {
 			// Save this item for reference; if pulling many
 			// items in a row we'll likely use it again.
 			$obj->uncompress();
-			self::$blobCache = array( $this->mOldId => $obj );
+			self::$blobCache = [ $this->mOldId => $obj ];
 		}
 
 		return $obj->getItem( $this->mHash );
@@ -336,8 +333,8 @@ class HistoryBlobCurStub {
 	 * @return string|bool
 	 */
 	function getText() {
-		$dbr = wfGetDB( DB_SLAVE );
-		$row = $dbr->selectRow( 'cur', array( 'cur_text' ), array( 'cur_id' => $this->mCurId ) );
+		$dbr = wfGetDB( DB_REPLICA );
+		$row = $dbr->selectRow( 'cur', [ 'cur_text' ], [ 'cur_id' => $this->mCurId ] );
 		if ( !$row ) {
 			return false;
 		}
@@ -351,7 +348,7 @@ class HistoryBlobCurStub {
  */
 class DiffHistoryBlob implements HistoryBlob {
 	/** @var array Uncompressed item cache */
-	public $mItems = array();
+	public $mItems = [];
 
 	/** @var int Total uncompressed size */
 	public $mSize = 0;
@@ -454,18 +451,18 @@ class DiffHistoryBlob implements HistoryBlob {
 		}
 
 		// Create two diff sequences: one for main text and one for small text
-		$sequences = array(
-			'small' => array(
+		$sequences = [
+			'small' => [
 				'tail' => '',
-				'diffs' => array(),
-				'map' => array(),
-			),
-			'main' => array(
+				'diffs' => [],
+				'map' => [],
+			],
+			'main' => [
 				'tail' => '',
-				'diffs' => array(),
-				'map' => array(),
-			),
-		);
+				'diffs' => [],
+				'map' => [],
+			],
+		];
 		$smallFactor = 0.5;
 
 		$mItemsCount = count( $this->mItems );
@@ -492,8 +489,8 @@ class DiffHistoryBlob implements HistoryBlob {
 
 		// Knit the sequences together
 		$tail = '';
-		$this->mDiffs = array();
-		$this->mDiffMap = array();
+		$this->mDiffs = [];
+		$this->mDiffMap = [];
 		foreach ( $sequences as $seq ) {
 			if ( !count( $seq['diffs'] ) ) {
 				continue;
@@ -590,7 +587,7 @@ class DiffHistoryBlob implements HistoryBlob {
 
 	/**
 	 * Compute a binary "Adler-32" checksum as defined by LibXDiff, i.e. with
-	 * the bytes backwards and initialised with 0 instead of 1. See bug 34428.
+	 * the bytes backwards and initialised with 0 instead of 1. See T36428.
 	 *
 	 * @param string $s
 	 * @return string|bool False if the hash extension is not available
@@ -644,16 +641,16 @@ class DiffHistoryBlob implements HistoryBlob {
 				$map .= $i - $prev;
 				$prev = $i;
 			}
-			$info = array(
+			$info = [
 				'diffs' => $this->mDiffs,
 				'map' => $map
-			);
+			];
 		}
 		if ( isset( $this->mDefaultKey ) ) {
 			$info['default'] = $this->mDefaultKey;
 		}
 		$this->mCompressed = gzdeflate( serialize( $info ) );
-		return array( 'mCompressed' );
+		return [ 'mCompressed' ];
 	}
 
 	function __wakeup() {
@@ -681,7 +678,7 @@ class DiffHistoryBlob implements HistoryBlob {
 			// New format
 			$map = explode( ',', $info['map'] );
 			$cur = 0;
-			$this->mDiffMap = array();
+			$this->mDiffMap = [];
 			foreach ( $map as $i ) {
 				$cur += $i;
 				$this->mDiffMap[] = $cur;

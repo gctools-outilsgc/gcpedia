@@ -2,8 +2,6 @@
 /**
  * Implements Special:Mostinterwikis
  *
- * Copyright © 2012 Umherirrender
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,8 +19,10 @@
  *
  * @file
  * @ingroup SpecialPage
- * @author Umherirrender
  */
+
+use Wikimedia\Rdbms\ResultWrapper;
+use Wikimedia\Rdbms\IDatabase;
 
 /**
  * A special page that listed pages that have highest interwiki count
@@ -43,29 +43,29 @@ class MostinterwikisPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array(
-			'tables' => array(
+		return [
+			'tables' => [
 				'langlinks',
 				'page'
-			), 'fields' => array(
+			], 'fields' => [
 				'namespace' => 'page_namespace',
 				'title' => 'page_title',
 				'value' => 'COUNT(*)'
-			), 'conds' => array(
+			], 'conds' => [
 				'page_namespace' => MWNamespace::getContentNamespaces()
-			), 'options' => array(
+			], 'options' => [
 				'HAVING' => 'COUNT(*) > 1',
-				'GROUP BY' => array(
+				'GROUP BY' => [
 					'page_namespace',
 					'page_title'
-				)
-			), 'join_conds' => array(
-				'page' => array(
+				]
+			], 'join_conds' => [
+				'page' => [
 					'LEFT JOIN',
 					'page_id = ll_from'
-				)
-			)
-		);
+				]
+			]
+		];
 	}
 
 	/**
@@ -75,20 +75,7 @@ class MostinterwikisPage extends QueryPage {
 	 * @param ResultWrapper $res
 	 */
 	function preprocessResults( $db, $res ) {
-		# There's no point doing a batch check if we aren't caching results;
-		# the page must exist for it to have been pulled out of the table
-		if ( !$this->isCached() || !$res->numRows() ) {
-			return;
-		}
-
-		$batch = new LinkBatch;
-		foreach ( $res as $row ) {
-			$batch->add( $row->namespace, $row->title );
-		}
-		$batch->execute();
-
-		// Back to start for display
-		$res->seek( 0 );
+		$this->executeLBFromResultWrapper( $res );
 	}
 
 	/**
@@ -101,7 +88,7 @@ class MostinterwikisPage extends QueryPage {
 		if ( !$title ) {
 			return Html::element(
 				'span',
-				array( 'class' => 'mw-invalidtitle' ),
+				[ 'class' => 'mw-invalidtitle' ],
 				Linker::getInvalidTitleDescription(
 					$this->getContext(),
 					$result->namespace,
@@ -110,10 +97,11 @@ class MostinterwikisPage extends QueryPage {
 			);
 		}
 
+		$linkRenderer = $this->getLinkRenderer();
 		if ( $this->isCached() ) {
-			$link = Linker::link( $title );
+			$link = $linkRenderer->makeLink( $title );
 		} else {
-			$link = Linker::linkKnown( $title );
+			$link = $linkRenderer->makeKnownLink( $title );
 		}
 
 		$count = $this->msg( 'ninterwikis' )->numParams( $result->value )->escaped();

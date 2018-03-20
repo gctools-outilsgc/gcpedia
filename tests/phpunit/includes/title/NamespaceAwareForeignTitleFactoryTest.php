@@ -27,46 +27,58 @@
 class NamespaceAwareForeignTitleFactoryTest extends MediaWikiTestCase {
 
 	public function basicProvider() {
-		return array(
-			array(
+		return [
+			[
 				'MainNamespaceArticle', 0,
 				new ForeignTitle( 0, '', 'MainNamespaceArticle' ),
-			),
-			array(
+			],
+			[
 				'MainNamespaceArticle', null,
 				new ForeignTitle( 0, '', 'MainNamespaceArticle' ),
-			),
-			array(
+			],
+			[
+				'Magic:_The_Gathering', 0,
+				new ForeignTitle( 0, '', 'Magic:_The_Gathering' ),
+			],
+			[
 				'Talk:Nice_talk', 1,
 				new ForeignTitle( 1, 'Talk', 'Nice_talk' ),
-			),
-			array(
+			],
+			[
+				'Talk:Magic:_The_Gathering', 1,
+				new ForeignTitle( 1, 'Talk', 'Magic:_The_Gathering' ),
+			],
+			[
 				'Bogus:Nice_talk', 0,
 				new ForeignTitle( 0, '', 'Bogus:Nice_talk' ),
-			),
-			array(
+			],
+			[
 				'Bogus:Nice_talk', null,
 				new ForeignTitle( 9000, 'Bogus', 'Nice_talk' ),
-			),
-			array(
+			],
+			[
 				'Bogus:Nice_talk', 4,
 				new ForeignTitle( 4, 'Bogus', 'Nice_talk' ),
-			),
-			array(
+			],
+			[
 				'Bogus:Nice_talk', 1,
 				new ForeignTitle( 1, 'Talk', 'Nice_talk' ),
-			),
-		);
+			],
+			// Misconfigured wiki with unregistered namespace (T114115)
+			[
+				'Nice_talk', 1234,
+				new ForeignTitle( 1234, 'Ns1234', 'Nice_talk' ),
+			],
+		];
 	}
 
 	/**
 	 * @dataProvider basicProvider
 	 */
 	public function testBasic( $title, $ns, ForeignTitle $foreignTitle ) {
-
-		$foreignNamespaces = array(
+		$foreignNamespaces = [
 			0 => '', 1 => 'Talk', 100 => 'Portal', 9000 => 'Bogus'
-		);
+		];
 
 		$factory = new NamespaceAwareForeignTitleFactory( $foreignNamespaces );
 		$testTitle = $factory->createForeignTitle( $title, $ns );

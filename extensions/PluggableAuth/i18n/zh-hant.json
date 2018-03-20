@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Liuxinyu970226"
+		]
+	},
+	"pluggableauth-not-authorized": "{{GENDER:$1|使用者}} $1 沒有取得授權。"
+}

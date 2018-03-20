@@ -1,78 +1,80 @@
-/*jshint -W024 */
 ( function ( mw, $ ) {
+	/* eslint-disable camelcase */
 	var repeat = function ( input, multiplier ) {
-		return new Array( multiplier + 1 ).join( input );
-	},
-	cases = {
+			return new Array( multiplier + 1 ).join( input );
+		},
 		// See also TitleTest.php#testSecureAndSplit
-		valid: [
-			'Sandbox',
-			'A "B"',
-			'A \'B\'',
-			'.com',
-			'~',
-			'"',
-			'\'',
-			'Talk:Sandbox',
-			'Talk:Foo:Sandbox',
-			'File:Example.svg',
-			'File_talk:Example.svg',
-			'Foo/.../Sandbox',
-			'Sandbox/...',
-			'A~~',
-			':A',
-			// Length is 256 total, but only title part matters
-			'Category:' + repeat( 'x', 248 ),
-			repeat( 'x', 252 )
-		],
-		invalid: [
-			'',
-			':',
-			'__  __',
-			'  __  ',
-			// Bad characters forbidden regardless of wgLegalTitleChars
-			'A [ B',
-			'A ] B',
-			'A { B',
-			'A } B',
-			'A < B',
-			'A > B',
-			'A | B',
-			// URL encoding
-			'A%20B',
-			'A%23B',
-			'A%2523B',
-			// XML/HTML character entity references
-			// Note: The ones with # are commented out as those are interpreted as fragment and
-			// as such end up being valid.
-			'A &eacute; B',
-			// 'A &#233; B',
-			// 'A &#x00E9; B',
-			// Subject of NS_TALK does not roundtrip to NS_MAIN
-			'Talk:File:Example.svg',
-			// Directory navigation
-			'.',
-			'..',
-			'./Sandbox',
-			'../Sandbox',
-			'Foo/./Sandbox',
-			'Foo/../Sandbox',
-			'Sandbox/.',
-			'Sandbox/..',
-			// Tilde
-			'A ~~~ Name',
-			'A ~~~~ Signature',
-			'A ~~~~~ Timestamp',
-			repeat( 'x', 256 ),
-			// Extension separation is a js invention, for length
-			// purposes it is part of the title
-			repeat( 'x', 252 ) + '.json',
-			// Namespace prefix without actual title
-			'Talk:',
-			'Category: ',
-			'Category: #bar'
-		]
-	};
+		cases = {
+			valid: [
+				'Sandbox',
+				'A "B"',
+				'A \'B\'',
+				'.com',
+				'~',
+				'"',
+				'\'',
+				'Talk:Sandbox',
+				'Talk:Foo:Sandbox',
+				'File:Example.svg',
+				'File_talk:Example.svg',
+				'Foo/.../Sandbox',
+				'Sandbox/...',
+				'A~~',
+				':A',
+				// Length is 256 total, but only title part matters
+				'Category:' + repeat( 'x', 248 ),
+				repeat( 'x', 252 )
+			],
+			invalid: [
+				'',
+				':',
+				'__  __',
+				'  __  ',
+				// Bad characters forbidden regardless of wgLegalTitleChars
+				'A [ B',
+				'A ] B',
+				'A { B',
+				'A } B',
+				'A < B',
+				'A > B',
+				'A | B',
+				'A \t B',
+				'A \n B',
+				// URL encoding
+				'A%20B',
+				'A%23B',
+				'A%2523B',
+				// XML/HTML character entity references
+				// Note: The ones with # are commented out as those are interpreted as fragment and
+				// as such end up being valid.
+				'A &eacute; B',
+				// 'A &#233; B',
+				// 'A &#x00E9; B',
+				// Subject of NS_TALK does not roundtrip to NS_MAIN
+				'Talk:File:Example.svg',
+				// Directory navigation
+				'.',
+				'..',
+				'./Sandbox',
+				'../Sandbox',
+				'Foo/./Sandbox',
+				'Foo/../Sandbox',
+				'Sandbox/.',
+				'Sandbox/..',
+				// Tilde
+				'A ~~~ Name',
+				'A ~~~~ Signature',
+				'A ~~~~~ Timestamp',
+				repeat( 'x', 256 ),
+				// Extension separation is a js invention, for length
+				// purposes it is part of the title
+				repeat( 'x', 252 ) + '.json',
+				// Namespace prefix without actual title
+				'Talk:',
+				'Category: ',
+				'Category: #bar'
+			]
+		};
 
 	QUnit.module( 'mediawiki.Title', QUnit.newMwEnvironment( {
 		// mw.Title relies on these three config vars
@@ -100,7 +102,6 @@
 				// testing custom / localized namespace
 				100: 'Penguins'
 			},
-			// jscs: disable requireCamelCaseOrUpperCaseIdentifiers
 			wgNamespaceIds: {
 				media: -2,
 				special: -1,
@@ -128,26 +129,25 @@
 				penguins: 100,
 				antarctic_waterfowl: 100
 			},
-			// jscs: enable requireCamelCaseOrUpperCaseIdentifiers
 			wgCaseSensitiveNamespaces: []
 		}
 	} ) );
 
-	QUnit.test( 'constructor', cases.invalid.length, function ( assert ) {
+	QUnit.test( 'constructor', function ( assert ) {
 		var i, title;
 		for ( i = 0; i < cases.valid.length; i++ ) {
 			title = new mw.Title( cases.valid[ i ] );
 		}
 		for ( i = 0; i < cases.invalid.length; i++ ) {
-			/*jshint loopfunc:true */
 			title = cases.invalid[ i ];
+			// eslint-disable-next-line no-loop-func
 			assert.throws( function () {
 				return new mw.Title( title );
 			}, cases.invalid[ i ] );
 		}
 	} );
 
-	QUnit.test( 'newFromText', cases.valid.length + cases.invalid.length, function ( assert ) {
+	QUnit.test( 'newFromText', function ( assert ) {
 		var i;
 		for ( i = 0; i < cases.valid.length; i++ ) {
 			assert.equal(
@@ -165,7 +165,33 @@
 		}
 	} );
 
-	QUnit.test( 'Basic parsing', 21, function ( assert ) {
+	QUnit.test( 'makeTitle', function ( assert ) {
+		var cases, i, title, expected,
+			NS_MAIN = 0,
+			NS_TALK = 1,
+			NS_TEMPLATE = 10;
+
+		cases = [
+			[ NS_TEMPLATE, 'Foo', 'Template:Foo' ],
+			[ NS_TEMPLATE, 'Category:Foo', 'Template:Category:Foo' ],
+			[ NS_TEMPLATE, 'Template:Foo', 'Template:Template:Foo' ],
+			[ NS_TALK, 'Help:Foo', null ],
+			[ NS_TEMPLATE, '<', null ],
+			[ NS_MAIN, 'Help:Foo', 'Help:Foo' ]
+		];
+
+		for ( i = 0; i < cases.length; i++ ) {
+			title = mw.Title.makeTitle( cases[ i ][ 0 ], cases[ i ][ 1 ] );
+			expected = cases[ i ][ 2 ];
+			if ( expected === null ) {
+				assert.strictEqual( title, expected );
+			} else {
+				assert.strictEqual( title.getPrefixedText(), expected );
+			}
+		}
+	} );
+
+	QUnit.test( 'Basic parsing', function ( assert ) {
 		var title;
 		title = new mw.Title( 'File:Foo_bar.JPG' );
 
@@ -196,7 +222,7 @@
 		assert.equal( title.getPrefixedText(), '.foo' );
 	} );
 
-	QUnit.test( 'Transformation', 11, function ( assert ) {
+	QUnit.test( 'Transformation', function ( assert ) {
 		var title;
 
 		title = new mw.Title( 'File:quux pif.jpg' );
@@ -216,9 +242,11 @@
 		assert.equal( title.toText(), 'User:HAshAr' );
 		assert.equal( title.getNamespaceId(), 2, 'Case-insensitive namespace prefix' );
 
-		// Don't ask why, it's the way the backend works. One space is kept of each set.
-		title = new mw.Title( 'Foo  __  \t __ bar' );
+		title = new mw.Title( 'Foo \u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u2028\u2029\u202F\u205F\u3000 bar' );
 		assert.equal( title.getMain(), 'Foo_bar', 'Merge multiple types of whitespace/underscores into a single underscore' );
+
+		title = new mw.Title( 'Foo\u200E\u200F\u202A\u202B\u202C\u202D\u202Ebar' );
+		assert.equal( title.getMain(), 'Foobar', 'Strip Unicode bidi override characters' );
 
 		// Regression test: Previously it would only detect an extension if there is no space after it
 		title = new mw.Title( 'Example.js  ' );
@@ -231,7 +259,7 @@
 		assert.equal( title.getFragment(), ' foo bar baz', 'Fragment' );
 	} );
 
-	QUnit.test( 'Namespace detection and conversion', 10, function ( assert ) {
+	QUnit.test( 'Namespace detection and conversion', function ( assert ) {
 		var title;
 
 		title = new mw.Title( 'File:User:Example' );
@@ -263,13 +291,13 @@
 		assert.equal( title.toString(), 'Penguins:Flightless_yet_cute.jpg' );
 	} );
 
-	QUnit.test( 'Throw error on invalid title', 1, function ( assert ) {
+	QUnit.test( 'Throw error on invalid title', function ( assert ) {
 		assert.throws( function () {
 			return new mw.Title( '' );
 		}, 'Throw error on empty string' );
 	} );
 
-	QUnit.test( 'Case-sensivity', 3, function ( assert ) {
+	QUnit.test( 'Case-sensivity', function ( assert ) {
 		var title;
 
 		// Default config
@@ -277,6 +305,12 @@
 
 		title = new mw.Title( 'article' );
 		assert.equal( title.toString(), 'Article', 'Default config: No sensitive namespaces by default. First-letter becomes uppercase' );
+
+		title = new mw.Title( 'ß' );
+		assert.equal( title.toString(), 'ß', 'Uppercasing matches PHP behaviour (ß -> ß, not SS)' );
+
+		title = new mw.Title( 'ǆ (digraph)' );
+		assert.equal( title.toString(), 'ǅ_(digraph)', 'Uppercasing matches PHP behaviour (ǆ -> ǅ, not Ǆ)' );
 
 		// $wgCapitalLinks = false;
 		mw.config.set( 'wgCaseSensitiveNamespaces', [ 0, -2, 1, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15 ] );
@@ -288,14 +322,14 @@
 		assert.equal( title.toString(), 'User:John', '$wgCapitalLinks=false: User namespace is insensitive, first-letter becomes uppercase' );
 	} );
 
-	QUnit.test( 'toString / toText', 2, function ( assert ) {
+	QUnit.test( 'toString / toText', function ( assert ) {
 		var title = new mw.Title( 'Some random page' );
 
 		assert.equal( title.toString(), title.getPrefixedDb() );
 		assert.equal( title.toText(), title.getPrefixedText() );
 	} );
 
-	QUnit.test( 'getExtension', 7, function ( assert ) {
+	QUnit.test( 'getExtension', function ( assert ) {
 		function extTest( pagename, ext, description ) {
 			var title = new mw.Title( pagename );
 			assert.equal( title.getExtension(), ext, description || pagename );
@@ -303,7 +337,7 @@
 
 		extTest( 'MediaWiki:Vector.js', 'js' );
 		extTest( 'User:Example/common.css', 'css' );
-		extTest( 'File:Example.longextension', 'longextension', 'Extension parsing not limited (bug 36151)' );
+		extTest( 'File:Example.longextension', 'longextension', 'Extension parsing not limited (T38151)' );
 		extTest( 'Example/information.json', 'json', 'Extension parsing not restricted from any namespace' );
 		extTest( 'Foo.', null, 'Trailing dot is not an extension' );
 		extTest( 'Foo..', null, 'Trailing dots are not an extension' );
@@ -313,7 +347,7 @@
 		// extTest( '.NET', null, 'Leading dot is (or is not?) an extension' );
 	} );
 
-	QUnit.test( 'exists', 3, function ( assert ) {
+	QUnit.test( 'exists', function ( assert ) {
 		var title;
 
 		// Empty registry, checks default to null
@@ -332,21 +366,25 @@
 
 	} );
 
-	QUnit.test( 'getUrl', 3, function ( assert ) {
+	QUnit.test( 'getUrl', function ( assert ) {
 		var title;
-
-		// Config
-		mw.config.set( 'wgArticlePath', '/wiki/$1' );
+		mw.config.set( {
+			wgScript: '/w/index.php',
+			wgArticlePath: '/wiki/$1'
+		} );
 
 		title = new mw.Title( 'Foobar' );
 		assert.equal( title.getUrl(), '/wiki/Foobar', 'Basic functionality, getUrl uses mw.util.getUrl' );
-		assert.equal( title.getUrl( { action: 'edit' } ), '/wiki/Foobar?action=edit', 'Basic functionality, \'params\' parameter' );
+		assert.equal( title.getUrl( { action: 'edit' } ), '/w/index.php?title=Foobar&action=edit', 'Basic functionality, \'params\' parameter' );
 
 		title = new mw.Title( 'John Doe', 3 );
 		assert.equal( title.getUrl(), '/wiki/User_talk:John_Doe', 'Escaping in title and namespace for urls' );
+
+		title = new mw.Title( 'John Cena#And_His_Name_Is', 3 );
+		assert.equal( title.getUrl( { meme: true } ), '/w/index.php?title=User_talk:John_Cena&meme=true#And_His_Name_Is', 'title with fragment and query parameter' );
 	} );
 
-	QUnit.test( 'newFromImg', 40, function ( assert ) {
+	QUnit.test( 'newFromImg', function ( assert ) {
 		var title, i, thisCase, prefix,
 			cases = [
 				{
@@ -355,6 +393,14 @@
 					nameText: 'Princess Alexandra of Denmark (later Queen Alexandra, wife of Edward VII) with her two eldest sons, Prince Albert Victor (Eddy) and George Frederick Ernest Albert (later George V)',
 					prefixedText: 'File:Princess Alexandra of Denmark (later Queen Alexandra, wife of Edward VII) with her two eldest sons, Prince Albert Victor (Eddy) and George Frederick Ernest Albert (later George V).jpg'
 				},
+
+				{
+					url: '//upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Princess_Alexandra_of_Denmark_%28later_Queen_Alexandra%2C_wife_of_Edward_VII%29_with_her_two_eldest_sons%2C_Prince_Albert_Victor_%28Eddy%29_and_George_Frederick_Ernest_Albert_%28later_George_V%29.jpg/939px-ki708pr1r6g2dl5lbhvwdqxenhait13.jpg',
+					typeOfUrl: 'Hashed thumb with sha1-ed path',
+					nameText: 'Princess Alexandra of Denmark (later Queen Alexandra, wife of Edward VII) with her two eldest sons, Prince Albert Victor (Eddy) and George Frederick Ernest Albert (later George V)',
+					prefixedText: 'File:Princess Alexandra of Denmark (later Queen Alexandra, wife of Edward VII) with her two eldest sons, Prince Albert Victor (Eddy) and George Frederick Ernest Albert (later George V).jpg'
+				},
+
 				{
 					url: '/wiki/images/thumb/9/91/Anticlockwise_heliotrope%27s.jpg/99px-Anticlockwise_heliotrope%27s.jpg',
 					typeOfUrl: 'Normal hashed directory thumbnail',
@@ -437,7 +483,7 @@
 			title = mw.Title.newFromImg( { src: thisCase.url } );
 
 			if ( thisCase.nameText !== undefined ) {
-				prefix = '[' + thisCase.typeOfUrl + ' URL' + '] ';
+				prefix = '[' + thisCase.typeOfUrl + ' URL] ';
 
 				assert.notStrictEqual( title, null, prefix + 'Parses successfully' );
 				assert.equal( title.getNameText(), thisCase.nameText, prefix + 'Filename matches original' );
@@ -449,7 +495,7 @@
 		}
 	} );
 
-	QUnit.test( 'getRelativeText', 5, function ( assert ) {
+	QUnit.test( 'getRelativeText', function ( assert ) {
 		var i, thisCase, title,
 			cases = [
 				{
@@ -487,7 +533,7 @@
 		}
 	} );
 
-	QUnit.test( 'normalizeExtension', 5, function ( assert ) {
+	QUnit.test( 'normalizeExtension', function ( assert ) {
 		var extension, i, thisCase, prefix,
 			cases = [
 				{
@@ -526,7 +572,7 @@
 		}
 	} );
 
-	QUnit.test( 'newFromUserInput', 12, function ( assert ) {
+	QUnit.test( 'newFromUserInput', function ( assert ) {
 		var title, i, thisCase, prefix,
 			cases = [
 				{
@@ -581,7 +627,7 @@
 		}
 	} );
 
-	QUnit.test( 'newFromFileName', 54, function ( assert ) {
+	QUnit.test( 'newFromFileName', function ( assert ) {
 		var title, i, thisCase, prefix,
 			cases = [
 				{

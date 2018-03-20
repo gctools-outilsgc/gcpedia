@@ -2,8 +2,6 @@
 	var UP;
 
 	/**
-	 * @class mw.Upload
-	 *
 	 * Used to represent an upload in progress on the frontend.
 	 * Most of the functionality is implemented in mw.Api.plugin.upload,
 	 * but this model class will tie it together as well as let you perform
@@ -43,6 +41,8 @@
 	 *       } );
 	 *     } );
 	 *
+	 * @class mw.Upload
+	 *
 	 * @constructor
 	 * @param {Object|mw.Api} [apiconfig] A mw.Api object (or subclass), or configuration
 	 *     to pass to the constructor of mw.Api.
@@ -63,6 +63,17 @@
 	UP = Upload.prototype;
 
 	/**
+	 * Get the mw.Api instance used by this Upload object.
+	 *
+	 * @return {jQuery.Promise}
+	 * @return {Function} return.done
+	 * @return {mw.Api} return.done.api
+	 */
+	UP.getApi = function () {
+		return $.Deferred().resolve( this.api ).promise();
+	};
+
+	/**
 	 * Set the text of the file page, to be created on file upload.
 	 *
 	 * @param {string} text
@@ -78,6 +89,20 @@
 	 */
 	UP.setFilename = function ( filename ) {
 		this.filename = filename;
+	};
+
+	/**
+	 * Set the stashed file to finish uploading.
+	 *
+	 * @param {string} filekey
+	 */
+	UP.setFilekey = function ( filekey ) {
+		var upload = this;
+
+		this.setState( Upload.State.STASHED );
+		this.stashPromise = $.Deferred().resolve( function ( data ) {
+			return upload.api.uploadFromStash( filekey, data );
+		} );
 	};
 
 	/**
@@ -103,7 +128,7 @@
 	/**
 	 * Set the file to be uploaded.
 	 *
-	 * @param {HTMLInputElement|File} file
+	 * @param {HTMLInputElement|File|Blob} file
 	 */
 	UP.setFile = function ( file ) {
 		this.file = file;
@@ -148,7 +173,7 @@
 	/**
 	 * Get the file being uploaded.
 	 *
-	 * @return {HTMLInputElement|File}
+	 * @return {HTMLInputElement|File|Blob}
 	 */
 	UP.getFile = function () {
 		return this.file;
@@ -251,7 +276,7 @@
 
 		this.setState( Upload.State.UPLOADING );
 
-		return this.api.upload( this.getFile(), {
+		return this.api.chunkedUpload( this.getFile(), {
 			watchlist: ( this.getWatchlist() ) ? 1 : undefined,
 			comment: this.getComment(),
 			filename: this.getFilename(),
@@ -288,7 +313,7 @@
 
 		this.setState( Upload.State.UPLOADING );
 
-		this.stashPromise = this.api.uploadToStash( this.getFile(), {
+		this.stashPromise = this.api.chunkedUploadToStash( this.getFile(), {
 			filename: this.getFilename()
 		} ).then( function ( finishStash ) {
 			upload.setState( Upload.State.STASHED );

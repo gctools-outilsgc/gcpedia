@@ -1,4 +1,3 @@
-/* jshint bitwise:false */
 ( function ( mw, $ ) {
 
 	var CONTROL_BUCKET = 'control',
@@ -7,16 +6,17 @@
 	/**
 	 * An implementation of Jenkins' one-at-a-time hash.
 	 *
-	 * @see http://en.wikipedia.org/wiki/Jenkins_hash_function
+	 * @see https://en.wikipedia.org/wiki/Jenkins_hash_function
 	 *
-	 * @param {String} string String to hash
-	 * @return {Number} The hash as a 32-bit unsigned integer
+	 * @param {string} string String to hash
+	 * @return {number} The hash as a 32-bit unsigned integer
 	 * @ignore
 	 *
 	 * @author Ori Livneh <ori@wikimedia.org>
-	 * @see http://jsbin.com/kejewi/4/watch?js,console
+	 * @see https://jsbin.com/kejewi/4/watch?js,console
 	 */
 	function hashString( string ) {
+		/* eslint-disable no-bitwise */
 		var hash = 0,
 			i = string.length;
 
@@ -30,6 +30,7 @@
 		hash += ( hash << 15 );
 
 		return hash >>> 0;
+		/* eslint-enable no-bitwise */
 	}
 
 	/**
@@ -65,18 +66,16 @@
 		 * assigned to either the A or B buckets. If the experiment were disabled,
 		 * then the user would always be assigned to the control bucket.
 		 *
-		 * This function is based on the deprecated `mw.user.bucket` function.
-		 *
 		 * @param {Object} experiment
-		 * @param {String} experiment.name The name of the experiment
-		 * @param {Boolean} experiment.enabled Whether or not the experiment is
+		 * @param {string} experiment.name The name of the experiment
+		 * @param {boolean} experiment.enabled Whether or not the experiment is
 		 *  enabled. If the experiment is disabled, then the user is always assigned
 		 *  to the control bucket
 		 * @param {Object} experiment.buckets A map of bucket name to probability
 		 *  that the user will be assigned to that bucket
-		 * @param {String} token A token that uniquely identifies the user for the
+		 * @param {string} token A token that uniquely identifies the user for the
 		 *  duration of the experiment
-		 * @returns {String} The bucket
+		 * @return {string} The bucket
 		 */
 		getBucket: function ( experiment, token ) {
 			var buckets = experiment.buckets,

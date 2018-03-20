@@ -21,11 +21,10 @@ class SpecialPreferencesTest extends MediaWikiTestCase {
 	 * @todo give this test a real name explaining what is being tested here
 	 */
 	public function testBug41337() {
-
 		// Set a low limit
 		$this->setMwGlobals( 'wgMaxSigChars', 2 );
 
-		$user = $this->getMock( 'User' );
+		$user = $this->createMock( 'User' );
 		$user->expects( $this->any() )
 			->method( 'isAnon' )
 			->will( $this->returnValue( false ) );
@@ -33,14 +32,14 @@ class SpecialPreferencesTest extends MediaWikiTestCase {
 		# Yeah foreach requires an array, not NULL =(
 		$user->expects( $this->any() )
 			->method( 'getEffectiveGroups' )
-			->will( $this->returnValue( array() ) );
+			->will( $this->returnValue( [] ) );
 
 		# The mocked user has a long nickname
 		$user->expects( $this->any() )
 			->method( 'getOption' )
-			->will( $this->returnValueMap( array(
-				array( 'nickname', null, false, 'superlongnickname' ),
-			)
+			->will( $this->returnValueMap( [
+				[ 'nickname', null, false, 'superlongnickname' ],
+			]
 			) );
 
 		# Forge a request to call the special page
@@ -52,7 +51,7 @@ class SpecialPreferencesTest extends MediaWikiTestCase {
 		# Do the call, should not spurt a fatal error.
 		$special = new SpecialPreferences();
 		$special->setContext( $context );
-		$this->assertNull( $special->execute( array() ) );
+		$this->assertNull( $special->execute( [] ) );
 	}
 
 }

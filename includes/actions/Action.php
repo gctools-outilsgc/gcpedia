@@ -34,7 +34,7 @@
  * format (protect, delete, move, etc), and the just-do-something format (watch, rollback,
  * patrol, etc). The FormAction and FormlessAction classes represent these two groups.
  */
-abstract class Action {
+abstract class Action implements MessageLocalizer {
 
 	/**
 	 * Page on which we're performing the action
@@ -62,7 +62,7 @@ abstract class Action {
 	 * the action is disabled, or null if it's not recognised
 	 * @param string $action
 	 * @param array $overrides
-	 * @return bool|null|string|callable
+	 * @return bool|null|string|callable|Action
 	 */
 	final private static function getClass( $action, array $overrides ) {
 		global $wgActions;
@@ -88,7 +88,7 @@ abstract class Action {
 	 * @since 1.17
 	 * @param string $action
 	 * @param Page $page
-	 * @param IContextSource $context
+	 * @param IContextSource|null $context
 	 * @return Action|bool|null False if the action is disabled, null
 	 *     if it is not recognised
 	 */
@@ -96,12 +96,15 @@ abstract class Action {
 		$classOrCallable = self::getClass( $action, $page->getActionOverrides() );
 
 		if ( is_string( $classOrCallable ) ) {
+			if ( !class_exists( $classOrCallable ) ) {
+				return false;
+			}
 			$obj = new $classOrCallable( $page, $context );
 			return $obj;
 		}
 
 		if ( is_callable( $classOrCallable ) ) {
-			return call_user_func_array( $classOrCallable, array( $page, $context ) );
+			return call_user_func_array( $classOrCallable, [ $page, $context ] );
 		}
 
 		return $classOrCallable;
@@ -148,7 +151,7 @@ abstract class Action {
 			return 'view';
 		}
 
-		$action = Action::factory( $actionName, $context->getWikiPage(), $context );
+		$action = self::factory( $actionName, $context->getWikiPage(), $context );
 		if ( $action instanceof Action ) {
 			return $action->getName();
 		}
@@ -164,7 +167,7 @@ abstract class Action {
 	 * @return bool
 	 */
 	final public static function exists( $name ) {
-		return self::getClass( $name, array() ) !== null;
+		return self::getClass( $name, [] ) !== null;
 	}
 
 	/**
@@ -250,18 +253,16 @@ abstract class Action {
 	 *
 	 * @return Message
 	 */
-	final public function msg() {
+	final public function msg( $key ) {
 		$params = func_get_args();
-		return call_user_func_array( array( $this->getContext(), 'msg' ), $params );
+		return call_user_func_array( [ $this->getContext(), 'msg' ], $params );
 	}
 
 	/**
-	 * Constructor.
-	 *
 	 * Only public since 1.21
 	 *
 	 * @param Page $page
-	 * @param IContextSource $context
+	 * @param IContextSource|null $context
 	 */
 	public function __construct( Page $page, IContextSource $context = null ) {
 		if ( $context === null ) {
@@ -370,7 +371,7 @@ abstract class Action {
 	 * Returns the description that goes below the \<h1\> tag
 	 * @since 1.17
 	 *
-	 * @return string
+	 * @return string HTML
 	 */
 	protected function getDescription() {
 		return $this->msg( strtolower( $this->getName() ) )->escaped();
@@ -387,7 +388,7 @@ abstract class Action {
 	public function addHelpLink( $to, $overrideBaseUrl = false ) {
 		global $wgContLang;
 		$msg = wfMessage( $wgContLang->lc(
-			Action::getActionName( $this->getContext() )
+			self::getActionName( $this->getContext() )
 			) . '-helppage' );
 
 		if ( !$msg->isDisabled() ) {
@@ -416,5 +417,14 @@ abstract class Action {
 		if ( $this->getRequest()->wasPosted() ) {
 			wfTransactionalTimeLimit();
 		}
+	}
+
+	/**
+	 * Indicates whether this action may perform database writes
+	 * @return bool
+	 * @since 1.27
+	 */
+	public function doesWrites() {
+		return false;
 	}
 }

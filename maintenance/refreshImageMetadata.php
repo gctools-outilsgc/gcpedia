@@ -29,6 +29,9 @@
 
 require_once __DIR__ . '/Maintenance.php';
 
+use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\IMaintainableDatabase;
+
 /**
  * Maintenance script to refresh image metadata fields.
  *
@@ -37,14 +40,14 @@ require_once __DIR__ . '/Maintenance.php';
 class RefreshImageMetadata extends Maintenance {
 
 	/**
-	 * @var DatabaseBase
+	 * @var IMaintainableDatabase
 	 */
 	protected $dbw;
 
 	function __construct() {
 		parent::__construct();
 
-		$this->mDescription = 'Script to update image metadata records';
+		$this->addDescription( 'Script to update image metadata records' );
 		$this->setBatchSize( 200 );
 
 		$this->addOption(
@@ -69,8 +72,15 @@ class RefreshImageMetadata extends Maintenance {
 		$this->addOption( 'end', 'Name of file to end with', false, true );
 
 		$this->addOption(
+			'mediatype',
+			'Only refresh files with this media type, e.g. BITMAP, UNKNOWN etc.',
+			false,
+			true
+		);
+		$this->addOption(
 			'mime',
-			'(Inefficient!) Only refresh files with this MIME type. Can accept wild-card image/*',
+			"Only refresh files with this MIME type. Can accept wild-card 'image/*'. "
+				. "Potentially inefficient unless 'mediatype' is also specified",
 			false,
 			true
 		);
@@ -95,7 +105,7 @@ class RefreshImageMetadata extends Maintenance {
 		$leftAlone = 0;
 		$error = 0;
 
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = $this->getDB( DB_MASTER );
 		if ( $this->mBatchSize <= 0 ) {
 			$this->error( "Batch size is too low...", 12 );
 		}
@@ -104,15 +114,15 @@ class RefreshImageMetadata extends Maintenance {
 		$conds = $this->getConditions( $dbw );
 
 		// For the WHERE img_name > 'foo' condition that comes after doing a batch
-		$conds2 = array();
+		$conds2 = [];
 		if ( $start !== false ) {
 			$conds2[] = 'img_name >= ' . $dbw->addQuotes( $start );
 		}
 
-		$options = array(
+		$options = [
 			'LIMIT' => $this->mBatchSize,
 			'ORDER BY' => 'img_name ASC',
-		);
+		];
 
 		do {
 			$res = $dbw->select(
@@ -125,54 +135,61 @@ class RefreshImageMetadata extends Maintenance {
 
 			if ( $res->numRows() > 0 ) {
 				$row1 = $res->current();
-				$this->output( "Processing next {$this->mBatchSize} rows starting with {$row1->img_name}.\n" );
+				$this->output( "Processing next {$res->numRows()} row(s) starting with {$row1->img_name}.\n" );
 				$res->rewind();
-			} else {
-				$this->error( "No images to process.", 4 );
 			}
 
 			foreach ( $res as $row ) {
-				$file = $repo->newFileFromRow( $row );
-				if ( $file->getUpgraded() ) {
-					// File was upgraded.
-					$upgraded++;
-					$newLength = strlen( $file->getMetadata() );
-					$oldLength = strlen( $row->img_metadata );
-					if ( $newLength < $oldLength - 5 ) {
-						// If after updating, the metadata is smaller then
-						// what it was before, that's probably not a good thing
-						// because we extract more data with time, not less.
-						// Thus this probably indicates an error of some sort,
-						// or at the very least is suspicious. Have the - 5 just
-						// to weed out any inconsequential changes.
-						$error++;
-						$this->output( "Warning: File:{$row->img_name} used to have " .
-							"$oldLength bytes of metadata but now has $newLength bytes.\n" );
-					} elseif ( $verbose ) {
-						$this->output( "Refreshed File:{$row->img_name}.\n" );
-					}
-				} else {
-					$leftAlone++;
-					if ( $force ) {
-						$file->upgradeRow();
+				try {
+					// LocalFile will upgrade immediately here if obsolete
+					$file = $repo->newFileFromRow( $row );
+					if ( $file->getUpgraded() ) {
+						// File was upgraded.
+						$upgraded++;
 						$newLength = strlen( $file->getMetadata() );
 						$oldLength = strlen( $row->img_metadata );
 						if ( $newLength < $oldLength - 5 ) {
+							// If after updating, the metadata is smaller then
+							// what it was before, that's probably not a good thing
+							// because we extract more data with time, not less.
+							// Thus this probably indicates an error of some sort,
+							// or at the very least is suspicious. Have the - 5 just
+							// to weed out any inconsequential changes.
 							$error++;
-							$this->output( "Warning: File:{$row->img_name} used to have " .
-								"$oldLength bytes of metadata but now has $newLength bytes. (forced)\n" );
-						}
-						if ( $verbose ) {
-							$this->output( "Forcibly refreshed File:{$row->img_name}.\n" );
+							$this->output(
+								"Warning: File:{$row->img_name} used to have " .
+								"$oldLength bytes of metadata but now has $newLength bytes.\n"
+							);
+						} elseif ( $verbose ) {
+							$this->output( "Refreshed File:{$row->img_name}.\n" );
 						}
 					} else {
-						if ( $verbose ) {
-							$this->output( "Skipping File:{$row->img_name}.\n" );
+						$leftAlone++;
+						if ( $force ) {
+							$file->upgradeRow();
+							$newLength = strlen( $file->getMetadata() );
+							$oldLength = strlen( $row->img_metadata );
+							if ( $newLength < $oldLength - 5 ) {
+								$error++;
+								$this->output(
+									"Warning: File:{$row->img_name} used to have " .
+									"$oldLength bytes of metadata but now has $newLength bytes. (forced)\n"
+								);
+							}
+							if ( $verbose ) {
+								$this->output( "Forcibly refreshed File:{$row->img_name}.\n" );
+							}
+						} else {
+							if ( $verbose ) {
+								$this->output( "Skipping File:{$row->img_name}.\n" );
+							}
 						}
 					}
+				} catch ( Exception $e ) {
+					$this->output( "{$row->img_name} failed. {$e->getMessage()}\n" );
 				}
 			}
-			$conds2 = array( 'img_name > ' . $dbw->addQuotes( $row->img_name ) );
+			$conds2 = [ 'img_name > ' . $dbw->addQuotes( $row->img_name ) ];
 			wfWaitForSlaves();
 		} while ( $res->numRows() === $this->mBatchSize );
 
@@ -189,14 +206,15 @@ class RefreshImageMetadata extends Maintenance {
 	}
 
 	/**
-	 * @param DatabaseBase $dbw
+	 * @param IDatabase $dbw
 	 * @return array
 	 */
 	function getConditions( $dbw ) {
-		$conds = array();
+		$conds = [];
 
 		$end = $this->getOption( 'end', false );
 		$mime = $this->getOption( 'mime', false );
+		$mediatype = $this->getOption( 'mediatype', false );
 		$like = $this->getOption( 'metadata-contains', false );
 
 		if ( $end !== false ) {
@@ -208,6 +226,9 @@ class RefreshImageMetadata extends Maintenance {
 			if ( $minor !== '*' ) {
 				$conds['img_minor_mime'] = $minor;
 			}
+		}
+		if ( $mediatype !== false ) {
+			$conds['img_media_type'] = $mediatype;
 		}
 		if ( $like ) {
 			$conds[] = 'img_metadata ' . $dbw->buildLike( $dbw->anyString(), $like, $dbw->anyString() );

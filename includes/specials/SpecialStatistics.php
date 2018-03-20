@@ -36,10 +36,6 @@ class SpecialStatistics extends SpecialPage {
 	}
 
 	public function execute( $par ) {
-		global $wgMemc;
-
-		$miserMode = $this->getConfig()->get( 'MiserMode' );
-
 		$this->setHeaders();
 		$this->getOutput()->addModuleStyles( 'mediawiki.special' );
 
@@ -51,18 +47,7 @@ class SpecialStatistics extends SpecialPage {
 		$this->activeUsers = SiteStats::activeUsers();
 		$this->hook = '';
 
-		# Set active user count
-		if ( !$miserMode ) {
-			$key = wfMemcKey( 'sitestats', 'activeusers-updated' );
-			// Re-calculate the count if the last tally is old...
-			if ( !$wgMemc->get( $key ) ) {
-				$dbw = wfGetDB( DB_MASTER );
-				SiteStatsUpdate::cacheUpdate( $dbw );
-				$wgMemc->set( $key, '1', 24 * 3600 ); // don't update for 1 day
-			}
-		}
-
-		$text = Xml::openElement( 'table', array( 'class' => 'wikitable mw-statistics-table' ) );
+		$text = Xml::openElement( 'table', [ 'class' => 'wikitable mw-statistics-table' ] );
 
 		# Statistic - pages
 		$text .= $this->getPageStats();
@@ -77,8 +62,8 @@ class SpecialStatistics extends SpecialPage {
 		$text .= $this->getGroupStats();
 
 		# Statistic - other
-		$extraStats = array();
-		if ( Hooks::run( 'SpecialStatsAddExtra', array( &$extraStats, $this->getContext() ) ) ) {
+		$extraStats = [];
+		if ( Hooks::run( 'SpecialStatsAddExtra', [ &$extraStats, $this->getContext() ] ) ) {
 			$text .= $this->getOtherStats( $extraStats );
 		}
 
@@ -102,7 +87,7 @@ class SpecialStatistics extends SpecialPage {
 	 * @param array|string $descMsgParam Message parameters
 	 * @return string Table row in HTML format
 	 */
-	private function formatRow( $text, $number, $trExtraParams = array(),
+	private function formatRow( $text, $number, $trExtraParams = [],
 		$descMsg = '', $descMsgParam = ''
 	) {
 		if ( $descMsg ) {
@@ -110,14 +95,17 @@ class SpecialStatistics extends SpecialPage {
 			if ( !$msg->isDisabled() ) {
 				$descriptionHtml = $this->msg( 'parentheses' )->rawParams( $msg->parse() )
 					->escaped();
-				$text .= "<br />" . Html::rawElement( 'small', array( 'class' => 'mw-statistic-desc' ),
-					" $descriptionHtml" );
+				$text .= "<br />" . Html::rawElement(
+					'small',
+					[ 'class' => 'mw-statistic-desc' ],
+					" $descriptionHtml"
+				);
 			}
 		}
 
 		return Html::rawElement( 'tr', $trExtraParams,
-			Html::rawElement( 'td', array(), $text ) .
-			Html::rawElement( 'td', array( 'class' => 'mw-statistics-numbers' ), $number )
+			Html::rawElement( 'td', [], $text ) .
+			Html::rawElement( 'td', [ 'class' => 'mw-statistics-numbers' ], $number )
 		);
 	}
 
@@ -127,27 +115,33 @@ class SpecialStatistics extends SpecialPage {
 	 * @return string
 	 */
 	private function getPageStats() {
+		$linkRenderer = $this->getLinkRenderer();
+
+		$specialAllPagesTitle = SpecialPage::getTitleFor( 'Allpages' );
 		$pageStatsHtml = Xml::openElement( 'tr' ) .
-			Xml::tags( 'th', array( 'colspan' => '2' ), $this->msg( 'statistics-header-pages' )
+			Xml::tags( 'th', [ 'colspan' => '2' ], $this->msg( 'statistics-header-pages' )
 				->parse() ) .
 			Xml::closeElement( 'tr' ) .
-				$this->formatRow( Linker::linkKnown( SpecialPage::getTitleFor( 'Allpages' ),
-					$this->msg( 'statistics-articles' )->parse() ),
+				$this->formatRow( $linkRenderer->makeKnownLink(
+					$specialAllPagesTitle,
+					$this->msg( 'statistics-articles' )->text(),
+					[], [ 'hideredirects' => 1 ] ),
 					$this->getLanguage()->formatNum( $this->good ),
-					array( 'class' => 'mw-statistics-articles' ),
+					[ 'class' => 'mw-statistics-articles' ],
 					'statistics-articles-desc' ) .
-				$this->formatRow( $this->msg( 'statistics-pages' )->parse(),
+				$this->formatRow( $linkRenderer->makeKnownLink( $specialAllPagesTitle,
+					$this->msg( 'statistics-pages' )->text() ),
 					$this->getLanguage()->formatNum( $this->total ),
-					array( 'class' => 'mw-statistics-pages' ),
+					[ 'class' => 'mw-statistics-pages' ],
 					'statistics-pages-desc' );
 
 		// Show the image row only, when there are files or upload is possible
 		if ( $this->images !== 0 || $this->getConfig()->get( 'EnableUploads' ) ) {
 			$pageStatsHtml .= $this->formatRow(
-				Linker::linkKnown( SpecialPage::getTitleFor( 'MediaStatistics' ),
-				$this->msg( 'statistics-files' )->parse() ),
+				$linkRenderer->makeKnownLink( SpecialPage::getTitleFor( 'MediaStatistics' ),
+				$this->msg( 'statistics-files' )->text() ),
 				$this->getLanguage()->formatNum( $this->images ),
-				array( 'class' => 'mw-statistics-files' ) );
+				[ 'class' => 'mw-statistics-files' ] );
 		}
 
 		return $pageStatsHtml;
@@ -155,46 +149,49 @@ class SpecialStatistics extends SpecialPage {
 
 	private function getEditStats() {
 		return Xml::openElement( 'tr' ) .
-			Xml::tags( 'th', array( 'colspan' => '2' ),
+			Xml::tags( 'th', [ 'colspan' => '2' ],
 				$this->msg( 'statistics-header-edits' )->parse() ) .
 			Xml::closeElement( 'tr' ) .
 			$this->formatRow( $this->msg( 'statistics-edits' )->parse(),
 				$this->getLanguage()->formatNum( $this->edits ),
-				array( 'class' => 'mw-statistics-edits' )
+				[ 'class' => 'mw-statistics-edits' ]
 			) .
 			$this->formatRow( $this->msg( 'statistics-edits-average' )->parse(),
-				$this->getLanguage()
-					->formatNum( sprintf( '%.2f', $this->total ? $this->edits / $this->total : 0 ) ),
-				array( 'class' => 'mw-statistics-edits-average' )
+				$this->getLanguage()->formatNum(
+					sprintf( '%.2f', $this->total ? $this->edits / $this->total : 0 )
+				), [ 'class' => 'mw-statistics-edits-average' ]
 			);
 	}
 
 	private function getUserStats() {
 		return Xml::openElement( 'tr' ) .
-			Xml::tags( 'th', array( 'colspan' => '2' ),
+			Xml::tags( 'th', [ 'colspan' => '2' ],
 				$this->msg( 'statistics-header-users' )->parse() ) .
 			Xml::closeElement( 'tr' ) .
 			$this->formatRow( $this->msg( 'statistics-users' )->parse(),
 				$this->getLanguage()->formatNum( $this->users ),
-				array( 'class' => 'mw-statistics-users' )
+				[ 'class' => 'mw-statistics-users' ]
 			) .
 			$this->formatRow( $this->msg( 'statistics-users-active' )->parse() . ' ' .
-				Linker::linkKnown(
+				$this->getLinkRenderer()->makeKnownLink(
 					SpecialPage::getTitleFor( 'Activeusers' ),
-					$this->msg( 'listgrouprights-members' )->escaped()
+					$this->msg( 'listgrouprights-members' )->text()
 				),
 				$this->getLanguage()->formatNum( $this->activeUsers ),
-				array( 'class' => 'mw-statistics-users-active' ),
+				[ 'class' => 'mw-statistics-users-active' ],
 				'statistics-users-active-desc',
-				$this->getLanguage()->formatNum( $this->getConfig()->get( 'ActiveUserDays' ) )
+				$this->getLanguage()->formatNum(
+					$this->getConfig()->get( 'ActiveUserDays' ) )
 			);
 	}
 
 	private function getGroupStats() {
+		$linkRenderer = $this->getLinkRenderer();
 		$text = '';
 		foreach ( $this->getConfig()->get( 'GroupPermissions' ) as $group => $permissions ) {
 			# Skip generic * and implicit groups
-			if ( in_array( $group, $this->getConfig()->get( 'ImplicitGroups' ) ) || $group == '*' ) {
+			if ( in_array( $group, $this->getConfig()->get( 'ImplicitGroups' ) )
+				|| $group == '*' ) {
 				continue;
 			}
 			$groupname = htmlspecialchars( $group );
@@ -206,26 +203,27 @@ class SpecialStatistics extends SpecialPage {
 			}
 			$msg = $this->msg( 'grouppage-' . $groupname )->inContentLanguage();
 			if ( $msg->isBlank() ) {
-				$grouppageLocalized = MWNamespace::getCanonicalName( NS_PROJECT ) . ':' . $groupname;
+				$grouppageLocalized = MWNamespace::getCanonicalName( NS_PROJECT ) .
+					':' . $groupname;
 			} else {
 				$grouppageLocalized = $msg->text();
 			}
 			$linkTarget = Title::newFromText( $grouppageLocalized );
 
 			if ( $linkTarget ) {
-				$grouppage = Linker::link(
+				$grouppage = $linkRenderer->makeLink(
 					$linkTarget,
-					htmlspecialchars( $groupnameLocalized )
+					$groupnameLocalized
 				);
 			} else {
 				$grouppage = htmlspecialchars( $groupnameLocalized );
 			}
 
-			$grouplink = Linker::linkKnown(
+			$grouplink = $linkRenderer->makeKnownLink(
 				SpecialPage::getTitleFor( 'Listusers' ),
-				$this->msg( 'listgrouprights-members' )->escaped(),
-				array(),
-				array( 'group' => $group )
+				$this->msg( 'listgrouprights-members' )->text(),
+				[],
+				[ 'group' => $group ]
 			);
 			# Add a class when a usergroup contains no members to allow hiding these rows
 			$classZero = '';
@@ -235,8 +233,8 @@ class SpecialStatistics extends SpecialPage {
 			}
 			$text .= $this->formatRow( $grouppage . ' ' . $grouplink,
 				$this->getLanguage()->formatNum( $countUsers ),
-				array( 'class' => 'statistics-group-' . Sanitizer::escapeClass( $group ) .
-					$classZero ) );
+				[ 'class' => 'statistics-group-' . Sanitizer::escapeClass( $group ) .
+					$classZero ] );
 		}
 
 		return $text;
@@ -255,7 +253,6 @@ class SpecialStatistics extends SpecialPage {
 		foreach ( $stats as $header => $items ) {
 			// Identify the structure used
 			if ( is_array( $items ) ) {
-
 				// Ignore headers that are recursively set as legacy header
 				if ( $header !== 'statistics-header-hooks' ) {
 					$return .= $this->formatRowHeader( $header );
@@ -274,7 +271,7 @@ class SpecialStatistics extends SpecialPage {
 					$return .= $this->formatRow(
 						$name,
 						$this->getLanguage()->formatNum( htmlspecialchars( $number ) ),
-						array( 'class' => 'mw-statistics-hook', 'id' => 'mw-' . $key )
+						[ 'class' => 'mw-statistics-hook', 'id' => 'mw-' . $key ]
 					);
 				}
 			} else {
@@ -284,8 +281,8 @@ class SpecialStatistics extends SpecialPage {
 				}
 
 				// Recursively remap the legacy structure
-				$return .= $this->getOtherStats( array( 'statistics-header-hooks' =>
-					array( $header => $items ) ) );
+				$return .= $this->getOtherStats( [ 'statistics-header-hooks' =>
+					[ $header => $items ] ] );
 			}
 		}
 
@@ -300,7 +297,7 @@ class SpecialStatistics extends SpecialPage {
 	 */
 	private function formatRowHeader( $header ) {
 		return Xml::openElement( 'tr' ) .
-			Xml::tags( 'th', array( 'colspan' => '2' ), $this->msg( $header )->parse() ) .
+			Xml::tags( 'th', [ 'colspan' => '2' ], $this->msg( $header )->parse() ) .
 			Xml::closeElement( 'tr' );
 	}
 

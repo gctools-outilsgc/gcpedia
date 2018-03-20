@@ -24,7 +24,7 @@ use InvalidArgumentException;
 use LengthException;
 use LogicException;
 use MediaWikiTestCase;
-use TestingAccessWrapper;
+use Wikimedia\TestingAccessWrapper;
 
 class LineFormatterTest extends MediaWikiTestCase {
 
@@ -36,7 +36,7 @@ class LineFormatterTest extends MediaWikiTestCase {
 	}
 
 	/**
-	 * @covers LineFormatter::normalizeException
+	 * @covers MediaWiki\Logger\Monolog\LineFormatter::normalizeException
 	 */
 	public function testNormalizeExceptionNoTrace() {
 		$fixture = new LineFormatter();
@@ -55,7 +55,7 @@ class LineFormatterTest extends MediaWikiTestCase {
 	}
 
 	/**
-	 * @covers LineFormatter::normalizeException
+	 * @covers MediaWiki\Logger\Monolog\LineFormatter::normalizeException
 	 */
 	public function testNormalizeExceptionTrace() {
 		$fixture = new LineFormatter();

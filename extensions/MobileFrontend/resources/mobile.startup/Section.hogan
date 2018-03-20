@@ -1,2 +1,0 @@
-{{#line}}<h{{level}} id="{{anchor}}">{{{line}}}</h{{level}}>{{/line}}
-{{{text}}}

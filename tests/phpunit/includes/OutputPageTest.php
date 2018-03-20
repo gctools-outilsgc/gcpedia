@@ -1,17 +1,61 @@
 <?php
 
+use Wikimedia\TestingAccessWrapper;
+
 /**
  *
  * @author Matthew Flaschen
  *
+ * @group Database
  * @group Output
  *
  * @todo factor tests in this class into providers and test methods
- *
  */
 class OutputPageTest extends MediaWikiTestCase {
 	const SCREEN_MEDIA_QUERY = 'screen and (min-width: 982px)';
 	const SCREEN_ONLY_MEDIA_QUERY = 'only screen and (min-width: 982px)';
+
+	/**
+	 * @covers OutputPage::addMeta
+	 * @covers OutputPage::getMetaTags
+	 * @covers OutputPage::getHeadLinksArray
+	 */
+	public function testMetaTags() {
+		$outputPage = $this->newInstance();
+		$outputPage->addMeta( 'http:expires', '0' );
+		$outputPage->addMeta( 'keywords', 'first' );
+		$outputPage->addMeta( 'keywords', 'second' );
+		$outputPage->addMeta( 'og:title', 'Ta-duh' );
+
+		$expected = [
+			[ 'http:expires', '0' ],
+			[ 'keywords', 'first' ],
+			[ 'keywords', 'second' ],
+			[ 'og:title', 'Ta-duh' ],
+		];
+		$this->assertSame( $expected, $outputPage->getMetaTags() );
+
+		$links = $outputPage->getHeadLinksArray();
+		$this->assertContains( '<meta http-equiv="expires" content="0"/>', $links );
+		$this->assertContains( '<meta name="keywords" content="first"/>', $links );
+		$this->assertContains( '<meta name="keywords" content="second"/>', $links );
+		$this->assertContains( '<meta property="og:title" content="Ta-duh"/>', $links );
+		$this->assertArrayNotHasKey( 'meta-robots', $links );
+	}
+
+	/**
+	 * @covers OutputPage::setIndexPolicy
+	 * @covers OutputPage::setFollowPolicy
+	 * @covers OutputPage::getHeadLinksArray
+	 */
+	public function testRobotsPolicies() {
+		$outputPage = $this->newInstance();
+		$outputPage->setIndexPolicy( 'noindex' );
+		$outputPage->setFollowPolicy( 'nofollow' );
+
+		$links = $outputPage->getHeadLinksArray();
+		$this->assertContains( '<meta name="robots" content="noindex,nofollow"/>', $links );
+	}
 
 	/**
 	 * Tests a particular case of transformCssMedia, using the given input, globals,
@@ -28,7 +72,7 @@ class OutputPageTest extends MediaWikiTestCase {
 	 * @param array $args Key-value array of arguments as shown above
 	 */
 	protected function assertTransformCssMediaCase( $args ) {
-		$queryData = array();
+		$queryData = [];
 		if ( isset( $args['printableQuery'] ) ) {
 			$queryData['printable'] = $args['printableQuery'];
 		}
@@ -38,9 +82,9 @@ class OutputPageTest extends MediaWikiTestCase {
 		}
 
 		$fauxRequest = new FauxRequest( $queryData, false );
-		$this->setMwGlobals( array(
+		$this->setMwGlobals( [
 			'wgRequest' => $fauxRequest,
-		) );
+		] );
 
 		$actualReturn = OutputPage::transformCssMedia( $args['media'] );
 		$this->assertSame( $args['expectedReturn'], $actualReturn, $args['message'] );
@@ -51,33 +95,33 @@ class OutputPageTest extends MediaWikiTestCase {
 	 * @covers OutputPage::transformCssMedia
 	 */
 	public function testPrintRequests() {
-		$this->assertTransformCssMediaCase( array(
+		$this->assertTransformCssMediaCase( [
 			'printableQuery' => '1',
 			'media' => 'screen',
 			'expectedReturn' => null,
 			'message' => 'On printable request, screen returns null'
-		) );
+		] );
 
-		$this->assertTransformCssMediaCase( array(
+		$this->assertTransformCssMediaCase( [
 			'printableQuery' => '1',
 			'media' => self::SCREEN_MEDIA_QUERY,
 			'expectedReturn' => null,
 			'message' => 'On printable request, screen media query returns null'
-		) );
+		] );
 
-		$this->assertTransformCssMediaCase( array(
+		$this->assertTransformCssMediaCase( [
 			'printableQuery' => '1',
 			'media' => self::SCREEN_ONLY_MEDIA_QUERY,
 			'expectedReturn' => null,
 			'message' => 'On printable request, screen media query with only returns null'
-		) );
+		] );
 
-		$this->assertTransformCssMediaCase( array(
+		$this->assertTransformCssMediaCase( [
 			'printableQuery' => '1',
 			'media' => 'print',
 			'expectedReturn' => '',
 			'message' => 'On printable request, media print returns empty string'
-		) );
+		] );
 	}
 
 	/**
@@ -85,35 +129,35 @@ class OutputPageTest extends MediaWikiTestCase {
 	 * @covers OutputPage::transformCssMedia
 	 */
 	public function testScreenRequests() {
-		$this->assertTransformCssMediaCase( array(
+		$this->assertTransformCssMediaCase( [
 			'media' => 'screen',
 			'expectedReturn' => 'screen',
 			'message' => 'On screen request, screen media type is preserved'
-		) );
+		] );
 
-		$this->assertTransformCssMediaCase( array(
+		$this->assertTransformCssMediaCase( [
 			'media' => 'handheld',
 			'expectedReturn' => 'handheld',
 			'message' => 'On screen request, handheld media type is preserved'
-		) );
+		] );
 
-		$this->assertTransformCssMediaCase( array(
+		$this->assertTransformCssMediaCase( [
 			'media' => self::SCREEN_MEDIA_QUERY,
 			'expectedReturn' => self::SCREEN_MEDIA_QUERY,
 			'message' => 'On screen request, screen media query is preserved.'
-		) );
+		] );
 
-		$this->assertTransformCssMediaCase( array(
+		$this->assertTransformCssMediaCase( [
 			'media' => self::SCREEN_ONLY_MEDIA_QUERY,
 			'expectedReturn' => self::SCREEN_ONLY_MEDIA_QUERY,
 			'message' => 'On screen request, screen media query with only is preserved.'
-		) );
+		] );
 
-		$this->assertTransformCssMediaCase( array(
+		$this->assertTransformCssMediaCase( [
 			'media' => 'print',
 			'expectedReturn' => 'print',
 			'message' => 'On screen request, print media type is preserved'
-		) );
+		] );
 	}
 
 	/**
@@ -121,96 +165,152 @@ class OutputPageTest extends MediaWikiTestCase {
 	 * @covers OutputPage::transformCssMedia
 	 */
 	public function testHandheld() {
-		$this->assertTransformCssMediaCase( array(
+		$this->assertTransformCssMediaCase( [
 			'handheldQuery' => '1',
 			'media' => 'handheld',
 			'expectedReturn' => '',
 			'message' => 'On request with handheld querystring and media is handheld, returns empty string'
-		) );
+		] );
 
-		$this->assertTransformCssMediaCase( array(
+		$this->assertTransformCssMediaCase( [
 			'handheldQuery' => '1',
 			'media' => 'screen',
 			'expectedReturn' => null,
 			'message' => 'On request with handheld querystring and media is screen, returns null'
-		) );
+		] );
 	}
 
-	public static function provideMakeResourceLoaderLink() {
-		return array(
-			// Load module script only
-			array(
-				array( 'test.foo', ResourceLoaderModule::TYPE_SCRIPTS ),
-				"<script>window.RLQ = window.RLQ || []; window.RLQ.push( function () {\n"
-					. 'mw.loader.load("http://127.0.0.1:8080/w/load.php?debug=false\u0026lang=en\u0026modules=test.foo\u0026only=scripts\u0026skin=fallback");'
-					. "\n} );</script>"
-			),
-			array(
-				// Don't condition wrap raw modules (like the startup module)
-				array( 'test.raw', ResourceLoaderModule::TYPE_SCRIPTS ),
-				'<script async src="http://127.0.0.1:8080/w/load.php?debug=false&amp;lang=en&amp;modules=test.raw&amp;only=scripts&amp;skin=fallback"></script>'
-			),
-			// Load module styles only
-			// This also tests the order the modules are put into the url
-			array(
-				array( array( 'test.baz', 'test.foo', 'test.bar' ), ResourceLoaderModule::TYPE_STYLES ),
-
-				'<link rel=stylesheet href="http://127.0.0.1:8080/w/load.php?debug=false&amp;lang=en&amp;modules=test.bar%2Cbaz%2Cfoo&amp;only=styles&amp;skin=fallback">'
-			),
-			// Load private module (only=scripts)
-			array(
-				array( 'test.quux', ResourceLoaderModule::TYPE_SCRIPTS ),
-				"<script>window.RLQ = window.RLQ || []; window.RLQ.push( function () {\n"
-					. "mw.test.baz({token:123});mw.loader.state({\"test.quux\":\"ready\"});\n"
-					. "} );</script>"
-			),
-			// Load private module (combined)
-			array(
-				array( 'test.quux', ResourceLoaderModule::TYPE_COMBINED ),
-				"<script>window.RLQ = window.RLQ || []; window.RLQ.push( function () {\n"
-					. "mw.loader.implement(\"test.quux\",function($,jQuery){"
-					. "mw.test.baz({token:123});},{\"css\":[\".mw-icon{transition:none}"
-					. "\"]});\n} );</script>"
-			),
-			// Load no modules
-			array(
-				array( array(), ResourceLoaderModule::TYPE_COMBINED ),
+	public static function provideTransformFilePath() {
+		$baseDir = dirname( __DIR__ ) . '/data/media';
+		return [
+			// File that matches basePath, and exists. Hash found and appended.
+			[
+				'baseDir' => $baseDir, 'basePath' => '/w',
+				'/w/test.jpg',
+				'/w/test.jpg?edcf2'
+			],
+			// File that matches basePath, but not found on disk. Empty query.
+			[
+				'baseDir' => $baseDir, 'basePath' => '/w',
+				'/w/unknown.png',
+				'/w/unknown.png?'
+			],
+			// File not matching basePath. Ignored.
+			[
+				'baseDir' => $baseDir, 'basePath' => '/w',
+				'/files/test.jpg'
+			],
+			// Empty string. Ignored.
+			[
+				'baseDir' => $baseDir, 'basePath' => '/w',
 				'',
-			),
-			// noscript group
-			array(
-				array( 'test.noscript', ResourceLoaderModule::TYPE_STYLES ),
-				'<noscript><link rel=stylesheet href="http://127.0.0.1:8080/w/load.php?debug=false&amp;lang=en&amp;modules=test.noscript&amp;only=styles&amp;skin=fallback"></noscript>'
-			),
-			// Load two modules in separate groups
-			array(
-				array( array( 'test.group.foo', 'test.group.bar' ), ResourceLoaderModule::TYPE_COMBINED ),
-				"<script>window.RLQ = window.RLQ || []; window.RLQ.push( function () {\n"
-					. 'mw.loader.load("http://127.0.0.1:8080/w/load.php?debug=false\u0026lang=en\u0026modules=test.group.bar\u0026skin=fallback");'
-					. "\n} );</script>\n"
-					. "<script>window.RLQ = window.RLQ || []; window.RLQ.push( function () {\n"
-					. 'mw.loader.load("http://127.0.0.1:8080/w/load.php?debug=false\u0026lang=en\u0026modules=test.group.foo\u0026skin=fallback");'
-					. "\n} );</script>"
-			),
-		);
+				''
+			],
+			// Similar path, but with domain component. Ignored.
+			[
+				'baseDir' => $baseDir, 'basePath' => '/w',
+				'//example.org/w/test.jpg'
+			],
+			[
+				'baseDir' => $baseDir, 'basePath' => '/w',
+				'https://example.org/w/test.jpg'
+			],
+			// Unrelated path with domain component. Ignored.
+			[
+				'baseDir' => $baseDir, 'basePath' => '/w',
+				'https://example.org/files/test.jpg'
+			],
+			[
+				'baseDir' => $baseDir, 'basePath' => '/w',
+				'//example.org/files/test.jpg'
+			],
+			// Unrelated path with domain, and empty base path (root mw install). Ignored.
+			[
+				'baseDir' => $baseDir, 'basePath' => '',
+				'https://example.org/files/test.jpg'
+			],
+			[
+				'baseDir' => $baseDir, 'basePath' => '',
+				// T155310
+				'//example.org/files/test.jpg'
+			],
+			// Check UploadPath before ResourceBasePath (T155146)
+			[
+				'baseDir' => dirname( $baseDir ), 'basePath' => '',
+				'uploadDir' => $baseDir, 'uploadPath' => '/images',
+				'/images/test.jpg',
+				'/images/test.jpg?edcf2'
+			],
+		];
 	}
 
 	/**
+	 * @dataProvider provideTransformFilePath
+	 * @covers OutputPage::transformFilePath
+	 * @covers OutputPage::transformResourcePath
+	 */
+	public function testTransformResourcePath( $baseDir, $basePath, $uploadDir = null,
+		$uploadPath = null, $path = null, $expected = null
+	) {
+		if ( $path === null ) {
+			// Skip optional $uploadDir and $uploadPath
+			$path = $uploadDir;
+			$expected = $uploadPath;
+			$uploadDir = "$baseDir/images";
+			$uploadPath = "$basePath/images";
+		}
+		$this->setMwGlobals( 'IP', $baseDir );
+		$conf = new HashConfig( [
+			'ResourceBasePath' => $basePath,
+			'UploadDirectory' => $uploadDir,
+			'UploadPath' => $uploadPath,
+		] );
+
+		MediaWiki\suppressWarnings();
+		$actual = OutputPage::transformResourcePath( $conf, $path );
+		MediaWiki\restoreWarnings();
+
+		$this->assertEquals( $expected ?: $path, $actual );
+	}
+
+	public static function provideMakeResourceLoaderLink() {
+		// @codingStandardsIgnoreStart Generic.Files.LineLength
+		return [
+			// Single only=scripts load
+			[
+				[ 'test.foo', ResourceLoaderModule::TYPE_SCRIPTS ],
+				"<script>(window.RLQ=window.RLQ||[]).push(function(){"
+					. 'mw.loader.load("http://127.0.0.1:8080/w/load.php?debug=false\u0026lang=en\u0026modules=test.foo\u0026only=scripts\u0026skin=fallback");'
+					. "});</script>"
+			],
+			// Multiple only=styles load
+			[
+				[ [ 'test.baz', 'test.foo', 'test.bar' ], ResourceLoaderModule::TYPE_STYLES ],
+
+				'<link rel="stylesheet" href="http://127.0.0.1:8080/w/load.php?debug=false&amp;lang=en&amp;modules=test.bar%2Cbaz%2Cfoo&amp;only=styles&amp;skin=fallback"/>'
+			],
+			// Private embed (only=scripts)
+			[
+				[ 'test.quux', ResourceLoaderModule::TYPE_SCRIPTS ],
+				"<script>(window.RLQ=window.RLQ||[]).push(function(){"
+					. "mw.test.baz({token:123});\nmw.loader.state({\"test.quux\":\"ready\"});"
+					. "});</script>"
+			],
+		];
+		// @codingStandardsIgnoreEnd
+	}
+
+	/**
+	 * See ResourceLoaderClientHtmlTest for full coverage.
+	 *
 	 * @dataProvider provideMakeResourceLoaderLink
 	 * @covers OutputPage::makeResourceLoaderLink
-	 * @covers ResourceLoader::makeLoaderImplementScript
-	 * @covers ResourceLoader::makeModuleResponse
-	 * @covers ResourceLoader::makeInlineScript
-	 * @covers ResourceLoader::makeLoaderStateScript
-	 * @covers ResourceLoader::createLoaderURL
 	 */
 	public function testMakeResourceLoaderLink( $args, $expectedHtml ) {
-		$this->setMwGlobals( array(
+		$this->setMwGlobals( [
 			'wgResourceLoaderDebug' => false,
 			'wgLoadScript' => 'http://127.0.0.1:8080/w/load.php',
-			// Affects whether CDATA is inserted
-			'wgWellFormedXml' => false,
-		) );
+		] );
 		$class = new ReflectionClass( 'OutputPage' );
 		$method = $class->getMethod( 'makeResourceLoaderLink' );
 		$method->setAccessible( true );
@@ -220,124 +320,360 @@ class OutputPageTest extends MediaWikiTestCase {
 		$out = new OutputPage( $ctx );
 		$rl = $out->getResourceLoader();
 		$rl->setMessageBlobStore( new NullMessageBlobStore() );
-		$rl->register( array(
-			'test.foo' => new ResourceLoaderTestModule( array(
+		$rl->register( [
+			'test.foo' => new ResourceLoaderTestModule( [
 				'script' => 'mw.test.foo( { a: true } );',
 				'styles' => '.mw-test-foo { content: "style"; }',
-			) ),
-			'test.bar' => new ResourceLoaderTestModule( array(
+			] ),
+			'test.bar' => new ResourceLoaderTestModule( [
 				'script' => 'mw.test.bar( { a: true } );',
 				'styles' => '.mw-test-bar { content: "style"; }',
-			) ),
-			'test.baz' => new ResourceLoaderTestModule( array(
+			] ),
+			'test.baz' => new ResourceLoaderTestModule( [
 				'script' => 'mw.test.baz( { a: true } );',
 				'styles' => '.mw-test-baz { content: "style"; }',
-			) ),
-			'test.quux' => new ResourceLoaderTestModule( array(
+			] ),
+			'test.quux' => new ResourceLoaderTestModule( [
 				'script' => 'mw.test.baz( { token: 123 } );',
 				'styles' => '/* pref-animate=off */ .mw-icon { transition: none; }',
 				'group' => 'private',
-			) ),
-			'test.raw' => new ResourceLoaderTestModule( array(
-				'script' => 'mw.test.baz( { token: 123 } );',
-				'isRaw' => true,
-			) ),
-			'test.noscript' => new ResourceLoaderTestModule( array(
-				'styles' => '.mw-test-noscript { content: "style"; }',
-				'group' => 'noscript',
-			) ),
-			'test.group.bar' => new ResourceLoaderTestModule( array(
-				'styles' => '.mw-group-bar { content: "style"; }',
-				'group' => 'bar',
-			) ),
-			'test.group.foo' => new ResourceLoaderTestModule( array(
-				'styles' => '.mw-group-foo { content: "style"; }',
-				'group' => 'foo',
-			) ),
-		) );
+			] ),
+		] );
 		$links = $method->invokeArgs( $out, $args );
-		$actualHtml = implode( "\n", $links['html'] );
+		$actualHtml = strval( $links );
 		$this->assertEquals( $expectedHtml, $actualHtml );
+	}
+
+	public static function provideBuildExemptModules() {
+		return [
+			'empty' => [
+				'exemptStyleModules' => [],
+				'<meta name="ResourceLoaderDynamicStyles" content=""/>',
+			],
+			'empty sets' => [
+				'exemptStyleModules' => [ 'site' => [], 'noscript' => [], 'private' => [], 'user' => [] ],
+				'<meta name="ResourceLoaderDynamicStyles" content=""/>',
+			],
+			// @codingStandardsIgnoreStart Generic.Files.LineLength
+			'default logged-out' => [
+				'exemptStyleModules' => [ 'site' => [ 'site.styles' ] ],
+				'<meta name="ResourceLoaderDynamicStyles" content=""/>' . "\n" .
+				'<link rel="stylesheet" href="/w/load.php?debug=false&amp;lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=fallback"/>',
+			],
+			'default logged-in' => [
+				'exemptStyleModules' => [ 'site' => [ 'site.styles' ], 'user' => [ 'user.styles' ] ],
+				'<meta name="ResourceLoaderDynamicStyles" content=""/>' . "\n" .
+				'<link rel="stylesheet" href="/w/load.php?debug=false&amp;lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=fallback"/>' . "\n" .
+				'<link rel="stylesheet" href="/w/load.php?debug=false&amp;lang=en&amp;modules=user.styles&amp;only=styles&amp;skin=fallback&amp;version=1e9z0ox"/>',
+			],
+			'custom modules' => [
+				'exemptStyleModules' => [
+					'site' => [ 'site.styles', 'example.site.a', 'example.site.b' ],
+					'user' => [ 'user.styles', 'example.user' ],
+				],
+				'<meta name="ResourceLoaderDynamicStyles" content=""/>' . "\n" .
+				'<link rel="stylesheet" href="/w/load.php?debug=false&amp;lang=en&amp;modules=example.site.a%2Cb&amp;only=styles&amp;skin=fallback"/>' . "\n" .
+				'<link rel="stylesheet" href="/w/load.php?debug=false&amp;lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=fallback"/>' . "\n" .
+				'<link rel="stylesheet" href="/w/load.php?debug=false&amp;lang=en&amp;modules=example.user&amp;only=styles&amp;skin=fallback&amp;version=0a56zyi"/>' . "\n" .
+				'<link rel="stylesheet" href="/w/load.php?debug=false&amp;lang=en&amp;modules=user.styles&amp;only=styles&amp;skin=fallback&amp;version=1e9z0ox"/>',
+			],
+			// @codingStandardsIgnoreEnd Generic.Files.LineLength
+		];
+	}
+
+	/**
+	 * @dataProvider provideBuildExemptModules
+	 * @covers OutputPage::buildExemptModules
+	 */
+	public function testBuildExemptModules( array $exemptStyleModules, $expect ) {
+		$this->setMwGlobals( [
+			'wgResourceLoaderDebug' => false,
+			'wgLoadScript' => '/w/load.php',
+			// Stub wgCacheEpoch as it influences getVersionHash used for the
+			// urls in the expected HTML
+			'wgCacheEpoch' => '20140101000000',
+		] );
+
+		// Set up stubs
+		$ctx = new RequestContext();
+		$ctx->setSkin( SkinFactory::getDefaultInstance()->makeSkin( 'fallback' ) );
+		$ctx->setLanguage( 'en' );
+		$outputPage = $this->getMockBuilder( 'OutputPage' )
+			->setConstructorArgs( [ $ctx ] )
+			->setMethods( [ 'isUserCssPreview', 'buildCssLinksArray' ] )
+			->getMock();
+		$outputPage->expects( $this->any() )
+			->method( 'isUserCssPreview' )
+			->willReturn( false );
+		$outputPage->expects( $this->any() )
+			->method( 'buildCssLinksArray' )
+			->willReturn( [] );
+		$rl = $outputPage->getResourceLoader();
+		$rl->setMessageBlobStore( new NullMessageBlobStore() );
+
+		// Register custom modules
+		$rl->register( [
+			'example.site.a' => new ResourceLoaderTestModule( [ 'group' => 'site' ] ),
+			'example.site.b' => new ResourceLoaderTestModule( [ 'group' => 'site' ] ),
+			'example.user' => new ResourceLoaderTestModule( [ 'group' => 'user' ] ),
+		] );
+
+		$outputPage = TestingAccessWrapper::newFromObject( $outputPage );
+		$outputPage->rlExemptStyleModules = $exemptStyleModules;
+		$this->assertEquals(
+			$expect,
+			strval( $outputPage->buildExemptModules() )
+		);
 	}
 
 	/**
 	 * @dataProvider provideVaryHeaders
 	 * @covers OutputPage::addVaryHeader
 	 * @covers OutputPage::getVaryHeader
-	 * @covers OutputPage::getXVO
+	 * @covers OutputPage::getKeyHeader
 	 */
-	public function testVaryHeaders( $calls, $vary, $xvo ) {
+	public function testVaryHeaders( $calls, $vary, $key ) {
 		// get rid of default Vary fields
 		$outputPage = $this->getMockBuilder( 'OutputPage' )
-			->setConstructorArgs( array( new RequestContext() ) )
-			->setMethods( array( 'getCacheVaryCookies' ) )
+			->setConstructorArgs( [ new RequestContext() ] )
+			->setMethods( [ 'getCacheVaryCookies' ] )
 			->getMock();
 		$outputPage->expects( $this->any() )
 			->method( 'getCacheVaryCookies' )
-			->will( $this->returnValue( array() ) );
-		TestingAccessWrapper::newFromObject( $outputPage )->mVaryHeader = array();
+			->will( $this->returnValue( [] ) );
+		TestingAccessWrapper::newFromObject( $outputPage )->mVaryHeader = [];
 
 		foreach ( $calls as $call ) {
-			call_user_func_array( array( $outputPage, 'addVaryHeader' ), $call );
+			call_user_func_array( [ $outputPage, 'addVaryHeader' ], $call );
 		}
 		$this->assertEquals( $vary, $outputPage->getVaryHeader(), 'Vary:' );
-		$this->assertEquals( $xvo, $outputPage->getXVO(), 'X-Vary-Options:' );
+		$this->assertEquals( $key, $outputPage->getKeyHeader(), 'Key:' );
 	}
 
 	public function provideVaryHeaders() {
-		// note: getXVO() automatically adds Vary: Cookie
-		return array(
-			array( // single header
-				array(
-					array( 'Cookie' ),
-				),
+		// note: getKeyHeader() automatically adds Vary: Cookie
+		return [
+			[ // single header
+				[
+					[ 'Cookie' ],
+				],
 				'Vary: Cookie',
-				'X-Vary-Options: Cookie',
-			),
-			array( // non-unique headers
-				array(
-					array( 'Cookie' ),
-					array( 'Accept-Language' ),
-					array( 'Cookie' ),
-				),
+				'Key: Cookie',
+			],
+			[ // non-unique headers
+				[
+					[ 'Cookie' ],
+					[ 'Accept-Language' ],
+					[ 'Cookie' ],
+				],
 				'Vary: Cookie, Accept-Language',
-				'X-Vary-Options: Cookie,Accept-Language',
-			),
-			array( // two headers with single options
-				array(
-					array( 'Cookie', array( 'string-contains=phpsessid' ) ),
-					array( 'Accept-Language', array( 'string-contains=en' ) ),
-				),
+				'Key: Cookie,Accept-Language',
+			],
+			[ // two headers with single options
+				[
+					[ 'Cookie', [ 'param=phpsessid' ] ],
+					[ 'Accept-Language', [ 'substr=en' ] ],
+				],
 				'Vary: Cookie, Accept-Language',
-				'X-Vary-Options: Cookie;string-contains=phpsessid,Accept-Language;string-contains=en',
-			),
-			array( // one header with multiple options
-				array(
-					array( 'Cookie', array( 'string-contains=phpsessid', 'string-contains=userId' ) ),
-				),
+				'Key: Cookie;param=phpsessid,Accept-Language;substr=en',
+			],
+			[ // one header with multiple options
+				[
+					[ 'Cookie', [ 'param=phpsessid', 'param=userId' ] ],
+				],
 				'Vary: Cookie',
-				'X-Vary-Options: Cookie;string-contains=phpsessid;string-contains=userId',
-			),
-			array( // Duplicate option
-				array(
-					array( 'Cookie', array( 'string-contains=phpsessid' ) ),
-					array( 'Cookie', array( 'string-contains=phpsessid' ) ),
-					array( 'Accept-Language', array( 'string-contains=en', 'string-contains=en' ) ),
+				'Key: Cookie;param=phpsessid;param=userId',
+			],
+			[ // Duplicate option
+				[
+					[ 'Cookie', [ 'param=phpsessid' ] ],
+					[ 'Cookie', [ 'param=phpsessid' ] ],
+					[ 'Accept-Language', [ 'substr=en', 'substr=en' ] ],
+				],
+				'Vary: Cookie, Accept-Language',
+				'Key: Cookie;param=phpsessid,Accept-Language;substr=en',
+			],
+			[ // Same header, different options
+				[
+					[ 'Cookie', [ 'param=phpsessid' ] ],
+					[ 'Cookie', [ 'param=userId' ] ],
+				],
+				'Vary: Cookie',
+				'Key: Cookie;param=phpsessid;param=userId',
+			],
+		];
+	}
 
+	/**
+	 * @covers OutputPage::haveCacheVaryCookies
+	 */
+	public function testHaveCacheVaryCookies() {
+		$request = new FauxRequest();
+		$context = new RequestContext();
+		$context->setRequest( $request );
+		$outputPage = new OutputPage( $context );
 
-				),
-				'Vary: Cookie, Accept-Language',
-				'X-Vary-Options: Cookie;string-contains=phpsessid,Accept-Language;string-contains=en',
-			),
-			array( // Same header, different options
-				array(
-					array( 'Cookie', array( 'string-contains=phpsessid' ) ),
-					array( 'Cookie', array( 'string-contains=userId' ) ),
-				),
-				'Vary: Cookie',
-				'X-Vary-Options: Cookie;string-contains=phpsessid;string-contains=userId',
-			),
-		);
+		// No cookies are set.
+		$this->assertFalse( $outputPage->haveCacheVaryCookies() );
+
+		// 'Token' is present but empty, so it shouldn't count.
+		$request->setCookie( 'Token', '' );
+		$this->assertFalse( $outputPage->haveCacheVaryCookies() );
+
+		// 'Token' present and nonempty.
+		$request->setCookie( 'Token', '123' );
+		$this->assertTrue( $outputPage->haveCacheVaryCookies() );
+	}
+
+	/*
+	 * @covers OutputPage::addCategoryLinks
+	 * @covers OutputPage::getCategories
+	 */
+	public function testGetCategories() {
+		$fakeResultWrapper = new FakeResultWrapper( [
+			(object)[
+				'pp_value' => 1,
+				'page_title' => 'Test'
+			],
+			(object)[
+				'page_title' => 'Test2'
+			]
+		] );
+		$outputPage = $this->getMockBuilder( 'OutputPage' )
+			->setConstructorArgs( [ new RequestContext() ] )
+			->setMethods( [ 'addCategoryLinksToLBAndGetResult' ] )
+			->getMock();
+		$outputPage->expects( $this->any() )
+			->method( 'addCategoryLinksToLBAndGetResult' )
+			->will( $this->returnValue( $fakeResultWrapper ) );
+
+		$outputPage->addCategoryLinks( [
+			'Test' => 'Test',
+			'Test2' => 'Test2',
+		] );
+		$this->assertEquals( [ 0 => 'Test', '1' => 'Test2' ], $outputPage->getCategories() );
+		$this->assertEquals( [ 0 => 'Test2' ], $outputPage->getCategories( 'normal' ) );
+		$this->assertEquals( [ 0 => 'Test' ], $outputPage->getCategories( 'hidden' ) );
+	}
+
+	/**
+	 * @dataProvider provideLinkHeaders
+	 * @covers OutputPage::addLinkHeader
+	 * @covers OutputPage::getLinkHeader
+	 */
+	public function testLinkHeaders( $headers, $result ) {
+		$outputPage = $this->newInstance();
+
+		foreach ( $headers as $header ) {
+			$outputPage->addLinkHeader( $header );
+		}
+
+		$this->assertEquals( $result, $outputPage->getLinkHeader() );
+	}
+
+	public function provideLinkHeaders() {
+		return [
+			[
+				[],
+				false
+			],
+			[
+				[ '<https://foo/bar.jpg>;rel=preload;as=image' ],
+				'Link: <https://foo/bar.jpg>;rel=preload;as=image',
+			],
+			[
+				[ '<https://foo/bar.jpg>;rel=preload;as=image','<https://foo/baz.jpg>;rel=preload;as=image' ],
+				'Link: <https://foo/bar.jpg>;rel=preload;as=image,<https://foo/baz.jpg>;rel=preload;as=image',
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider providePreloadLinkHeaders
+	 * @covers OutputPage::addLogoPreloadLinkHeaders
+	 * @covers ResourceLoaderSkinModule::getLogo
+	 */
+	public function testPreloadLinkHeaders( $config, $result, $baseDir = null ) {
+		if ( $baseDir ) {
+			$this->setMwGlobals( 'IP', $baseDir );
+		}
+		$out = TestingAccessWrapper::newFromObject( $this->newInstance( $config ) );
+		$out->addLogoPreloadLinkHeaders();
+
+		$this->assertEquals( $result, $out->getLinkHeader() );
+	}
+
+	public function providePreloadLinkHeaders() {
+		return [
+			[
+				[
+					'ResourceBasePath' => '/w',
+					'Logo' => '/img/default.png',
+					'LogoHD' => [
+						'1.5x' => '/img/one-point-five.png',
+						'2x' => '/img/two-x.png',
+					],
+				],
+				'Link: </img/default.png>;rel=preload;as=image;media=' .
+				'not all and (min-resolution: 1.5dppx),' .
+				'</img/one-point-five.png>;rel=preload;as=image;media=' .
+				'(min-resolution: 1.5dppx) and (max-resolution: 1.999999dppx),' .
+				'</img/two-x.png>;rel=preload;as=image;media=(min-resolution: 2dppx)'
+			],
+			[
+				[
+					'ResourceBasePath' => '/w',
+					'Logo' => '/img/default.png',
+					'LogoHD' => false,
+				],
+				'Link: </img/default.png>;rel=preload;as=image'
+			],
+			[
+				[
+					'ResourceBasePath' => '/w',
+					'Logo' => '/img/default.png',
+					'LogoHD' => [
+						'2x' => '/img/two-x.png',
+					],
+				],
+				'Link: </img/default.png>;rel=preload;as=image;media=' .
+				'not all and (min-resolution: 2dppx),' .
+				'</img/two-x.png>;rel=preload;as=image;media=(min-resolution: 2dppx)'
+			],
+			[
+				[
+					'ResourceBasePath' => '/w',
+					'Logo' => '/w/test.jpg',
+					'LogoHD' => false,
+					'UploadPath' => '/w/images',
+				],
+				'Link: </w/test.jpg?edcf2>;rel=preload;as=image',
+				'baseDir' => dirname( __DIR__ ) . '/data/media',
+			],
+		];
+	}
+
+	/**
+	 * @return OutputPage
+	 */
+	private function newInstance( $config = [] ) {
+		$context = new RequestContext();
+
+		$context->setConfig( new HashConfig( $config + [
+			'AppleTouchIcon' => false,
+			'DisableLangConversion' => true,
+			'EnableAPI' => false,
+			'EnableCanonicalServerLink' => false,
+			'Favicon' => false,
+			'Feed' => false,
+			'LanguageCode' => false,
+			'ReferrerPolicy' => false,
+			'RightsPage' => false,
+			'RightsUrl' => false,
+			'UniversalEditButton' => false,
+		] ) );
+
+		return new OutputPage( $context );
 	}
 }
 
@@ -346,7 +682,7 @@ class OutputPageTest extends MediaWikiTestCase {
  */
 class NullMessageBlobStore extends MessageBlobStore {
 	public function get( ResourceLoader $resourceLoader, $modules, $lang ) {
-		return array();
+		return [];
 	}
 
 	public function insertMessageBlob( $name, ResourceLoaderModule $module, $lang ) {
@@ -354,11 +690,11 @@ class NullMessageBlobStore extends MessageBlobStore {
 	}
 
 	public function updateModule( $name, ResourceLoaderModule $module, $lang ) {
-		return;
 	}
 
 	public function updateMessage( $key ) {
 	}
+
 	public function clear() {
 	}
 }

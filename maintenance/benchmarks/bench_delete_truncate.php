@@ -23,19 +23,24 @@
 
 require_once __DIR__ . '/Benchmarker.php';
 
+use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\IMaintainableDatabase;
+
 /**
  * Maintenance script that benchmarks SQL DELETE vs SQL TRUNCATE.
  *
  * @ingroup Benchmark
  */
 class BenchmarkDeleteTruncate extends Benchmarker {
+	protected $defaultCount = 10;
+
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Benchmarks SQL DELETE vs SQL TRUNCATE.";
+		$this->addDescription( 'Benchmarks SQL DELETE vs SQL TRUNCATE.' );
 	}
 
 	public function execute() {
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = $this->getDB( DB_MASTER );
 
 		$test = $dbw->tableName( 'test' );
 		$dbw->query( "CREATE TABLE IF NOT EXISTS /*_*/$test (
@@ -43,46 +48,43 @@ class BenchmarkDeleteTruncate extends Benchmarker {
   text varbinary(255) NOT NULL
 );" );
 
-		$this->insertData( $dbw );
-
-		$start = microtime( true );
-
-		$this->delete( $dbw );
-
-		$end = microtime( true );
-
-		echo "Delete: " . sprintf( "%6.3fms", ( $end - $start ) * 1000 );
-		echo "\r\n";
-
-		$this->insertData( $dbw );
-
-		$start = microtime( true );
-
-		$this->truncate( $dbw );
-
-		$end = microtime( true );
-
-		echo "Truncate: " . sprintf( "%6.3fms", ( $end - $start ) * 1000 );
-		echo "\r\n";
+		$this->bench( [
+			'Delete' => [
+				'setup' => function () use ( $dbw ) {
+					$this->insertData( $dbw );
+				},
+				'function' => function () use ( $dbw ) {
+					$this->delete( $dbw );
+				}
+			],
+			'Truncate' => [
+				'setup' => function () use ( $dbw ) {
+					$this->insertData( $dbw );
+				},
+				'function' => function () use ( $dbw ) {
+					$this->truncate( $dbw );
+				}
+			]
+		] );
 
 		$dbw->dropTable( 'test' );
 	}
 
 	/**
-	 * @param DatabaseBase $dbw
+	 * @param IDatabase $dbw
 	 * @return void
 	 */
 	private function insertData( $dbw ) {
 		$range = range( 0, 1024 );
-		$data = array();
+		$data = [];
 		foreach ( $range as $r ) {
-			$data[] = array( 'text' => $r );
+			$data[] = [ 'text' => $r ];
 		}
 		$dbw->insert( 'test', $data, __METHOD__ );
 	}
 
 	/**
-	 * @param DatabaseBase $dbw
+	 * @param IDatabase $dbw
 	 * @return void
 	 */
 	private function delete( $dbw ) {
@@ -90,7 +92,7 @@ class BenchmarkDeleteTruncate extends Benchmarker {
 	}
 
 	/**
-	 * @param DatabaseBase $dbw
+	 * @param IMaintainableDatabase $dbw
 	 * @return void
 	 */
 	private function truncate( $dbw ) {
@@ -99,5 +101,5 @@ class BenchmarkDeleteTruncate extends Benchmarker {
 	}
 }
 
-$maintClass = "BenchmarkDeleteTruncate";
+$maintClass = 'BenchmarkDeleteTruncate';
 require_once RUN_MAINTENANCE_IF_MAIN;

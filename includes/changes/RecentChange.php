@@ -59,6 +59,10 @@
  * temporary:       not stored in the database
  *      notificationtimestamp
  *      numberofWatchingusers
+ *
+ * @todo Deprecate access to mAttribs (direct or via getAttributes). Right now
+ *  we're having to include both rc_comment and rc_comment_text/rc_comment_data
+ *  so random crap works right.
  */
 class RecentChange {
 	// Constants for the rc_source field.  Extensions may also have
@@ -67,9 +71,10 @@ class RecentChange {
 	const SRC_NEW = 'mw.new';
 	const SRC_LOG = 'mw.log';
 	const SRC_EXTERNAL = 'mw.external'; // obsolete
+	const SRC_CATEGORIZE = 'mw.categorize';
 
-	public $mAttribs = array();
-	public $mExtra = array();
+	public $mAttribs = [];
+	public $mExtra = [];
 
 	/**
 	 * @var Title
@@ -90,14 +95,20 @@ class RecentChange {
 	public $counter = -1;
 
 	/**
+	 * @var array List of tags to apply
+	 */
+	private $tags = [];
+
+	/**
 	 * @var array Array of change types
 	 */
-	private static $changeTypes = array(
+	private static $changeTypes = [
 		'edit' => RC_EDIT,
 		'new' => RC_NEW,
 		'log' => RC_LOG,
 		'external' => RC_EXTERNAL,
-	);
+		'categorize' => RC_CATEGORIZE,
+	];
 
 	# Factory methods
 
@@ -121,9 +132,9 @@ class RecentChange {
 	 */
 	public static function parseToRCType( $type ) {
 		if ( is_array( $type ) ) {
-			$retval = array();
+			$retval = [];
 			foreach ( $type as $t ) {
-				$retval[] = RecentChange::parseToRCType( $t );
+				$retval[] = self::parseToRCType( $t );
 			}
 
 			return $retval;
@@ -163,7 +174,7 @@ class RecentChange {
 	 * @return RecentChange|null
 	 */
 	public static function newFromId( $rcid ) {
-		return self::newFromConds( array( 'rc_id' => $rcid ), __METHOD__ );
+		return self::newFromConds( [ 'rc_id' => $rcid ], __METHOD__ );
 	}
 
 	/**
@@ -171,12 +182,17 @@ class RecentChange {
 	 *
 	 * @param array $conds Array of conditions
 	 * @param mixed $fname Override the method name in profiling/logs
-	 * @param array $options Query options
+	 * @param int $dbType DB_* constant
+	 *
 	 * @return RecentChange|null
 	 */
-	public static function newFromConds( $conds, $fname = __METHOD__, $options = array() ) {
-		$dbr = wfGetDB( DB_SLAVE );
-		$row = $dbr->selectRow( 'recentchanges', self::selectFields(), $conds, $fname, $options );
+	public static function newFromConds(
+		$conds,
+		$fname = __METHOD__,
+		$dbType = DB_REPLICA
+	) {
+		$db = wfGetDB( $dbType );
+		$row = $db->selectRow( 'recentchanges', self::selectFields(), $conds, $fname );
 		if ( $row !== false ) {
 			return self::newFromRow( $row );
 		} else {
@@ -187,17 +203,18 @@ class RecentChange {
 	/**
 	 * Return the list of recentchanges fields that should be selected to create
 	 * a new recentchanges object.
+	 * @todo Deprecate this in favor of a method that returns tables and joins
+	 *  as well, and use CommentStore::getJoin().
 	 * @return array
 	 */
 	public static function selectFields() {
-		return array(
+		return [
 			'rc_id',
 			'rc_timestamp',
 			'rc_user',
 			'rc_user_text',
 			'rc_namespace',
 			'rc_title',
-			'rc_comment',
 			'rc_minor',
 			'rc_bot',
 			'rc_new',
@@ -215,7 +232,7 @@ class RecentChange {
 			'rc_log_type',
 			'rc_log_action',
 			'rc_params',
-		);
+		] + CommentStore::newKey( 'rc_comment' )->getFields();
 	}
 
 	# Accessors
@@ -267,45 +284,70 @@ class RecentChange {
 	 * @param bool $noudp
 	 */
 	public function save( $noudp = false ) {
-		global $wgPutIPinRC, $wgUseEnotif, $wgShowUpdatedMarker, $wgContLang;
+		global $wgPutIPinRC, $wgUseEnotif, $wgShowUpdatedMarker;
 
 		$dbw = wfGetDB( DB_MASTER );
 		if ( !is_array( $this->mExtra ) ) {
-			$this->mExtra = array();
+			$this->mExtra = [];
 		}
 
 		if ( !$wgPutIPinRC ) {
 			$this->mAttribs['rc_ip'] = '';
 		}
 
+		# Strict mode fixups (not-NULL fields)
+		foreach ( [ 'minor', 'bot', 'new', 'patrolled', 'deleted' ] as $field ) {
+			$this->mAttribs["rc_$field"] = (int)$this->mAttribs["rc_$field"];
+		}
+		# ...more fixups (NULL fields)
+		foreach ( [ 'old_len', 'new_len' ] as $field ) {
+			$this->mAttribs["rc_$field"] = isset( $this->mAttribs["rc_$field"] )
+				? (int)$this->mAttribs["rc_$field"]
+				: null;
+		}
+
 		# If our database is strict about IP addresses, use NULL instead of an empty string
-		if ( $dbw->strictIPs() && $this->mAttribs['rc_ip'] == '' ) {
+		$strictIPs = in_array( $dbw->getType(), [ 'oracle', 'postgres' ] ); // legacy
+		if ( $strictIPs && $this->mAttribs['rc_ip'] == '' ) {
 			unset( $this->mAttribs['rc_ip'] );
 		}
 
 		# Trim spaces on user supplied text
 		$this->mAttribs['rc_comment'] = trim( $this->mAttribs['rc_comment'] );
 
-		# Make sure summary is truncated (whole multibyte characters)
-		$this->mAttribs['rc_comment'] = $wgContLang->truncate( $this->mAttribs['rc_comment'], 255 );
-
 		# Fixup database timestamps
 		$this->mAttribs['rc_timestamp'] = $dbw->timestamp( $this->mAttribs['rc_timestamp'] );
-		$this->mAttribs['rc_id'] = $dbw->nextSequenceValue( 'recentchanges_rc_id_seq' );
 
-		## If we are using foreign keys, an entry of 0 for the page_id will fail, so use NULL
-		if ( $dbw->cascadingDeletes() && $this->mAttribs['rc_cur_id'] == 0 ) {
+		# # If we are using foreign keys, an entry of 0 for the page_id will fail, so use NULL
+		if ( $this->mAttribs['rc_cur_id'] == 0 ) {
 			unset( $this->mAttribs['rc_cur_id'] );
 		}
 
+		# Convert mAttribs['rc_comment'] for CommentStore
+		$row = $this->mAttribs;
+		$comment = $row['rc_comment'];
+		unset( $row['rc_comment'], $row['rc_comment_text'], $row['rc_comment_data'] );
+		$row += CommentStore::newKey( 'rc_comment' )->insert( $dbw, $comment );
+
+		# Don't reuse an existing rc_id for the new row, if one happens to be
+		# set for some reason.
+		unset( $row['rc_id'] );
+
 		# Insert new row
-		$dbw->insert( 'recentchanges', $this->mAttribs, __METHOD__ );
+		$dbw->insert( 'recentchanges', $row, __METHOD__ );
 
 		# Set the ID
 		$this->mAttribs['rc_id'] = $dbw->insertId();
 
 		# Notify extensions
-		Hooks::run( 'RecentChange_save', array( &$this ) );
+		// Avoid PHP 7.1 warning from passing $this by reference
+		$rc = $this;
+		Hooks::run( 'RecentChange_save', [ &$rc ] );
+
+		if ( count( $this->tags ) ) {
+			ChangeTags::addTags( $this->tags, $this->mAttribs['rc_id'],
+				$this->mAttribs['rc_this_oldid'], $this->mAttribs['rc_logid'], null, $this );
+		}
 
 		# Notify external application via UDP
 		if ( !$noudp ) {
@@ -317,15 +359,28 @@ class RecentChange {
 			$editor = $this->getPerformer();
 			$title = $this->getTitle();
 
-			if ( Hooks::run( 'AbortEmailNotification', array( $editor, $title, $this ) ) ) {
-				# @todo FIXME: This would be better as an extension hook
-				$enotif = new EmailNotification();
-				$enotif->notifyOnPageChange( $editor, $title,
-					$this->mAttribs['rc_timestamp'],
-					$this->mAttribs['rc_comment'],
-					$this->mAttribs['rc_minor'],
-					$this->mAttribs['rc_last_oldid'],
-					$this->mExtra['pageStatus'] );
+			// Never send an RC notification email about categorization changes
+			if (
+				Hooks::run( 'AbortEmailNotification', [ $editor, $title, $this ] ) &&
+				$this->mAttribs['rc_type'] != RC_CATEGORIZE
+			) {
+				// @FIXME: This would be better as an extension hook
+				// Send emails or email jobs once this row is safely committed
+				$dbw->onTransactionIdle(
+					function () use ( $editor, $title ) {
+						$enotif = new EmailNotification();
+						$enotif->notifyOnPageChange(
+							$editor,
+							$title,
+							$this->mAttribs['rc_timestamp'],
+							$this->mAttribs['rc_comment'],
+							$this->mAttribs['rc_minor'],
+							$this->mAttribs['rc_last_oldid'],
+							$this->mExtra['pageStatus']
+						);
+					},
+					__METHOD__
+				);
 			}
 		}
 
@@ -347,27 +402,25 @@ class RecentChange {
 
 		$performer = $this->getPerformer();
 
-		foreach ( $feeds as $feed ) {
-			$feed += array(
+		foreach ( $feeds as $params ) {
+			$params += [
 				'omit_bots' => false,
 				'omit_anon' => false,
 				'omit_user' => false,
 				'omit_minor' => false,
 				'omit_patrolled' => false,
-			);
+			];
 
 			if (
-				( $feed['omit_bots'] && $this->mAttribs['rc_bot'] ) ||
-				( $feed['omit_anon'] && $performer->isAnon() ) ||
-				( $feed['omit_user'] && !$performer->isAnon() ) ||
-				( $feed['omit_minor'] && $this->mAttribs['rc_minor'] ) ||
-				( $feed['omit_patrolled'] && $this->mAttribs['rc_patrolled'] ) ||
+				( $params['omit_bots'] && $this->mAttribs['rc_bot'] ) ||
+				( $params['omit_anon'] && $performer->isAnon() ) ||
+				( $params['omit_user'] && !$performer->isAnon() ) ||
+				( $params['omit_minor'] && $this->mAttribs['rc_minor'] ) ||
+				( $params['omit_patrolled'] && $this->mAttribs['rc_patrolled'] ) ||
 				$this->mAttribs['rc_type'] == RC_EXTERNAL
 			) {
 				continue;
 			}
-
-			$engine = self::getEngine( $feed['uri'] );
 
 			if ( isset( $this->mExtra['actionCommentIRC'] ) ) {
 				$actionComment = $this->mExtra['actionCommentIRC'];
@@ -375,41 +428,33 @@ class RecentChange {
 				$actionComment = null;
 			}
 
-			/** @var $formatter RCFeedFormatter */
-			$formatter = is_object( $feed['formatter'] ) ? $feed['formatter'] : new $feed['formatter']();
-			$line = $formatter->getLine( $feed, $this, $actionComment );
-			if ( !$line ) {
-				// T109544
-				// If a feed formatter returns null, this will otherwise cause an
-				// error in at least RedisPubSubFeedEngine.
-				// Not sure where/how this should best be handled.
-				continue;
-			}
-
-			$engine->send( $feed, $line );
+			$feed = RCFeed::factory( $params );
+			$feed->notify( $this, $actionComment );
 		}
 	}
 
 	/**
-	 * Gets the stream engine object for a given URI from $wgRCEngines
-	 *
+	 * @since 1.22
+	 * @deprecated since 1.29 Use RCFeed::factory() instead
 	 * @param string $uri URI to get the engine object for
-	 * @throws MWException
+	 * @param array $params
 	 * @return RCFeedEngine The engine object
+	 * @throws MWException
 	 */
-	public static function getEngine( $uri ) {
+	public static function getEngine( $uri, $params = [] ) {
+		// TODO: Merge into RCFeed::factory().
 		global $wgRCEngines;
-
 		$scheme = parse_url( $uri, PHP_URL_SCHEME );
 		if ( !$scheme ) {
-			throw new MWException( __FUNCTION__ . ": Invalid stream logger URI: '$uri'" );
+			throw new MWException( "Invalid RCFeed uri: '$uri'" );
 		}
-
 		if ( !isset( $wgRCEngines[$scheme] ) ) {
-			throw new MWException( __FUNCTION__ . ": Unknown stream logger URI scheme: $scheme" );
+			throw new MWException( "Unknown RCFeedEngine scheme: '$scheme'" );
 		}
-
-		return new $wgRCEngines[$scheme];
+		if ( defined( 'MW_PHPUNIT_TEST' ) && is_object( $wgRCEngines[$scheme] ) ) {
+			return $wgRCEngines[$scheme];
+		}
+		return new $wgRCEngines[$scheme]( $params );
 	}
 
 	/**
@@ -417,20 +462,22 @@ class RecentChange {
 	 *
 	 * @param RecentChange|int $change RecentChange or corresponding rc_id
 	 * @param bool $auto For automatic patrol
+	 * @param string|string[] $tags Change tags to add to the patrol log entry
+	 *   ($user should be able to add the specified tags before this is called)
 	 * @return array See doMarkPatrolled(), or null if $change is not an existing rc_id
 	 */
-	public static function markPatrolled( $change, $auto = false ) {
+	public static function markPatrolled( $change, $auto = false, $tags = null ) {
 		global $wgUser;
 
 		$change = $change instanceof RecentChange
 			? $change
-			: RecentChange::newFromId( $change );
+			: self::newFromId( $change );
 
 		if ( !$change instanceof RecentChange ) {
 			return null;
 		}
 
-		return $change->doMarkPatrolled( $wgUser, $auto );
+		return $change->doMarkPatrolled( $wgUser, $auto, $tags );
 	}
 
 	/**
@@ -440,43 +487,54 @@ class RecentChange {
 	 * 'markedaspatrollederror-noautopatrol' as errors
 	 * @param User $user User object doing the action
 	 * @param bool $auto For automatic patrol
+	 * @param string|string[] $tags Change tags to add to the patrol log entry
+	 *   ($user should be able to add the specified tags before this is called)
 	 * @return array Array of permissions errors, see Title::getUserPermissionsErrors()
 	 */
-	public function doMarkPatrolled( User $user, $auto = false ) {
-		global $wgUseRCPatrol, $wgUseNPPatrol;
-		$errors = array();
-		// If recentchanges patrol is disabled, only new pages
-		// can be patrolled
-		if ( !$wgUseRCPatrol && ( !$wgUseNPPatrol || $this->getAttribute( 'rc_type' ) != RC_NEW ) ) {
-			$errors[] = array( 'rcpatroldisabled' );
+	public function doMarkPatrolled( User $user, $auto = false, $tags = null ) {
+		global $wgUseRCPatrol, $wgUseNPPatrol, $wgUseFilePatrol;
+
+		$errors = [];
+		// If recentchanges patrol is disabled, only new pages or new file versions
+		// can be patrolled, provided the appropriate config variable is set
+		if ( !$wgUseRCPatrol && ( !$wgUseNPPatrol || $this->getAttribute( 'rc_type' ) != RC_NEW ) &&
+			( !$wgUseFilePatrol || !( $this->getAttribute( 'rc_type' ) == RC_LOG &&
+			$this->getAttribute( 'rc_log_type' ) == 'upload' ) ) ) {
+			$errors[] = [ 'rcpatroldisabled' ];
 		}
 		// Automatic patrol needs "autopatrol", ordinary patrol needs "patrol"
 		$right = $auto ? 'autopatrol' : 'patrol';
 		$errors = array_merge( $errors, $this->getTitle()->getUserPermissionsErrors( $right, $user ) );
-		if ( !Hooks::run( 'MarkPatrolled', array( $this->getAttribute( 'rc_id' ), &$user, false ) ) ) {
-			$errors[] = array( 'hookaborted' );
+		if ( !Hooks::run( 'MarkPatrolled',
+					[ $this->getAttribute( 'rc_id' ), &$user, false, $auto ] )
+		) {
+			$errors[] = [ 'hookaborted' ];
 		}
 		// Users without the 'autopatrol' right can't patrol their
 		// own revisions
 		if ( $user->getName() === $this->getAttribute( 'rc_user_text' )
 			&& !$user->isAllowed( 'autopatrol' )
 		) {
-			$errors[] = array( 'markedaspatrollederror-noautopatrol' );
+			$errors[] = [ 'markedaspatrollederror-noautopatrol' ];
 		}
 		if ( $errors ) {
 			return $errors;
 		}
 		// If the change was patrolled already, do nothing
 		if ( $this->getAttribute( 'rc_patrolled' ) ) {
-			return array();
+			return [];
 		}
 		// Actually set the 'patrolled' flag in RC
 		$this->reallyMarkPatrolled();
 		// Log this patrol event
-		PatrolLog::record( $this, $auto, $user );
-		Hooks::run( 'MarkPatrolledComplete', array( $this->getAttribute( 'rc_id' ), &$user, false ) );
+		PatrolLog::record( $this, $auto, $user, $tags );
 
-		return array();
+		Hooks::run(
+			'MarkPatrolledComplete',
+			[ $this->getAttribute( 'rc_id' ), &$user, false, $auto ]
+		);
+
+		return [];
 	}
 
 	/**
@@ -487,12 +545,12 @@ class RecentChange {
 		$dbw = wfGetDB( DB_MASTER );
 		$dbw->update(
 			'recentchanges',
-			array(
+			[
 				'rc_patrolled' => 1
-			),
-			array(
+			],
+			[
 				'rc_id' => $this->getAttribute( 'rc_id' )
-			),
+			],
 			__METHOD__
 		);
 		// Invalidate the page cache after the page has been patrolled
@@ -506,9 +564,9 @@ class RecentChange {
 	 * Makes an entry in the database corresponding to an edit
 	 *
 	 * @param string $timestamp
-	 * @param Title $title
+	 * @param Title &$title
 	 * @param bool $minor
-	 * @param User $user
+	 * @param User &$user
 	 * @param string $comment
 	 * @param int $oldId
 	 * @param string $lastTimestamp
@@ -518,16 +576,18 @@ class RecentChange {
 	 * @param int $newSize
 	 * @param int $newId
 	 * @param int $patrol
+	 * @param array $tags
 	 * @return RecentChange
 	 */
 	public static function notifyEdit(
 		$timestamp, &$title, $minor, &$user, $comment, $oldId, $lastTimestamp,
-		$bot, $ip = '', $oldSize = 0, $newSize = 0, $newId = 0, $patrol = 0
+		$bot, $ip = '', $oldSize = 0, $newSize = 0, $newId = 0, $patrol = 0,
+		$tags = []
 	) {
 		$rc = new RecentChange;
 		$rc->mTitle = $title;
 		$rc->mPerformer = $user;
-		$rc->mAttribs = array(
+		$rc->mAttribs = [
 			'rc_timestamp' => $timestamp,
 			'rc_namespace' => $title->getNamespace(),
 			'rc_title' => $title->getDBkey(),
@@ -537,7 +597,9 @@ class RecentChange {
 			'rc_cur_id' => $title->getArticleID(),
 			'rc_user' => $user->getId(),
 			'rc_user_text' => $user->getName(),
-			'rc_comment' => $comment,
+			'rc_comment' => &$comment,
+			'rc_comment_text' => &$comment,
+			'rc_comment_data' => null,
 			'rc_this_oldid' => $newId,
 			'rc_last_oldid' => $oldId,
 			'rc_bot' => $bot ? 1 : 0,
@@ -551,22 +613,27 @@ class RecentChange {
 			'rc_log_type' => null,
 			'rc_log_action' => '',
 			'rc_params' => ''
-		);
+		];
 
-		$rc->mExtra = array(
+		$rc->mExtra = [
 			'prefixedDBkey' => $title->getPrefixedDBkey(),
 			'lastTimestamp' => $lastTimestamp,
 			'oldSize' => $oldSize,
 			'newSize' => $newSize,
 			'pageStatus' => 'changed'
-		);
+		];
 
-		DeferredUpdates::addCallableUpdate( function() use ( $rc ) {
-			$rc->save();
-			if ( $rc->mAttribs['rc_patrolled'] ) {
-				PatrolLog::record( $rc, true, $rc->getPerformer() );
-			}
-		} );
+		DeferredUpdates::addCallableUpdate(
+			function () use ( $rc, $tags ) {
+				$rc->addTags( $tags );
+				$rc->save();
+				if ( $rc->mAttribs['rc_patrolled'] ) {
+					PatrolLog::record( $rc, true, $rc->getPerformer() );
+				}
+			},
+			DeferredUpdates::POSTSEND,
+			wfGetDB( DB_MASTER )
+		);
 
 		return $rc;
 	}
@@ -576,25 +643,26 @@ class RecentChange {
 	 * Note: the title object must be loaded with the new id using resetArticleID()
 	 *
 	 * @param string $timestamp
-	 * @param Title $title
+	 * @param Title &$title
 	 * @param bool $minor
-	 * @param User $user
+	 * @param User &$user
 	 * @param string $comment
 	 * @param bool $bot
 	 * @param string $ip
 	 * @param int $size
 	 * @param int $newId
 	 * @param int $patrol
+	 * @param array $tags
 	 * @return RecentChange
 	 */
 	public static function notifyNew(
 		$timestamp, &$title, $minor, &$user, $comment, $bot,
-		$ip = '', $size = 0, $newId = 0, $patrol = 0
+		$ip = '', $size = 0, $newId = 0, $patrol = 0, $tags = []
 	) {
 		$rc = new RecentChange;
 		$rc->mTitle = $title;
 		$rc->mPerformer = $user;
-		$rc->mAttribs = array(
+		$rc->mAttribs = [
 			'rc_timestamp' => $timestamp,
 			'rc_namespace' => $title->getNamespace(),
 			'rc_title' => $title->getDBkey(),
@@ -604,7 +672,9 @@ class RecentChange {
 			'rc_cur_id' => $title->getArticleID(),
 			'rc_user' => $user->getId(),
 			'rc_user_text' => $user->getName(),
-			'rc_comment' => $comment,
+			'rc_comment' => &$comment,
+			'rc_comment_text' => &$comment,
+			'rc_comment_data' => null,
 			'rc_this_oldid' => $newId,
 			'rc_last_oldid' => 0,
 			'rc_bot' => $bot ? 1 : 0,
@@ -618,30 +688,35 @@ class RecentChange {
 			'rc_log_type' => null,
 			'rc_log_action' => '',
 			'rc_params' => ''
-		);
+		];
 
-		$rc->mExtra = array(
+		$rc->mExtra = [
 			'prefixedDBkey' => $title->getPrefixedDBkey(),
 			'lastTimestamp' => 0,
 			'oldSize' => 0,
 			'newSize' => $size,
 			'pageStatus' => 'created'
-		);
+		];
 
-		DeferredUpdates::addCallableUpdate( function() use ( $rc ) {
-			$rc->save();
-			if ( $rc->mAttribs['rc_patrolled'] ) {
-				PatrolLog::record( $rc, true, $rc->getPerformer() );
-			}
-		} );
+		DeferredUpdates::addCallableUpdate(
+			function () use ( $rc, $tags ) {
+				$rc->addTags( $tags );
+				$rc->save();
+				if ( $rc->mAttribs['rc_patrolled'] ) {
+					PatrolLog::record( $rc, true, $rc->getPerformer() );
+				}
+			},
+			DeferredUpdates::POSTSEND,
+			wfGetDB( DB_MASTER )
+		);
 
 		return $rc;
 	}
 
 	/**
 	 * @param string $timestamp
-	 * @param Title $title
-	 * @param User $user
+	 * @param Title &$title
+	 * @param User &$user
 	 * @param string $actionComment
 	 * @param string $ip
 	 * @param string $type
@@ -671,8 +746,8 @@ class RecentChange {
 
 	/**
 	 * @param string $timestamp
-	 * @param Title $title
-	 * @param User $user
+	 * @param Title &$title
+	 * @param User &$user
 	 * @param string $actionComment
 	 * @param string $ip
 	 * @param string $type
@@ -682,15 +757,19 @@ class RecentChange {
 	 * @param string $params
 	 * @param int $newId
 	 * @param string $actionCommentIRC
+	 * @param int $revId Id of associated revision, if any
+	 * @param bool $isPatrollable Whether this log entry is patrollable
 	 * @return RecentChange
 	 */
 	public static function newLogEntry( $timestamp, &$title, &$user, $actionComment, $ip,
-		$type, $action, $target, $logComment, $params, $newId = 0, $actionCommentIRC = '' ) {
+		$type, $action, $target, $logComment, $params, $newId = 0, $actionCommentIRC = '',
+		$revId = 0, $isPatrollable = false ) {
 		global $wgRequest;
 
-		## Get pageStatus for email notification
+		# # Get pageStatus for email notification
 		switch ( $type . '-' . $action ) {
 			case 'delete-delete':
+			case 'delete-delete_redir':
 				$pageStatus = 'deleted';
 				break;
 			case 'move-move':
@@ -709,10 +788,13 @@ class RecentChange {
 				break;
 		}
 
+		// Allow unpatrolled status for patrollable log entries
+		$markPatrolled = $isPatrollable ? $user->isAllowed( 'autopatrol' ) : true;
+
 		$rc = new RecentChange;
 		$rc->mTitle = $target;
 		$rc->mPerformer = $user;
-		$rc->mAttribs = array(
+		$rc->mAttribs = [
 			'rc_timestamp' => $timestamp,
 			'rc_namespace' => $target->getNamespace(),
 			'rc_title' => $target->getDBkey(),
@@ -722,12 +804,14 @@ class RecentChange {
 			'rc_cur_id' => $target->getArticleID(),
 			'rc_user' => $user->getId(),
 			'rc_user_text' => $user->getName(),
-			'rc_comment' => $logComment,
-			'rc_this_oldid' => 0,
+			'rc_comment' => &$logComment,
+			'rc_comment_text' => &$logComment,
+			'rc_comment_data' => null,
+			'rc_this_oldid' => $revId,
 			'rc_last_oldid' => 0,
-			'rc_bot' => $user->isAllowed( 'bot' ) ? $wgRequest->getBool( 'bot', true ) : 0,
+			'rc_bot' => $user->isAllowed( 'bot' ) ? (int)$wgRequest->getBool( 'bot', true ) : 0,
 			'rc_ip' => self::checkIPAddress( $ip ),
-			'rc_patrolled' => 1,
+			'rc_patrolled' => $markPatrolled ? 1 : 0,
 			'rc_new' => 0, # obsolete
 			'rc_old_len' => null,
 			'rc_new_len' => null,
@@ -736,17 +820,115 @@ class RecentChange {
 			'rc_log_type' => $type,
 			'rc_log_action' => $action,
 			'rc_params' => $params
-		);
+		];
 
-		$rc->mExtra = array(
+		$rc->mExtra = [
 			'prefixedDBkey' => $title->getPrefixedDBkey(),
 			'lastTimestamp' => 0,
 			'actionComment' => $actionComment, // the comment appended to the action, passed from LogPage
 			'pageStatus' => $pageStatus,
 			'actionCommentIRC' => $actionCommentIRC
-		);
+		];
 
 		return $rc;
+	}
+
+	/**
+	 * Constructs a RecentChange object for the given categorization
+	 * This does not call save() on the object and thus does not write to the db
+	 *
+	 * @since 1.27
+	 *
+	 * @param string $timestamp Timestamp of the recent change to occur
+	 * @param Title $categoryTitle Title of the category a page is being added to or removed from
+	 * @param User $user User object of the user that made the change
+	 * @param string $comment Change summary
+	 * @param Title $pageTitle Title of the page that is being added or removed
+	 * @param int $oldRevId Parent revision ID of this change
+	 * @param int $newRevId Revision ID of this change
+	 * @param string $lastTimestamp Parent revision timestamp of this change
+	 * @param bool $bot true, if the change was made by a bot
+	 * @param string $ip IP address of the user, if the change was made anonymously
+	 * @param int $deleted Indicates whether the change has been deleted
+	 * @param bool $added true, if the category was added, false for removed
+	 *
+	 * @return RecentChange
+	 */
+	public static function newForCategorization(
+		$timestamp,
+		Title $categoryTitle,
+		User $user = null,
+		$comment,
+		Title $pageTitle,
+		$oldRevId,
+		$newRevId,
+		$lastTimestamp,
+		$bot,
+		$ip = '',
+		$deleted = 0,
+		$added = null
+	) {
+		// Done in a backwards compatible way.
+		$params = [
+			'hidden-cat' => WikiCategoryPage::factory( $categoryTitle )->isHidden()
+		];
+		if ( $added !== null ) {
+			$params['added'] = $added;
+		}
+
+		$rc = new RecentChange;
+		$rc->mTitle = $categoryTitle;
+		$rc->mPerformer = $user;
+		$rc->mAttribs = [
+			'rc_timestamp' => $timestamp,
+			'rc_namespace' => $categoryTitle->getNamespace(),
+			'rc_title' => $categoryTitle->getDBkey(),
+			'rc_type' => RC_CATEGORIZE,
+			'rc_source' => self::SRC_CATEGORIZE,
+			'rc_minor' => 0,
+			'rc_cur_id' => $pageTitle->getArticleID(),
+			'rc_user' => $user ? $user->getId() : 0,
+			'rc_user_text' => $user ? $user->getName() : '',
+			'rc_comment' => &$comment,
+			'rc_comment_text' => &$comment,
+			'rc_comment_data' => null,
+			'rc_this_oldid' => $newRevId,
+			'rc_last_oldid' => $oldRevId,
+			'rc_bot' => $bot ? 1 : 0,
+			'rc_ip' => self::checkIPAddress( $ip ),
+			'rc_patrolled' => 1, // Always patrolled, just like log entries
+			'rc_new' => 0, # obsolete
+			'rc_old_len' => null,
+			'rc_new_len' => null,
+			'rc_deleted' => $deleted,
+			'rc_logid' => 0,
+			'rc_log_type' => null,
+			'rc_log_action' => '',
+			'rc_params' => serialize( $params )
+		];
+
+		$rc->mExtra = [
+			'prefixedDBkey' => $categoryTitle->getPrefixedDBkey(),
+			'lastTimestamp' => $lastTimestamp,
+			'oldSize' => 0,
+			'newSize' => 0,
+			'pageStatus' => 'changed'
+		];
+
+		return $rc;
+	}
+
+	/**
+	 * Get a parameter value
+	 *
+	 * @since 1.27
+	 *
+	 * @param string $name parameter name
+	 * @return mixed
+	 */
+	public function getParam( $name ) {
+		$params = $this->parseParams();
+		return isset( $params[$name] ) ? $params[$name] : null;
 	}
 
 	/**
@@ -757,7 +939,23 @@ class RecentChange {
 	public function loadFromRow( $row ) {
 		$this->mAttribs = get_object_vars( $row );
 		$this->mAttribs['rc_timestamp'] = wfTimestamp( TS_MW, $this->mAttribs['rc_timestamp'] );
-		$this->mAttribs['rc_deleted'] = $row->rc_deleted; // MUST be set
+		// rc_deleted MUST be set
+		$this->mAttribs['rc_deleted'] = $row->rc_deleted;
+
+		if ( isset( $this->mAttribs['rc_ip'] ) ) {
+			// Clean up CIDRs for Postgres per T164898. ("127.0.0.1" casts to "127.0.0.1/32")
+			$n = strpos( $this->mAttribs['rc_ip'], '/' );
+			if ( $n !== false ) {
+				$this->mAttribs['rc_ip'] = substr( $this->mAttribs['rc_ip'], 0, $n );
+			}
+		}
+
+		$comment = CommentStore::newKey( 'rc_comment' )
+			// Legacy because $row probably came from self::selectFields()
+			->getCommentLegacy( wfGetDB( DB_REPLICA ), $row, true )->text;
+		$this->mAttribs['rc_comment'] = &$comment;
+		$this->mAttribs['rc_comment_text'] = &$comment;
+		$this->mAttribs['rc_comment_data'] = null;
 	}
 
 	/**
@@ -767,6 +965,9 @@ class RecentChange {
 	 * @return mixed
 	 */
 	public function getAttribute( $name ) {
+		if ( $name === 'rc_comment' ) {
+			return CommentStore::newKey( 'rc_comment' )->getComment( $this->mAttribs, true )->text;
+		}
 		return isset( $this->mAttribs[$name] ) ? $this->mAttribs[$name] : null;
 	}
 
@@ -857,7 +1058,7 @@ class RecentChange {
 	 *
 	 * @since 1.26
 	 *
-	 * @return array|null
+	 * @return mixed|bool false on failed unserialization
 	 */
 	public function parseParams() {
 		$rcParams = $this->getAttribute( 'rc_params' );
@@ -867,5 +1068,21 @@ class RecentChange {
 		MediaWiki\restoreWarnings();
 
 		return $unserializedParams;
+	}
+
+	/**
+	 * Tags to append to the recent change,
+	 * and associated revision/log
+	 *
+	 * @since 1.28
+	 *
+	 * @param string|array $tags
+	 */
+	public function addTags( $tags ) {
+		if ( is_string( $tags ) ) {
+			$this->tags[] = $tags;
+		} else {
+			$this->tags = array_merge( $tags, $this->tags );
+		}
 	}
 }

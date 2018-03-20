@@ -2,7 +2,7 @@
 
 /**
  * @covers ErrorPageError
- * @author Adam Shorland
+ * @author Addshore
  */
 class ErrorPageErrorTest extends MediaWikiTestCase {
 
@@ -22,7 +22,7 @@ class ErrorPageErrorTest extends MediaWikiTestCase {
 	public function testConstruction() {
 		$mockMessage = $this->getMockMessage();
 		$title = 'Foo';
-		$params = array( 'Baz' );
+		$params = [ 'Baz' ];
 		$e = new ErrorPageError( $title, $mockMessage, $params );
 		$this->assertEquals( $title, $e->title );
 		$this->assertEquals( $mockMessage, $e->msg );
@@ -32,7 +32,7 @@ class ErrorPageErrorTest extends MediaWikiTestCase {
 	public function testReport() {
 		$mockMessage = $this->getMockMessage();
 		$title = 'Foo';
-		$params = array( 'Baz' );
+		$params = [ 'Baz' ];
 
 		$mock = $this->getMockBuilder( 'OutputPage' )
 			->disableOriginalConstructor()
@@ -43,6 +43,7 @@ class ErrorPageErrorTest extends MediaWikiTestCase {
 		$mock->expects( $this->once() )
 			->method( 'output' );
 		$this->setMwGlobals( 'wgOut', $mock );
+		$this->setMwGlobals( 'wgCommandLineMode', false );
 
 		$e = new ErrorPageError( $title, $mockMessage, $params );
 		$e->report();

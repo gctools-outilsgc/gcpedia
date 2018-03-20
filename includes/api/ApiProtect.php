@@ -29,17 +29,22 @@
  */
 class ApiProtect extends ApiBase {
 	public function execute() {
-		global $wgContLang;
-
 		$params = $this->extractRequestParams();
 
 		$pageObj = $this->getTitleOrPageId( $params, 'fromdbmaster' );
 		$titleObj = $pageObj->getTitle();
 
-		$errors = $titleObj->getUserPermissionsErrors( 'protect', $this->getUser() );
-		if ( $errors ) {
-			// We don't care about multiple errors, just report one of them
-			$this->dieUsageMsg( reset( $errors ) );
+		$this->checkTitleUserPermissions( $titleObj, 'protect' );
+
+		$user = $this->getUser();
+		$tags = $params['tags'];
+
+		// Check if user can add tags
+		if ( !is_null( $tags ) ) {
+			$ableToTag = ChangeTags::canAddTagsAccompanyingChange( $tags, $user );
+			if ( !$ableToTag->isOK() ) {
+				$this->dieStatus( $ableToTag );
+			}
 		}
 
 		$expiry = (array)$params['expiry'];
@@ -47,36 +52,35 @@ class ApiProtect extends ApiBase {
 			if ( count( $expiry ) == 1 ) {
 				$expiry = array_fill( 0, count( $params['protections'] ), $expiry[0] );
 			} else {
-				$this->dieUsageMsg( array(
-					'toofewexpiries',
+				$this->dieWithError( [
+					'apierror-toofewexpiries',
 					count( $expiry ),
 					count( $params['protections'] )
-				) );
+				] );
 			}
 		}
 
 		$restrictionTypes = $titleObj->getRestrictionTypes();
-		$db = $this->getDB();
 
-		$protections = array();
-		$expiryarray = array();
-		$resultProtections = array();
+		$protections = [];
+		$expiryarray = [];
+		$resultProtections = [];
 		foreach ( $params['protections'] as $i => $prot ) {
 			$p = explode( '=', $prot );
 			$protections[$p[0]] = ( $p[1] == 'all' ? '' : $p[1] );
 
 			if ( $titleObj->exists() && $p[0] == 'create' ) {
-				$this->dieUsageMsg( 'create-titleexists' );
+				$this->dieWithError( 'apierror-create-titleexists' );
 			}
 			if ( !$titleObj->exists() && $p[0] != 'create' ) {
-				$this->dieUsageMsg( 'missingtitle-createonly' );
+				$this->dieWithError( 'apierror-missingtitle-createonly' );
 			}
 
 			if ( !in_array( $p[0], $restrictionTypes ) && $p[0] != 'create' ) {
-				$this->dieUsageMsg( array( 'protect-invalidaction', $p[0] ) );
+				$this->dieWithError( [ 'apierror-protect-invalidaction', wfEscapeWikiText( $p[0] ) ] );
 			}
 			if ( !in_array( $p[1], $this->getConfig()->get( 'RestrictionLevels' ) ) && $p[1] != 'all' ) {
-				$this->dieUsageMsg( array( 'protect-invalidlevel', $p[1] ) );
+				$this->dieWithError( [ 'apierror-protect-invalidlevel', wfEscapeWikiText( $p[1] ) ] );
 			}
 
 			if ( wfIsInfinity( $expiry[$i] ) ) {
@@ -84,26 +88,23 @@ class ApiProtect extends ApiBase {
 			} else {
 				$exp = strtotime( $expiry[$i] );
 				if ( $exp < 0 || !$exp ) {
-					$this->dieUsageMsg( array( 'invalidexpiry', $expiry[$i] ) );
+					$this->dieWithError( [ 'apierror-invalidexpiry', wfEscapeWikiText( $expiry[$i] ) ] );
 				}
 
 				$exp = wfTimestamp( TS_MW, $exp );
 				if ( $exp < wfTimestampNow() ) {
-					$this->dieUsageMsg( array( 'pastexpiry', $expiry[$i] ) );
+					$this->dieWithError( [ 'apierror-pastexpiry', wfEscapeWikiText( $expiry[$i] ) ] );
 				}
 				$expiryarray[$p[0]] = $exp;
 			}
-			$resultProtections[] = array(
+			$resultProtections[] = [
 				$p[0] => $protections[$p[0]],
-				'expiry' => $wgContLang->formatExpiry( $expiryarray[$p[0]], TS_ISO_8601, 'infinite' ),
-			);
+				'expiry' => ApiResult::formatExpiry( $expiryarray[$p[0]], 'infinite' ),
+			];
 		}
 
 		$cascade = $params['cascade'];
 
-		if ( $params['watch'] ) {
-			$this->logFeatureUsage( 'action=protect&watch' );
-		}
 		$watch = $params['watch'] ? 'watch' : $params['watchlist'];
 		$this->setWatch( $watch, $titleObj, 'watchdefault' );
 
@@ -112,16 +113,17 @@ class ApiProtect extends ApiBase {
 			$expiryarray,
 			$cascade,
 			$params['reason'],
-			$this->getUser()
+			$user,
+			$tags
 		);
 
 		if ( !$status->isOK() ) {
 			$this->dieStatus( $status );
 		}
-		$res = array(
+		$res = [
 			'title' => $titleObj->getPrefixedText(),
 			'reason' => $params['reason']
-		);
+		];
 		if ( $cascade ) {
 			$res['cascade'] = true;
 		}
@@ -140,38 +142,42 @@ class ApiProtect extends ApiBase {
 	}
 
 	public function getAllowedParams() {
-		return array(
-			'title' => array(
+		return [
+			'title' => [
 				ApiBase::PARAM_TYPE => 'string',
-			),
-			'pageid' => array(
+			],
+			'pageid' => [
 				ApiBase::PARAM_TYPE => 'integer',
-			),
-			'protections' => array(
+			],
+			'protections' => [
 				ApiBase::PARAM_ISMULTI => true,
 				ApiBase::PARAM_REQUIRED => true,
-			),
-			'expiry' => array(
+			],
+			'expiry' => [
 				ApiBase::PARAM_ISMULTI => true,
 				ApiBase::PARAM_ALLOW_DUPLICATES => true,
 				ApiBase::PARAM_DFLT => 'infinite',
-			),
+			],
 			'reason' => '',
+			'tags' => [
+				ApiBase::PARAM_TYPE => 'tags',
+				ApiBase::PARAM_ISMULTI => true,
+			],
 			'cascade' => false,
-			'watch' => array(
+			'watch' => [
 				ApiBase::PARAM_DFLT => false,
 				ApiBase::PARAM_DEPRECATED => true,
-			),
-			'watchlist' => array(
+			],
+			'watchlist' => [
 				ApiBase::PARAM_DFLT => 'preferences',
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'watch',
 					'unwatch',
 					'preferences',
 					'nochange'
-				),
-			),
-		);
+				],
+			],
+		];
 	}
 
 	public function needsToken() {
@@ -179,7 +185,7 @@ class ApiProtect extends ApiBase {
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=protect&title=Main%20Page&token=123ABC&' .
 				'protections=edit=sysop|move=sysop&cascade=&expiry=20070901163000|never'
 				=> 'apihelp-protect-example-protect',
@@ -189,10 +195,10 @@ class ApiProtect extends ApiBase {
 			'action=protect&title=Main%20Page&token=123ABC&' .
 				'protections=&reason=Lifting%20restrictions'
 				=> 'apihelp-protect-example-unprotect2',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Protect';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Protect';
 	}
 }

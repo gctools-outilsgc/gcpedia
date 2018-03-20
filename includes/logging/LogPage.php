@@ -27,7 +27,6 @@
  * Class to simplify the use of log pages.
  * The logs are now kept in a table which is easier to manage and trim
  * than ever-growing wiki pages.
- *
  */
 class LogPage {
 	const DELETED_ACTION = 1;
@@ -73,8 +72,6 @@ class LogPage {
 	private $target;
 
 	/**
-	 * Constructor
-	 *
 	 * @param string $type One of '', 'block', 'protect', 'rights', 'delete',
 	 *   'upload', 'move'
 	 * @param bool $rc Whether to update recent changes as well as the logging table
@@ -93,12 +90,10 @@ class LogPage {
 		global $wgLogRestrictions;
 
 		$dbw = wfGetDB( DB_MASTER );
-		$log_id = $dbw->nextSequenceValue( 'logging_log_id_seq' );
 
 		// @todo FIXME private/protected/public property?
 		$this->timestamp = $now = wfTimestampNow();
-		$data = array(
-			'log_id' => $log_id,
+		$data = [
 			'log_type' => $this->type,
 			'log_action' => $this->action,
 			'log_timestamp' => $dbw->timestamp( $now ),
@@ -107,11 +102,11 @@ class LogPage {
 			'log_namespace' => $this->target->getNamespace(),
 			'log_title' => $this->target->getDBkey(),
 			'log_page' => $this->target->getArticleID(),
-			'log_comment' => $this->comment,
 			'log_params' => $this->params
-		);
+		];
+		$data += CommentStore::newKey( 'log_comment' )->insert( $dbw, $this->comment );
 		$dbw->insert( 'logging', $data, __METHOD__ );
-		$newId = !is_null( $log_id ) ? $log_id : $dbw->insertId();
+		$newId = $dbw->insertId();
 
 		# And update recentchanges
 		if ( $this->updateRecentChanges ) {
@@ -208,43 +203,7 @@ class LogPage {
 	 * @return bool
 	 */
 	public static function isLogType( $type ) {
-		return in_array( $type, LogPage::validTypes() );
-	}
-
-	/**
-	 * Get the name for the given log type
-	 *
-	 * @param string $type Log type
-	 * @return string Log name
-	 * @deprecated since 1.19, warnings in 1.21. Use getName()
-	 */
-	public static function logName( $type ) {
-		global $wgLogNames;
-
-		wfDeprecated( __METHOD__, '1.21' );
-
-		if ( isset( $wgLogNames[$type] ) ) {
-			return str_replace( '_', ' ', wfMessage( $wgLogNames[$type] )->text() );
-		} else {
-			// Bogus log types? Perhaps an extension was removed.
-			return $type;
-		}
-	}
-
-	/**
-	 * Get the log header for the given log type
-	 *
-	 * @todo handle missing log types
-	 * @param string $type Logtype
-	 * @return string Header text of this logtype
-	 * @deprecated since 1.19, warnings in 1.21. Use getDescription()
-	 */
-	public static function logHeader( $type ) {
-		global $wgLogHeaders;
-
-		wfDeprecated( __METHOD__, '1.21' );
-
-		return wfMessage( $wgLogHeaders[$type] )->parse();
+		return in_array( $type, self::validTypes() );
 	}
 
 	/**
@@ -261,7 +220,7 @@ class LogPage {
 	 * @return string HTML
 	 */
 	public static function actionText( $type, $action, $title = null, $skin = null,
-		$params = array(), $filterWikilinks = false
+		$params = [], $filterWikilinks = false
 	) {
 		global $wgLang, $wgContLang, $wgLogActions;
 
@@ -285,30 +244,10 @@ class LogPage {
 					$rv = wfMessage( $wgLogActions[$key] )->rawParams( $titleLink )
 						->inLanguage( $langObj )->escaped();
 				} else {
-					$details = '';
 					array_unshift( $params, $titleLink );
 
-					// Page protections
-					if ( $type == 'protect' && count( $params ) == 3 ) {
-						// Restrictions and expiries
-						if ( $skin ) {
-							$details .= $wgLang->getDirMark() . htmlspecialchars( " {$params[1]}" );
-						} else {
-							$details .= " {$params[1]}";
-						}
-
-						// Cascading flag...
-						if ( $params[2] ) {
-							$text = wfMessage( 'protect-summary-cascade' )
-								->inLanguage( $langObj )->text();
-							$details .= ' ';
-							$details .= wfMessage( 'brackets', $text )->inLanguage( $langObj )->text();
-
-						}
-					}
-
 					$rv = wfMessage( $wgLogActions[$key] )->rawParams( $params )
-							->inLanguage( $langObj )->escaped() . $details;
+							->inLanguage( $langObj )->escaped();
 				}
 			}
 		} else {
@@ -346,7 +285,7 @@ class LogPage {
 	 * @param string $type
 	 * @param Language|null $lang
 	 * @param Title $title
-	 * @param array $params
+	 * @param array &$params
 	 * @return string
 	 */
 	protected static function getTitleLink( $type, $lang, $title, &$params ) {
@@ -387,11 +326,9 @@ class LogPage {
 	 *
 	 * @return int The log_id of the inserted log entry
 	 */
-	public function addEntry( $action, $target, $comment, $params = array(), $doer = null ) {
-		global $wgContLang;
-
+	public function addEntry( $action, $target, $comment, $params = [], $doer = null ) {
 		if ( !is_array( $params ) ) {
-			$params = array( $params );
+			$params = [ $params ];
 		}
 
 		if ( $comment === null ) {
@@ -401,13 +338,10 @@ class LogPage {
 		# Trim spaces on user supplied text
 		$comment = trim( $comment );
 
-		# Truncate for whole multibyte characters.
-		$comment = $wgContLang->truncate( $comment, 255 );
-
 		$this->action = $action;
 		$this->target = $target;
 		$this->comment = $comment;
-		$this->params = LogPage::makeParamBlob( $params );
+		$this->params = self::makeParamBlob( $params );
 
 		if ( $doer === null ) {
 			global $wgUser;
@@ -450,14 +384,14 @@ class LogPage {
 			return false; // nothing
 		}
 
-		$data = array();
+		$data = [];
 
 		foreach ( $values as $value ) {
-			$data[] = array(
+			$data[] = [
 				'ls_field' => $field,
 				'ls_value' => $value,
 				'ls_log_id' => $logid
-			);
+			];
 		}
 
 		$dbw = wfGetDB( DB_MASTER );
@@ -484,7 +418,7 @@ class LogPage {
 	 */
 	public static function extractParams( $blob ) {
 		if ( $blob === '' ) {
-			return array();
+			return [];
 		} else {
 			return explode( "\n", $blob );
 		}

@@ -5,19 +5,19 @@ class AutoLoaderTest extends MediaWikiTestCase {
 		parent::setUp();
 
 		// Fancy dance to trigger a rebuild of AutoLoader::$autoloadLocalClassesLower
-		$this->mergeMwGlobalArrayValue( 'wgAutoloadLocalClasses', array(
+		$this->mergeMwGlobalArrayValue( 'wgAutoloadLocalClasses', [
 			'TestAutoloadedLocalClass' =>
 				__DIR__ . '/../data/autoloader/TestAutoloadedLocalClass.php',
 			'TestAutoloadedCamlClass' =>
 				__DIR__ . '/../data/autoloader/TestAutoloadedCamlClass.php',
 			'TestAutoloadedSerializedClass' =>
 				__DIR__ . '/../data/autoloader/TestAutoloadedSerializedClass.php',
-		) );
+		] );
 		AutoLoader::resetAutoloadLocalClassesLower();
 
-		$this->mergeMwGlobalArrayValue( 'wgAutoloadClasses', array(
+		$this->mergeMwGlobalArrayValue( 'wgAutoloadClasses', [
 			'TestAutoloadedClass' => __DIR__ . '/../data/autoloader/TestAutoloadedClass.php',
-		) );
+		] );
 	}
 
 	/**
@@ -40,7 +40,7 @@ class AutoLoaderTest extends MediaWikiTestCase {
 
 		// wgAutoloadLocalClasses has precedence, just like in includes/AutoLoader.php
 		$expected = $wgAutoloadLocalClasses + $wgAutoloadClasses;
-		$actual = array();
+		$actual = [];
 
 		$files = array_unique( $expected );
 
@@ -68,20 +68,26 @@ class AutoLoaderTest extends MediaWikiTestCase {
 			}
 
 			// We could use token_get_all() here, but this is faster
-			$matches = array();
+			// Note: Keep in sync with ClassCollector
+			$matches = [];
 			preg_match_all( '/
 				^ [\t ]* (?:
-					(?:final\s+)? (?:abstract\s+)? (?:class|interface) \s+
+					(?:final\s+)? (?:abstract\s+)? (?:class|interface|trait) \s+
 					(?P<class> [a-zA-Z0-9_]+)
 				|
 					class_alias \s* \( \s*
 						([\'"]) (?P<original> [^\'"]+) \g{-2} \s* , \s*
 						([\'"]) (?P<alias> [^\'"]+ ) \g{-2} \s*
 					\) \s* ;
+				|
+					class_alias \s* \( \s*
+						(?P<originalStatic> [a-zA-Z0-9_]+)::class \s* , \s*
+						([\'"]) (?P<aliasString> [^\'"]+ ) \g{-2} \s*
+					\) \s* ;
 				)
 			/imx', $contents, $matches, PREG_SET_ORDER );
 
-			$namespaceMatch = array();
+			$namespaceMatch = [];
 			preg_match( '/
 				^ [\t ]*
 					namespace \s+
@@ -90,16 +96,23 @@ class AutoLoaderTest extends MediaWikiTestCase {
 			/imx', $contents, $namespaceMatch );
 			$fileNamespace = $namespaceMatch ? $namespaceMatch[1] . '\\' : '';
 
-			$classesInFile = array();
-			$aliasesInFile = array();
+			$classesInFile = [];
+			$aliasesInFile = [];
 
 			foreach ( $matches as $match ) {
 				if ( !empty( $match['class'] ) ) {
+					// 'class Foo {}'
 					$class = $fileNamespace . $match['class'];
 					$actual[$class] = $file;
 					$classesInFile[$class] = true;
 				} else {
-					$aliasesInFile[$match['alias']] = $match['original'];
+					if ( !empty( $match['original'] ) ) {
+						// 'class_alias( "Foo", "Bar" );'
+						$aliasesInFile[$match['alias']] = $match['original'];
+					} else {
+						// 'class_alias( Foo::class, "Bar" );'
+						$aliasesInFile[$match['aliasString']] = $fileNamespace . $match['originalStatic'];
+					}
 				}
 			}
 
@@ -115,10 +128,10 @@ class AutoLoaderTest extends MediaWikiTestCase {
 			}
 		}
 
-		return array(
+		return [
 			'expected' => $expected,
 			'actual' => $actual,
-		);
+		];
 	}
 
 	function testCoreClass() {
@@ -142,5 +155,16 @@ class AutoLoaderTest extends MediaWikiTestCase {
 		$uncerealized = unserialize( $dummyCereal );
 		$this->assertFalse( $uncerealized instanceof __PHP_Incomplete_Class,
 			"unserialize() can load classes case-insensitively." );
+	}
+
+	function testAutoloadOrder() {
+		$path = realpath( __DIR__ . '/../../..' );
+		$oldAutoload = file_get_contents( $path . '/autoload.php' );
+		$generator = new AutoloadGenerator( $path, 'local' );
+		$generator->initMediaWikiDefault();
+		$newAutoload = $generator->getAutoload( 'maintenance/generateLocalAutoload.php' );
+
+		$this->assertEquals( $oldAutoload, $newAutoload, 'autoload.php does not match' .
+			' output of generateLocalAutoload.php script.' );
 	}
 }

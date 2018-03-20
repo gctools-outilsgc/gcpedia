@@ -32,6 +32,8 @@
 
 require_once __DIR__ . '/Maintenance.php';
 
+use Wikimedia\Rdbms\IMaintainableDatabase;
+
 /**
  * Maintenance script to update image metadata records.
  *
@@ -40,7 +42,7 @@ require_once __DIR__ . '/Maintenance.php';
 class ImageBuilder extends Maintenance {
 
 	/**
-	 * @var DatabaseBase
+	 * @var IMaintainableDatabase
 	 */
 	protected $dbw;
 
@@ -48,20 +50,21 @@ class ImageBuilder extends Maintenance {
 		parent::__construct();
 
 		global $wgUpdateCompatibleMetadata;
-		//make sure to update old, but compatible img_metadata fields.
+		// make sure to update old, but compatible img_metadata fields.
 		$wgUpdateCompatibleMetadata = true;
 
-		$this->mDescription = 'Script to update image metadata records';
+		$this->addDescription( 'Script to update image metadata records' );
 
 		$this->addOption( 'missing', 'Check for files without associated database record' );
 		$this->addOption( 'dry-run', 'Only report, don\'t update the database' );
 	}
 
 	public function execute() {
-		$this->dbw = wfGetDB( DB_MASTER );
+		$this->dbw = $this->getDB( DB_MASTER );
 		$this->dryrun = $this->hasOption( 'dry-run' );
 		if ( $this->dryrun ) {
-			$GLOBALS['wgReadOnly'] = 'Dry run mode, image upgrades are suppressed';
+			MediaWiki\MediaWikiServices::getInstance()->getReadOnlyMode()
+				->setReason( 'Dry run mode, image upgrades are suppressed' );
 		}
 
 		if ( $this->hasOption( 'missing' ) ) {
@@ -127,7 +130,7 @@ class ImageBuilder extends Maintenance {
 		$this->init( $count, $table );
 		$this->output( "Processing $table...\n" );
 
-		$result = wfGetDB( DB_SLAVE )->select( $table, '*', array(), __METHOD__ );
+		$result = $this->getDB( DB_REPLICA )->select( $table, '*', [], __METHOD__ );
 
 		foreach ( $result as $row ) {
 			$update = call_user_func( $callback, $row, null );
@@ -141,7 +144,7 @@ class ImageBuilder extends Maintenance {
 	}
 
 	function buildImage() {
-		$callback = array( $this, 'imageCallback' );
+		$callback = [ $this, 'imageCallback' ];
 		$this->buildTable( 'image', 'img_name', $callback );
 	}
 
@@ -154,7 +157,7 @@ class ImageBuilder extends Maintenance {
 	}
 
 	function buildOldImage() {
-		$this->buildTable( 'oldimage', 'oi_archive_name', array( $this, 'oldimageCallback' ) );
+		$this->buildTable( 'oldimage', 'oi_archive_name', [ $this, 'oldimageCallback' ] );
 	}
 
 	function oldimageCallback( $row, $copy ) {
@@ -171,14 +174,14 @@ class ImageBuilder extends Maintenance {
 	}
 
 	function crawlMissing() {
-		$this->getRepo()->enumFiles( array( $this, 'checkMissingImage' ) );
+		$this->getRepo()->enumFiles( [ $this, 'checkMissingImage' ] );
 	}
 
 	function checkMissingImage( $fullpath ) {
 		$filename = wfBaseName( $fullpath );
 		$row = $this->dbw->selectRow( 'image',
-			array( 'img_name' ),
-			array( 'img_name' => $filename ),
+			[ 'img_name' ],
+			[ 'img_name' => $filename ],
 			__METHOD__ );
 
 		if ( !$row ) { // file not registered

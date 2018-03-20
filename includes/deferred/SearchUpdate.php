@@ -23,6 +23,8 @@
  * @ingroup Search
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * Database independant search index updater
  *
@@ -38,9 +40,10 @@ class SearchUpdate implements DeferrableUpdate {
 	/** @var Content|bool Content of the page (not text) */
 	private $content;
 
+	/** @var WikiPage **/
+	private $page;
+
 	/**
-	 * Constructor
-	 *
 	 * @param int $id Page id to update
 	 * @param Title|string $title Title of page to update
 	 * @param Content|string|bool $c Content of the page to update. Default: false.
@@ -72,24 +75,22 @@ class SearchUpdate implements DeferrableUpdate {
 	 * Perform actual update for the entry
 	 */
 	public function doUpdate() {
-		global $wgDisableSearchUpdate;
+		$config = MediaWikiServices::getInstance()->getSearchEngineConfig();
 
-		if ( $wgDisableSearchUpdate || !$this->id ) {
+		if ( $config->getConfig()->get( 'DisableSearchUpdate' ) || !$this->id ) {
 			return;
 		}
 
-		$page = WikiPage::newFromID( $this->id, WikiPage::READ_LATEST );
-
-		foreach ( SearchEngine::getSearchTypes() as $type ) {
-			$search = SearchEngine::create( $type );
-			$indexTitle = $this->indexTitle( $search );
+		$seFactory = MediaWikiServices::getInstance()->getSearchEngineFactory();
+		foreach ( $config->getSearchTypes() as $type ) {
+			$search = $seFactory->create( $type );
 			if ( !$search->supports( 'search-update' ) ) {
 				continue;
 			}
 
-			$normalTitle = $search->normalizeText( $indexTitle );
+			$normalTitle = $this->getNormalizedTitle( $search );
 
-			if ( $page === null ) {
+			if ( $this->getLatestPage() === null ) {
 				$search->delete( $this->id, $normalTitle );
 				continue;
 			} elseif ( $this->content === false ) {
@@ -99,13 +100,12 @@ class SearchUpdate implements DeferrableUpdate {
 
 			$text = $search->getTextFromContent( $this->title, $this->content );
 			if ( !$search->textAlreadyUpdatedForIndex() ) {
-				$text = self::updateText( $text );
+				$text = $this->updateText( $text, $search );
 			}
 
 			# Perform the actual update
 			$search->update( $this->id, $normalTitle, $search->normalizeText( $text ) );
 		}
-
 	}
 
 	/**
@@ -113,14 +113,16 @@ class SearchUpdate implements DeferrableUpdate {
 	 * If you're using a real search engine, you'll probably want to override
 	 * this behavior and do something nicer with the original wikitext.
 	 * @param string $text
+	 * @param SearchEngine $se Search engine
 	 * @return string
 	 */
-	public static function updateText( $text ) {
+	public function updateText( $text, SearchEngine $se = null ) {
 		global $wgContLang;
 
 		# Language-specific strip/conversion
 		$text = $wgContLang->normalizeForSearch( $text );
-		$lc = SearchEngine::legalSearchChars() . '&#;';
+		$se = $se ?: MediaWikiServices::getInstance()->newSearchEngine();
+		$lc = $se->legalSearchChars() . '&#;';
 
 		$text = preg_replace( "/<\\/?\\s*[A-Za-z][^>]*?>/",
 			' ', $wgContLang->lc( " " . $text . " " ) ); # Strip HTML markup
@@ -148,21 +150,22 @@ class SearchUpdate implements DeferrableUpdate {
 		# Strip all remaining non-search characters
 		$text = preg_replace( "/[^{$lc}]+/", " ", $text );
 
-		# Handle 's, s'
-		#
-		#   $text = preg_replace( "/([{$lc}]+)'s /", "\\1 \\1's ", $text );
-		#   $text = preg_replace( "/([{$lc}]+)s' /", "\\1s ", $text );
-		#
-		# These tail-anchored regexps are insanely slow. The worst case comes
-		# when Japanese or Chinese text (ie, no word spacing) is written on
-		# a wiki configured for Western UTF-8 mode. The Unicode characters are
-		# expanded to hex codes and the "words" are very long paragraph-length
-		# monstrosities. On a large page the above regexps may take over 20
-		# seconds *each* on a 1GHz-level processor.
-		#
-		# Following are reversed versions which are consistently fast
-		# (about 3 milliseconds on 1GHz-level processor).
-		#
+		/**
+		 * Handle 's, s'
+		 *
+		 *   $text = preg_replace( "/([{$lc}]+)'s /", "\\1 \\1's ", $text );
+		 *   $text = preg_replace( "/([{$lc}]+)s' /", "\\1s ", $text );
+		 *
+		 * These tail-anchored regexps are insanely slow. The worst case comes
+		 * when Japanese or Chinese text (ie, no word spacing) is written on
+		 * a wiki configured for Western UTF-8 mode. The Unicode characters are
+		 * expanded to hex codes and the "words" are very long paragraph-length
+		 * monstrosities. On a large page the above regexps may take over 20
+		 * seconds *each* on a 1GHz-level processor.
+		 *
+		 * Following are reversed versions which are consistently fast
+		 * (about 3 milliseconds on 1GHz-level processor).
+		 */
 		$text = strrev( preg_replace( "/ s'([{$lc}]+)/", " s'\\1 \\1", strrev( $text ) ) );
 		$text = strrev( preg_replace( "/ 's([{$lc}]+)/", " s\\1", strrev( $text ) ) );
 
@@ -173,13 +176,30 @@ class SearchUpdate implements DeferrableUpdate {
 	}
 
 	/**
-	 * Get a string representation of a title suitable for
+	 * Get WikiPage for the SearchUpdate $id using WikiPage::READ_LATEST
+	 * and ensure using the same WikiPage object if there are multiple
+	 * SearchEngine types.
+	 *
+	 * Returns null if a page has been deleted or is not found.
+	 *
+	 * @return WikiPage|null
+	 */
+	private function getLatestPage() {
+		if ( !isset( $this->page ) ) {
+			$this->page = WikiPage::newFromID( $this->id, WikiPage::READ_LATEST );
+		}
+
+		return $this->page;
+	}
+
+	/**
+	 * Get a normalized string representation of a title suitable for
 	 * including in a search index
 	 *
 	 * @param SearchEngine $search
 	 * @return string A stripped-down title string ready for the search index
 	 */
-	private function indexTitle( SearchEngine $search ) {
+	private function getNormalizedTitle( SearchEngine $search ) {
 		global $wgContLang;
 
 		$ns = $this->title->getNamespace();
@@ -199,6 +219,7 @@ class SearchUpdate implements DeferrableUpdate {
 		if ( $ns == NS_FILE ) {
 			$t = preg_replace( "/ (png|gif|jpg|jpeg|ogg)$/", "", $t );
 		}
-		return trim( $t );
+
+		return $search->normalizeText( trim( $t ) );
 	}
 }

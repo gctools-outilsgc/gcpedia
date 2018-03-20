@@ -11,7 +11,9 @@
 			"Polda18",
 			"Tchoř",
 			"ශ්වෙත",
-			"Vojtěch Dostál"
+			"Vojtěch Dostál",
+			"Matěj Suchánek",
+			"Martin Urbanec"
 		]
 	},
 	"ooui-outline-control-move-down": "Přesunout položku dolů",
@@ -20,12 +22,15 @@
 	"ooui-toolbar-more": "Další",
 	"ooui-toolgroup-expand": "Více",
 	"ooui-toolgroup-collapse": "Méně",
+	"ooui-item-remove": "Odebrat",
 	"ooui-dialog-message-accept": "OK",
 	"ooui-dialog-message-reject": "Storno",
 	"ooui-dialog-process-error": "Něco se pokazilo",
 	"ooui-dialog-process-dismiss": "Zavřít",
 	"ooui-dialog-process-retry": "Zkusit znovu",
 	"ooui-dialog-process-continue": "Pokračovat",
+	"ooui-selectfile-button-select": "Vybrat soubor",
 	"ooui-selectfile-not-supported": "Výběr souboru není podporován",
-	"ooui-selectfile-placeholder": "Nebyl vybrán žádný soubor"
+	"ooui-selectfile-placeholder": "Nebyl vybrán žádný soubor",
+	"ooui-selectfile-dragdrop-placeholder": "Umístěte soubor sem"
 }

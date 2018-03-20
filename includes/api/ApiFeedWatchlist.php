@@ -52,22 +52,23 @@ class ApiFeedWatchlist extends ApiBase {
 	public function execute() {
 		$config = $this->getConfig();
 		$feedClasses = $config->get( 'FeedClasses' );
+		$params = [];
 		try {
 			$params = $this->extractRequestParams();
 
 			if ( !$config->get( 'Feed' ) ) {
-				$this->dieUsage( 'Syndication feeds are not available', 'feed-unavailable' );
+				$this->dieWithError( 'feed-unavailable' );
 			}
 
 			if ( !isset( $feedClasses[$params['feedformat']] ) ) {
-				$this->dieUsage( 'Invalid subscription feed type', 'feed-invalid' );
+				$this->dieWithError( 'feed-invalid' );
 			}
 
 			// limit to the number of hours going from now back
 			$endTime = wfTimestamp( TS_MW, time() - intval( $params['hours'] * 60 * 60 ) );
 
 			// Prepare parameters for nested request
-			$fauxReqArr = array(
+			$fauxReqArr = [
 				'action' => 'query',
 				'meta' => 'siteinfo',
 				'siprop' => 'general',
@@ -76,7 +77,7 @@ class ApiFeedWatchlist extends ApiBase {
 				'wldir' => 'older', // reverse order - from newest to oldest
 				'wlend' => $endTime, // stop at this time
 				'wllimit' => min( 50, $this->getConfig()->get( 'FeedLimit' ) )
-			);
+			];
 
 			if ( $params['wlowner'] !== null ) {
 				$fauxReqArr['wlowner'] = $params['wlowner'];
@@ -112,8 +113,8 @@ class ApiFeedWatchlist extends ApiBase {
 			$module = new ApiMain( $fauxReq );
 			$module->execute();
 
-			$data = $module->getResult()->getResultData( array( 'query', 'watchlist' ) );
-			$feedItems = array();
+			$data = $module->getResult()->getResultData( [ 'query', 'watchlist' ] );
+			$feedItems = [];
 			foreach ( (array)$data as $key => $info ) {
 				if ( ApiResult::isMetadataKey( $key ) ) {
 					continue;
@@ -151,15 +152,26 @@ class ApiFeedWatchlist extends ApiBase {
 			$msg = wfMessage( 'watchlist' )->inContentLanguage()->escaped();
 			$feed = new $feedClasses[$feedFormat] ( $feedTitle, $msg, $feedUrl );
 
-			if ( $e instanceof UsageException ) {
-				$errorCode = $e->getCodeString();
+			if ( $e instanceof ApiUsageException ) {
+				foreach ( $e->getStatusValue()->getErrors() as $error ) {
+					$msg = ApiMessage::create( $error )
+						->inLanguage( $this->getLanguage() );
+					$errorTitle = $this->msg( 'api-feed-error-title', $msg->getApiCode() );
+					$errorText = $msg->text();
+					$feedItems[] = new FeedItem( $errorTitle, $errorText, '', '', '' );
+				}
 			} else {
-				// Something is seriously wrong
-				$errorCode = 'internal_api_error';
+				if ( $e instanceof UsageException ) {
+					$errorCode = $e->getCodeString();
+				} else {
+					// Something is seriously wrong
+					$errorCode = 'internal_api_error';
+				}
+				$errorTitle = $this->msg( 'api-feed-error-title', $errorCode );
+				$errorText = $e->getMessage();
+				$feedItems[] = new FeedItem( $errorTitle, $errorText, '', '', '' );
 			}
 
-			$errorText = $e->getMessage();
-			$feedItems[] = new FeedItem( "Error ($errorCode)", $errorText, '', '', '' );
 			ApiFormatFeedWrapper::setResult( $this->getResult(), $feed, $feedItems );
 		}
 	}
@@ -176,20 +188,20 @@ class ApiFeedWatchlist extends ApiBase {
 
 		$titleStr = $info['title'];
 		$title = Title::newFromText( $titleStr );
-		$curidParam = array();
+		$curidParam = [];
 		if ( !$title || $title->isExternal() ) {
 			// Probably a formerly-valid title that's now conflicting with an
 			// interwiki prefix or the like.
 			if ( isset( $info['pageid'] ) ) {
-				$title = Title::newFromId( $info['pageid'] );
-				$curidParam = array( 'curid' => $info['pageid'] );
+				$title = Title::newFromID( $info['pageid'] );
+				$curidParam = [ 'curid' => $info['pageid'] ];
 			}
 			if ( !$title || $title->isExternal() ) {
 				return null;
 			}
 		}
 		if ( isset( $info['revid'] ) ) {
-			$titleUrl = $title->getFullURL( array( 'diff' => $info['revid'] ) );
+			$titleUrl = $title->getFullURL( [ 'diff' => $info['revid'] ] );
 		} else {
 			$titleUrl = $title->getFullURL( $curidParam );
 		}
@@ -233,37 +245,46 @@ class ApiFeedWatchlist extends ApiBase {
 
 	public function getAllowedParams( $flags = 0 ) {
 		$feedFormatNames = array_keys( $this->getConfig()->get( 'FeedClasses' ) );
-		$ret = array(
-			'feedformat' => array(
+		$ret = [
+			'feedformat' => [
 				ApiBase::PARAM_DFLT => 'rss',
 				ApiBase::PARAM_TYPE => $feedFormatNames
-			),
-			'hours' => array(
+			],
+			'hours' => [
 				ApiBase::PARAM_DFLT => 24,
 				ApiBase::PARAM_TYPE => 'integer',
 				ApiBase::PARAM_MIN => 1,
 				ApiBase::PARAM_MAX => 72,
-			),
+			],
 			'linktosections' => false,
-		);
+		];
 
-		$copyParams = array(
+		$copyParams = [
 			'allrev' => 'allrev',
 			'owner' => 'wlowner',
 			'token' => 'wltoken',
 			'show' => 'wlshow',
 			'type' => 'wltype',
 			'excludeuser' => 'wlexcludeuser',
-		);
+		];
 		if ( $flags ) {
 			$wlparams = $this->getWatchlistModule()->getAllowedParams( $flags );
 			foreach ( $copyParams as $from => $to ) {
 				$p = $wlparams[$from];
 				if ( !is_array( $p ) ) {
-					$p = array( ApiBase::PARAM_DFLT => $p );
+					$p = [ ApiBase::PARAM_DFLT => $p ];
 				}
 				if ( !isset( $p[ApiBase::PARAM_HELP_MSG] ) ) {
 					$p[ApiBase::PARAM_HELP_MSG] = "apihelp-query+watchlist-param-$from";
+				}
+				if ( isset( $p[ApiBase::PARAM_TYPE] ) && is_array( $p[ApiBase::PARAM_TYPE] ) &&
+					isset( $p[ApiBase::PARAM_HELP_MSG_PER_VALUE] )
+				) {
+					foreach ( $p[ApiBase::PARAM_TYPE] as $v ) {
+						if ( !isset( $p[ApiBase::PARAM_HELP_MSG_PER_VALUE][$v] ) ) {
+							$p[ApiBase::PARAM_HELP_MSG_PER_VALUE][$v] = "apihelp-query+watchlist-paramvalue-$from-$v";
+						}
+					}
 				}
 				$ret[$to] = $p;
 			}
@@ -277,15 +298,15 @@ class ApiFeedWatchlist extends ApiBase {
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=feedwatchlist'
 				=> 'apihelp-feedwatchlist-example-default',
 			'action=feedwatchlist&allrev=&hours=6'
 				=> 'apihelp-feedwatchlist-example-all6hrs',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Watchlist_feed';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Watchlist_feed';
 	}
 }

@@ -1,12 +1,15 @@
 <?php
 
+use Wikimedia\TestingAccessWrapper;
+
 class ExtensionProcessorTest extends MediaWikiTestCase {
 
-	private $dir;
+	private $dir, $dirname;
 
 	public function setUp() {
 		parent::setUp();
 		$this->dir = __DIR__ . '/FooBar/extension.json';
+		$this->dirname = dirname( $this->dir );
 	}
 
 	/**
@@ -14,9 +17,9 @@ class ExtensionProcessorTest extends MediaWikiTestCase {
 	 *
 	 * @var array
 	 */
-	public static $default = array(
+	public static $default = [
 		'name' => 'FooBar',
-	);
+	];
 
 	/**
 	 * @covers ExtensionProcessor::extractInfo
@@ -24,11 +27,11 @@ class ExtensionProcessorTest extends MediaWikiTestCase {
 	public function testExtractInfo() {
 		// Test that attributes that begin with @ are ignored
 		$processor = new ExtensionProcessor();
-		$processor->extractInfo( $this->dir, self::$default + array(
-			'@metadata' => array( 'foobarbaz' ),
-			'AnAttribute' => array( 'omg' ),
-			'AutoloadClasses' => array( 'FooBar' => 'includes/FooBar.php' ),
-		), 1 );
+		$processor->extractInfo( $this->dir, self::$default + [
+			'@metadata' => [ 'foobarbaz' ],
+			'AnAttribute' => [ 'omg' ],
+			'AutoloadClasses' => [ 'FooBar' => 'includes/FooBar.php' ],
+		], 1 );
 
 		$extracted = $processor->getExtractedInfo();
 		$attributes = $extracted['attributes'];
@@ -37,57 +40,115 @@ class ExtensionProcessorTest extends MediaWikiTestCase {
 		$this->assertArrayNotHasKey( 'AutoloadClasses', $attributes );
 	}
 
+	/**
+	 * @covers ExtensionProcessor::extractInfo
+	 */
+	public function testExtractInfo_namespaces() {
+		// Test that namespace IDs can be overwritten
+		if ( !defined( 'MW_EXTENSION_PROCESSOR_TEST_EXTRACT_INFO_X' ) ) {
+			define( 'MW_EXTENSION_PROCESSOR_TEST_EXTRACT_INFO_X', 123456 );
+		}
+
+		$processor = new ExtensionProcessor();
+		$processor->extractInfo( $this->dir, self::$default + [
+			'namespaces' => [
+				[
+					'id' => 332200,
+					'constant' => 'MW_EXTENSION_PROCESSOR_TEST_EXTRACT_INFO_A',
+					'name' => 'Test_A',
+					'content' => 'TestModel'
+				],
+				[ // Test_X will use ID 123456 not 334400
+					'id' => 334400,
+					'constant' => 'MW_EXTENSION_PROCESSOR_TEST_EXTRACT_INFO_X',
+					'name' => 'Test_X',
+					'content' => 'TestModel'
+				],
+			]
+		], 1 );
+
+		$extracted = $processor->getExtractedInfo();
+
+		$this->assertArrayHasKey(
+			'MW_EXTENSION_PROCESSOR_TEST_EXTRACT_INFO_A',
+			$extracted['defines']
+		);
+		$this->assertArrayNotHasKey(
+			'MW_EXTENSION_PROCESSOR_TEST_EXTRACT_INFO_X',
+			$extracted['defines']
+		);
+
+		$this->assertSame(
+			$extracted['defines']['MW_EXTENSION_PROCESSOR_TEST_EXTRACT_INFO_A'],
+			332200
+		);
+
+		$this->assertArrayHasKey( 'ExtensionNamespaces', $extracted['attributes'] );
+		$this->assertArrayHasKey( 123456, $extracted['attributes']['ExtensionNamespaces'] );
+		$this->assertArrayHasKey( 332200, $extracted['attributes']['ExtensionNamespaces'] );
+		$this->assertArrayNotHasKey( 334400, $extracted['attributes']['ExtensionNamespaces'] );
+
+		$this->assertSame( 'Test_X', $extracted['attributes']['ExtensionNamespaces'][123456] );
+		$this->assertSame( 'Test_A', $extracted['attributes']['ExtensionNamespaces'][332200] );
+	}
+
 	public static function provideRegisterHooks() {
-		$merge = array( ExtensionRegistry::MERGE_STRATEGY => 'array_merge_recursive' );
+		$merge = [ ExtensionRegistry::MERGE_STRATEGY => 'array_merge_recursive' ];
 		// Format:
 		// Current $wgHooks
 		// Content in extension.json
 		// Expected value of $wgHooks
-		return array(
+		return [
 			// No hooks
-			array(
-				array(),
+			[
+				[],
 				self::$default,
 				$merge,
-			),
-			// No current hooks, adding one for "FooBaz"
-			array(
-				array(),
-				array( 'Hooks' => array( 'FooBaz' => 'FooBazCallback' ) ) + self::$default,
-				array( 'FooBaz' => array( 'FooBazCallback' ) ) + $merge,
-			),
+			],
+			// No current hooks, adding one for "FooBaz" in string format
+			[
+				[],
+				[ 'Hooks' => [ 'FooBaz' => 'FooBazCallback' ] ] + self::$default,
+				[ 'FooBaz' => [ 'FooBazCallback' ] ] + $merge,
+			],
 			// Hook for "FooBaz", adding another one
-			array(
-				array( 'FooBaz' => array( 'PriorCallback' ) ),
-				array( 'Hooks' => array( 'FooBaz' => 'FooBazCallback' ) ) + self::$default,
-				array( 'FooBaz' => array( 'PriorCallback', 'FooBazCallback' ) ) + $merge,
-			),
+			[
+				[ 'FooBaz' => [ 'PriorCallback' ] ],
+				[ 'Hooks' => [ 'FooBaz' => 'FooBazCallback' ] ] + self::$default,
+				[ 'FooBaz' => [ 'PriorCallback', 'FooBazCallback' ] ] + $merge,
+			],
+			// No current hooks, adding one for "FooBaz" in verbose array format
+			[
+				[],
+				[ 'Hooks' => [ 'FooBaz' => [ 'FooBazCallback' ] ] ] + self::$default,
+				[ 'FooBaz' => [ 'FooBazCallback' ] ] + $merge,
+			],
 			// Hook for "BarBaz", adding one for "FooBaz"
-			array(
-				array( 'BarBaz' => array( 'BarBazCallback' ) ),
-				array( 'Hooks' => array( 'FooBaz' => 'FooBazCallback' ) ) + self::$default,
-				array(
-					'BarBaz' => array( 'BarBazCallback' ),
-					'FooBaz' => array( 'FooBazCallback' ),
-				) + $merge,
-			),
+			[
+				[ 'BarBaz' => [ 'BarBazCallback' ] ],
+				[ 'Hooks' => [ 'FooBaz' => 'FooBazCallback' ] ] + self::$default,
+				[
+					'BarBaz' => [ 'BarBazCallback' ],
+					'FooBaz' => [ 'FooBazCallback' ],
+				] + $merge,
+			],
 			// Callbacks for FooBaz wrapped in an array
-			array(
-				array(),
-				array( 'Hooks' => array( 'FooBaz' => array( 'Callback1' ) ) ) + self::$default,
-				array(
-					'FooBaz' => array( 'Callback1' ),
-				) + $merge,
-			),
+			[
+				[],
+				[ 'Hooks' => [ 'FooBaz' => [ 'Callback1' ] ] ] + self::$default,
+				[
+					'FooBaz' => [ 'Callback1' ],
+				] + $merge,
+			],
 			// Multiple callbacks for FooBaz hook
-			array(
-				array(),
-				array( 'Hooks' => array( 'FooBaz' => array( 'Callback1', 'Callback2' ) ) ) + self::$default,
-				array(
-					'FooBaz' => array( 'Callback1', 'Callback2' ),
-				) + $merge,
-			),
-		);
+			[
+				[],
+				[ 'Hooks' => [ 'FooBaz' => [ 'Callback1', 'Callback2' ] ] ] + self::$default,
+				[
+					'FooBaz' => [ 'Callback1', 'Callback2' ],
+				] + $merge,
+			],
+		];
 	}
 
 	/**
@@ -95,30 +156,31 @@ class ExtensionProcessorTest extends MediaWikiTestCase {
 	 * @dataProvider provideRegisterHooks
 	 */
 	public function testRegisterHooks( $pre, $info, $expected ) {
-		$processor = new MockExtensionProcessor( array( 'wgHooks' => $pre ) );
+		$processor = new MockExtensionProcessor( [ 'wgHooks' => $pre ] );
 		$processor->extractInfo( $this->dir, $info, 1 );
 		$extracted = $processor->getExtractedInfo();
 		$this->assertEquals( $expected, $extracted['globals']['wgHooks'] );
 	}
 
 	/**
-	 * @covers ExtensionProcessor::extractConfig
+	 * @covers ExtensionProcessor::extractConfig1
 	 */
-	public function testExtractConfig() {
+	public function testExtractConfig1() {
 		$processor = new ExtensionProcessor;
-		$info = array(
-			'config' => array(
+		$info = [
+			'config' => [
 				'Bar' => 'somevalue',
 				'Foo' => 10,
 				'@IGNORED' => 'yes',
-			),
-		) + self::$default;
-		$info2 = array(
-			'config' => array(
+			],
+		] + self::$default;
+		$info2 = [
+			'config' => [
 				'_prefix' => 'eg',
 				'Bar' => 'somevalue'
-			),
-		) + self::$default;
+			],
+			'name' => 'FooBar2',
+		];
 		$processor->extractInfo( $this->dir, $info, 1 );
 		$processor->extractInfo( $this->dir, $info2, 1 );
 		$extracted = $processor->getExtractedInfo();
@@ -129,35 +191,64 @@ class ExtensionProcessorTest extends MediaWikiTestCase {
 		$this->assertEquals( 'somevalue', $extracted['globals']['egBar'] );
 	}
 
-	public static function provideExtracttExtensionMessagesFiles() {
+	/**
+	 * @covers ExtensionProcessor::extractConfig2
+	 */
+	public function testExtractConfig2() {
+		$processor = new ExtensionProcessor;
+		$info = [
+			'config' => [
+				'Bar' => [ 'value' => 'somevalue' ],
+				'Foo' => [ 'value' => 10 ],
+				'Path' => [ 'value' => 'foo.txt', 'path' => true ],
+			],
+		] + self::$default;
+		$info2 = [
+			'config' => [
+				'Bar' => [ 'value' => 'somevalue' ],
+			],
+			'config_prefix' => 'eg',
+			'name' => 'FooBar2',
+		];
+		$processor->extractInfo( $this->dir, $info, 2 );
+		$processor->extractInfo( $this->dir, $info2, 2 );
+		$extracted = $processor->getExtractedInfo();
+		$this->assertEquals( 'somevalue', $extracted['globals']['wgBar'] );
+		$this->assertEquals( 10, $extracted['globals']['wgFoo'] );
+		$this->assertEquals( "{$this->dirname}/foo.txt", $extracted['globals']['wgPath'] );
+		// Custom prefix:
+		$this->assertEquals( 'somevalue', $extracted['globals']['egBar'] );
+	}
+
+	public static function provideExtractExtensionMessagesFiles() {
 		$dir = __DIR__ . '/FooBar/';
-		return array(
-			array(
-				array( 'ExtensionMessagesFiles' => array( 'FooBarAlias' => 'FooBar.alias.php' ) ),
-				array( 'wgExtensionMessagesFiles' => array( 'FooBarAlias' => $dir . 'FooBar.alias.php' ) )
-			),
-			array(
-				array(
-					'ExtensionMessagesFiles' => array(
+		return [
+			[
+				[ 'ExtensionMessagesFiles' => [ 'FooBarAlias' => 'FooBar.alias.php' ] ],
+				[ 'wgExtensionMessagesFiles' => [ 'FooBarAlias' => $dir . 'FooBar.alias.php' ] ]
+			],
+			[
+				[
+					'ExtensionMessagesFiles' => [
 						'FooBarAlias' => 'FooBar.alias.php',
 						'FooBarMagic' => 'FooBar.magic.i18n.php',
-					),
-				),
-				array(
-					'wgExtensionMessagesFiles' => array(
+					],
+				],
+				[
+					'wgExtensionMessagesFiles' => [
 						'FooBarAlias' => $dir . 'FooBar.alias.php',
 						'FooBarMagic' => $dir . 'FooBar.magic.i18n.php',
-					),
-				),
-			),
-		);
+					],
+				],
+			],
+		];
 	}
 
 	/**
-	 * @covers ExtensionProcessor::extracttExtensionMessagesFiles
-	 * @dataProvider provideExtracttExtensionMessagesFiles
+	 * @covers ExtensionProcessor::extractExtensionMessagesFiles
+	 * @dataProvider provideExtractExtensionMessagesFiles
 	 */
-	public function testExtracttExtensionMessagesFiles( $input, $expected ) {
+	public function testExtractExtensionMessagesFiles( $input, $expected ) {
 		$processor = new ExtensionProcessor();
 		$processor->extractInfo( $this->dir, $input + self::$default, 1 );
 		$out = $processor->getExtractedInfo();
@@ -166,19 +257,18 @@ class ExtensionProcessorTest extends MediaWikiTestCase {
 		}
 	}
 
-
 	public static function provideExtractMessagesDirs() {
 		$dir = __DIR__ . '/FooBar/';
-		return array(
-			array(
-				array( 'MessagesDirs' => array( 'VisualEditor' => 'i18n' ) ),
-				array( 'wgMessagesDirs' => array( 'VisualEditor' => array( $dir . 'i18n' ) ) )
-			),
-			array(
-				array( 'MessagesDirs' => array( 'VisualEditor' => array( 'i18n', 'foobar' ) ) ),
-				array( 'wgMessagesDirs' => array( 'VisualEditor' => array( $dir . 'i18n', $dir . 'foobar' ) ) )
-			),
-		);
+		return [
+			[
+				[ 'MessagesDirs' => [ 'VisualEditor' => 'i18n' ] ],
+				[ 'wgMessagesDirs' => [ 'VisualEditor' => [ $dir . 'i18n' ] ] ]
+			],
+			[
+				[ 'MessagesDirs' => [ 'VisualEditor' => [ 'i18n', 'foobar' ] ] ],
+				[ 'wgMessagesDirs' => [ 'VisualEditor' => [ $dir . 'i18n', $dir . 'foobar' ] ] ]
+			],
+		];
 	}
 
 	/**
@@ -195,6 +285,16 @@ class ExtensionProcessorTest extends MediaWikiTestCase {
 	}
 
 	/**
+	 * @covers ExtensionProcessor::extractCredits
+	 */
+	public function testExtractCredits() {
+		$processor = new ExtensionProcessor();
+		$processor->extractInfo( $this->dir, self::$default, 1 );
+		$this->setExpectedException( 'Exception' );
+		$processor->extractInfo( $this->dir, self::$default, 1 );
+	}
+
+	/**
 	 * @covers ExtensionProcessor::extractResourceLoaderModules
 	 * @dataProvider provideExtractResourceLoaderModules
 	 */
@@ -208,197 +308,291 @@ class ExtensionProcessorTest extends MediaWikiTestCase {
 	}
 
 	public static function provideExtractResourceLoaderModules() {
-		$dir = __DIR__ . '/FooBar/';
-		return array(
+		$dir = __DIR__ . '/FooBar';
+		return [
 			// Generic module with localBasePath/remoteExtPath specified
-			array(
+			[
 				// Input
-				array(
-					'ResourceModules' => array(
-						'test.foo' => array(
+				[
+					'ResourceModules' => [
+						'test.foo' => [
 							'styles' => 'foobar.js',
 							'localBasePath' => '',
 							'remoteExtPath' => 'FooBar',
-						),
-					),
-				),
+						],
+					],
+				],
 				// Expected
-				array(
-					'wgResourceModules' => array(
-						'test.foo' => array(
+				[
+					'wgResourceModules' => [
+						'test.foo' => [
 							'styles' => 'foobar.js',
 							'localBasePath' => $dir,
 							'remoteExtPath' => 'FooBar',
-						),
-					),
-				),
-			),
+						],
+					],
+				],
+			],
 			// ResourceFileModulePaths specified:
-			array(
+			[
 				// Input
-				array(
-					'ResourceFileModulePaths' => array(
+				[
+					'ResourceFileModulePaths' => [
 						'localBasePath' => '',
 						'remoteExtPath' => 'FooBar',
-					),
-					'ResourceModules' => array(
+					],
+					'ResourceModules' => [
 						// No paths
-						'test.foo' => array(
+						'test.foo' => [
 							'styles' => 'foo.js',
-						),
+						],
 						// Different paths set
-						'test.bar' => array(
+						'test.bar' => [
 							'styles' => 'bar.js',
 							'localBasePath' => 'subdir',
 							'remoteExtPath' => 'FooBar/subdir',
-						),
+						],
 						// Custom class with no paths set
-						'test.class' => array(
+						'test.class' => [
 							'class' => 'FooBarModule',
 							'extra' => 'argument',
-						),
+						],
 						// Custom class with a localBasePath
-						'test.class.with.path' => array(
+						'test.class.with.path' => [
 							'class' => 'FooBarPathModule',
 							'extra' => 'argument',
 							'localBasePath' => '',
-						)
-					),
-				),
+						]
+					],
+				],
 				// Expected
-				array(
-					'wgResourceModules' => array(
-						'test.foo' => array(
+				[
+					'wgResourceModules' => [
+						'test.foo' => [
 							'styles' => 'foo.js',
 							'localBasePath' => $dir,
 							'remoteExtPath' => 'FooBar',
-						),
-						'test.bar' => array(
+						],
+						'test.bar' => [
 							'styles' => 'bar.js',
-							'localBasePath' => $dir . 'subdir',
+							'localBasePath' => "$dir/subdir",
 							'remoteExtPath' => 'FooBar/subdir',
-						),
-						'test.class' => array(
+						],
+						'test.class' => [
 							'class' => 'FooBarModule',
 							'extra' => 'argument',
 							'localBasePath' => $dir,
 							'remoteExtPath' => 'FooBar',
-						),
-						'test.class.with.path' => array(
+						],
+						'test.class.with.path' => [
 							'class' => 'FooBarPathModule',
 							'extra' => 'argument',
 							'localBasePath' => $dir,
 							'remoteExtPath' => 'FooBar',
-						)
-					),
-				),
-			),
+						]
+					],
+				],
+			],
 			// ResourceModuleSkinStyles with file module paths
-			array(
+			[
 				// Input
-				array(
-					'ResourceFileModulePaths' => array(
+				[
+					'ResourceFileModulePaths' => [
 						'localBasePath' => '',
 						'remoteSkinPath' => 'FooBar',
-					),
-					'ResourceModuleSkinStyles' => array(
-						'foobar' => array(
+					],
+					'ResourceModuleSkinStyles' => [
+						'foobar' => [
 							'test.foo' => 'foo.css',
-						)
-					),
-				),
+						]
+					],
+				],
 				// Expected
-				array(
-					'wgResourceModuleSkinStyles' => array(
-						'foobar' => array(
+				[
+					'wgResourceModuleSkinStyles' => [
+						'foobar' => [
 							'test.foo' => 'foo.css',
 							'localBasePath' => $dir,
 							'remoteSkinPath' => 'FooBar',
-						),
-					),
-				),
-			),
+						],
+					],
+				],
+			],
 			// ResourceModuleSkinStyles with file module paths and an override
-			array(
+			[
 				// Input
-				array(
-					'ResourceFileModulePaths' => array(
+				[
+					'ResourceFileModulePaths' => [
 						'localBasePath' => '',
 						'remoteSkinPath' => 'FooBar',
-					),
-					'ResourceModuleSkinStyles' => array(
-						'foobar' => array(
+					],
+					'ResourceModuleSkinStyles' => [
+						'foobar' => [
 							'test.foo' => 'foo.css',
 							'remoteSkinPath' => 'BarFoo'
-						),
-					),
-				),
+						],
+					],
+				],
 				// Expected
-				array(
-					'wgResourceModuleSkinStyles' => array(
-						'foobar' => array(
+				[
+					'wgResourceModuleSkinStyles' => [
+						'foobar' => [
 							'test.foo' => 'foo.css',
 							'localBasePath' => $dir,
 							'remoteSkinPath' => 'BarFoo',
-						),
-					),
-				),
-			),
-		);
+						],
+					],
+				],
+			],
+		];
 	}
 
 	public static function provideSetToGlobal() {
-		return array(
-			array(
-				array( 'wgAPIModules', 'wgAvailableRights' ),
-				array(),
-				array(
-					'APIModules' => array( 'foobar' => 'ApiFooBar' ),
-					'AvailableRights' => array( 'foobar', 'unfoobar' ),
-				),
-				array(
-					'wgAPIModules' => array( 'foobar' => 'ApiFooBar' ),
-					'wgAvailableRights' => array( 'foobar', 'unfoobar' ),
-				),
-			),
-			array(
-				array( 'wgAPIModules', 'wgAvailableRights' ),
-				array(
-					'wgAPIModules' => array( 'barbaz' => 'ApiBarBaz' ),
-					'wgAvailableRights' => array( 'barbaz' )
-				),
-				array(
-					'APIModules' => array( 'foobar' => 'ApiFooBar' ),
-					'AvailableRights' => array( 'foobar', 'unfoobar' ),
-				),
-				array(
-					'wgAPIModules' => array( 'barbaz' => 'ApiBarBaz', 'foobar' => 'ApiFooBar' ),
-					'wgAvailableRights' => array( 'barbaz', 'foobar', 'unfoobar' ),
-				),
-			),
-			array(
-				array( 'wgGroupPermissions' ),
-				array(
-					'wgGroupPermissions' => array( 'sysop' => array( 'delete' ) ),
-				),
-				array(
-					'GroupPermissions' => array( 'sysop' => array( 'undelete' ), 'user' => array( 'edit' ) ),
-				),
-				array(
-					'wgGroupPermissions' => array( 'sysop' => array( 'delete', 'undelete' ), 'user' => array( 'edit' ) ),
-				)
-			)
+		return [
+			[
+				[ 'wgAPIModules', 'wgAvailableRights' ],
+				[],
+				[
+					'APIModules' => [ 'foobar' => 'ApiFooBar' ],
+					'AvailableRights' => [ 'foobar', 'unfoobar' ],
+				],
+				[
+					'wgAPIModules' => [ 'foobar' => 'ApiFooBar' ],
+					'wgAvailableRights' => [ 'foobar', 'unfoobar' ],
+				],
+			],
+			[
+				[ 'wgAPIModules', 'wgAvailableRights' ],
+				[
+					'wgAPIModules' => [ 'barbaz' => 'ApiBarBaz' ],
+					'wgAvailableRights' => [ 'barbaz' ]
+				],
+				[
+					'APIModules' => [ 'foobar' => 'ApiFooBar' ],
+					'AvailableRights' => [ 'foobar', 'unfoobar' ],
+				],
+				[
+					'wgAPIModules' => [ 'barbaz' => 'ApiBarBaz', 'foobar' => 'ApiFooBar' ],
+					'wgAvailableRights' => [ 'barbaz', 'foobar', 'unfoobar' ],
+				],
+			],
+			[
+				[ 'wgGroupPermissions' ],
+				[
+					'wgGroupPermissions' => [
+						'sysop' => [ 'delete' ]
+					],
+				],
+				[
+					'GroupPermissions' => [
+						'sysop' => [ 'undelete' ],
+						'user' => [ 'edit' ]
+					],
+				],
+				[
+					'wgGroupPermissions' => [
+						'sysop' => [ 'delete', 'undelete' ],
+						'user' => [ 'edit' ]
+					],
+				]
+			]
+		];
+	}
+
+	/**
+	 * Attributes under manifest_version 2
+	 *
+	 * @covers ExtensionProcessor::extractAttributes
+	 * @covers ExtensionProcessor::getExtractedInfo
+	 */
+	public function testExtractAttributes() {
+		$processor = new ExtensionProcessor();
+		// Load FooBar extension
+		$processor->extractInfo( $this->dir, [ 'name' => 'FooBar' ], 2 );
+		$processor->extractInfo(
+			$this->dir,
+			[
+				'name' => 'Baz',
+				'attributes' => [
+					// Loaded
+					'FooBar' => [
+						'Plugins' => [
+							'ext.baz.foobar',
+						],
+					],
+					// Not loaded
+					'FizzBuzz' => [
+						'MorePlugins' => [
+							'ext.baz.fizzbuzz',
+						],
+					],
+				],
+			],
+			2
 		);
+
+		$info = $processor->getExtractedInfo();
+		$this->assertArrayHasKey( 'FooBarPlugins', $info['attributes'] );
+		$this->assertSame( [ 'ext.baz.foobar' ], $info['attributes']['FooBarPlugins'] );
+		$this->assertArrayNotHasKey( 'FizzBuzzMorePlugins', $info['attributes'] );
+	}
+
+	/**
+	 * Attributes under manifest_version 1
+	 *
+	 * @covers ExtensionProcessor::extractInfo
+	 */
+	public function testAttributes1() {
+		$processor = new ExtensionProcessor();
+		$processor->extractInfo(
+			$this->dir,
+			[
+				'name' => 'FooBar',
+				'FooBarPlugins' => [
+					'ext.baz.foobar',
+				],
+				'FizzBuzzMorePlugins' => [
+					'ext.baz.fizzbuzz',
+				],
+			],
+			1
+		);
+
+		$info = $processor->getExtractedInfo();
+		$this->assertArrayHasKey( 'FooBarPlugins', $info['attributes'] );
+		$this->assertSame( [ 'ext.baz.foobar' ], $info['attributes']['FooBarPlugins'] );
+		$this->assertArrayHasKey( 'FizzBuzzMorePlugins', $info['attributes'] );
+		$this->assertSame( [ 'ext.baz.fizzbuzz' ], $info['attributes']['FizzBuzzMorePlugins'] );
+	}
+
+	public function testGlobalSettingsDocumentedInSchema() {
+		global $IP;
+		$globalSettings = TestingAccessWrapper::newFromClass(
+			ExtensionProcessor::class )->globalSettings;
+
+		$version = ExtensionRegistry::MANIFEST_VERSION;
+		$schema = FormatJson::decode(
+			file_get_contents( "$IP/docs/extension.schema.v$version.json" ),
+			true
+		);
+		$missing = [];
+		foreach ( $globalSettings as $global ) {
+			if ( !isset( $schema['properties'][$global] ) ) {
+				$missing[] = $global;
+			}
+		}
+
+		$this->assertEquals( [], $missing,
+			"The following global settings are not documented in docs/extension.schema.json" );
 	}
 }
-
 
 /**
  * Allow overriding the default value of $this->globals
  * so we can test merging
  */
 class MockExtensionProcessor extends ExtensionProcessor {
-	public function __construct( $globals = array() ) {
+	public function __construct( $globals = [] ) {
 		$this->globals = $globals + $this->globals;
 	}
 }

@@ -19,6 +19,7 @@
  *
  * @file
  */
+use Wikimedia\Rdbms\LikeMatch;
 
 /**
  * Some functions to help implement an external link filter for spam control.
@@ -41,7 +42,7 @@ class LinkFilter {
 	 */
 	static function matchEntry( Content $content, $filterEntry ) {
 		if ( !( $content instanceof TextContent ) ) {
-			//TODO: handle other types of content too.
+			// TODO: handle other types of content too.
 			//      Maybe create ContentHandler::matchFilter( LinkFilter ).
 			//      Think about a common base class for LinkFilter and MagicWord.
 			return 0;
@@ -49,7 +50,7 @@ class LinkFilter {
 
 		$text = $content->getNativeData();
 
-		$regex = LinkFilter::makeRegex( $filterEntry );
+		$regex = self::makeRegex( $filterEntry );
 		return preg_match( $regex, $text );
 	}
 
@@ -71,7 +72,7 @@ class LinkFilter {
 	}
 
 	/**
-	 * Make an array to be used for calls to DatabaseBase::buildLike(), which
+	 * Make an array to be used for calls to Database::buildLike(), which
 	 * will match the specified string. There are several kinds of filter entry:
 	 *     *.domain.com    -  Produces http://com.domain.%, matches domain.com
 	 *                        and www.domain.com
@@ -89,10 +90,10 @@ class LinkFilter {
 	 *
 	 * @param string $filterEntry Domainparts
 	 * @param string $protocol Protocol (default http://)
-	 * @return array Array to be passed to DatabaseBase::buildLike() or false on error
+	 * @return array|bool Array to be passed to Database::buildLike() or false on error
 	 */
 	public static function makeLikeArray( $filterEntry, $protocol = 'http://' ) {
-		$db = wfGetDB( DB_SLAVE );
+		$db = wfGetDB( DB_REPLICA );
 
 		$target = $protocol . $filterEntry;
 		$bits = wfParseUrl( $target );

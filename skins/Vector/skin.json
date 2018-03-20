@@ -10,6 +10,9 @@
 	"namemsg": "skinname-vector",
 	"license-name": "GPL-2.0+",
 	"type": "skin",
+	"requires": {
+		"MediaWiki": ">= 1.29.0"
+	},
 	"ConfigRegistry": {
 		"vector": "GlobalVarConfig::newInstance"
 	},
@@ -22,12 +25,20 @@
 		]
 	},
 	"AutoloadClasses": {
+		"VectorHooks": "Hooks.php",
 		"SkinVector": "SkinVector.php",
-		"VectorTemplate": "VectorTemplate.php"
+		"VectorTemplate": "VectorTemplate.php",
+		"Vector\\ResourceLoaderLessModule": "ResourceLoaderLessModule.php"
+	},
+	"Hooks": {
+		"BeforePageDisplayMobile": [
+			"VectorHooks::onBeforePageDisplayMobile"
+		]
 	},
 	"@note": "When modifying skins.vector.styles definition, make sure the installer still works",
 	"ResourceModules": {
 		"skins.vector.styles": {
+			"targets": [ "desktop", "mobile" ],
 			"position": "top",
 			"styles": {
 				"screen.less": {
@@ -38,13 +49,20 @@
 				}
 			}
 		},
-		"skins.vector.styles.responsive": {
+		"skins.vector.styles.experimental.print": {
+			"class": "Vector\\ResourceLoaderLessModule",
+			"targets": [ "desktop", "mobile" ],
 			"position": "top",
-			"styles": {
-				"responsive.less": {
-					"media": "screen and (max-width: 768px)"
-				}
-			}
+			"styles": [
+				"print.less"
+			]
+		},
+		"skins.vector.styles.responsive": {
+			"targets": [ "desktop", "mobile" ],
+			"position": "top",
+			"styles": [
+				"responsive.less"
+			]
 		},
 		"skins.vector.js": {
 			"scripts": [
@@ -82,17 +100,20 @@
 			"jquery.ui.spinner": "skinStyles/jquery.ui/jquery.ui.spinner.css",
 			"jquery.ui.tabs": "skinStyles/jquery.ui/jquery.ui.tabs.css",
 			"jquery.ui.tooltips": "skinStyles/jquery.ui/jquery.ui.tooltips.css",
+			"+mediawiki.action.view.redirectPage": "skinStyles/mediawiki.action.view.redirectPage.less",
 			"+mediawiki.notification": "skinStyles/mediawiki.notification.less",
-			"+mediawiki.sectionAnchor": "skinStyles/mediawiki.sectionAnchor.less",
-			"ooui": "skinStyles/ooui.less",
+			"+oojs-ui-core.styles": "skinStyles/ooui.less",
 			"mediawiki.special": "skinStyles/mediawiki.special.less",
-			"mediawiki.special.preferences": "skinStyles/mediawiki.special.preferences.less"
+			"+mediawiki.special.preferences.styles": "skinStyles/mediawiki.special.preferences.styles.less"
 		}
 	},
 	"config": {
 		"VectorUseSimpleSearch": true,
 		"VectorUseIconWatch": true,
-		"VectorResponsive": false
+		"@VectorExperimentalPrintStyles": "Temporary config variable to feature flag new print styles (T154965)",
+		"VectorExperimentalPrintStyles": false,
+		"VectorResponsive": false,
+		"VectorPrintLogo": false
 	},
 	"manifest_version": 1
 }

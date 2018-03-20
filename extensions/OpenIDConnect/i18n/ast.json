@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Xuacu"
+		]
+	},
+	"openidconnect-desc": "Ufre autenticación usando OpenID Connect en conxunto con PluggableAuth",
+	"selectopenidconnectissuer": "Seleicionar el Fornidor d'Autenticación"
+}

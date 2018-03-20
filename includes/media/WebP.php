@@ -63,9 +63,9 @@ class WebPHandler extends BitmapHandler {
 				return self::METADATA_GOOD;
 		}
 
-		wfSuppressWarnings();
+		MediaWiki\suppressWarnings();
 		$data = unserialize( $metadata );
-		wfRestoreWarnings();
+		MediaWiki\restoreWarnings();
 
 		if ( !$data || !is_array( $data ) ) {
 				wfDebug( __METHOD__ . " invalid WebP metadata\n" );
@@ -86,7 +86,7 @@ class WebPHandler extends BitmapHandler {
 	/**
 	 * Extracts the image size and WebP type from a file
 	 *
-	 * @param string $chunks Chunks as extracted by RiffExtractor
+	 * @param string $filename
 	 * @return array|bool Header data array with entries 'compression', 'width' and 'height',
 	 * where 'compression' can be 'lossy', 'lossless', 'animated' or 'unknown'. False if
 	 * file is not a valid WebP file.
@@ -102,7 +102,7 @@ class WebPHandler extends BitmapHandler {
 
 		if ( $info['fourCC'] != 'WEBP' ) {
 			wfDebugLog( 'WebP', __METHOD__ . ': FourCC was not WEBP: ' .
-				bin2hex( $info['fourCC'] ) .  " \n" );
+				bin2hex( $info['fourCC'] ) . " \n" );
 			return false;
 		}
 
@@ -118,14 +118,15 @@ class WebPHandler extends BitmapHandler {
 	/**
 	 * Extracts the image size and WebP type from a file based on the chunk list
 	 * @param array $chunks Chunks as extracted by RiffExtractor
+	 * @param string $filename
 	 * @return array Header data array with entries 'compression', 'width' and 'height', where
 	 * 'compression' can be 'lossy', 'lossless', 'animated' or 'unknown'
 	 */
 	public static function extractMetadataFromChunks( $chunks, $filename ) {
-		$vp8Info = array();
+		$vp8Info = [];
 
 		foreach ( $chunks as $chunk ) {
-			if ( !in_array( $chunk['fourCC'], array( 'VP8 ', 'VP8L', 'VP8X' ) ) ) {
+			if ( !in_array( $chunk['fourCC'], [ 'VP8 ', 'VP8L', 'VP8X' ] ) ) {
 				// Not a chunk containing interesting metadata
 				continue;
 			}
@@ -154,7 +155,7 @@ class WebPHandler extends BitmapHandler {
 	/**
 	 * Decodes a lossy chunk header
 	 * @param string $header Header string
-	 * @return boolean|array See WebPHandler::decodeHeader
+	 * @return bool|array See WebPHandler::decodeHeader
 	 */
 	protected static function decodeLossyChunkHeader( $header ) {
 		// Bytes 0-3 are 'VP8 '
@@ -165,47 +166,47 @@ class WebPHandler extends BitmapHandler {
 		if ( $syncCode != "\x9D\x01\x2A" ) {
 			wfDebugLog( 'WebP', __METHOD__ . ': Invalid sync code: ' .
 				bin2hex( $syncCode ) . "\n" );
-			return array();
+			return [];
 		}
 		// Bytes 14-17 are image size
 		$imageSize = unpack( 'v2', substr( $header, 14, 4 ) );
 		// Image sizes are 14 bit, 2 MSB are scaling parameters which are ignored here
-		return array(
+		return [
 			'compression' => 'lossy',
 			'width' => $imageSize[1] & 0x3FFF,
 			'height' => $imageSize[2] & 0x3FFF
-		);
+		];
 	}
 
 	/**
 	 * Decodes a lossless chunk header
 	 * @param string $header Header string
-	 * @return boolean|array See WebPHandler::decodeHeader
+	 * @return bool|array See WebPHandler::decodeHeader
 	 */
 	public static function decodeLosslessChunkHeader( $header ) {
 		// Bytes 0-3 are 'VP8L'
 		// Bytes 4-7 are chunk stream size
 		// Byte 8 is 0x2F called the signature
 		if ( $header{8} != "\x2F" ) {
-			wfDebugLog( 'WebP',  __METHOD__ . ': Invalid signature: ' .
+			wfDebugLog( 'WebP', __METHOD__ . ': Invalid signature: ' .
 				bin2hex( $header{8} ) . "\n" );
-			return array();
+			return [];
 		}
 		// Bytes 9-12 contain the image size
 		// Bits 0-13 are width-1; bits 15-27 are height-1
 		$imageSize = unpack( 'C4', substr( $header, 9, 4 ) );
-		return array(
+		return [
 				'compression' => 'lossless',
 				'width' => ( $imageSize[1] | ( ( $imageSize[2] & 0x3F ) << 8 ) ) + 1,
 				'height' => ( ( ( $imageSize[2] & 0xC0 ) >> 6 ) |
 						( $imageSize[3] << 2 ) | ( ( $imageSize[4] & 0x03 ) << 10 ) ) + 1
-		);
+		];
 	}
 
 	/**
 	 * Decodes an extended chunk header
 	 * @param string $header Header string
-	 * @return boolean|array See WebPHandler::decodeHeader
+	 * @return bool|array See WebPHandler::decodeHeader
 	 */
 	public static function decodeExtendedChunkHeader( $header ) {
 		// Bytes 0-3 are 'VP8X'
@@ -217,35 +218,35 @@ class WebPHandler extends BitmapHandler {
 		$width = unpack( 'V', substr( $header, 12, 3 ) . "\x00" );
 		$height = unpack( 'V', substr( $header, 15, 3 ) . "\x00" );
 
-		return array(
+		return [
 			'compression' => 'unknown',
 			'animated' => ( $flags[1] & self::VP8X_ANIM ) == self::VP8X_ANIM,
 			'transparency' => ( $flags[1] & self::VP8X_ALPHA ) == self::VP8X_ALPHA,
 			'width' => ( $width[1] & 0xFFFFFF ) + 1,
 			'height' => ( $height[1] & 0xFFFFFF ) + 1
-		);
+		];
 	}
 
 	public function getImageSize( $file, $path, $metadata = false ) {
 		if ( $file === null ) {
 			$metadata = self::getMetadata( $file, $path );
 		}
-		if ( $metadata === false ) {
+		if ( $metadata === false && $file instanceof File ) {
 			$metadata = $file->getMetadata();
 		}
 
-		wfSuppressWarnings();
+		MediaWiki\suppressWarnings();
 		$metadata = unserialize( $metadata );
-		wfRestoreWarnings();
+		MediaWiki\restoreWarnings();
 
 		if ( $metadata == false ) {
 			return false;
 		}
-		return array( $metadata['width'], $metadata['height'] );
+		return [ $metadata['width'], $metadata['height'] ];
 	}
 
 	/**
-	 * @param $file
+	 * @param File $file
 	 * @return bool True, not all browsers support WebP
 	 */
 	public function mustRender( $file ) {
@@ -253,7 +254,7 @@ class WebPHandler extends BitmapHandler {
 	}
 
 	/**
-	 * @param $file
+	 * @param File $file
 	 * @return bool False if we are unable to render this image
 	 */
 	public function canRender( $file ) {
@@ -286,18 +287,20 @@ class WebPHandler extends BitmapHandler {
 	/**
 	 * Render files as PNG
 	 *
-	 * @param $ext
-	 * @param $mime
-	 * @param $params
+	 * @param string $ext
+	 * @param string $mime
+	 * @param array|null $params
 	 * @return array
 	 */
 	public function getThumbType( $ext, $mime, $params = null ) {
-		return array( 'png', 'image/png' );
+		return [ 'png', 'image/png' ];
 	}
 
 	/**
 	 * Must use "im" for XCF
 	 *
+	 * @param string $dstPath
+	 * @param bool $checkDstPath
 	 * @return string
 	 */
 	protected function getScalerType( $dstPath, $checkDstPath = true ) {

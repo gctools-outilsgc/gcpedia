@@ -31,10 +31,10 @@ class ParsoidVirtualRESTService extends VirtualRESTService {
 	 *   * body: array( 'html' => ... )
 	 *   * $title and $revision are optional
 	 *  POST /local/v3/transform/wikitext/to/html/{$title}{/$revision}
-	 *   * body: array( 'wikitext' => ... ) or array( 'wikitext' => ..., 'bodyOnly' => true/false )
+	 *   * body: array( 'wikitext' => ... ) or array( 'wikitext' => ..., 'body_only' => true/false )
 	 *   * $title is optional
 	 *   * $revision is optional
-     *
+	 *
 	 * There are also deprecated "v1" requests; see onParsoid1Request
 	 * for details.
 	 * @param array $params Key/value map
@@ -53,20 +53,19 @@ class ParsoidVirtualRESTService extends VirtualRESTService {
 			unset( $params['URL'] );
 		}
 		// set up defaults and merge them with the given params
-		$mparams = array_merge( array(
+		$mparams = array_merge( [
 			'name' => 'parsoid',
 			'url' => 'http://localhost:8000/',
 			'prefix' => 'localhost',
 			'domain' => 'localhost',
+			'timeout' => null,
 			'forwardCookies' => false,
 			'HTTPProxy' => null,
-		), $params );
+		], $params );
 		// Ensure that the url parameter has a trailing slash.
-		$mparams['url'] = preg_replace(
-			'#/?$#',
-			'/',
-			$mparams['url']
-		);
+		if ( substr( $mparams['url'], -1 ) !== '/' ) {
+			$mparams['url'] .= '/';
+		}
 		// Ensure the correct domain format: strip protocol, port,
 		// and trailing slash if present.  This lets us use
 		// $wgCanonicalServer as a default value, which is very convenient.
@@ -79,7 +78,7 @@ class ParsoidVirtualRESTService extends VirtualRESTService {
 	}
 
 	public function onRequests( array $reqs, Closure $idGeneratorFunc ) {
-		$result = array();
+		$result = [];
 		foreach ( $reqs as $key => $req ) {
 			$parts = explode( '/', $req['url'] );
 
@@ -103,7 +102,6 @@ class ParsoidVirtualRESTService extends VirtualRESTService {
 				continue;
 			}
 			if ( $targetWiki !== 'local' ) {
-
 				throw new Exception( "Only 'local' target wiki is currently supported" );
 			}
 			if ( $reqType !== 'page' && $reqType !== 'transform' ) {
@@ -148,9 +146,12 @@ class ParsoidVirtualRESTService extends VirtualRESTService {
 	 * Visual Editor "pretends" the V1 API is like.  A previous version of
 	 * ParsoidVirtualRESTService translated these to the "real" Parsoid v1
 	 * API.  We now translate these to the "real" Parsoid v3 API.
+	 * @param array $req
+	 * @param Closure $idGeneratorFunc
+	 * @return array
+	 * @throws Exception
 	 */
 	public function onParsoid1Request( array $req, Closure $idGeneratorFunc ) {
-
 		$parts = explode( '/', $req['url'] );
 		list(
 			$targetWiki, // 'local'
@@ -202,7 +203,7 @@ class ParsoidVirtualRESTService extends VirtualRESTService {
 					throw new Exception( "You must set a 'wikitext' body key for this request" );
 				}
 				if ( isset( $req['body']['body'] ) ) {
-					$req['body']['bodyOnly'] = $req['body']['body'];
+					$req['body']['body_only'] = $req['body']['body'];
 					unset( $req['body']['body'] );
 				}
 			} else {
@@ -221,7 +222,6 @@ class ParsoidVirtualRESTService extends VirtualRESTService {
 		}
 
 		return $req;
-
 	}
 
 }

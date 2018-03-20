@@ -12,18 +12,22 @@ SET client_min_messages = 'ERROR';
 DROP SEQUENCE IF EXISTS user_user_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS page_page_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS revision_rev_id_seq CASCADE;
+DROP SEQUENCE IF EXISTS comment_comment_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS text_old_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS page_restrictions_pr_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS ipblocks_ipb_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS filearchive_fa_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS uploadstash_us_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS recentchanges_rc_id_seq CASCADE;
+DROP SEQUENCE IF EXISTS watchlist_wl_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS logging_log_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS job_job_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS category_cat_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS archive_ar_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS externallinks_el_id_seq CASCADE;
 DROP SEQUENCE IF EXISTS sites_site_id_seq CASCADE;
+DROP SEQUENCE IF EXISTS change_tag_ct_id_seq CASCADE;
+DROP SEQUENCE IF EXISTS tag_summary_ts_id_seq CASCADE;
 DROP FUNCTION IF EXISTS page_deleted() CASCADE;
 DROP FUNCTION IF EXISTS ts2_page_title() CASCADE;
 DROP FUNCTION IF EXISTS ts2_page_text() CASCADE;
@@ -55,10 +59,13 @@ INSERT INTO mwuser
   VALUES (DEFAULT,'Anonymous','',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,now(),now());
 
 CREATE TABLE user_groups (
-  ug_user   INTEGER      NULL  REFERENCES mwuser(user_id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
-  ug_group  TEXT     NOT NULL
+  ug_user    INTEGER          NULL  REFERENCES mwuser(user_id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
+  ug_group   TEXT         NOT NULL,
+  ug_expiry  TIMESTAMPTZ  NULL,
+  PRIMARY KEY(ug_user, ug_group)
 );
-CREATE UNIQUE INDEX user_groups_unique ON user_groups (ug_user, ug_group);
+CREATE INDEX user_groups_group  ON user_groups (ug_group);
+CREATE INDEX user_groups_expiry ON user_groups (ug_expiry);
 
 CREATE TABLE user_former_groups (
   ufg_user   INTEGER      NULL  REFERENCES mwuser(user_id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
@@ -74,6 +81,15 @@ CREATE TABLE user_newtalk (
 CREATE INDEX user_newtalk_id_idx ON user_newtalk (user_id);
 CREATE INDEX user_newtalk_ip_idx ON user_newtalk (user_ip);
 
+CREATE TABLE bot_passwords (
+  bp_user INTEGER NOT NULL,
+  bp_app_id TEXT NOT NULL,
+  bp_password TEXT NOT NULL,
+  bp_token TEXT NOT NULL,
+  bp_restrictions TEXT NOT NULL,
+  bp_grants TEXT NOT NULL,
+  PRIMARY KEY ( bp_user, bp_app_id )
+);
 
 CREATE SEQUENCE page_page_id_seq;
 CREATE TABLE page (
@@ -117,7 +133,7 @@ CREATE TABLE revision (
   rev_id             INTEGER      NOT NULL  UNIQUE DEFAULT nextval('revision_rev_id_seq'),
   rev_page           INTEGER          NULL  REFERENCES page (page_id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
   rev_text_id        INTEGER          NULL, -- FK
-  rev_comment        TEXT,
+  rev_comment        TEXT         NOT NULL DEFAULT '',
   rev_user           INTEGER      NOT NULL  REFERENCES mwuser(user_id) ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
   rev_user_text      TEXT         NOT NULL,
   rev_timestamp      TIMESTAMPTZ  NOT NULL,
@@ -135,6 +151,23 @@ CREATE INDEX rev_timestamp_idx      ON revision (rev_timestamp);
 CREATE INDEX rev_user_idx           ON revision (rev_user);
 CREATE INDEX rev_user_text_idx      ON revision (rev_user_text);
 
+CREATE TABLE revision_comment_temp (
+	revcomment_rev        INTEGER NOT NULL,
+	revcomment_comment_id INTEGER NOT NULL,
+	PRIMARY KEY (revcomment_rev, revcomment_comment_id)
+);
+CREATE UNIQUE INDEX revcomment_rev ON revision_comment_temp (revcomment_rev);
+
+CREATE SEQUENCE ip_changes_ipc_rev_id_seq;
+
+CREATE TABLE ip_changes (
+  ipc_rev_id        INTEGER PRIMARY KEY NOT NULL DEFAULT nextval('ip_changes_ipc_rev_id_seq'),
+  ipc_rev_timestamp TIMESTAMPTZ NOT NULL,
+  ipc_hex           BYTEA NOT NULL DEFAULT ''
+);
+
+CREATE INDEX ipc_rev_timestamp ON ip_changes (ipc_rev_timestamp);
+CREATE INDEX ipc_hex_time ON ip_changes (ipc_hex,ipc_rev_timestamp);
 
 CREATE SEQUENCE text_old_id_seq;
 CREATE TABLE pagecontent ( -- replaces reserved word 'text'
@@ -142,6 +175,16 @@ CREATE TABLE pagecontent ( -- replaces reserved word 'text'
   old_text   TEXT,
   old_flags  TEXT
 );
+
+
+CREATE SEQUENCE comment_comment_id_seq;
+CREATE TABLE comment (
+  comment_id   INTEGER NOT NULL PRIMARY KEY DEFAULT nextval('comment_comment_id_seq'),
+  comment_hash INTEGER NOT NULL,
+  comment_text TEXT    NOT NULL,
+  comment_data TEXT
+);
+CREATE INDEX comment_hash ON comment (comment_hash);
 
 
 CREATE SEQUENCE page_restrictions_pr_id_seq;
@@ -176,7 +219,8 @@ CREATE TABLE archive (
   ar_page_id        INTEGER          NULL,
   ar_parent_id      INTEGER          NULL,
   ar_sha1           TEXT         NOT NULL DEFAULT '',
-  ar_comment        TEXT,
+  ar_comment        TEXT         NOT NULL DEFAULT '',
+  ar_comment_id     INTEGER      NOT NULL DEFAULT 0,
   ar_user           INTEGER          NULL  REFERENCES mwuser(user_id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED,
   ar_user_text      TEXT         NOT NULL,
   ar_timestamp      TIMESTAMPTZ  NOT NULL,
@@ -242,13 +286,16 @@ CREATE INDEX cl_sortkey     ON categorylinks (cl_to, cl_sortkey, cl_from);
 
 CREATE SEQUENCE externallinks_el_id_seq;
 CREATE TABLE externallinks (
-  el_id     INTEGER  NOT NULL  PRIMARY KEY DEFAULT nextval('externallinks_el_id_seq'),
-  el_from   INTEGER  NOT NULL  REFERENCES page(page_id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
-  el_to     TEXT     NOT NULL,
-  el_index  TEXT     NOT NULL
+  el_id       INTEGER     NOT NULL  PRIMARY KEY DEFAULT nextval('externallinks_el_id_seq'),
+  el_from     INTEGER     NOT NULL  REFERENCES page(page_id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
+  el_to       TEXT        NOT NULL,
+  el_index    TEXT        NOT NULL,
+  el_index_60 BYTEA       NOT NULL  DEFAULT ''
 );
 CREATE INDEX externallinks_from_to ON externallinks (el_from,el_to);
 CREATE INDEX externallinks_index   ON externallinks (el_index);
+CREATE INDEX el_index_60           ON externallinks (el_index_60, el_id);
+CREATE INDEX el_from_index_60      ON externallinks (el_from, el_index_60, el_id);
 
 CREATE TABLE langlinks (
   ll_from    INTEGER  NOT NULL  REFERENCES page (page_id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
@@ -260,7 +307,7 @@ CREATE INDEX langlinks_lang_title    ON langlinks (ll_lang,ll_title);
 
 
 CREATE TABLE site_stats (
-  ss_row_id         INTEGER  NOT NULL  UNIQUE,
+  ss_row_id         INTEGER  NOT NULL  PRIMARY KEY DEFAULT 0,
   ss_total_edits    INTEGER            DEFAULT 0,
   ss_good_articles  INTEGER            DEFAULT 0,
   ss_total_pages    INTEGER            DEFAULT -1,
@@ -278,7 +325,8 @@ CREATE TABLE ipblocks (
   ipb_user              INTEGER          NULL  REFERENCES mwuser(user_id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED,
   ipb_by                INTEGER      NOT NULL  REFERENCES mwuser(user_id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
   ipb_by_text           TEXT         NOT NULL  DEFAULT '',
-  ipb_reason            TEXT         NOT NULL,
+  ipb_reason            TEXT         NOT NULL  DEFAULT '',
+  ipb_reason_id         INTEGER      NOT NULL  DEFAULT 0,
   ipb_timestamp         TIMESTAMPTZ  NOT NULL,
   ipb_auto              SMALLINT     NOT NULL  DEFAULT 0,
   ipb_anon_only         SMALLINT     NOT NULL  DEFAULT 0,
@@ -309,7 +357,7 @@ CREATE TABLE image (
   img_media_type   TEXT,
   img_major_mime   TEXT                DEFAULT 'unknown',
   img_minor_mime   TEXT                DEFAULT 'unknown',
-  img_description  TEXT      NOT NULL,
+  img_description  TEXT      NOT NULL  DEFAULT '',
   img_user         INTEGER       NULL  REFERENCES mwuser(user_id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED,
   img_user_text    TEXT      NOT NULL,
   img_timestamp    TIMESTAMPTZ,
@@ -319,6 +367,13 @@ CREATE INDEX img_size_idx      ON image (img_size);
 CREATE INDEX img_timestamp_idx ON image (img_timestamp);
 CREATE INDEX img_sha1          ON image (img_sha1);
 
+CREATE TABLE image_comment_temp (
+	imgcomment_name       TEXT NOT NULL,
+	imgcomment_description_id INTEGER NOT NULL,
+	PRIMARY KEY (imgcomment_name, imgcomment_description_id)
+);
+CREATE UNIQUE INDEX imgcomment_name ON image_comment_temp (imgcomment_name);
+
 CREATE TABLE oldimage (
   oi_name          TEXT         NOT NULL,
   oi_archive_name  TEXT         NOT NULL,
@@ -326,7 +381,8 @@ CREATE TABLE oldimage (
   oi_width         INTEGER      NOT NULL,
   oi_height        INTEGER      NOT NULL,
   oi_bits          SMALLINT         NULL,
-  oi_description   TEXT,
+  oi_description   TEXT         NOT NULL DEFAULT '',
+  oi_description_id INTEGER     NOT NULL DEFAULT 0,
   oi_user          INTEGER          NULL  REFERENCES mwuser(user_id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED,
   oi_user_text     TEXT         NOT NULL,
   oi_timestamp     TIMESTAMPTZ      NULL,
@@ -352,7 +408,8 @@ CREATE TABLE filearchive (
   fa_storage_key        TEXT,
   fa_deleted_user       INTEGER          NULL  REFERENCES mwuser(user_id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED,
   fa_deleted_timestamp  TIMESTAMPTZ  NOT NULL,
-  fa_deleted_reason     TEXT,
+  fa_deleted_reason     TEXT         NOT NULL  DEFAULT '',
+  fa_deleted_reason_id  INTEGER      NOT NULL  DEFAULT 0,
   fa_size               INTEGER      NOT NULL,
   fa_width              INTEGER      NOT NULL,
   fa_height             INTEGER      NOT NULL,
@@ -361,7 +418,8 @@ CREATE TABLE filearchive (
   fa_media_type         TEXT,
   fa_major_mime         TEXT                   DEFAULT 'unknown',
   fa_minor_mime         TEXT                   DEFAULT 'unknown',
-  fa_description        TEXT         NOT NULL,
+  fa_description        TEXT         NOT NULL DEFAULT '',
+  fa_description_id     INTEGER      NOT NULL DEFAULT 0,
   fa_user               INTEGER          NULL  REFERENCES mwuser(user_id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED,
   fa_user_text          TEXT         NOT NULL,
   fa_timestamp          TIMESTAMPTZ,
@@ -375,7 +433,7 @@ CREATE INDEX fa_nouser    ON filearchive (fa_deleted_user);
 CREATE INDEX fa_sha1      ON filearchive (fa_sha1);
 
 CREATE SEQUENCE uploadstash_us_id_seq;
-CREATE TYPE media_type AS ENUM ('UNKNOWN','BITMAP','DRAWING','AUDIO','VIDEO','MULTIMEDIA','OFFICE','TEXT','EXECUTABLE','ARCHIVE');
+CREATE TYPE media_type AS ENUM ('UNKNOWN','BITMAP','DRAWING','AUDIO','VIDEO','MULTIMEDIA','OFFICE','TEXT','EXECUTABLE','ARCHIVE','3D');
 
 CREATE TABLE uploadstash (
   us_id           INTEGER PRIMARY KEY NOT NULL DEFAULT nextval('uploadstash_us_id_seq'),
@@ -411,7 +469,8 @@ CREATE TABLE recentchanges (
   rc_user_text       TEXT         NOT NULL,
   rc_namespace       SMALLINT     NOT NULL,
   rc_title           TEXT         NOT NULL,
-  rc_comment         TEXT,
+  rc_comment         TEXT         NOT NULL  DEFAULT '',
+  rc_comment_id      INTEGER      NOT NULL  DEFAULT 0,
   rc_minor           SMALLINT     NOT NULL  DEFAULT 0,
   rc_bot             SMALLINT     NOT NULL  DEFAULT 0,
   rc_new             SMALLINT     NOT NULL  DEFAULT 0,
@@ -436,9 +495,12 @@ CREATE INDEX rc_namespace_title ON recentchanges (rc_namespace, rc_title);
 CREATE INDEX rc_cur_id          ON recentchanges (rc_cur_id);
 CREATE INDEX new_name_timestamp ON recentchanges (rc_new, rc_namespace, rc_timestamp);
 CREATE INDEX rc_ip              ON recentchanges (rc_ip);
+CREATE INDEX rc_name_type_patrolled_timestamp ON recentchanges (rc_namespace, rc_type, rc_patrolled, rc_timestamp);
 
 
+CREATE SEQUENCE watchlist_wl_id_seq;
 CREATE TABLE watchlist (
+  wl_id                     INTEGER     NOT NULL  PRIMARY KEY DEFAULT nextval('watchlist_wl_id_seq'),
   wl_user                   INTEGER     NOT NULL  REFERENCES mwuser(user_id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
   wl_namespace              SMALLINT    NOT NULL  DEFAULT 0,
   wl_title                  TEXT        NOT NULL,
@@ -507,7 +569,8 @@ CREATE TABLE logging (
   log_user        INTEGER                REFERENCES mwuser(user_id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED,
   log_namespace   SMALLINT     NOT NULL,
   log_title       TEXT         NOT NULL,
-  log_comment     TEXT,
+  log_comment     TEXT         NOT NULL DEFAULT '',
+  log_comment_id  INTEGER      NOT NULL DEFAULT 0,
   log_params      TEXT,
   log_deleted     SMALLINT     NOT NULL DEFAULT 0,
   log_user_text   TEXT         NOT NULL DEFAULT '',
@@ -614,7 +677,8 @@ CREATE TABLE protected_titles (
   pt_namespace   SMALLINT    NOT NULL,
   pt_title       TEXT        NOT NULL,
   pt_user        INTEGER         NULL  REFERENCES mwuser(user_id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED,
-  pt_reason      TEXT            NULL,
+  pt_reason      TEXT        NOT NULL DEFAULT '',
+  pt_reason_id   INTEGER     NOT NULL DEFAULT 0,
   pt_timestamp   TIMESTAMPTZ NOT NULL,
   pt_expiry      TIMESTAMPTZ     NULL,
   pt_create_perm TEXT        NOT NULL DEFAULT ''
@@ -640,7 +704,9 @@ CREATE TABLE category (
 CREATE UNIQUE INDEX category_title ON category(cat_title);
 CREATE INDEX category_pages ON category(cat_pages);
 
+CREATE SEQUENCE change_tag_ct_id_seq;
 CREATE TABLE change_tag (
+  ct_id      INTEGER  NOT NULL  PRIMARY KEY DEFAULT nextval('change_tag_ct_id_seq'),
   ct_rc_id   INTEGER      NULL,
   ct_log_id  INTEGER      NULL,
   ct_rev_id  INTEGER      NULL,
@@ -652,11 +718,13 @@ CREATE UNIQUE INDEX change_tag_log_tag ON change_tag(ct_log_id,ct_tag);
 CREATE UNIQUE INDEX change_tag_rev_tag ON change_tag(ct_rev_id,ct_tag);
 CREATE INDEX change_tag_tag_id ON change_tag(ct_tag,ct_rc_id,ct_rev_id,ct_log_id);
 
+CREATE SEQUENCE tag_summary_ts_id_seq;
 CREATE TABLE tag_summary (
-  ts_rc_id   INTEGER     NULL,
-  ts_log_id  INTEGER     NULL,
-  ts_rev_id  INTEGER     NULL,
-  ts_tags    TEXT    NOT NULL
+  ts_id      INTEGER  NOT NULL  PRIMARY KEY DEFAULT nextval('tag_summary_ts_id_seq'),
+  ts_rc_id   INTEGER      NULL,
+  ts_log_id  INTEGER      NULL,
+  ts_rev_id  INTEGER      NULL,
+  ts_tags    TEXT     NOT NULL
 );
 CREATE UNIQUE INDEX tag_summary_rc_id ON tag_summary(ts_rc_id);
 CREATE UNIQUE INDEX tag_summary_log_id ON tag_summary(ts_log_id);
@@ -689,20 +757,6 @@ CREATE TABLE iwlinks (
 CREATE UNIQUE INDEX iwl_from ON iwlinks (iwl_from, iwl_prefix, iwl_title);
 CREATE UNIQUE INDEX iwl_prefix_title_from ON iwlinks (iwl_prefix, iwl_title, iwl_from);
 CREATE UNIQUE INDEX iwl_prefix_from_title ON iwlinks (iwl_prefix, iwl_from, iwl_title);
-
-CREATE TABLE msg_resource (
-  mr_resource   TEXT         NOT NULL,
-  mr_lang       TEXT         NOT NULL,
-  mr_blob       TEXT         NOT NULL,
-  mr_timestamp  TIMESTAMPTZ  NOT NULL
-);
-CREATE UNIQUE INDEX mr_resource_lang ON msg_resource (mr_resource, mr_lang);
-
-CREATE TABLE msg_resource_links (
-  mrl_resource  TEXT  NOT NULL,
-  mrl_message   TEXT  NOT NULL
-);
-CREATE UNIQUE INDEX mrl_message_resource ON msg_resource_links (mrl_message, mrl_resource);
 
 CREATE TABLE module_deps (
   md_module  TEXT  NOT NULL,

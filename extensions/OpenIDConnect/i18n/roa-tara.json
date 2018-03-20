@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Joetaras"
+		]
+	},
+	"openidconnect-desc": "Dèje l'autendicazione ausanne OpenID Connect cu PluggableAuth",
+	"selectopenidconnectissuer": "Scacchie 'nu probbleme de autendicazione"
+}

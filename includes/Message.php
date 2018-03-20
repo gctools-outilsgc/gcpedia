@@ -120,7 +120,7 @@
  *
  * @code
  *     // old style:
- *     wfMsgExt( 'key', array( 'parseinline' ), 'apple' );
+ *     wfMsgExt( 'key', [ 'parseinline' ], 'apple' );
  *     // new style:
  *     wfMessage( 'key', 'apple' )->parse();
  * @endcode
@@ -131,7 +131,7 @@
  * Places where HTML cannot be used. {{-transformation is done.
  * @code
  *     // old style:
- *     wfMsgExt( 'key', array( 'parsemag' ), 'apple', 'pear' );
+ *     wfMsgExt( 'key', [ 'parsemag' ], 'apple', 'pear' );
  *     // new style:
  *     wfMessage( 'key', 'apple', 'pear' )->text();
  * @endcode
@@ -157,22 +157,42 @@
  * @since 1.17
  */
 class Message implements MessageSpecifier, Serializable {
+	/** Use message text as-is */
+	const FORMAT_PLAIN = 'plain';
+	/** Use normal wikitext -> HTML parsing (the result will be wrapped in a block-level HTML tag) */
+	const FORMAT_BLOCK_PARSE = 'block-parse';
+	/** Use normal wikitext -> HTML parsing but strip the block-level wrapper */
+	const FORMAT_PARSE = 'parse';
+	/** Transform {{..}} constructs but don't transform to HTML */
+	const FORMAT_TEXT = 'text';
+	/** Transform {{..}} constructs, HTML-escape the result */
+	const FORMAT_ESCAPED = 'escaped';
+
+	/**
+	 * Mapping from Message::listParam() types to Language methods.
+	 * @var array
+	 */
+	protected static $listTypeMap = [
+		'comma' => 'commaList',
+		'semicolon' => 'semicolonList',
+		'pipe' => 'pipeList',
+		'text' => 'listToText',
+	];
 
 	/**
 	 * In which language to get this message. True, which is the default,
-	 * means the current interface language, false content language.
+	 * means the current user language, false content language.
 	 *
 	 * @var bool
 	 */
 	protected $interface = true;
 
 	/**
-	 * In which language to get this message. Overrides the $interface
-	 * variable.
+	 * In which language to get this message. Overrides the $interface setting.
 	 *
-	 * @var Language
+	 * @var Language|bool Explicit language object, or false for user language
 	 */
-	protected $language = null;
+	protected $language = false;
 
 	/**
 	 * @var string The message key. If $keysToTry has more than one element,
@@ -188,18 +208,11 @@ class Message implements MessageSpecifier, Serializable {
 	/**
 	 * @var array List of parameters which will be substituted into the message.
 	 */
-	protected $parameters = array();
+	protected $parameters = [];
 
 	/**
-	 * Format for the message.
-	 * Supported formats are:
-	 * * text (transform)
-	 * * escaped (transform+htmlspecialchars)
-	 * * block-parse
-	 * * parse (default)
-	 * * plain
-	 *
 	 * @var string
+	 * @deprecated
 	 */
 	protected $format = 'parse';
 
@@ -225,18 +238,14 @@ class Message implements MessageSpecifier, Serializable {
 
 	/**
 	 * @since 1.17
-	 *
 	 * @param string|string[]|MessageSpecifier $key Message key, or array of
 	 * message keys to try and use the first non-empty message for, or a
 	 * MessageSpecifier to copy from.
 	 * @param array $params Message parameters.
-	 * @param Language $language Optional language of the message, defaults to $wgLang.
-	 *
+	 * @param Language $language [optional] Language to use (defaults to current user language).
 	 * @throws InvalidArgumentException
 	 */
-	public function __construct( $key, $params = array(), Language $language = null ) {
-		global $wgLang;
-
+	public function __construct( $key, $params = [], Language $language = null ) {
 		if ( $key instanceof MessageSpecifier ) {
 			if ( $params ) {
 				throw new InvalidArgumentException(
@@ -260,7 +269,9 @@ class Message implements MessageSpecifier, Serializable {
 		$this->key = reset( $this->keysToTry );
 
 		$this->parameters = array_values( $params );
-		$this->language = $language ?: $wgLang;
+		// User language is only resolved in getLanguage(). This helps preserve the
+		// semantic intent of "user language" across serialize() and unserialize().
+		$this->language = $language ?: false;
 	}
 
 	/**
@@ -269,16 +280,16 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return string
 	 */
 	public function serialize() {
-		return serialize( array(
+		return serialize( [
 			'interface' => $this->interface,
-			'language' => $this->language->getCode(),
+			'language' => $this->language ? $this->language->getCode() : false,
 			'key' => $this->key,
 			'keysToTry' => $this->keysToTry,
 			'parameters' => $this->parameters,
 			'format' => $this->format,
 			'useDatabase' => $this->useDatabase,
 			'title' => $this->title,
-		) );
+		] );
 	}
 
 	/**
@@ -294,7 +305,7 @@ class Message implements MessageSpecifier, Serializable {
 		$this->parameters = $data['parameters'];
 		$this->format = $data['format'];
 		$this->useDatabase = $data['useDatabase'];
-		$this->language = Language::factory( $data['language'] );
+		$this->language = $data['language'] ? Language::factory( $data['language'] ) : false;
 		$this->title = $data['title'];
 	}
 
@@ -350,8 +361,10 @@ class Message implements MessageSpecifier, Serializable {
 	 * @since 1.21
 	 *
 	 * @return string
+	 * @deprecated since 1.29 formatting is not stateful
 	 */
 	public function getFormat() {
+		wfDeprecated( __METHOD__, '1.29' );
 		return $this->format;
 	}
 
@@ -363,7 +376,8 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return Language
 	 */
 	public function getLanguage() {
-		return $this->language;
+		// Defaults to false which means current user language
+		return $this->language ?: RequestContext::getMain()->getLanguage();
 	}
 
 	/**
@@ -382,6 +396,40 @@ class Message implements MessageSpecifier, Serializable {
 		$params = func_get_args();
 		array_shift( $params );
 		return new self( $key, $params );
+	}
+
+	/**
+	 * Transform a MessageSpecifier or a primitive value used interchangeably with
+	 * specifiers (a message key string, or a key + params array) into a proper Message.
+	 *
+	 * Also accepts a MessageSpecifier inside an array: that's not considered a valid format
+	 * but is an easy error to make due to how StatusValue stores messages internally.
+	 * Further array elements are ignored in that case.
+	 *
+	 * @param string|array|MessageSpecifier $value
+	 * @return Message
+	 * @throws InvalidArgumentException
+	 * @since 1.27
+	 */
+	public static function newFromSpecifier( $value ) {
+		$params = [];
+		if ( is_array( $value ) ) {
+			$params = $value;
+			$value = array_shift( $params );
+		}
+
+		if ( $value instanceof Message ) { // Message, RawMessage, ApiMessage, etc
+			$message = clone $value;
+		} elseif ( $value instanceof MessageSpecifier ) {
+			$message = new Message( $value );
+		} elseif ( is_string( $value ) ) {
+			$message = new Message( $value, $params );
+		} else {
+			throw new InvalidArgumentException( __METHOD__ . ': invalid argument type '
+				. gettype( $value ) );
+		}
+
+		return $message;
 	}
 
 	/**
@@ -423,12 +471,12 @@ class Message implements MessageSpecifier, Serializable {
 	public function getTitle() {
 		global $wgContLang, $wgForceUIMsgAsContentMsg;
 
-		$code = $this->language->getCode();
 		$title = $this->key;
 		if (
-			$wgContLang->getCode() !== $code
+			!$this->language->equals( $wgContLang )
 			&& in_array( $this->key, (array)$wgForceUIMsgAsContentMsg )
 		) {
+			$code = $this->language->getCode();
 			$title .= '/' . $code;
 		}
 
@@ -440,18 +488,32 @@ class Message implements MessageSpecifier, Serializable {
 	 *
 	 * @since 1.17
 	 *
-	 * @param mixed $params,... Parameters as strings, or a single argument that is
-	 * an array of strings.
+	 * @param mixed $args,... Parameters as strings or arrays from
+	 *  Message::numParam() and the like, or a single array of parameters.
 	 *
 	 * @return Message $this
 	 */
 	public function params( /*...*/ ) {
 		$args = func_get_args();
-		if ( isset( $args[0] ) && is_array( $args[0] ) ) {
-			$args = $args[0];
+
+		// If $args has only one entry and it's an array, then it's either a
+		// non-varargs call or it happens to be a call with just a single
+		// "special" parameter. Since the "special" parameters don't have any
+		// numeric keys, we'll test that to differentiate the cases.
+		if ( count( $args ) === 1 && isset( $args[0] ) && is_array( $args[0] ) ) {
+			if ( $args[0] === [] ) {
+				$args = [];
+			} else {
+				foreach ( $args[0] as $key => $value ) {
+					if ( is_int( $key ) ) {
+						$args = $args[0];
+						break;
+					}
+				}
+			}
 		}
-		$args_values = array_values( $args );
-		$this->parameters = array_merge( $this->parameters, $args_values );
+
+		$this->parameters = array_merge( $this->parameters, array_values( $args ) );
 		return $this;
 	}
 
@@ -654,23 +716,24 @@ class Message implements MessageSpecifier, Serializable {
 
 	/**
 	 * Request the message in any language that is supported.
+	 *
 	 * As a side effect interface message status is unconditionally
 	 * turned off.
 	 *
 	 * @since 1.17
-	 *
 	 * @param Language|string $lang Language code or Language object.
-	 *
 	 * @return Message $this
 	 * @throws MWException
 	 */
 	public function inLanguage( $lang ) {
-		if ( $lang instanceof Language || $lang instanceof StubUserLang ) {
+		if ( $lang instanceof Language ) {
 			$this->language = $lang;
 		} elseif ( is_string( $lang ) ) {
 			if ( !$this->language instanceof Language || $this->language->getCode() != $lang ) {
 				$this->language = Language::factory( $lang );
 			}
+		} elseif ( $lang instanceof StubUserLang ) {
+			$this->language = false;
 		} else {
 			$type = gettype( $lang );
 			throw new MWException( __METHOD__ . " must be "
@@ -728,6 +791,7 @@ class Message implements MessageSpecifier, Serializable {
 	 */
 	public function useDatabase( $useDatabase ) {
 		$this->useDatabase = (bool)$useDatabase;
+		$this->message = null;
 		return $this;
 	}
 
@@ -763,52 +827,65 @@ class Message implements MessageSpecifier, Serializable {
 	 *
 	 * @since 1.17
 	 *
+	 * @param string|null $format One of the FORMAT_* constants. Null means use whatever was used
+	 *   the last time (this is for B/C and should be avoided).
+	 *
 	 * @return string HTML
 	 */
-	public function toString() {
+	public function toString( $format = null ) {
+		if ( $format === null ) {
+			$ex = new LogicException( __METHOD__ . ' using implicit format: ' . $this->format );
+			\MediaWiki\Logger\LoggerFactory::getInstance( 'message-format' )->warning(
+				$ex->getMessage(), [ 'exception' => $ex, 'format' => $this->format, 'key' => $this->key ] );
+			$format = $this->format;
+		}
 		$string = $this->fetchMessage();
 
 		if ( $string === false ) {
-			if ( $this->format === 'plain' || $this->format === 'text' ) {
-				return '<' . $this->key . '>';
-			}
-			return '&lt;' . htmlspecialchars( $this->key ) . '&gt;';
+			// Err on the side of safety, ensure that the output
+			// is always html safe in the event the message key is
+			// missing, since in that case its highly likely the
+			// message key is user-controlled.
+			// '⧼' is used instead of '<' to side-step any
+			// double-escaping issues.
+			// (Keep synchronised with mw.Message#toString in JS.)
+			return '⧼' . htmlspecialchars( $this->key ) . '⧽';
 		}
 
 		# Replace $* with a list of parameters for &uselang=qqx.
 		if ( strpos( $string, '$*' ) !== false ) {
 			$paramlist = '';
-			if ( $this->parameters !== array() ) {
+			if ( $this->parameters !== [] ) {
 				$paramlist = ': $' . implode( ', $', range( 1, count( $this->parameters ) ) );
 			}
 			$string = str_replace( '$*', $paramlist, $string );
 		}
 
 		# Replace parameters before text parsing
-		$string = $this->replaceParameters( $string, 'before' );
+		$string = $this->replaceParameters( $string, 'before', $format );
 
 		# Maybe transform using the full parser
-		if ( $this->format === 'parse' ) {
+		if ( $format === self::FORMAT_PARSE ) {
 			$string = $this->parseText( $string );
 			$string = Parser::stripOuterParagraph( $string );
-		} elseif ( $this->format === 'block-parse' ) {
+		} elseif ( $format === self::FORMAT_BLOCK_PARSE ) {
 			$string = $this->parseText( $string );
-		} elseif ( $this->format === 'text' ) {
+		} elseif ( $format === self::FORMAT_TEXT ) {
 			$string = $this->transformText( $string );
-		} elseif ( $this->format === 'escaped' ) {
+		} elseif ( $format === self::FORMAT_ESCAPED ) {
 			$string = $this->transformText( $string );
 			$string = htmlspecialchars( $string, ENT_QUOTES, 'UTF-8', false );
 		}
 
 		# Raw parameter replacement
-		$string = $this->replaceParameters( $string, 'after' );
+		$string = $this->replaceParameters( $string, 'after', $format );
 
 		return $string;
 	}
 
 	/**
 	 * Magic method implementation of the above (for PHP >= 5.2.0), so we can do, eg:
-	 *     $foo = Message::get( $key );
+	 *     $foo = new Message( $key );
 	 *     $string = "<abbr>$foo</abbr>";
 	 *
 	 * @since 1.18
@@ -820,7 +897,7 @@ class Message implements MessageSpecifier, Serializable {
 		// trigger a fatal error if it does. So, catch any exceptions.
 
 		try {
-			return $this->toString();
+			return $this->toString( self::FORMAT_PARSE );
 		} catch ( Exception $ex ) {
 			try {
 				trigger_error( "Exception caught in " . __METHOD__ . " (message " . $this->key . "): "
@@ -829,10 +906,7 @@ class Message implements MessageSpecifier, Serializable {
 				// Doh! Cause a fatal error after all?
 			}
 
-			if ( $this->format === 'plain' || $this->format === 'text' ) {
-				return '<' . $this->key . '>';
-			}
-			return '&lt;' . htmlspecialchars( $this->key ) . '&gt;';
+			return '⧼' . htmlspecialchars( $this->key ) . '⧽';
 		}
 	}
 
@@ -844,8 +918,8 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return string Parsed HTML.
 	 */
 	public function parse() {
-		$this->format = 'parse';
-		return $this->toString();
+		$this->format = self::FORMAT_PARSE;
+		return $this->toString( self::FORMAT_PARSE );
 	}
 
 	/**
@@ -856,8 +930,8 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return string Unescaped message text.
 	 */
 	public function text() {
-		$this->format = 'text';
-		return $this->toString();
+		$this->format = self::FORMAT_TEXT;
+		return $this->toString( self::FORMAT_TEXT );
 	}
 
 	/**
@@ -868,8 +942,8 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return string Unescaped untransformed message text.
 	 */
 	public function plain() {
-		$this->format = 'plain';
-		return $this->toString();
+		$this->format = self::FORMAT_PLAIN;
+		return $this->toString( self::FORMAT_PLAIN );
 	}
 
 	/**
@@ -880,8 +954,8 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return string HTML
 	 */
 	public function parseAsBlock() {
-		$this->format = 'block-parse';
-		return $this->toString();
+		$this->format = self::FORMAT_BLOCK_PARSE;
+		return $this->toString( self::FORMAT_BLOCK_PARSE );
 	}
 
 	/**
@@ -893,8 +967,8 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return string Escaped message text.
 	 */
 	public function escaped() {
-		$this->format = 'escaped';
-		return $this->toString();
+		$this->format = self::FORMAT_ESCAPED;
+		return $this->toString( self::FORMAT_ESCAPED );
 	}
 
 	/**
@@ -941,7 +1015,7 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return array Array with a single "raw" key.
 	 */
 	public static function rawParam( $raw ) {
-		return array( 'raw' => $raw );
+		return [ 'raw' => $raw ];
 	}
 
 	/**
@@ -952,7 +1026,7 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return array Array with a single "num" key.
 	 */
 	public static function numParam( $num ) {
-		return array( 'num' => $num );
+		return [ 'num' => $num ];
 	}
 
 	/**
@@ -963,7 +1037,7 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return int[] Array with a single "duration" key.
 	 */
 	public static function durationParam( $duration ) {
-		return array( 'duration' => $duration );
+		return [ 'duration' => $duration ];
 	}
 
 	/**
@@ -974,18 +1048,18 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return string[] Array with a single "expiry" key.
 	 */
 	public static function expiryParam( $expiry ) {
-		return array( 'expiry' => $expiry );
+		return [ 'expiry' => $expiry ];
 	}
 
 	/**
 	 * @since 1.22
 	 *
-	 * @param number $period
+	 * @param int $period
 	 *
-	 * @return number[] Array with a single "period" key.
+	 * @return int[] Array with a single "period" key.
 	 */
 	public static function timeperiodParam( $period ) {
-		return array( 'period' => $period );
+		return [ 'period' => $period ];
 	}
 
 	/**
@@ -996,7 +1070,7 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return int[] Array with a single "size" key.
 	 */
 	public static function sizeParam( $size ) {
-		return array( 'size' => $size );
+		return [ 'size' => $size ];
 	}
 
 	/**
@@ -1007,7 +1081,7 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return int[] Array with a single "bitrate" key.
 	 */
 	public static function bitrateParam( $bitrate ) {
-		return array( 'bitrate' => $bitrate );
+		return [ 'bitrate' => $bitrate ];
 	}
 
 	/**
@@ -1018,7 +1092,23 @@ class Message implements MessageSpecifier, Serializable {
 	 * @return string[] Array with a single "plaintext" key.
 	 */
 	public static function plaintextParam( $plaintext ) {
-		return array( 'plaintext' => $plaintext );
+		return [ 'plaintext' => $plaintext ];
+	}
+
+	/**
+	 * @since 1.29
+	 *
+	 * @param array $list
+	 * @param string $type 'comma', 'semicolon', 'pipe', 'text'
+	 * @return array Array with "list" and "type" keys.
+	 */
+	public static function listParam( array $list, $type = 'text' ) {
+		if ( !isset( self::$listTypeMap[$type] ) ) {
+			throw new InvalidArgumentException(
+				"Invalid type '$type'. Known types are: " . join( ', ', array_keys( self::$listTypeMap ) )
+			);
+		}
+		return [ 'list' => $list, 'type' => $type ];
 	}
 
 	/**
@@ -1028,15 +1118,34 @@ class Message implements MessageSpecifier, Serializable {
 	 *
 	 * @param string $message The message text.
 	 * @param string $type Either "before" or "after".
+	 * @param string $format One of the FORMAT_* constants.
 	 *
 	 * @return string
 	 */
-	protected function replaceParameters( $message, $type = 'before' ) {
-		$replacementKeys = array();
+	protected function replaceParameters( $message, $type = 'before', $format ) {
+		// A temporary marker for $1 parameters that is only valid
+		// in non-attribute contexts. However if the entire message is escaped
+		// then we don't want to use it because it will be mangled in all contexts
+		// and its unnessary as ->escaped() messages aren't html.
+		$marker = $format === self::FORMAT_ESCAPED ? '$' : '$\'"';
+		$replacementKeys = [];
 		foreach ( $this->parameters as $n => $param ) {
-			list( $paramType, $value ) = $this->extractParam( $param );
-			if ( $type === $paramType ) {
-				$replacementKeys['$' . ( $n + 1 )] = $value;
+			list( $paramType, $value ) = $this->extractParam( $param, $format );
+			if ( $type === 'before' ) {
+				if ( $paramType === 'before' ) {
+					$replacementKeys['$' . ( $n + 1 )] = $value;
+				} else /* $paramType === 'after' */ {
+					// To protect against XSS from replacing parameters
+					// inside html attributes, we convert $1 to $'"1.
+					// In the event that one of the parameters ends up
+					// in an attribute, either the ' or the " will be
+					// escaped, breaking the replacement and avoiding XSS.
+					$replacementKeys['$' . ( $n + 1 )] = $marker . ( $n + 1 );
+				}
+			} else {
+				if ( $paramType === 'after' ) {
+					$replacementKeys[$marker . ( $n + 1 )] = $value;
+				}
 			}
 		}
 		$message = strtr( $message, $replacementKeys );
@@ -1049,29 +1158,32 @@ class Message implements MessageSpecifier, Serializable {
 	 * @since 1.18
 	 *
 	 * @param mixed $param Parameter as defined in this class.
+	 * @param string $format One of the FORMAT_* constants.
 	 *
 	 * @return array Array with the parameter type (either "before" or "after") and the value.
 	 */
-	protected function extractParam( $param ) {
+	protected function extractParam( $param, $format ) {
 		if ( is_array( $param ) ) {
 			if ( isset( $param['raw'] ) ) {
-				return array( 'after', $param['raw'] );
+				return [ 'after', $param['raw'] ];
 			} elseif ( isset( $param['num'] ) ) {
 				// Replace number params always in before step for now.
 				// No support for combined raw and num params
-				return array( 'before', $this->language->formatNum( $param['num'] ) );
+				return [ 'before', $this->getLanguage()->formatNum( $param['num'] ) ];
 			} elseif ( isset( $param['duration'] ) ) {
-				return array( 'before', $this->language->formatDuration( $param['duration'] ) );
+				return [ 'before', $this->getLanguage()->formatDuration( $param['duration'] ) ];
 			} elseif ( isset( $param['expiry'] ) ) {
-				return array( 'before', $this->language->formatExpiry( $param['expiry'] ) );
+				return [ 'before', $this->getLanguage()->formatExpiry( $param['expiry'] ) ];
 			} elseif ( isset( $param['period'] ) ) {
-				return array( 'before', $this->language->formatTimePeriod( $param['period'] ) );
+				return [ 'before', $this->getLanguage()->formatTimePeriod( $param['period'] ) ];
 			} elseif ( isset( $param['size'] ) ) {
-				return array( 'before', $this->language->formatSize( $param['size'] ) );
+				return [ 'before', $this->getLanguage()->formatSize( $param['size'] ) ];
 			} elseif ( isset( $param['bitrate'] ) ) {
-				return array( 'before', $this->language->formatBitrate( $param['bitrate'] ) );
+				return [ 'before', $this->getLanguage()->formatBitrate( $param['bitrate'] ) ];
 			} elseif ( isset( $param['plaintext'] ) ) {
-				return array( 'after', $this->formatPlaintext( $param['plaintext'] ) );
+				return [ 'after', $this->formatPlaintext( $param['plaintext'], $format ) ];
+			} elseif ( isset( $param['list'] ) ) {
+				return $this->formatListParam( $param['list'], $param['type'], $format );
 			} else {
 				$warning = 'Invalid parameter for message "' . $this->getKey() . '": ' .
 					htmlspecialchars( serialize( $param ) );
@@ -1079,15 +1191,32 @@ class Message implements MessageSpecifier, Serializable {
 				$e = new Exception;
 				wfDebugLog( 'Bug58676', $warning . "\n" . $e->getTraceAsString() );
 
-				return array( 'before', '[INVALID]' );
+				return [ 'before', '[INVALID]' ];
 			}
 		} elseif ( $param instanceof Message ) {
+			// Match language, flags, etc. to the current message.
+			$msg = clone $param;
+			if ( $msg->language !== $this->language || $msg->useDatabase !== $this->useDatabase ) {
+				// Cache depends on these parameters
+				$msg->message = null;
+			}
+			$msg->interface = $this->interface;
+			$msg->language = $this->language;
+			$msg->useDatabase = $this->useDatabase;
+			$msg->title = $this->title;
+
+			// DWIM
+			if ( $format === 'block-parse' ) {
+				$format = 'parse';
+			}
+			$msg->format = $format;
+
 			// Message objects should not be before parameters because
 			// then they'll get double escaped. If the message needs to be
 			// escaped, it'll happen right here when we call toString().
-			return array( 'after', $param->toString() );
+			return [ 'after', $msg->toString( $format ) ];
 		} else {
-			return array( 'before', $param );
+			return [ 'before', $param ];
 		}
 	}
 
@@ -1106,7 +1235,7 @@ class Message implements MessageSpecifier, Serializable {
 			$this->title,
 			/*linestart*/true,
 			$this->interface,
-			$this->language
+			$this->getLanguage()
 		);
 
 		return $out instanceof ParserOutput ? $out->getText() : $out;
@@ -1125,7 +1254,7 @@ class Message implements MessageSpecifier, Serializable {
 		return MessageCache::singleton()->transform(
 			$string,
 			$this->interface,
-			$this->language,
+			$this->getLanguage(),
 			$this->title
 		);
 	}
@@ -1143,7 +1272,7 @@ class Message implements MessageSpecifier, Serializable {
 			$cache = MessageCache::singleton();
 
 			foreach ( $this->keysToTry as $key ) {
-				$message = $cache->get( $key, $this->useDatabase, $this->language );
+				$message = $cache->get( $key, $this->useDatabase, $this->getLanguage() );
 				if ( $message !== false && $message !== '' ) {
 					break;
 				}
@@ -1165,74 +1294,71 @@ class Message implements MessageSpecifier, Serializable {
 	 * @since 1.25
 	 *
 	 * @param string $plaintext String to ensure plaintext output of
+	 * @param string $format One of the FORMAT_* constants.
 	 *
-	 * @return string Input plaintext encoded for output to $this->format
+	 * @return string Input plaintext encoded for output to $format
 	 */
-	protected function formatPlaintext( $plaintext ) {
-		switch ( $this->format ) {
-		case 'text':
-		case 'plain':
+	protected function formatPlaintext( $plaintext, $format ) {
+		switch ( $format ) {
+		case self::FORMAT_TEXT:
+		case self::FORMAT_PLAIN:
 			return $plaintext;
 
-		case 'parse':
-		case 'block-parse':
-		case 'escaped':
+		case self::FORMAT_PARSE:
+		case self::FORMAT_BLOCK_PARSE:
+		case self::FORMAT_ESCAPED:
 		default:
 			return htmlspecialchars( $plaintext, ENT_QUOTES );
 
 		}
 	}
-}
-
-/**
- * Variant of the Message class.
- *
- * Rather than treating the message key as a lookup
- * value (which is passed to the MessageCache and
- * translated as necessary), a RawMessage key is
- * treated as the actual message.
- *
- * All other functionality (parsing, escaping, etc.)
- * is preserved.
- *
- * @since 1.21
- */
-class RawMessage extends Message {
 
 	/**
-	 * Call the parent constructor, then store the key as
-	 * the message.
-	 *
-	 * @see Message::__construct
-	 *
-	 * @param string $text Message to use.
-	 * @param array $params Parameters for the message.
-	 *
-	 * @throws InvalidArgumentException
+	 * Formats a list of parameters as a concatenated string.
+	 * @since 1.29
+	 * @param array $params
+	 * @param string $listType
+	 * @param string $format One of the FORMAT_* constants.
+	 * @return array Array with the parameter type (either "before" or "after") and the value.
 	 */
-	public function __construct( $text, $params = array() ) {
-		if ( !is_string( $text ) ) {
-			throw new InvalidArgumentException( '$text must be a string' );
+	protected function formatListParam( array $params, $listType, $format ) {
+		if ( !isset( self::$listTypeMap[$listType] ) ) {
+			$warning = 'Invalid list type for message "' . $this->getKey() . '": '
+				. htmlspecialchars( $listType )
+				. ' (params are ' . htmlspecialchars( serialize( $params ) ) . ')';
+			trigger_error( $warning, E_USER_WARNING );
+			$e = new Exception;
+			wfDebugLog( 'Bug58676', $warning . "\n" . $e->getTraceAsString() );
+			return [ 'before', '[INVALID]' ];
+		}
+		$func = self::$listTypeMap[$listType];
+
+		// Handle an empty list sensibly
+		if ( !$params ) {
+			return [ 'before', $this->getLanguage()->$func( [] ) ];
 		}
 
-		parent::__construct( $text, $params );
-
-		// The key is the message.
-		$this->message = $text;
-	}
-
-	/**
-	 * Fetch the message (in this case, the key).
-	 *
-	 * @return string
-	 */
-	public function fetchMessage() {
-		// Just in case the message is unset somewhere.
-		if ( $this->message === null ) {
-			$this->message = $this->key;
+		// First, determine what kinds of list items we have
+		$types = [];
+		$vars = [];
+		$list = [];
+		foreach ( $params as $n => $p ) {
+			list( $type, $value ) = $this->extractParam( $p, $format );
+			$types[$type] = true;
+			$list[] = $value;
+			$vars[] = '$' . ( $n + 1 );
 		}
 
-		return $this->message;
-	}
+		// Easy case: all are 'before' or 'after', so just join the
+		// values and use the same type.
+		if ( count( $types ) === 1 ) {
+			return [ key( $types ), $this->getLanguage()->$func( $list ) ];
+		}
 
+		// Hard case: We need to process each value per its type, then
+		// return the concatenated values as 'after'. We handle this by turning
+		// the list into a RawMessage and processing that as a parameter.
+		$vars = $this->getLanguage()->$func( $vars );
+		return $this->extractParam( new RawMessage( $vars, $params ), $format );
+	}
 }

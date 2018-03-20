@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Cicalese"
+		]
+	},
+	"openidconnect-desc": "Provides authentication using OpenID Connect in conjunction with PluggableAuth",
+	"selectopenidconnectissuer": "Select Authentication Issuer"
+}

@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bjankuloski06"
+		]
+	},
+	"pluggableauth-desc": "Дава рамка за приклучна заверка и овластување",
+	"pluggableauth-not-authorized": "{{GENDER:$1|Корисникот}} $1 не е овластен.",
+	"pluggableauth-authentication-failure": "Неуспешна заверка или овластување.",
+	"pluggableauth-authentication-workflow-failure": "Неупех во работниот тек на заверката.",
+	"pluggableauth-loginbutton-label": "Најава со PluggableAuth",
+	"pluggableauth-loginbutton-help": "Ве заверува со PluggableAuth"
+}

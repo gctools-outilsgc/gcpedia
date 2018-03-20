@@ -30,7 +30,7 @@
 class CliInstaller extends Installer {
 	private $specifiedScriptPath = false;
 
-	private $optionMap = array(
+	private $optionMap = [
 		'dbtype' => 'wgDBtype',
 		'dbserver' => 'wgDBserver',
 		'dbname' => 'wgDBname',
@@ -44,16 +44,14 @@ class CliInstaller extends Installer {
 		'dbpath' => 'wgSQLiteDataDir',
 		'server' => 'wgServer',
 		'scriptpath' => 'wgScriptPath',
-	);
+	];
 
 	/**
-	 * Constructor.
-	 *
 	 * @param string $siteName
 	 * @param string $admin
 	 * @param array $option
 	 */
-	function __construct( $siteName, $admin = null, array $option = array() ) {
+	function __construct( $siteName, $admin = null, array $option = [] ) {
 		global $wgContLang;
 
 		parent::__construct();
@@ -75,6 +73,7 @@ class CliInstaller extends Installer {
 			$wgContLang = Language::factory( $option['lang'] );
 			$wgLang = Language::factory( $option['lang'] );
 			$wgLanguageCode = $option['lang'];
+			RequestContext::getMain()->setLanguage( $wgLang );
 		}
 
 		$this->setVar( 'wgSitename', $siteName );
@@ -109,7 +108,7 @@ class CliInstaller extends Installer {
 		}
 
 		// Set up the default skins
-		$skins = $this->findExtensions( 'skins' );
+		$skins = array_keys( $this->findExtensions( 'skins' ) );
 		$this->setVar( '_Skins', $skins );
 
 		if ( $skins ) {
@@ -130,8 +129,8 @@ class CliInstaller extends Installer {
 		}
 
 		$this->performInstallation(
-			array( $this, 'startStage' ),
-			array( $this, 'endStage' )
+			[ $this, 'startStage' ],
+			[ $this, 'endStage' ]
 		);
 	}
 
@@ -179,7 +178,7 @@ class CliInstaller extends Installer {
 
 		$text = preg_replace( '/<a href="(.*?)".*?>(.*?)<\/a>/', '$2 &lt;$1&gt;', $text );
 
-		return html_entity_decode( strip_tags( $text ), ENT_QUOTES );
+		return Sanitizer::stripAllTags( $text );
 	}
 
 	/**
@@ -194,11 +193,11 @@ class CliInstaller extends Installer {
 
 		if ( count( $warnings ) !== 0 ) {
 			foreach ( $warnings as $w ) {
-				call_user_func_array( array( $this, 'showMessage' ), $w );
+				call_user_func_array( [ $this, 'showMessage' ], $w );
 			}
 		}
 
-		if ( !$status->isOk() ) {
+		if ( !$status->isOK() ) {
 			echo "\n";
 			exit( 1 );
 		}

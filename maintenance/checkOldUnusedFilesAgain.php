@@ -7,7 +7,7 @@
 
 require_once( dirname( __FILE__ ) . '/Maintenance.php' );
 
-class CheckUnusedFiles extends Maintenance {
+class CheckOldUnusedFilesAgain extends Maintenance {
 	public function __construct() {
 		parent::__construct();
 		$this->mDescription = "Look for unused files";
@@ -54,7 +54,7 @@ class CheckUnusedFiles extends Maintenance {
 	}
 }
 
-$maintClass = "CheckUnusedFiles";
+$maintClass = "CheckOldUnusedFilesAgain";
 require_once( RUN_MAINTENANCE_IF_MAIN );
 
 ?>

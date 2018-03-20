@@ -20,12 +20,13 @@
 			"The Polish"
 		]
 	},
-	"ooui-outline-control-move-down": "Przenieś niżej",
-	"ooui-outline-control-move-up": "Przenieś wyżej",
+	"ooui-outline-control-move-down": "Przesuń w dół",
+	"ooui-outline-control-move-up": "Przesuń w górę",
 	"ooui-outline-control-remove": "Usuń element",
 	"ooui-toolbar-more": "Więcej",
 	"ooui-toolgroup-expand": "Więcej",
 	"ooui-toolgroup-collapse": "Mniej",
+	"ooui-item-remove": "Usuń",
 	"ooui-dialog-message-accept": "OK",
 	"ooui-dialog-message-reject": "Anuluj",
 	"ooui-dialog-process-error": "Coś poszło nie tak",
@@ -35,5 +36,5 @@
 	"ooui-selectfile-button-select": "Wybierz plik",
 	"ooui-selectfile-not-supported": "Wybór pliku nie jest obsługiwany",
 	"ooui-selectfile-placeholder": "Nie wybrano pliku",
-	"ooui-selectfile-dragdrop-placeholder": "Umieść plik tutaj"
+	"ooui-selectfile-dragdrop-placeholder": "Upuść plik tutaj"
 }

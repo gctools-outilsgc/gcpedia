@@ -137,9 +137,9 @@ function wfGzipHandler( $s ) {
 	}
 	if ( !$foundVary ) {
 		header( 'Vary: Accept-Encoding' );
-		global $wgUseXVO;
-		if ( $wgUseXVO ) {
-			header( 'X-Vary-Options: Accept-Encoding;list-contains=gzip' );
+		global $wgUseKeyHeader;
+		if ( $wgUseKeyHeader ) {
+			header( 'Key: Accept-Encoding;match=gzip' );
 		}
 	}
 	return $s;
@@ -154,15 +154,15 @@ function wfGzipHandler( $s ) {
  */
 function wfMangleFlashPolicy( $s ) {
 	# Avoid weird excessive memory usage in PCRE on big articles
-	if ( preg_match( '/\<\s*cross-domain-policy\s*\>/i', $s ) ) {
-		return preg_replace( '/\<\s*cross-domain-policy\s*\>/i', '<NOT-cross-domain-policy>', $s );
+	if ( preg_match( '/\<\s*cross-domain-policy(?=\s|\>)/i', $s ) ) {
+		return preg_replace( '/\<(\s*)(cross-domain-policy(?=\s|\>))/i', '<$1NOT-$2', $s );
 	} else {
 		return $s;
 	}
 }
 
 /**
- * Add a Content-Length header if possible. This makes it cooperate with squid better.
+ * Add a Content-Length header if possible. This makes it cooperate with CDN better.
  *
  * @param int $length
  */
@@ -183,7 +183,6 @@ function wfDoContentLength( $length ) {
  * @return string
  */
 function wfHtmlValidationHandler( $s ) {
-
 	$errors = '';
 	if ( MWTidy::checkErrors( $s, $errors ) ) {
 		return $s;
@@ -195,13 +194,13 @@ function wfHtmlValidationHandler( $s ) {
 	$out .= Html::openElement( 'ul' );
 
 	$error = strtok( $errors, "\n" );
-	$badLines = array();
+	$badLines = [];
 	while ( $error !== false ) {
 		if ( preg_match( '/^line (\d+)/', $error, $m ) ) {
 			$lineNum = intval( $m[1] );
 			$badLines[$lineNum] = true;
 			$out .= Html::rawElement( 'li', null,
-				Html::element( 'a', array( 'href' => "#line-{$lineNum}" ), $error ) ) . "\n";
+				Html::element( 'a', [ 'href' => "#line-{$lineNum}" ], $error ) ) . "\n";
 		}
 		$error = strtok( "\n" );
 	}
@@ -212,7 +211,7 @@ function wfHtmlValidationHandler( $s ) {
 	$line = strtok( $s, "\n" );
 	$i = 1;
 	while ( $line !== false ) {
-		$attrs = array();
+		$attrs = [];
 		if ( isset( $badLines[$i] ) ) {
 			$attrs['class'] = 'highlight';
 			$attrs['id'] = "line-$i";
@@ -228,7 +227,7 @@ function wfHtmlValidationHandler( $s ) {
 li { white-space: pre }
 CSS;
 
-	$out = Html::htmlHeader( array( 'lang' => 'en', 'dir' => 'ltr' ) ) .
+	$out = Html::htmlHeader( [ 'lang' => 'en', 'dir' => 'ltr' ] ) .
 		Html::rawElement( 'head', null,
 			Html::element( 'title', null, 'HTML validation error' ) .
 			Html::inlineStyle( $style ) ) .

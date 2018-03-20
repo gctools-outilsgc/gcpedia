@@ -1,18 +1,17 @@
-
 This file provides an overview of the MediaWiki upgrade process. For help with
 specific problems, check
 
-* the documentation at https://www.mediawiki.org
+* the documentation at https://www.mediawiki.org/wiki/Special:MyLanguage/Help:Contents
 * the mediawiki-l mailing list archive at
   http://lists.wikimedia.org/pipermail/mediawiki-l/
-* the bug tracker at https://bugzilla.wikimedia.org
+* the bug tracker at https://phabricator.wikimedia.org/
 
 for information and workarounds to common issues.
 
 == Overview ==
 
 Comprehensive documentation on upgrading to the latest version of the software
-is available at https://www.mediawiki.org/wiki/Manual:Upgrading.
+is available at https://www.mediawiki.org/wiki/Special:MyLanguage/Manual:Upgrading
 
 === Consult the release notes ===
 
@@ -28,7 +27,7 @@ you take a complete backup of your wiki database and files and verify it. While
 the upgrade scripts are somewhat robust, there is no guarantee that things will
 not fail, leaving the database in an inconsistent state.
 
-https://www.mediawiki.org/wiki/Manual:Backing_up_a_wiki provides an overview of
+https://www.mediawiki.org/wiki/Special:MyLanguage/Manual:Backing_up_a_wiki provides an overview of
 the backup process. You should also refer to the documentation for your
 database management system for information on backing up a database, and to
 your operating system documentation for information on making copies of files.
@@ -110,6 +109,12 @@ In the "maintenance" directory, run the updateDoubleWidthSearch.php
 script.  This will update the searchindex table for those pages that
 contain double-byte latin characters.
 
+== Upgrading from 1.10 or earlier ==
+
+If upgrading from before 1.11, and you are using a wiki as a commons
+repository, make sure that it is updated as well. Otherwise, errors may arise
+due to database schema changes.
+
 == Upgrading from 1.8 or earlier ==
 
 MediaWiki 1.9 and later no longer keep default localized message text
@@ -136,6 +141,9 @@ to set only specific items as recommended in DefaultSettings.php.
 
 $wgLocalTZoffset was in hours, it is now using minutes.
 
+If upgrading from before 1.7, you may want to run refreshLinks.php to ensure
+new database fields are filled with data.
+
 == Upgrading from 1.5 or earlier ==
 
 Major changes have been made to the schema from 1.4.x. The updater
@@ -150,7 +158,7 @@ UTF-8; an experimental command-line upgrade helper script,
 'upgrade1_5.php', can do this -- run it prior to 'update.php' or
 the web upgrader.
 
-NOTE that upgrade1_5.php does not work properly with recent version
+NOTE that upgrade1_5.php does not work properly with recent versions
 of MediaWiki. If upgrading a 1.4.x wiki, you should upgrade to 1.5
 first.  upgrade1_5.php has been removed from MediaWiki 1.21.
 

@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Anakmalaysia"
+		]
+	},
+	"pluggableauth-not-authorized": "{{GENDER:$1|Pengguna}} $1 tidak diizinkan."
+}

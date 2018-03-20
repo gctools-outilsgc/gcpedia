@@ -5,7 +5,7 @@
 	 */
 
 	var text, ipv4,
-		simpleMDYDatesInMDY, simpleMDYDatesInDMY, oldMDYDates, complexMDYDates, clobberedDates, MYDates, YDates,
+		simpleMDYDatesInMDY, simpleMDYDatesInDMY, oldMDYDates, complexMDYDates, clobberedDates, MYDates, YDates, ISODates,
 		currencyData, transformedCurrencyData;
 
 	QUnit.module( 'jquery.tablesorter.parsers', QUnit.newMwEnvironment( {
@@ -21,11 +21,11 @@
 						'jul', 'aug', 'sep', 'oct', 'nov', 'dec' ]
 				},
 				names: [ 'January', 'February', 'March', 'April', 'May', 'June',
-						'July', 'August', 'September', 'October', 'November', 'December' ],
+					'July', 'August', 'September', 'October', 'November', 'December' ],
 				genitive: [ 'January', 'February', 'March', 'April', 'May', 'June',
-						'July', 'August', 'September', 'October', 'November', 'December' ],
+					'July', 'August', 'September', 'October', 'November', 'December' ],
 				abbrev: [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-						'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ]
+					'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ]
 			};
 		},
 		teardown: function () {
@@ -44,9 +44,9 @@
 	/**
 	 * For a value, check if the parser recognizes it and how it transforms it
 	 *
-	 * @param {String} msg text to pass on to qunit describing the test case
-	 * @param {String[]} parserId of the parser that will be tested
-	 * @param {String[][]} data Array of testcases. Each testcase, array of
+	 * @param {string} msg text to pass on to qunit describing the test case
+	 * @param {string[]} parserId of the parser that will be tested
+	 * @param {string[][]} data Array of testcases. Each testcase, array of
 	 *		inputValue: The string value that we want to test the parser for
 	 *		recognized: If we expect that this value's type is detectable by the parser
 	 *		outputValue: The value the parser has converted the input to
@@ -54,7 +54,7 @@
 	 * @param {function($table)} callback something to do before we start the testcase
 	 */
 	function parserTest( msg, parserId, data, callback ) {
-		QUnit.test( msg, data.length * 2, function ( assert ) {
+		QUnit.test( msg, function ( assert ) {
 			var extractedR, extractedF, parser;
 
 			if ( callback !== undefined ) {
@@ -73,7 +73,7 @@
 		} );
 	}
 
-	text  = [
+	text = [
 		[ 'Mars', true, 'mars', 'Simple text' ],
 		[ 'Mẘas', true, 'mẘas', 'Non ascii character' ],
 		[ 'A sentence', true, 'a sentence', 'A sentence with space chars' ]
@@ -88,7 +88,7 @@
 		[ '1.238.27.1', true, 1238027001, 'An IP address with small numbers' ],
 		[ '238.27.1', false, 238027001, 'A malformed IP Address' ],
 		[ '1', false, 1, 'A super malformed IP Address' ],
-		[ 'Just text', false, 0, 'A line with just text' ],
+		[ 'Just text', false, -Infinity, 'A line with just text' ],
 		[ '45.238.27.109Postfix', false, 45238027109, 'An IP address with a connected postfix' ],
 		[ '45.238.27.109 postfix', false, 45238027109, 'An IP address with a seperated postfix' ]
 	];
@@ -173,6 +173,50 @@
 	];
 	parserTest( 'Y Dates', 'date', YDates );
 
+	ISODates = [
+		[ '',		false,	-Infinity, 'Not a date' ],
+		[ '2000',	false,	946684800000, 'Plain 4-digit year' ],
+		[ '2000-01',	true,	946684800000, 'Year with month' ],
+		[ '2000-01-01',	true,	946684800000, 'Year with month and day' ],
+		[ '2000-13-01',	false,	978307200000, 'Non existant month' ],
+		[ '2000-01-32',	true,	949363200000, 'Non existant day' ],
+		[ '2000-01-01T12:30:30',	true, 946729830000, 'Date with a time' ],
+		[ '2000-01-01T12:30:30Z',	true, 946729830000, 'Date with a UTC+0 time' ],
+		[ '2000-01-01T24:30:30Z',	true, 946773030000, 'Date with invalid hours' ],
+		[ '2000-01-01T12:60:30Z',	true, 946728000000, 'Date with invalid minutes' ],
+		[ '2000-01-01T12:30:61Z',	true, 946729800000, 'Date with invalid amount of seconds, drops seconds' ],
+		[ '2000-01-01T23:59:59Z',	true, 946771199000, 'Edges of time' ],
+		[ '2000-01-01T12:30:30.111Z',	true, 946729830111, 'Date with milliseconds' ],
+		[ '2000-01-01T12:30:30.11111Z',	true, 946729830111, 'Date with too high precision' ],
+		[ '2000-01-01T12:30:30,111Z',	true, 946729830111, 'Date with milliseconds and , separator' ],
+		[ '2000-01-01T12:30:30+01:00',	true, 946726230000, 'Date time in UTC+1' ],
+		[ '2000-01-01T12:30:30+01:30',	true, 946724430000, 'Date time in UTC+1:30' ],
+		[ '2000-01-01T12:30:30-01:00',	true, 946733430000, 'Date time in UTC-1' ],
+		[ '2000-01-01T12:30:30-01:30',	true, 946735230000, 'Date time in UTC-1:30' ],
+		[ '2000-01-01T12:30:30.111+01:00', true, 946726230111, 'Date time and milliseconds in UTC+1' ],
+		[ '2000-01-01Postfix', true, 946684800000, 'Date with appended postfix' ],
+		[ '2000-01-01 Postfix', true, 946684800000, 'Date with separate postfix' ],
+		[ '2 Postfix',	false, -62104060800000, 'One digit with separate postfix' ],
+		[ 'ca. 2',		false, -62104060800000, 'Three digit with separate prefix' ],
+		[ '~200',		false, -55855785600000, 'Three digit with appended prefix' ],
+		[ 'ca. 200[1]',	false, -55855785600000, 'Three digit with separate prefix and postfix' ],
+		[ '2000-11-31',	true,	975628800000, '31 days in 30 day month' ],
+		[ '50-01-01',	true,	-60589296000000, 'Year with just two digits' ],
+		[ '2',			false,	-62104060800000, 'Year with one digit' ],
+		[ '02-01',		true,	-62104060800000, 'Year with one digit and leading zero' ],
+		[ ' 2-01',		true,	-62104060800000, 'Year with one digit and leading space' ],
+		[ '-2-10',		true,	-62206704000000, 'Year BC with month' ],
+		[ '-9999',		false,	-377705116800000, 'max. Year BC' ],
+		[ '+9999-12',	true,	253399622400000, 'max. Date with +sign' ],
+		[ '2000-01-01 12:30:30Z',	true, 946729830000, 'Date and time with no T marker' ],
+		[ '2000-01-01T12:30:60Z',	true, 946729860000, 'Date with leap second' ],
+		[ '2000-01-01T12:30:30-23:59',	true, 946816170000, 'Date time in UTC-23:59' ],
+		[ '2000-01-01T12:30:30+23:59',	true, 946643490000, 'Date time in UTC+23:59' ],
+		[ '2000-01-01T123030+0100',	true,	946726230000, 'Time without separators' ],
+		[ '20000101T123030+0100',	false,	946726230000, 'All without separators' ]
+	];
+	parserTest( 'ISO Dates', 'isoDate', ISODates );
+
 	currencyData = [
 		[ '1.02 $',	true, 1.02, '' ],
 		[ '$ 3.00',	true, 3, '' ],
@@ -218,6 +262,6 @@
 		} );
 	} );
 
-	// TODO add numbers sorting tests for bug 8115 with a different language
+	// TODO add numbers sorting tests for T10115 with a different language
 
 }( jQuery, mediaWiki ) );

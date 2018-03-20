@@ -33,52 +33,22 @@ class VectorTemplate extends BaseTemplate {
 	 * Outputs the entire contents of the (X)HTML page
 	 */
 	public function execute() {
-		global $wgScriptPath;
+		$this->data['namespace_urls'] = $this->data['content_navigation']['namespaces'];
+		$this->data['view_urls'] = $this->data['content_navigation']['views'];
+		$this->data['action_urls'] = $this->data['content_navigation']['actions'];
+		$this->data['variant_urls'] = $this->data['content_navigation']['variants'];
 
-		// Build additional attributes for navigation urls
-		$nav = $this->data['content_navigation'];
-
+		// Move the watch/unwatch star outside of the collapsed "actions" menu to the main "views" menu
 		if ( $this->config->get( 'VectorUseIconWatch' ) ) {
 			$mode = $this->getSkin()->getUser()->isWatched( $this->getSkin()->getRelevantTitle() )
 				? 'unwatch'
 				: 'watch';
 
-			if ( isset( $nav['actions'][$mode] ) ) {
-				$nav['views'][$mode] = $nav['actions'][$mode];
-				$nav['views'][$mode]['class'] = rtrim( 'icon ' . $nav['views'][$mode]['class'], ' ' );
-				$nav['views'][$mode]['primary'] = true;
-				unset( $nav['actions'][$mode] );
+			if ( isset( $this->data['action_urls'][$mode] ) ) {
+				$this->data['view_urls'][$mode] = $this->data['action_urls'][$mode];
+				unset( $this->data['action_urls'][$mode] );
 			}
 		}
-
-		$xmlID = '';
-		foreach ( $nav as $section => $links ) {
-			foreach ( $links as $key => $link ) {
-				if ( $section == 'views' && !( isset( $link['primary'] ) && $link['primary'] ) ) {
-					$link['class'] = rtrim( 'collapsible ' . $link['class'], ' ' );
-				}
-
-				$xmlID = isset( $link['id'] ) ? $link['id'] : 'ca-' . $xmlID;
-				$nav[$section][$key]['attributes'] =
-					' id="' . Sanitizer::escapeId( $xmlID ) . '"';
-				if ( $link['class'] ) {
-					$nav[$section][$key]['attributes'] .=
-						' class="' . htmlspecialchars( $link['class'] ) . '"';
-					unset( $nav[$section][$key]['class'] );
-				}
-				if ( isset( $link['tooltiponly'] ) && $link['tooltiponly'] ) {
-					$nav[$section][$key]['key'] =
-						Linker::tooltip( $xmlID );
-				} else {
-					$nav[$section][$key]['key'] =
-						Xml::expandAttributes( Linker::tooltipAndAccesskeyAttribs( $xmlID ) );
-				}
-			}
-		}
-		$this->data['namespace_urls'] = $nav['namespaces'];
-		$this->data['view_urls'] = $nav['views'];
-		$this->data['action_urls'] = $nav['actions'];
-		$this->data['variant_urls'] = $nav['variants'];
 
 		// Reverse horizontally rendered navigation elements
 		if ( $this->data['rtl'] ) {
@@ -96,65 +66,13 @@ class VectorTemplate extends BaseTemplate {
 		// Output HTML Page
 		$this->html( 'headelement' );
 		?>
-	<header role="banner">
-	    <div id="app-brand">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-2 col-md-2 col-xs-7">
-                    <div class="app-name">
-                    <a href="<?php echo htmlspecialchars( $this->data['nav_urls']['mainpage']['href'] ) ?>">
-                        <span><span class="bold-gc">GC</span>p<?php global $wgLang; if ($wgLang->getCode() == 'fr') echo  'é'; else echo 'e'; ?>dia</span>
-                    </a>
-                    </div>
-                    
-                    
-                </div>
-                <div class="col-lg-6 col-md-5 col-sm-7 hidden-sm hidden-xs">
-                    <ul id="tool-link" class="pull-left list-unstyled mrgn-bttm-0">
-
-						<li class="pull-left tool-link">
-                        	<a href="<?php echo wfMsg('wet:gcdirectoryLink');?>">
-                            <span class="bold-gc">GC</span><?php echo wfMsg('wet:barDirectory');?></a>
-
-                    	</li>
-
-	                    <li class="pull-left tool-link">
-	                        <a href="<?php echo wfMsg('wet:gcintranetLink');?>">
-	                        <span class="bold-gc">GC</span>intranet</a>
-	                        
-	                    </li>
-
-	                    <li class="pull-left tool-link">
-	                        <a href="<?php echo wfMsg('wet:gcconnexLink');?>">
-	                        <span class="bold-gc">GC</span>connex</a>
-	                        
-	                    </li>
-                        
-                        <li class="pull-left tool-link">
-	                        <a href="<?php echo wfMsg('wet:gccollabLink');?>">
-	                        <span class="bold-gc">GC</span>collab</a>
-	                        
-	                    </li>
-	                    
-                    </ul>
-                </div>
-
-                <div id="wb-lng" class="visible-md visible-lg text-right col-sm-1">
-                	<div class="col-md-12">
-                		<ul class="list-inline margin-bottom-none">
-                			<li><?php echo wfMsg('topbar:langlink');?></li>
-                		</ul>
-                	</div>
-                </div>
-				<?php 
-				$this->outputSearch();
-				?>
-            </div>
-        </div>
-        
-    </div>
-</header>
-
+		<div class="collab-fip-header" style="height:35px; clear:both; background-color:white;">
+			<object type="image/svg+xml" tabindex="-1" role="img" data="<?php echo $wgScriptPath; ?>/skins/Vector/images/collab/sig-alt-en.svg" aria-label="Symbol of the Government of Canada" style="height:25px; float:left; padding:5px 10px;"></object>
+			<ul id="tool-links" class="" style="list-style:none; padding:5px; width:30%; margin: 0 auto; font-weight:bold;">
+				<li style="float:left; margin: 0px 2%;"><a href="https://account.gccollab.ca" style="color:#6b5088;"><span><img style="width:25px; display:inline-block; margin-right:3px;" src="<?php echo $wgScriptPath . '/skins/Vector/images/collab/mini_wiki_icon.png'; ?>" alt="gccollab"></span><?php global $wgLang; if ($wgLang->getCode() == 'fr') echo  'Compte'; else echo 'Account'; ?></a></li>
+				<li style="float:left; margin: 0px 2%;"><a href="https://gccollab.ca/" style="color:#6b5088;"><span><img style="width:25px; display:inline-block; margin-right:3px;" src="<?php echo $wgScriptPath . '/skins/Vector/images/collab/mini_collab_icon.png'; ?>" alt="gccollab"></span>Collab</a></li>
+			</ul>
+		</div>
 		<div id="mw-page-base" class="noprint"></div>
 		<div id="mw-head-base" class="noprint"></div>
 		<div id="content" class="mw-body" role="main">
@@ -163,19 +81,19 @@ class VectorTemplate extends BaseTemplate {
 			<?php
 			if ( $this->data['sitenotice'] ) {
 				?>
-				<div id="siteNotice"><?php $this->html( 'sitenotice' ) ?></div>
+				<div id="siteNotice" class="mw-body-content"><?php $this->html( 'sitenotice' ) ?></div>
 			<?php
 			}
 			?>
 			<?php
-			if ( is_callable( array( $this, 'getIndicators' ) ) ) {
+			if ( is_callable( [ $this, 'getIndicators' ] ) ) {
 				echo $this->getIndicators();
 			}
 			// Loose comparison with '!=' is intentional, to catch null and false too, but not '0'
 			if ( $this->data['title'] != '' ) {
 			?>
 			<h1 id="firstHeading" class="firstHeading" lang="<?php $this->text( 'pageLanguage' ); ?>"><?php
-				 $this->html( 'title' )
+				$this->html( 'title' )
 			?></h1>
 			<?php
 			} ?>
@@ -184,7 +102,7 @@ class VectorTemplate extends BaseTemplate {
 				<?php
 				if ( $this->data['isarticle'] ) {
 					?>
-					<div id="siteSub"><?php $this->msg( 'tagline' ) ?></div>
+					<div id="siteSub" class="noprint"><?php $this->msg( 'tagline' ) ?></div>
 				<?php
 				}
 				?>
@@ -238,33 +156,23 @@ class VectorTemplate extends BaseTemplate {
 		<div id="mw-navigation">
 			<h2><?php $this->msg( 'navigation-heading' ) ?></h2>
 
-			<div id="mw-head">
+			<div id="mw-head" style="top:35px;">
+				<style>
+					#app-brand-name:before{
+						content: ''; display: block; position: absolute; left: 166px; top: 0; width: 0; height: 0; border-top: 20px solid transparent; border-bottom: 22px solid transparent; border-left: 20px solid #6D4E86; clear: both;
+					}
+				</style>
+				<div id="app-brand-name"  style="background:#6D4E86; position:absolute; top:2px; clear:both; float:left; font-size:24px; color:white; padding:8px 59px 6px 62px;">Wiki</div>
+				
 				<?php $this->renderNavigation( 'PERSONAL' ); ?>
 				<div id="left-navigation">
-					<?php $this->renderNavigation( array( 'NAMESPACES', 'VARIANTS' ) ); ?>
+					<?php $this->renderNavigation( [ 'NAMESPACES', 'VARIANTS' ] ); ?>
 				</div>
 				<div id="right-navigation">
-                    <?php //Nick - adding in the share to GCconnex button to the template 
-                            //Added new style class gccon-share
-                            //Gets the site lang and puts it in the data-lang
-                    ?>
-					<div class="pull-left">
-					<script>(function(d, s, id) {
-						  var js, fjs = d.getElementsByTagName(s)[0];
-						  if (d.getElementById(id)) return;
-						  js = d.createElement(s); js.id = id;
-						  js.src = "//gcconnex.gc.ca/mod/gc_api/widget/en/share-button.js";
-						  fjs.parentNode.insertBefore(js, fjs);
-						}(document, 'script', 'gcconnex-jssdk'));</script>
-					
-					<div class="gcc-share-button gccon-share btn-default" 
-						data-lang="<?php echo $wgLang->getCode(); ?>" >
-						
-					</div>
-					</div>
-					<?php $this->renderNavigation( array( 'VIEWS', 'ACTIONS', 'SEARCH' ) ); ?>
+					<?php $this->renderNavigation( [ 'VIEWS', 'ACTIONS', 'SEARCH' ] ); ?>
 				</div>
 			</div>
+
 			<div id="mw-panel">
 				<!-- GCpedia icon -->
 				<a href="<?php echo htmlspecialchars( $this->data['nav_urls']['mainpage']['href'] ) ?>">
@@ -292,7 +200,7 @@ class VectorTemplate extends BaseTemplate {
 			<?php
 			}
 			?>
-			<?php $footericons = $this->getFooterIcons( "icononly" );
+			<?php $footericons = $this->getFooterIcons( 'icononly' );
 			if ( count( $footericons ) > 0 ) {
 				?>
 				<ul id="footer-icons" class="noprint">
@@ -313,26 +221,14 @@ class VectorTemplate extends BaseTemplate {
 			<?php
 			}
 			?>
+			
 			<div style="clear:both"></div>
-			<!-- GC Info that will be at the bottom of the footer -->
-			<footer id="wb-info" class="visible-sm visible-md visible-lg wb-navcurr wb-navcurr-inited" role="contentinfo">
-			    <div class="brand">
-			        <div class="container-fluid">
-			            <div class="row">
-			                <div class="col-xs-6 visible-sm visible-xs tofpg">
-			                    <a href="#content">Top of Page <span class="glyphicon glyphicon-chevron-up"></span></a>
-			                </div>
-			                <div class="col-xs-6 col-md-12 text-right">
-			                    <object type="image/svg+xml" tabindex="-1" role="img" data="<?php echo $wgScriptPath; ?>/skins/Vector/GCWeb/assets/wmms-blk.svg" aria-label="Symbol of the Government of Canada"></object>
-			                </div>
-			            </div>
-			        </div>
-			    </div>
-			</footer>
-		<?php $this->printTrail(); ?>
-		<!--<script src="<?php echo $wgScriptPath; ?>/skins/Vector/GCWeb/js/jquery-2.2.0.min.js"></script>-->
-		<!--<script src="<?php echo $wgScriptPath; ?>/skins/Vector/GCWeb/js/wet-boew.min.js"></script>-->
+			<div id="app-brand-footer" style="border-top: 3px solid #6D4E86; bottom:0; width:100%; margin-top:5px;">
+				<object type="image/svg+xml" tabindex="-1" role="img" data="<?php echo $wgScriptPath; ?>/skins/Vector/images/collab/wmms-alt.svg" aria-label="Symbol of the Government of Canada" style="height:33px; float:right; padding:10px 15px;"></object>
+			</div>
 		</div>
+		<?php $this->printTrail(); ?>
+
 	</body>
 </html>
 <?php
@@ -357,6 +253,7 @@ class VectorTemplate extends BaseTemplate {
 
 		// split off some items from the toolbox
 		if ( !isset( $portals['ACTIONS'] ) ) {
+
 			$portals['ACTIONS'] = true;
 		}
 		
@@ -376,6 +273,7 @@ class VectorTemplate extends BaseTemplate {
 				unset($toolbox[$action]);
 			}
 		}
+
 
 		// Render portals
 		foreach ( $portals as $name => $content ) {
@@ -433,21 +331,22 @@ class VectorTemplate extends BaseTemplate {
 				<?php
 				if ( is_array( $content ) ) {
 					?>
-					<ul class="list-group menu list-unstyled">
-						<div class="row">
+					<ul>
 						<?php
 						foreach ( $content as $key => $val ) {
-							echo $this->makeListItem( $key, $val, array( 'class' => 'list-group-item') );
+							echo $this->makeListItem( $key, $val );
 						}
 						if ( $hook !== null ) {
-							Hooks::run( $hook, array( &$this, true ) );
+							// Avoid PHP 7.1 warning
+							$skin = $this;
+							Hooks::run( $hook, [ &$skin, true ] );
 						}
 						?>
-						</div>
 					</ul>
 				<?php
 				} else {
-					echo $content; /* Allow raw HTML block to be defined by extensions */
+					// Allow raw HTML block to be defined by extensions
+					echo $content;
 				}
 
 				$this->renderAfterPortlet( $name );
@@ -455,55 +354,6 @@ class VectorTemplate extends BaseTemplate {
 			</div>
 		</div>
 	<?php
-	}
-
-	/**
-	 * Outputs the search form
-	 */
-	private function outputSearch() {
-		?>
-		<div class="col-sm-5 col-lg-3 col-md-4 col-xs-5 text-right"><section id="wb-srch" class="text-right">
-<h2>Search</h2>
-<form action="http://intranet.canada.ca/search-recherche/query-recherche-<?php global $wgLang;
-		if ($wgLang->getCode() == 'fr')
-			$lang3Code = 'fra';
-		else
-			$lang3Code = 'eng';
- echo $lang3Code; ?>.aspx" method="get" name="cse-search-box" role="search" class="form-inline">
-<div class="form-group">
-<label for="wb-srch-q" class="wb-inv">Search website</label>
-<input id="search" list="wb-srch-q-ac" class="wb-srch-q form-control" name="q" type="search" value="" size="21" maxlength="150" placeholder="<?php echo wfMessage( 'searchsuggest-search-tools' )->text(); ?>">
-<datalist id="wb-srch-q-ac">
-<!--[if lte IE 9]><select><![endif]-->
-<!--[if lte IE 9]></select><![endif]-->
-</datalist>
-                <!-- hidden forms for federated search -->
-                <input type="hidden" name="a"  value="s">
-                <input type="hidden" name="s"  value="2">
-                <input type="hidden" name="chk3"  value="True">
-</div>
-<div class="form-group submit">
-<button type="submit" id="wb-srch-sub" class="btn btn-small" name="wb-srch-sub"><span class="glyphicon-search glyphicon"></span><span class="wb-inv">Search</span></button>
-</div>
-</form>
-</section></div>
-
-		
-		<!--<form
-			action="<?php $this->text( 'wgScript' ) ?>"
-			role="search"
-			class="mw-portlet"
-			id="p-search"
-		>
-			<input type="hidden" name="title" value="<?php $this->text( 'searchtitle' ) ?>" />
-			<h3>
-				<label for="searchInput"><?php echo $this->getMsg( 'search' )->escaped() ?></label>
-			</h3>
-			<?php echo $this->makeSearchInput( array( 'id' => 'searchInput' ) ) ?>
-			<?php echo $this->makeSearchButton( 'go', array( 'id' => 'searchGoButton', 'class' => 'searchButton' ) ) ?>
-			<input type="hidden" name="title" value="<?php $this->text( 'searchtitle' ) ?>"/>
-		</form>-->
-		<?php
 	}
 
 	/**
@@ -516,7 +366,7 @@ class VectorTemplate extends BaseTemplate {
 		// If only one element was given, wrap it in an array, allowing more
 		// flexible arguments
 		if ( !is_array( $elements ) ) {
-			$elements = array( $elements );
+			$elements = [ $elements ];
 			// If there's a series of elements, reverse them when in RTL mode
 		} elseif ( $this->data['rtl'] ) {
 			$elements = array_reverse( $elements );
@@ -534,19 +384,10 @@ class VectorTemplate extends BaseTemplate {
 						<h3 id="p-namespaces-label"><?php $this->msg( 'namespaces' ) ?></h3>
 						<ul<?php $this->html( 'userlangattributes' ) ?>>
 							<?php
-							foreach ( $this->data['namespace_urls'] as $link ) {
-								?>
-								<li <?php echo $link['attributes'] ?>><span><a href="<?php
-										echo htmlspecialchars( $link['href'] )
-										?>" <?php
-										echo $link['key'];
-										if ( isset ( $link['rel'] ) ) {
-											echo ' rel="' . htmlspecialchars( $link['rel'] ) . '"';
-										}
-										?>><?php
-											echo htmlspecialchars( $link['text'] )
-											?></a></span></li>
-							<?php
+							foreach ( $this->data['namespace_urls'] as $key => $item ) {
+								echo "\t\t\t\t\t\t\t" . $this->makeListItem( $key, $item, [
+									'vector-wrap' => true,
+								] ) . "\n";
 							}
 							?>
 						</ul>
@@ -563,34 +404,22 @@ class VectorTemplate extends BaseTemplate {
 						<?php
 						// Replace the label with the name of currently chosen variant, if any
 						$variantLabel = $this->getMsg( 'variants' )->text();
-						foreach ( $this->data['variant_urls'] as $link ) {
-							if ( stripos( $link['attributes'], 'selected' ) !== false ) {
-								$variantLabel = $link['text'];
+						foreach ( $this->data['variant_urls'] as $item ) {
+							if ( isset( $item['class'] ) && stripos( $item['class'], 'selected' ) !== false ) {
+								$variantLabel = $item['text'];
 								break;
 							}
 						}
 						?>
 						<h3 id="p-variants-label">
-							<span><?php echo htmlspecialchars( $variantLabel ) ?></span><a href="#"></a>
+							<span><?php echo htmlspecialchars( $variantLabel ) ?></span>
 						</h3>
 
 						<div class="menu">
 							<ul>
 								<?php
-								foreach ( $this->data['variant_urls'] as $link ) {
-									?>
-									<li<?php echo $link['attributes'] ?>><a href="<?php
-										echo htmlspecialchars( $link['href'] )
-										?>" lang="<?php
-										echo htmlspecialchars( $link['lang'] )
-										?>" hreflang="<?php
-										echo htmlspecialchars( $link['hreflang'] )
-										?>" <?php
-										echo $link['key']
-										?>><?php
-											echo htmlspecialchars( $link['text'] )
-											?></a></li>
-								<?php
+								foreach ( $this->data['variant_urls'] as $key => $item ) {
+									echo "\t\t\t\t\t\t\t\t" . $this->makeListItem( $key, $item ) . "\n";
 								}
 								?>
 							</ul>
@@ -608,24 +437,11 @@ class VectorTemplate extends BaseTemplate {
 						<h3 id="p-views-label"><?php $this->msg( 'views' ) ?></h3>
 						<ul<?php $this->html( 'userlangattributes' ) ?>>
 							<?php
-							foreach ( $this->data['view_urls'] as $link ) {
-								?>
-								<li<?php echo $link['attributes'] ?>><span><a href="<?php
-										echo htmlspecialchars( $link['href'] )
-										?>" <?php
-										echo $link['key'];
-										if ( isset ( $link['rel'] ) ) {
-											echo ' rel="' . htmlspecialchars( $link['rel'] ) . '"';
-										}
-										?>><?php
-											// $link['text'] can be undefined - bug 27764
-											if ( array_key_exists( 'text', $link ) ) {
-												echo array_key_exists( 'img', $link )
-													? '<img src="' . $link['img'] . '" alt="' . $link['text'] . '" />'
-													: htmlspecialchars( $link['text'] );
-											}
-											?></a></span></li>
-							<?php
+							foreach ( $this->data['view_urls'] as $key => $item ) {
+								echo "\t\t\t\t\t\t\t" . $this->makeListItem( $key, $item, [
+									'vector-wrap' => true,
+									'vector-collapsible' => true,
+								] ) . "\n";
 							}
 							?>
 						</ul>
@@ -641,21 +457,13 @@ class VectorTemplate extends BaseTemplate {
 					?>" aria-labelledby="p-cactions-label">
 						<h3 id="p-cactions-label"><span><?php
 							$this->msg( 'vector-more-actions' )
-						?></span><a href="#"></a></h3>
+						?></span></h3>
 
 						<div class="menu">
 							<ul<?php $this->html( 'userlangattributes' ) ?>>
 								<?php
-								foreach ( $this->data['action_urls'] as $link ) {
-									?>
-									<li<?php echo $link['attributes'] ?>>
-										<a href="<?php
-										echo htmlspecialchars( $link['href'] )
-										?>" <?php
-										echo $link['key'] ?>><?php echo htmlspecialchars( $link['text'] )
-											?></a>
-									</li>
-								<?php
+								foreach ( $this->data['action_urls'] as $key => $item ) {
+									echo "\t\t\t\t\t\t\t\t" . $this->makeListItem( $key, $item ) . "\n";
 								}
 								?>
 							</ul>
@@ -673,9 +481,38 @@ class VectorTemplate extends BaseTemplate {
 						<h3 id="p-personal-label"><?php $this->msg( 'personaltools' ) ?></h3>
 						<ul<?php $this->html( 'userlangattributes' ) ?>>
 							<?php
+							$notLoggedIn = '';
+
+							if ( !$this->getSkin()->getUser()->isLoggedIn() &&
+								User::groupHasPermission( '*', 'edit' )
+							) {
+								$notLoggedIn =
+									Html::rawElement( 'li',
+										[ 'id' => 'pt-anonuserpage' ],
+										$this->getMsg( 'notloggedin' )->escaped()
+									);
+							}
+
 							$personalTools = $this->getPersonalTools();
+
+							$langSelector = '';
+							if ( array_key_exists( 'uls', $personalTools ) ) {
+								$langSelector = $this->makeListItem( 'uls', $personalTools[ 'uls' ] );
+								unset( $personalTools[ 'uls' ] );
+							}
+
+							if ( !$this->data[ 'rtl' ] ) {
+								echo $langSelector;
+								echo $notLoggedIn;
+							}
+
 							foreach ( $personalTools as $key => $item ) {
 								echo $this->makeListItem( $key, $item );
+							}
+
+							if ( $this->data[ 'rtl' ] ) {
+								echo $notLoggedIn;
+								echo $langSelector;
 							}
 							?>
 						</ul>
@@ -692,26 +529,27 @@ class VectorTemplate extends BaseTemplate {
 						<form action="<?php $this->text( 'wgScript' ) ?>" id="searchform">
 							<div<?php echo $this->config->get( 'VectorUseSimpleSearch' ) ? ' id="simpleSearch"' : '' ?>>
 							<?php
-							echo $this->makeSearchInput( array( 'id' => 'searchInput' ) );
+							echo $this->makeSearchInput( [ 'id' => 'searchInput' ] );
 							echo Html::hidden( 'title', $this->get( 'searchtitle' ) );
-							// We construct two buttons (for 'go' and 'fulltext' search modes),
-							// but only one will be visible and actionable at a time (they are
-							// overlaid on top of each other in CSS).
-							// * Browsers will use the 'fulltext' one by default (as it's the
-							//   first in tree-order), which is desirable when they are unable
-							//   to show search suggestions (either due to being broken or
-							//   having JavaScript turned off).
-							// * The mediawiki.searchSuggest module, after doing tests for the
-							//   broken browsers, removes the 'fulltext' button and handles
-							//   'fulltext' search itself; this will reveal the 'go' button and
-							//   cause it to be used.
+							/* We construct two buttons (for 'go' and 'fulltext' search modes),
+							 * but only one will be visible and actionable at a time (they are
+							 * overlaid on top of each other in CSS).
+							 * * Browsers will use the 'fulltext' one by default (as it's the
+							 *   first in tree-order), which is desirable when they are unable
+							 *   to show search suggestions (either due to being broken or
+							 *   having JavaScript turned off).
+							 * * The mediawiki.searchSuggest module, after doing tests for the
+							 *   broken browsers, removes the 'fulltext' button and handles
+							 *   'fulltext' search itself; this will reveal the 'go' button and
+							 *   cause it to be used.
+							 */
 							echo $this->makeSearchButton(
 								'fulltext',
-								array( 'id' => 'mw-searchButton', 'class' => 'searchButton mw-fallbackSearchButton' )
+								[ 'id' => 'mw-searchButton', 'class' => 'searchButton mw-fallbackSearchButton' ]
 							);
 							echo $this->makeSearchButton(
 								'go',
-								array( 'id' => 'searchButton', 'class' => 'searchButton' )
+								[ 'id' => 'searchButton', 'class' => 'searchButton' ]
 							);
 							?>
 							</div>
@@ -722,5 +560,44 @@ class VectorTemplate extends BaseTemplate {
 					break;
 			}
 		}
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function makeLink( $key, $item, $options = [] ) {
+		$html = parent::makeLink( $key, $item, $options );
+		// Add an extra wrapper because our CSS is weird
+		if ( isset( $options['vector-wrap'] ) && $options['vector-wrap'] ) {
+			$html = Html::rawElement( 'span', [], $html );
+		}
+		return $html;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function makeListItem( $key, $item, $options = [] ) {
+		// For fancy styling of watch/unwatch star
+		if (
+			$this->config->get( 'VectorUseIconWatch' )
+			&& ( $key === 'watch' || $key === 'unwatch' )
+		) {
+			$item['class'] = rtrim( 'icon ' . $item['class'], ' ' );
+			$item['primary'] = true;
+		}
+
+		// Add CSS class 'collapsible' to links which are not marked as "primary"
+		if (
+			isset( $options['vector-collapsible'] ) && $options['vector-collapsible']
+			&& !( isset( $item['primary'] ) && $item['primary'] )
+		) {
+			$item['class'] = rtrim( 'collapsible ' . $item['class'], ' ' );
+		}
+
+		// We don't use this, prevent it from popping up in HTML output
+		unset( $item['redundant'] );
+
+		return parent::makeListItem( $key, $item, $options );
 	}
 }

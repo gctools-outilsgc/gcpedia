@@ -1,11 +1,12 @@
-/* Styles for user login and signup forms */
-.mw-form-related-link-container {
+/* User login and signup forms */
+.mw-ui-vform .mw-form-related-link-container {
+	margin-bottom: 0.5em;
 	text-align: center;
 }
 
 .mw-ui-vform .mw-secure {
 	/* @embed */
-	background: url(images/icon-lock.png) no-repeat scroll left center transparent;
+	background: url( images/icon-lock.png ) no-repeat left center;
 	margin: 0 0 0 1px;
 	padding: 0 0 0 11px;
 }
@@ -28,7 +29,7 @@
 	font-size: 0.8em;
 }
 
-/* Put some space under template's header, which may contain CAPTCHA HTML.*/
+/* Put some space under template's header, which may contain CAPTCHA HTML. */
 section.mw-form-header {
 	margin-bottom: 10px;
 }
@@ -38,12 +39,13 @@ section.mw-form-header {
 	margin-top: 6px;
 }
 
-.mw-createacct-captcha-container {
-	background-color: #f8f8f8;
-	border: 1px solid #c9c9c9;
-	padding: 10px;
-	text-align: center;
+.fancycaptcha-captcha-container {
+	background-color: #f8f9fa;
 	margin-bottom: 15px;
+	border: 1px solid #c8ccd1;
+	border-radius: 2px;
+	padding: 8px;
+	text-align: center;
 }
 
 .mw-createacct-captcha-assisted {
@@ -52,12 +54,19 @@ section.mw-form-header {
 }
 
 /* Put a border around the fancycaptcha-image-container. */
-.mw-createacct-captcha-and-reload {
-	border: 1px solid #c9c9c9;
+.fancycaptcha-captcha-and-reload {
+	border: 1px solid #c8ccd1;
+	border-radius: 2px 2px 0 0;
 	/* Other display formats end up too wide */
 	display: table-cell;
 	width: 270px;
-	background-color: #FFF;
+	background-color: #fff;
+}
+
+.fancycaptcha-captcha-container .mw-ui-input {
+	margin-top: -1px;
+	border-color: #c8ccd1;
+	border-radius: 0 0 2px 2px;
 }
 
 /* Make the fancycaptcha-image-container full-width within its parent. */

@@ -5,18 +5,20 @@
  * @group Database
  * ^--- important, causes temporary tables to be used instead of the real database
  * @group medium
- **/
+ */
 class WikiPageTest extends MediaWikiLangTestCase {
 
 	protected $pages_to_delete;
 
-	function __construct( $name = null, array $data = array(), $dataName = '' ) {
+	function __construct( $name = null, array $data = [], $dataName = '' ) {
 		parent::__construct( $name, $data, $dataName );
 
 		$this->tablesUsed = array_merge(
 			$this->tablesUsed,
-			array( 'page',
+			[ 'page',
 				'revision',
+				'archive',
+				'ip_changes',
 				'text',
 
 				'recentchanges',
@@ -29,12 +31,12 @@ class WikiPageTest extends MediaWikiLangTestCase {
 				'externallinks',
 				'imagelinks',
 				'templatelinks',
-				'iwlinks' ) );
+				'iwlinks' ] );
 	}
 
 	protected function setUp() {
 		parent::setUp();
-		$this->pages_to_delete = array();
+		$this->pages_to_delete = [];
 
 		LinkCache::singleton()->clear(); # avoid cached redirect status, etc
 	}
@@ -92,6 +94,9 @@ class WikiPageTest extends MediaWikiLangTestCase {
 
 	/**
 	 * @covers WikiPage::doEditContent
+	 * @covers WikiPage::doModify
+	 * @covers WikiPage::doCreate
+	 * @covers WikiPage::doEditUpdates
 	 */
 	public function testDoEditContent() {
 		$page = $this->newPage( "WikiPageTest_testDoEditContent" );
@@ -114,8 +119,8 @@ class WikiPageTest extends MediaWikiLangTestCase {
 		$id = $page->getId();
 
 		# ------------------------
-		$dbr = wfGetDB( DB_SLAVE );
-		$res = $dbr->select( 'pagelinks', '*', array( 'pl_from' => $id ) );
+		$dbr = wfGetDB( DB_REPLICA );
+		$res = $dbr->select( 'pagelinks', '*', [ 'pl_from' => $id ] );
 		$n = $res->numRows();
 		$res->free();
 
@@ -144,115 +149,12 @@ class WikiPageTest extends MediaWikiLangTestCase {
 		$this->assertTrue( $content->equals( $retrieved ), 'retrieved content doesn\'t equal original' );
 
 		# ------------------------
-		$dbr = wfGetDB( DB_SLAVE );
-		$res = $dbr->select( 'pagelinks', '*', array( 'pl_from' => $id ) );
+		$dbr = wfGetDB( DB_REPLICA );
+		$res = $dbr->select( 'pagelinks', '*', [ 'pl_from' => $id ] );
 		$n = $res->numRows();
 		$res->free();
 
 		$this->assertEquals( 2, $n, 'pagelinks should contain two links from the page' );
-	}
-
-	/**
-	 * @covers WikiPage::doEdit
-	 */
-	public function testDoEdit() {
-		$this->hideDeprecated( "WikiPage::doEdit" );
-		$this->hideDeprecated( "WikiPage::getText" );
-		$this->hideDeprecated( "Revision::getText" );
-
-		//NOTE: assume help namespace will default to wikitext
-		$title = Title::newFromText( "Help:WikiPageTest_testDoEdit" );
-
-		$page = $this->newPage( $title );
-
-		$text = "[[Lorem ipsum]] dolor sit amet, consetetur sadipscing elitr, sed diam "
-			. " nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat.";
-
-		$page->doEdit( $text, "[[testing]] 1" );
-
-		$this->assertTrue( $title->getArticleID() > 0, "Title object should have new page id" );
-		$this->assertTrue( $page->getId() > 0, "WikiPage should have new page id" );
-		$this->assertTrue( $title->exists(), "Title object should indicate that the page now exists" );
-		$this->assertTrue( $page->exists(), "WikiPage object should indicate that the page now exists" );
-
-		$id = $page->getId();
-
-		# ------------------------
-		$dbr = wfGetDB( DB_SLAVE );
-		$res = $dbr->select( 'pagelinks', '*', array( 'pl_from' => $id ) );
-		$n = $res->numRows();
-		$res->free();
-
-		$this->assertEquals( 1, $n, 'pagelinks should contain one link from the page' );
-
-		# ------------------------
-		$page = new WikiPage( $title );
-
-		$retrieved = $page->getText();
-		$this->assertEquals( $text, $retrieved, 'retrieved text doesn\'t equal original' );
-
-		# ------------------------
-		$text = "At vero eos et accusam et justo duo [[dolores]] et ea rebum. "
-			. "Stet clita kasd [[gubergren]], no sea takimata sanctus est.";
-
-		$page->doEdit( $text, "testing 2" );
-
-		# ------------------------
-		$page = new WikiPage( $title );
-
-		$retrieved = $page->getText();
-		$this->assertEquals( $text, $retrieved, 'retrieved text doesn\'t equal original' );
-
-		# ------------------------
-		$dbr = wfGetDB( DB_SLAVE );
-		$res = $dbr->select( 'pagelinks', '*', array( 'pl_from' => $id ) );
-		$n = $res->numRows();
-		$res->free();
-
-		$this->assertEquals( 2, $n, 'pagelinks should contain two links from the page' );
-	}
-
-	/**
-	 * @covers WikiPage::doQuickEdit
-	 */
-	public function testDoQuickEdit() {
-		global $wgUser;
-
-		$this->hideDeprecated( "WikiPage::doQuickEdit" );
-
-		//NOTE: assume help namespace will default to wikitext
-		$page = $this->createPage( "Help:WikiPageTest_testDoQuickEdit", "original text" );
-
-		$text = "quick text";
-		$page->doQuickEdit( $text, $wgUser, "testing q" );
-
-		# ---------------------
-		$page = new WikiPage( $page->getTitle() );
-		$this->assertEquals( $text, $page->getText() );
-	}
-
-	/**
-	 * @covers WikiPage::doQuickEditContent
-	 */
-	public function testDoQuickEditContent() {
-		global $wgUser;
-
-		$page = $this->createPage(
-			"WikiPageTest_testDoQuickEditContent",
-			"original text",
-			CONTENT_MODEL_WIKITEXT
-		);
-
-		$content = ContentHandler::makeContent(
-			"quick text",
-			$page->getTitle(),
-			CONTENT_MODEL_WIKITEXT
-		);
-		$page->doQuickEditContent( $content, $wgUser, "testing q" );
-
-		# ---------------------
-		$page = new WikiPage( $page->getTitle() );
-		$this->assertTrue( $content->equals( $page->getContent() ) );
 	}
 
 	/**
@@ -281,10 +183,6 @@ class WikiPageTest extends MediaWikiLangTestCase {
 			$page->getContent(),
 			"WikiPage::getContent should return null after page was deleted"
 		);
-		$this->assertFalse(
-			$page->getText(),
-			"WikiPage::getText should return false after page was deleted"
-		);
 
 		$t = Title::newFromText( $page->getTitle()->getPrefixedText() );
 		$this->assertFalse(
@@ -292,9 +190,15 @@ class WikiPageTest extends MediaWikiLangTestCase {
 			"Title::exists should return false after page was deleted"
 		);
 
+		// Run the job queue
+		JobQueueGroup::destroySingletons();
+		$jobs = new RunJobs;
+		$jobs->loadParamsAndArgs( null, [ 'quiet' => true ], null );
+		$jobs->execute();
+
 		# ------------------------
-		$dbr = wfGetDB( DB_SLAVE );
-		$res = $dbr->select( 'pagelinks', '*', array( 'pl_from' => $id ) );
+		$dbr = wfGetDB( DB_REPLICA );
+		$res = $dbr->select( 'pagelinks', '*', [ 'pl_from' => $id ] );
 		$n = $res->numRows();
 		$res->free();
 
@@ -312,11 +216,19 @@ class WikiPageTest extends MediaWikiLangTestCase {
 		);
 		$id = $page->getId();
 
+		// Similar to MovePage logic
+		wfGetDB( DB_MASTER )->delete( 'page', [ 'page_id' => $id ], __METHOD__ );
 		$page->doDeleteUpdates( $id );
 
+		// Run the job queue
+		JobQueueGroup::destroySingletons();
+		$jobs = new RunJobs;
+		$jobs->loadParamsAndArgs( null, [ 'quiet' => true ], null );
+		$jobs->execute();
+
 		# ------------------------
-		$dbr = wfGetDB( DB_SLAVE );
-		$res = $dbr->select( 'pagelinks', '*', array( 'pl_from' => $id ) );
+		$dbr = wfGetDB( DB_REPLICA );
+		$res = $dbr->select( 'pagelinks', '*', [ 'pl_from' => $id ] );
 		$n = $res->numRows();
 		$res->free();
 
@@ -355,42 +267,6 @@ class WikiPageTest extends MediaWikiLangTestCase {
 
 		$content = $page->getContent();
 		$this->assertEquals( "some text", $content->getNativeData() );
-	}
-
-	/**
-	 * @covers WikiPage::getText
-	 */
-	public function testGetText() {
-		$this->hideDeprecated( "WikiPage::getText" );
-
-		$page = $this->newPage( "WikiPageTest_testGetText" );
-
-		$text = $page->getText();
-		$this->assertFalse( $text );
-
-		# -----------------
-		$this->createPage( $page, "some text", CONTENT_MODEL_WIKITEXT );
-
-		$text = $page->getText();
-		$this->assertEquals( "some text", $text );
-	}
-
-	/**
-	 * @covers WikiPage::getRawText
-	 */
-	public function testGetRawText() {
-		$this->hideDeprecated( "WikiPage::getRawText" );
-
-		$page = $this->newPage( "WikiPageTest_testGetRawText" );
-
-		$text = $page->getRawText();
-		$this->assertFalse( $text );
-
-		# -----------------
-		$this->createPage( $page, "some text", CONTENT_MODEL_WIKITEXT );
-
-		$text = $page->getRawText();
-		$this->assertEquals( "some text", $text );
 	}
 
 	/**
@@ -456,13 +332,13 @@ class WikiPageTest extends MediaWikiLangTestCase {
 	}
 
 	public static function provideHasViewableContent() {
-		return array(
-			array( 'WikiPageTest_testHasViewableContent', false, true ),
-			array( 'Special:WikiPageTest_testHasViewableContent', false ),
-			array( 'MediaWiki:WikiPageTest_testHasViewableContent', false ),
-			array( 'Special:Userlogin', true ),
-			array( 'MediaWiki:help', true ),
-		);
+		return [
+			[ 'WikiPageTest_testHasViewableContent', false, true ],
+			[ 'Special:WikiPageTest_testHasViewableContent', false ],
+			[ 'MediaWiki:WikiPageTest_testHasViewableContent', false ],
+			[ 'Special:Userlogin', true ],
+			[ 'MediaWiki:help', true ],
+		];
 	}
 
 	/**
@@ -483,15 +359,15 @@ class WikiPageTest extends MediaWikiLangTestCase {
 	}
 
 	public static function provideGetRedirectTarget() {
-		return array(
-			array( 'WikiPageTest_testGetRedirectTarget_1', CONTENT_MODEL_WIKITEXT, "hello world", null ),
-			array(
+		return [
+			[ 'WikiPageTest_testGetRedirectTarget_1', CONTENT_MODEL_WIKITEXT, "hello world", null ],
+			[
 				'WikiPageTest_testGetRedirectTarget_2',
 				CONTENT_MODEL_WIKITEXT,
 				"#REDIRECT [[hello world]]",
 				"Hello world"
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -499,9 +375,9 @@ class WikiPageTest extends MediaWikiLangTestCase {
 	 * @covers WikiPage::getRedirectTarget
 	 */
 	public function testGetRedirectTarget( $title, $model, $text, $target ) {
-		$this->setMwGlobals( array(
+		$this->setMwGlobals( [
 			'wgCapitalLinks' => true,
-		) );
+		] );
 
 		$page = $this->createPage( $title, $text, $model );
 
@@ -524,110 +400,110 @@ class WikiPageTest extends MediaWikiLangTestCase {
 	}
 
 	public static function provideIsCountable() {
-		return array(
+		return [
 
 			// any
-			array( 'WikiPageTest_testIsCountable',
+			[ 'WikiPageTest_testIsCountable',
 				CONTENT_MODEL_WIKITEXT,
 				'',
 				'any',
 				true
-			),
-			array( 'WikiPageTest_testIsCountable',
+			],
+			[ 'WikiPageTest_testIsCountable',
 				CONTENT_MODEL_WIKITEXT,
 				'Foo',
 				'any',
 				true
-			),
+			],
 
 			// comma
-			array( 'WikiPageTest_testIsCountable',
+			[ 'WikiPageTest_testIsCountable',
 				CONTENT_MODEL_WIKITEXT,
 				'Foo',
 				'comma',
 				false
-			),
-			array( 'WikiPageTest_testIsCountable',
+			],
+			[ 'WikiPageTest_testIsCountable',
 				CONTENT_MODEL_WIKITEXT,
 				'Foo, bar',
 				'comma',
 				true
-			),
+			],
 
 			// link
-			array( 'WikiPageTest_testIsCountable',
+			[ 'WikiPageTest_testIsCountable',
 				CONTENT_MODEL_WIKITEXT,
 				'Foo',
 				'link',
 				false
-			),
-			array( 'WikiPageTest_testIsCountable',
+			],
+			[ 'WikiPageTest_testIsCountable',
 				CONTENT_MODEL_WIKITEXT,
 				'Foo [[bar]]',
 				'link',
 				true
-			),
+			],
 
 			// redirects
-			array( 'WikiPageTest_testIsCountable',
+			[ 'WikiPageTest_testIsCountable',
 				CONTENT_MODEL_WIKITEXT,
 				'#REDIRECT [[bar]]',
 				'any',
 				false
-			),
-			array( 'WikiPageTest_testIsCountable',
+			],
+			[ 'WikiPageTest_testIsCountable',
 				CONTENT_MODEL_WIKITEXT,
 				'#REDIRECT [[bar]]',
 				'comma',
 				false
-			),
-			array( 'WikiPageTest_testIsCountable',
+			],
+			[ 'WikiPageTest_testIsCountable',
 				CONTENT_MODEL_WIKITEXT,
 				'#REDIRECT [[bar]]',
 				'link',
 				false
-			),
+			],
 
 			// not a content namespace
-			array( 'Talk:WikiPageTest_testIsCountable',
+			[ 'Talk:WikiPageTest_testIsCountable',
 				CONTENT_MODEL_WIKITEXT,
 				'Foo',
 				'any',
 				false
-			),
-			array( 'Talk:WikiPageTest_testIsCountable',
+			],
+			[ 'Talk:WikiPageTest_testIsCountable',
 				CONTENT_MODEL_WIKITEXT,
 				'Foo, bar',
 				'comma',
 				false
-			),
-			array( 'Talk:WikiPageTest_testIsCountable',
+			],
+			[ 'Talk:WikiPageTest_testIsCountable',
 				CONTENT_MODEL_WIKITEXT,
 				'Foo [[bar]]',
 				'link',
 				false
-			),
+			],
 
 			// not a content namespace, different model
-			array( 'MediaWiki:WikiPageTest_testIsCountable.js',
+			[ 'MediaWiki:WikiPageTest_testIsCountable.js',
 				null,
 				'Foo',
 				'any',
 				false
-			),
-			array( 'MediaWiki:WikiPageTest_testIsCountable.js',
+			],
+			[ 'MediaWiki:WikiPageTest_testIsCountable.js',
 				null,
 				'Foo, bar',
 				'comma',
 				false
-			),
-			array( 'MediaWiki:WikiPageTest_testIsCountable.js',
+			],
+			[ 'MediaWiki:WikiPageTest_testIsCountable.js',
 				null,
 				'Foo [[bar]]',
 				'link',
 				false
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -674,10 +550,14 @@ class WikiPageTest extends MediaWikiLangTestCase {
 	}
 
 	public static function provideGetParserOutput() {
-		return array(
-			array( CONTENT_MODEL_WIKITEXT, "hello ''world''\n", "<p>hello <i>world</i></p>" ),
+		return [
+			[
+				CONTENT_MODEL_WIKITEXT,
+				"hello ''world''\n",
+				"<div class=\"mw-parser-output\"><p>hello <i>world</i></p></div>"
+			],
 			// @todo more...?
-		);
+		];
 	}
 
 	/**
@@ -692,7 +572,7 @@ class WikiPageTest extends MediaWikiLangTestCase {
 		$text = $po->getText();
 
 		$text = trim( preg_replace( '/<!--.*?-->/sm', '', $text ) ); # strip injected comments
-		$text = preg_replace( '!\s*(</p>)!sm', '\1', $text ); # don't let tidy confuse us
+		$text = preg_replace( '!\s*(</p>|</div>)!sm', '\1', $text ); # don't let tidy confuse us
 
 		$this->assertEquals( $expectedHtml, $text );
 
@@ -743,67 +623,51 @@ more stuff
 ";
 
 	public function dataReplaceSection() {
-		//NOTE: assume the Help namespace to contain wikitext
-		return array(
-			array( 'Help:WikiPageTest_testReplaceSection',
+		// NOTE: assume the Help namespace to contain wikitext
+		return [
+			[ 'Help:WikiPageTest_testReplaceSection',
 				CONTENT_MODEL_WIKITEXT,
-				WikiPageTest::$sections,
+				self::$sections,
 				"0",
 				"No more",
 				null,
-				trim( preg_replace( '/^Intro/sm', 'No more', WikiPageTest::$sections ) )
-			),
-			array( 'Help:WikiPageTest_testReplaceSection',
+				trim( preg_replace( '/^Intro/sm', 'No more', self::$sections ) )
+			],
+			[ 'Help:WikiPageTest_testReplaceSection',
 				CONTENT_MODEL_WIKITEXT,
-				WikiPageTest::$sections,
+				self::$sections,
 				"",
 				"No more",
 				null,
 				"No more"
-			),
-			array( 'Help:WikiPageTest_testReplaceSection',
+			],
+			[ 'Help:WikiPageTest_testReplaceSection',
 				CONTENT_MODEL_WIKITEXT,
-				WikiPageTest::$sections,
+				self::$sections,
 				"2",
 				"== TEST ==\nmore fun",
 				null,
 				trim( preg_replace( '/^== test ==.*== foo ==/sm',
 					"== TEST ==\nmore fun\n\n== foo ==",
-					WikiPageTest::$sections ) )
-			),
-			array( 'Help:WikiPageTest_testReplaceSection',
+					self::$sections ) )
+			],
+			[ 'Help:WikiPageTest_testReplaceSection',
 				CONTENT_MODEL_WIKITEXT,
-				WikiPageTest::$sections,
+				self::$sections,
 				"8",
 				"No more",
 				null,
-				trim( WikiPageTest::$sections )
-			),
-			array( 'Help:WikiPageTest_testReplaceSection',
+				trim( self::$sections )
+			],
+			[ 'Help:WikiPageTest_testReplaceSection',
 				CONTENT_MODEL_WIKITEXT,
-				WikiPageTest::$sections,
+				self::$sections,
 				"new",
 				"No more",
 				"New",
-				trim( WikiPageTest::$sections ) . "\n\n== New ==\n\nNo more"
-			),
-		);
-	}
-
-	/**
-	 * @dataProvider dataReplaceSection
-	 * @covers WikiPage::replaceSection
-	 */
-	public function testReplaceSection( $title, $model, $text, $section, $with,
-		$sectionTitle, $expected
-	) {
-		$this->hideDeprecated( "WikiPage::replaceSection" );
-
-		$page = $this->createPage( $title, $text, $model );
-		$text = $page->replaceSection( $section, $with, $sectionTitle );
-		$text = trim( $text );
-
-		$this->assertEquals( $expected, $text );
+				trim( self::$sections ) . "\n\n== New ==\n\nNo more"
+			],
+		];
 	}
 
 	/**
@@ -839,7 +703,7 @@ more stuff
 
 	/* @todo FIXME: fix this!
 	public function testGetUndoText() {
-	$this->checkHasDiff3();
+	$this->markTestSkippedIfNoDiff3();
 
 	$text = "one";
 	$page = $this->createPage( "WikiPageTest_testGetUndoText", $text );
@@ -895,6 +759,47 @@ more stuff
 	 */
 
 	/**
+	 * @covers WikiPage::getOldestRevision
+	 */
+	public function testGetOldestRevision() {
+		$page = $this->newPage( "WikiPageTest_testGetOldestRevision" );
+		$page->doEditContent(
+			new WikitextContent( 'one' ),
+			"first edit",
+			EDIT_NEW
+		);
+		$rev1 = $page->getRevision();
+
+		$page = new WikiPage( $page->getTitle() );
+		$page->doEditContent(
+			new WikitextContent( 'two' ),
+			"second edit",
+			EDIT_UPDATE
+		);
+
+		$page = new WikiPage( $page->getTitle() );
+		$page->doEditContent(
+			new WikitextContent( 'three' ),
+			"third edit",
+			EDIT_UPDATE
+		);
+
+		// sanity check
+		$this->assertNotEquals(
+			$rev1->getId(),
+			$page->getRevision()->getId(),
+			'$page->getRevision()->getId()'
+		);
+
+		// actual test
+		$this->assertEquals(
+			$rev1->getId(),
+			$page->getOldestRevision()->getId(),
+			'$page->getOldestRevision()->getId()'
+		);
+	}
+
+	/**
 	 * @todo FIXME: this is a better rollback test than the one below, but it
 	 * keeps failing in jenkins for some reason.
 	 */
@@ -924,7 +829,7 @@ more stuff
 		# we are having issues with doRollback spuriously failing. Apparently
 		# the last revision somehow goes missing or not committed under some
 		# circumstances. So, make sure the last revision has the right user name.
-		$dbr = wfGetDB( DB_SLAVE );
+		$dbr = wfGetDB( DB_REPLICA );
 		$this->assertEquals( 3, Revision::countByPageId( $dbr, $page->getId() ) );
 
 		$page = new WikiPage( $page->getTitle() );
@@ -938,9 +843,10 @@ more stuff
 		$this->assertEquals( 'Admin', $rev1->getUserText() );
 
 		# now, try the actual rollback
-		$admin->addGroup( "sysop" ); #XXX: make the test user a sysop...
+		$admin->addToDatabase();
+		$admin->addGroup( "sysop" ); # XXX: make the test user a sysop...
 		$token = $admin->getEditToken(
-			array( $page->getTitle()->getPrefixedText(), $user2->getName() ),
+			[ $page->getTitle()->getPrefixedText(), $user2->getName() ],
 			null
 		);
 		$errors = $page->doRollback(
@@ -970,6 +876,7 @@ more stuff
 	public function testDoRollback() {
 		$admin = new User();
 		$admin->setName( "Admin" );
+		$admin->addToDatabase();
 
 		$text = "one";
 		$page = $this->newPage( "WikiPageTest_testDoRollback" );
@@ -995,11 +902,8 @@ more stuff
 		);
 
 		# now, try the rollback
-		$admin->addGroup( "sysop" ); #XXX: make the test user a sysop...
-		$token = $admin->getEditToken(
-			array( $page->getTitle()->getPrefixedText(), $user1->getName() ),
-			null
-		);
+		$admin->addGroup( "sysop" ); # XXX: make the test user a sysop...
+		$token = $admin->getEditToken( 'rollback' );
 		$errors = $page->doRollback(
 			$user1->getName(),
 			"testing revert",
@@ -1026,7 +930,8 @@ more stuff
 	public function testDoRollbackFailureSameContent() {
 		$admin = new User();
 		$admin->setName( "Admin" );
-		$admin->addGroup( "sysop" ); #XXX: make the test user a sysop...
+		$admin->addToDatabase();
+		$admin->addGroup( "sysop" ); # XXX: make the test user a sysop...
 
 		$text = "one";
 		$page = $this->newPage( "WikiPageTest_testDoRollback" );
@@ -1041,7 +946,8 @@ more stuff
 
 		$user1 = new User();
 		$user1->setName( "127.0.1.11" );
-		$user1->addGroup( "sysop" ); #XXX: make the test user a sysop...
+		$user1->addToDatabase();
+		$user1->addGroup( "sysop" ); # XXX: make the test user a sysop...
 		$text .= "\n\ntwo";
 		$page = new WikiPage( $page->getTitle() );
 		$page->doEditContent(
@@ -1053,11 +959,8 @@ more stuff
 		);
 
 		# now, do a the rollback from the same user was doing the edit before
-		$resultDetails = array();
-		$token = $user1->getEditToken(
-			array( $page->getTitle()->getPrefixedText(), $user1->getName() ),
-			null
-		);
+		$resultDetails = [];
+		$token = $user1->getEditToken( 'rollback' );
 		$errors = $page->doRollback(
 			$user1->getName(),
 			"testing revert same user",
@@ -1067,14 +970,11 @@ more stuff
 			$admin
 		);
 
-		$this->assertEquals( array(), $errors, "Rollback failed same user" );
+		$this->assertEquals( [], $errors, "Rollback failed same user" );
 
 		# now, try the rollback
-		$resultDetails = array();
-		$token = $admin->getEditToken(
-			array( $page->getTitle()->getPrefixedText(), $user1->getName() ),
-			null
-		);
+		$resultDetails = [];
+		$token = $admin->getEditToken( 'rollback' );
 		$errors = $page->doRollback(
 			$user1->getName(),
 			"testing revert",
@@ -1084,8 +984,8 @@ more stuff
 			$admin
 		);
 
-		$this->assertEquals( array( array( 'alreadyrolled', 'WikiPageTest testDoRollback',
-			'127.0.1.11', 'Admin' ) ), $errors, "Rollback not failed" );
+		$this->assertEquals( [ [ 'alreadyrolled', 'WikiPageTest testDoRollback',
+			'127.0.1.11', 'Admin' ] ], $errors, "Rollback not failed" );
 
 		$page = new WikiPage( $page->getTitle() );
 		$this->assertEquals( $rev1->getSha1(), $page->getRevision()->getSha1(),
@@ -1093,100 +993,43 @@ more stuff
 		$this->assertEquals( "one", $page->getContent()->getNativeData() );
 	}
 
-	public static function provideGetAutosummary() {
-		return array(
-			array(
-				'Hello there, world!',
-				'#REDIRECT [[Foo]]',
-				0,
-				'/^Redirected page .*Foo/'
-			),
-
-			array(
-				null,
-				'Hello world!',
-				EDIT_NEW,
-				'/^Created page .*Hello/'
-			),
-
-			array(
-				'Hello there, world!',
-				'',
-				0,
-				'/^Blanked/'
-			),
-
-			array(
-				'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
-				eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam
-				voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
-				clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.',
-				'Hello world!',
-				0,
-				'/^Replaced .*Hello/'
-			),
-
-			array(
-				'foo',
-				'bar',
-				0,
-				'/^$/'
-			),
-		);
-	}
-
-	/**
-	 * @dataProvider provideGetAutoSummary
-	 * @covers WikiPage::getAutosummary
-	 */
-	public function testGetAutosummary( $old, $new, $flags, $expected ) {
-		$this->hideDeprecated( "WikiPage::getAutosummary" );
-
-		$page = $this->newPage( "WikiPageTest_testGetAutosummary" );
-
-		$summary = $page->getAutosummary( $old, $new, $flags );
-
-		$this->assertTrue( (bool)preg_match( $expected, $summary ),
-			"Autosummary didn't match expected pattern $expected: $summary" );
-	}
-
 	public static function provideGetAutoDeleteReason() {
-		return array(
-			array(
-				array(),
+		return [
+			[
+				[],
 				false,
 				false
-			),
+			],
 
-			array(
-				array(
-					array( "first edit", null ),
-				),
+			[
+				[
+					[ "first edit", null ],
+				],
 				"/first edit.*only contributor/",
 				false
-			),
+			],
 
-			array(
-				array(
-					array( "first edit", null ),
-					array( "second edit", null ),
-				),
+			[
+				[
+					[ "first edit", null ],
+					[ "second edit", null ],
+				],
 				"/second edit.*only contributor/",
 				true
-			),
+			],
 
-			array(
-				array(
-					array( "first edit", "127.0.2.22" ),
-					array( "second edit", "127.0.3.33" ),
-				),
+			[
+				[
+					[ "first edit", "127.0.2.22" ],
+					[ "second edit", "127.0.3.33" ],
+				],
 				"/second edit/",
 				true
-			),
+			],
 
-			array(
-				array(
-					array(
+			[
+				[
+					[
 						"first edit: "
 							. "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam "
 							. " nonumy eirmod tempor invidunt ut labore et dolore magna "
@@ -1194,22 +1037,22 @@ more stuff
 							. "et justo duo dolores et ea rebum. Stet clita kasd gubergren, "
 							. "no sea  takimata sanctus est Lorem ipsum dolor sit amet.'",
 						null
-					),
-				),
+					],
+				],
 				'/first edit:.*\.\.\."/',
 				false
-			),
+			],
 
-			array(
-				array(
-					array( "first edit", "127.0.2.22" ),
-					array( "", "127.0.3.33" ),
-				),
+			[
+				[
+					[ "first edit", "127.0.2.22" ],
+					[ "", "127.0.3.33" ],
+				],
 				"/before blanking.*first edit/",
 				true
-			),
+			],
 
-		);
+		];
 	}
 
 	/**
@@ -1219,7 +1062,7 @@ more stuff
 	public function testGetAutoDeleteReason( $edits, $expectedResult, $expectedHistory ) {
 		global $wgUser;
 
-		//NOTE: assume Help namespace to contain wikitext
+		// NOTE: assume Help namespace to contain wikitext
 		$page = $this->newPage( "Help:WikiPageTest_testGetAutoDeleteReason" );
 
 		$c = 1;
@@ -1256,30 +1099,14 @@ more stuff
 	}
 
 	public static function providePreSaveTransform() {
-		return array(
-			array( 'hello this is ~~~',
+		return [
+			[ 'hello this is ~~~',
 				"hello this is [[Special:Contributions/127.0.0.1|127.0.0.1]]",
-			),
-			array( 'hello \'\'this\'\' is <nowiki>~~~</nowiki>',
+			],
+			[ 'hello \'\'this\'\' is <nowiki>~~~</nowiki>',
 				'hello \'\'this\'\' is <nowiki>~~~</nowiki>',
-			),
-		);
-	}
-
-	/**
-	 * @dataProvider providePreSaveTransform
-	 * @covers WikiPage::preSaveTransform
-	 */
-	public function testPreSaveTransform( $text, $expected ) {
-		$this->hideDeprecated( 'WikiPage::preSaveTransform' );
-		$user = new User();
-		$user->setName( "127.0.0.1" );
-
-		//NOTE: assume Help namespace to contain wikitext
-		$page = $this->newPage( "Help:WikiPageTest_testPreloadTransform" );
-		$text = $page->preSaveTransform( $text, $user );
-
-		$this->assertEquals( $expected, $text );
+			],
+		];
 	}
 
 	/**
@@ -1298,4 +1125,84 @@ more stuff
 		$page = WikiPage::factory( $title );
 		$this->assertEquals( 'WikiPage', get_class( $page ) );
 	}
+
+	/**
+	 * @dataProvider provideCommentMigrationOnDeletion
+	 * @param int $wstage
+	 * @param int $rstage
+	 */
+	public function testCommentMigrationOnDeletion( $wstage, $rstage ) {
+		$this->setMwGlobals( 'wgCommentTableSchemaMigrationStage', $wstage );
+		$dbr = wfGetDB( DB_REPLICA );
+
+		$page = $this->createPage(
+			"WikiPageTest_testCommentMigrationOnDeletion",
+			"foo",
+			CONTENT_MODEL_WIKITEXT
+		);
+		$revid = $page->getLatest();
+		if ( $wstage > MIGRATION_OLD ) {
+			$comment_id = $dbr->selectField(
+				'revision_comment_temp',
+				'revcomment_comment_id',
+				[ 'revcomment_rev' => $revid ],
+				__METHOD__
+			);
+		}
+
+		$this->setMwGlobals( 'wgCommentTableSchemaMigrationStage', $rstage );
+
+		$page->doDeleteArticle( "testing deletion" );
+
+		if ( $rstage > MIGRATION_OLD ) {
+			// Didn't leave behind any 'revision_comment_temp' rows
+			$n = $dbr->selectField(
+				'revision_comment_temp', 'COUNT(*)', [ 'revcomment_rev' => $revid ], __METHOD__
+			);
+			$this->assertEquals( 0, $n, 'no entry in revision_comment_temp after deletion' );
+
+			// Copied or upgraded the comment_id, as applicable
+			$ar_comment_id = $dbr->selectField(
+				'archive',
+				'ar_comment_id',
+				[ 'ar_rev_id' => $revid ],
+				__METHOD__
+			);
+			if ( $wstage > MIGRATION_OLD ) {
+				$this->assertSame( $comment_id, $ar_comment_id );
+			} else {
+				$this->assertNotEquals( 0, $ar_comment_id );
+			}
+		}
+
+		// Copied rev_comment, if applicable
+		if ( $rstage <= MIGRATION_WRITE_BOTH && $wstage <= MIGRATION_WRITE_BOTH ) {
+			$ar_comment = $dbr->selectField(
+				'archive',
+				'ar_comment',
+				[ 'ar_rev_id' => $revid ],
+				__METHOD__
+			);
+			$this->assertSame( 'testing', $ar_comment );
+		}
+	}
+
+	public static function provideCommentMigrationOnDeletion() {
+		return [
+			[ MIGRATION_OLD, MIGRATION_OLD ],
+			[ MIGRATION_OLD, MIGRATION_WRITE_BOTH ],
+			[ MIGRATION_OLD, MIGRATION_WRITE_NEW ],
+			[ MIGRATION_WRITE_BOTH, MIGRATION_OLD ],
+			[ MIGRATION_WRITE_BOTH, MIGRATION_WRITE_BOTH ],
+			[ MIGRATION_WRITE_BOTH, MIGRATION_WRITE_NEW ],
+			[ MIGRATION_WRITE_BOTH, MIGRATION_NEW ],
+			[ MIGRATION_WRITE_NEW, MIGRATION_WRITE_BOTH ],
+			[ MIGRATION_WRITE_NEW, MIGRATION_WRITE_NEW ],
+			[ MIGRATION_WRITE_NEW, MIGRATION_NEW ],
+			[ MIGRATION_NEW, MIGRATION_WRITE_BOTH ],
+			[ MIGRATION_NEW, MIGRATION_WRITE_NEW ],
+			[ MIGRATION_NEW, MIGRATION_NEW ],
+		];
+	}
+
 }

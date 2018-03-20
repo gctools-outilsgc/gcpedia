@@ -433,7 +433,6 @@ aiff
 aiprop
 airtel
 aisort
-ajaxwatch
 al
 alefsym
 algo
@@ -539,11 +538,8 @@ asctime
 asdf
 aspx
 assert
-astriks
 asymp
 async
-asynccopyuploaddisabled
-asyncdownload
 at
 atend
 atext
@@ -1040,7 +1036,6 @@ csrf
 css
 cssclass
 csslinks
-cssprefs
 cta
 ctime
 ctor
@@ -1327,7 +1322,6 @@ edittoken
 edittools
 editurl
 editusercss
-editusercssjs
 edituserjs
 edoe
 egrave
@@ -1403,7 +1397,6 @@ epcampus
 epcoordinator
 epinstructor
 eponline
-eqiad
 erevoke
 errno
 error
@@ -2152,7 +2145,6 @@ lcount
 lcrocker
 ldquo
 le
-leavemessage
 len
 length
 leprop
@@ -3189,7 +3181,7 @@ prefixsearchdisabled
 prefs
 prefsection
 prefsnologintext2
-prefsubmit
+prefcontrol
 preload
 preloads
 preloadtitle
@@ -4577,7 +4569,6 @@ wmls
 wmlsc
 wmlscript
 wmlscriptc
-wmnet
 wordcount
 wordprocessingml
 wordwg

@@ -19,6 +19,8 @@
  * @ingroup Change tagging
  */
 
+use Wikimedia\Rdbms\IDatabase;
+
 /**
  * Stores a list of taggable log entries.
  * @since 1.25
@@ -29,14 +31,14 @@ class ChangeTagsLogList extends ChangeTagsList {
 	}
 
 	/**
-	 * @param DatabaseBase $db
+	 * @param IDatabase $db
 	 * @return mixed
 	 */
 	public function doQuery( $db ) {
 		$ids = array_map( 'intval', $this->ids );
 		$queryInfo = DatabaseLogEntry::getSelectQueryData();
-		$queryInfo['conds'] += array( 'log_id' => $ids );
-		$queryInfo['options'] += array( 'ORDER BY' => 'log_id DESC' );
+		$queryInfo['conds'] += [ 'log_id' => $ids ];
+		$queryInfo['options'] += [ 'ORDER BY' => 'log_id DESC' ];
 		ChangeTags::modifyDisplayQuery(
 			$queryInfo['tables'],
 			$queryInfo['fields'],
@@ -69,9 +71,7 @@ class ChangeTagsLogList extends ChangeTagsList {
 	 * @param User $user
 	 * @return Status
 	 */
-	public function updateChangeTagsOnAll( $tagsToAdd, $tagsToRemove, $params,
-		$reason, $user ) {
-
+	public function updateChangeTagsOnAll( $tagsToAdd, $tagsToRemove, $params, $reason, $user ) {
 		// @codingStandardsIgnoreStart Generic.CodeAnalysis.ForLoopWithTestFunctionCall.NotAllowed
 		for ( $this->reset(); $this->current(); $this->next() ) {
 			// @codingStandardsIgnoreEnd

@@ -37,8 +37,7 @@ use MWExceptionHandler;
  * will be used to redact the trace information.
  *
  * @since 1.26
- * @author Bryan Davis <bd808@wikimedia.org>
- * @copyright © 2015 Bryan Davis and Wikimedia Foundation.
+ * @copyright © 2015 Wikimedia Foundation and contributors
  */
 class LineFormatter extends MonologLineFormatter {
 
@@ -60,9 +59,8 @@ class LineFormatter extends MonologLineFormatter {
 		$this->includeStacktraces( $includeStacktraces );
 	}
 
-
 	/**
-	 * {@inheritdoc}
+	 * @inheritDoc
 	 */
 	public function format( array $record ) {
 		// Drop the 'private' flag from the context
@@ -94,17 +92,15 @@ class LineFormatter extends MonologLineFormatter {
 		return $output;
 	}
 
-
 	/**
 	 * Convert an Exception to a string.
 	 *
 	 * @param Exception $e
 	 * @return string
 	 */
-	protected function normalizeException( Exception $e ) {
+	protected function normalizeException( $e ) {
 		return $this->normalizeExceptionArray( $this->exceptionAsArray( $e ) );
 	}
-
 
 	/**
 	 * Convert an exception to an array of structured data.
@@ -113,14 +109,14 @@ class LineFormatter extends MonologLineFormatter {
 	 * @return array
 	 */
 	protected function exceptionAsArray( Exception $e ) {
-		$out = array(
+		$out = [
 			'class' => get_class( $e ),
 			'message' => $e->getMessage(),
 			'code' => $e->getCode(),
 			'file' => $e->getFile(),
 			'line' => $e->getLine(),
 			'trace' => MWExceptionHandler::redactTrace( $e->getTrace() ),
-		);
+		];
 
 		$prev = $e->getPrevious();
 		if ( $prev ) {
@@ -130,7 +126,6 @@ class LineFormatter extends MonologLineFormatter {
 		return $out;
 	}
 
-
 	/**
 	 * Convert an array of Exception data to a string.
 	 *
@@ -138,13 +133,13 @@ class LineFormatter extends MonologLineFormatter {
 	 * @return string
 	 */
 	protected function normalizeExceptionArray( array $e ) {
-		$defaults = array(
+		$defaults = [
 			'class' => 'Unknown',
 			'file' => 'unknown',
 			'line' => null,
 			'message' => 'unknown',
-			'trace' => array(),
-		);
+			'trace' => [],
+		];
 		$e = array_merge( $defaults, $e );
 
 		$str = "\n[Exception {$e['class']}] (" .
