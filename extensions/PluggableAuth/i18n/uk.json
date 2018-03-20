@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ата",
+			"Piramidion"
+		]
+	},
+	"pluggableauth-desc": "Забезпечує основу для змінної автентифікації та авторизації",
+	"pluggableauth-not-authorized": "{{GENDER:$1|Користувач $1 не авторизований|Користувачка $1 не авторизована}}.",
+	"pluggableauth-authentication-failure": "Автентифікація користувача неможлива.",
+	"pluggableauth-authentication-workflow-failure": "Помилка процесу автентифікації.",
+	"pluggableauth-loginbutton-label": "Увійти в систему за допомогою PluggableAuth",
+	"pluggableauth-loginbutton-help": "Автентифікує Вас через PluggableAuth"
+}

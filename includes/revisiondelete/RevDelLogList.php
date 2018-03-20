@@ -19,6 +19,8 @@
  * @ingroup RevisionDelete
  */
 
+use Wikimedia\Rdbms\IDatabase;
+
 /**
  * List for logging table items
  */
@@ -40,11 +42,11 @@ class RevDelLogList extends RevDelList {
 	}
 
 	public static function suggestTarget( $target, array $ids ) {
-		$result = wfGetDB( DB_SLAVE )->select( 'logging',
+		$result = wfGetDB( DB_REPLICA )->select( 'logging',
 			'log_type',
-			array( 'log_id' => $ids ),
+			[ 'log_id' => $ids ],
 			__METHOD__,
-			array( 'DISTINCT' )
+			[ 'DISTINCT' ]
 		);
 		if ( $result->numRows() == 1 ) {
 			// If there's only one type, the target can be set to include it.
@@ -61,7 +63,11 @@ class RevDelLogList extends RevDelList {
 	public function doQuery( $db ) {
 		$ids = array_map( 'intval', $this->ids );
 
-		return $db->select( 'logging', array(
+		$commentQuery = CommentStore::newKey( 'log_comment' )->getJoin();
+
+		return $db->select(
+			[ 'logging' ] + $commentQuery['tables'],
+			[
 				'log_id',
 				'log_type',
 				'log_action',
@@ -71,13 +77,13 @@ class RevDelLogList extends RevDelList {
 				'log_namespace',
 				'log_title',
 				'log_page',
-				'log_comment',
 				'log_params',
 				'log_deleted'
-			),
-			array( 'log_id' => $ids ),
+			] + $commentQuery['fields'],
+			[ 'log_id' => $ids ],
 			__METHOD__,
-			array( 'ORDER BY' => 'log_id DESC' )
+			[ 'ORDER BY' => 'log_id DESC' ],
+			$commentQuery['joins']
 		);
 	}
 
@@ -94,10 +100,10 @@ class RevDelLogList extends RevDelList {
 	}
 
 	public function getLogParams( $params ) {
-		return array(
+		return [
 			'4::ids' => $params['ids'],
 			'5::ofield' => $params['oldBits'],
 			'6::nfield' => $params['newBits'],
-		);
+		];
 	}
 }

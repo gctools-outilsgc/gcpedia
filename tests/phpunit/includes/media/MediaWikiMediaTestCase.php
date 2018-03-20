@@ -1,46 +1,46 @@
 <?php
 /**
- * Specificly for testing Media handlers. Sets up a FSFile backend
+ * Specificly for testing Media handlers. Sets up a FileRepo backend
  */
 abstract class MediaWikiMediaTestCase extends MediaWikiTestCase {
 
-	/** @var FSRepo */
+	/** @var FileRepo */
 	protected $repo;
 	/** @var FSFileBackend */
 	protected $backend;
 	/** @var string */
 	protected $filePath;
 
-
 	protected function setUp() {
 		parent::setUp();
 
 		$this->filePath = $this->getFilePath();
-		$containers = array( 'data' => $this->filePath );
+		$containers = [ 'data' => $this->filePath ];
 		if ( $this->createsThumbnails() ) {
 			// We need a temp directory for the thumbnails
 			// the container is named 'temp-thumb' because it is the
-			// thumb directory for a FSRepo named "temp".
+			// thumb directory for a repo named "temp".
 			$containers['temp-thumb'] = $this->getNewTempDirectory();
 		}
 
-		$this->backend = new FSFileBackend( array(
+		$this->backend = new FSFileBackend( [
 			'name' => 'localtesting',
-			'wikiId' => wfWikiId(),
-			'containerPaths' => $containers
-		) );
-		$this->repo = new FSRepo( $this->getRepoOptions() );
+			'wikiId' => wfWikiID(),
+			'containerPaths' => $containers,
+			'tmpDirectory' => $this->getNewTempDirectory()
+		] );
+		$this->repo = new FileRepo( $this->getRepoOptions() );
 	}
 
 	/**
-	 * @return array Argument for FSRepo constructor
+	 * @return array Argument for FileRepo constructor
 	 */
 	protected function getRepoOptions() {
-		return array(
+		return [
 			'name' => 'temp',
 			'url' => 'http://localhost/thumbtest',
 			'backend' => $this->backend
-		);
+		];
 	}
 
 	/**

@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"cicalese",
+			"Liuxinyu970226",
+			"Umherirrender"
+		]
+	},
+	"pluggableauth-desc": "{{desc|name=Pluggable Auth|url=https://www.mediawiki.org/wiki/Extension:PluggableAuth}}",
+	"pluggableauth-not-authorized": "Text to display when an authorization plugin indicates that the user is not authorized to log in. Parameters:\n* $1 - a username with GENDER support.",
+	"pluggableauth-authentication-failure": "Failure message when there is an authentication or authorization failure (e.g. User not authorized).",
+	"pluggableauth-authentication-workflow-failure": "Failure message when there is an error in authentication workflow, such as an AuthenticationRequest being received in the wrong action.",
+	"pluggableauth-loginbutton-label": "Used as label for the button shown in [[Special:UserLogin]].",
+	"pluggableauth-loginbutton-help": "Help message used for the Login with PluggableAuth button on [[Special:UserLogin]]."
+}

@@ -21,6 +21,10 @@
  * @ingroup Deployment
  */
 
+use Wikimedia\Rdbms\Database;
+use Wikimedia\Rdbms\DBQueryError;
+use Wikimedia\Rdbms\DBConnectionError;
+
 /**
  * Class for setting up the MediaWiki database using Microsoft SQL Server.
  *
@@ -29,7 +33,7 @@
  */
 class MssqlInstaller extends DatabaseInstaller {
 
-	protected $globalNames = array(
+	protected $globalNames = [
 		'wgDBserver',
 		'wgDBname',
 		'wgDBuser',
@@ -37,28 +41,29 @@ class MssqlInstaller extends DatabaseInstaller {
 		'wgDBmwschema',
 		'wgDBprefix',
 		'wgDBWindowsAuthentication',
-	);
+	];
 
-	protected $internalDefaults = array(
+	protected $internalDefaults = [
 		'_InstallUser' => 'sa',
 		'_InstallWindowsAuthentication' => 'sqlauth',
 		'_WebWindowsAuthentication' => 'sqlauth',
-	);
+	];
 
 	// SQL Server 2005 RTM
 	// @todo Are SQL Express version numbers different?)
-	public $minimumVersion = '9.00.1399';
+	public static $minimumVersion = '9.00.1399';
+	protected static $notMiniumumVerisonMessage = 'config-mssql-old';
 
 	// These are schema-level privs
 	// Note: the web user will be created will full permissions if possible, this permission
 	// list is only used if we are unable to grant full permissions.
-	public $webUserPrivs = array(
+	public $webUserPrivs = [
 		'DELETE',
 		'INSERT',
 		'SELECT',
 		'UPDATE',
 		'EXECUTE',
-	);
+	];
 
 	/**
 	 * @return string
@@ -87,48 +92,48 @@ class MssqlInstaller extends DatabaseInstaller {
 		return $this->getTextBox(
 			'wgDBserver',
 			'config-db-host',
-			array(),
+			[],
 			$this->parent->getHelpBox( 'config-db-host-help' )
 		) .
 			Html::openElement( 'fieldset' ) .
-			Html::element( 'legend', array(), wfMessage( 'config-db-wiki-settings' )->text() ) .
-			$this->getTextBox( 'wgDBname', 'config-db-name', array( 'dir' => 'ltr' ),
+			Html::element( 'legend', [], wfMessage( 'config-db-wiki-settings' )->text() ) .
+			$this->getTextBox( 'wgDBname', 'config-db-name', [ 'dir' => 'ltr' ],
 				$this->parent->getHelpBox( 'config-db-name-help' ) ) .
-			$this->getTextBox( 'wgDBmwschema', 'config-db-schema', array( 'dir' => 'ltr' ),
+			$this->getTextBox( 'wgDBmwschema', 'config-db-schema', [ 'dir' => 'ltr' ],
 				$this->parent->getHelpBox( 'config-db-schema-help' ) ) .
-			$this->getTextBox( 'wgDBprefix', 'config-db-prefix', array( 'dir' => 'ltr' ),
+			$this->getTextBox( 'wgDBprefix', 'config-db-prefix', [ 'dir' => 'ltr' ],
 				$this->parent->getHelpBox( 'config-db-prefix-help' ) ) .
 			Html::closeElement( 'fieldset' ) .
 			Html::openElement( 'fieldset' ) .
-			Html::element( 'legend', array(), wfMessage( 'config-db-install-account' )->text() ) .
-			$this->getRadioSet( array(
+			Html::element( 'legend', [], wfMessage( 'config-db-install-account' )->text() ) .
+			$this->getRadioSet( [
 				'var' => '_InstallWindowsAuthentication',
 				'label' => 'config-mssql-auth',
 				'itemLabelPrefix' => 'config-mssql-',
-				'values' => array( 'sqlauth', 'windowsauth' ),
-				'itemAttribs' => array(
-					'sqlauth' => array(
+				'values' => [ 'sqlauth', 'windowsauth' ],
+				'itemAttribs' => [
+					'sqlauth' => [
 						'class' => 'showHideRadio',
 						'rel' => 'dbCredentialBox',
-					),
-					'windowsauth' => array(
+					],
+					'windowsauth' => [
 						'class' => 'hideShowRadio',
 						'rel' => 'dbCredentialBox',
-					)
-				),
+					]
+				],
 				'help' => $this->parent->getHelpBox( 'config-mssql-install-auth' )
-			) ) .
-			Html::openElement( 'div', array( 'id' => 'dbCredentialBox', 'style' => $displayStyle ) ) .
+			] ) .
+			Html::openElement( 'div', [ 'id' => 'dbCredentialBox', 'style' => $displayStyle ] ) .
 			$this->getTextBox(
 				'_InstallUser',
 				'config-db-username',
-				array( 'dir' => 'ltr' ),
+				[ 'dir' => 'ltr' ],
 				$this->parent->getHelpBox( 'config-db-install-username' )
 			) .
 			$this->getPasswordBox(
 				'_InstallPassword',
 				'config-db-password',
-				array( 'dir' => 'ltr' ),
+				[ 'dir' => 'ltr' ],
 				$this->parent->getHelpBox( 'config-db-install-password' )
 			) .
 			Html::closeElement( 'div' ) .
@@ -137,12 +142,12 @@ class MssqlInstaller extends DatabaseInstaller {
 
 	public function submitConnectForm() {
 		// Get variables from the request.
-		$newValues = $this->setVarsFromRequest( array(
+		$newValues = $this->setVarsFromRequest( [
 			'wgDBserver',
 			'wgDBname',
 			'wgDBmwschema',
 			'wgDBprefix'
-		) );
+		] );
 
 		// Validate them.
 		$status = Status::newGood();
@@ -170,11 +175,11 @@ class MssqlInstaller extends DatabaseInstaller {
 		}
 
 		// User box
-		$this->setVarsFromRequest( array(
+		$this->setVarsFromRequest( [
 			'_InstallUser',
 			'_InstallPassword',
 			'_InstallWindowsAuthentication'
-		) );
+		] );
 
 		// Try to connect
 		$status = $this->getConnection();
@@ -182,17 +187,12 @@ class MssqlInstaller extends DatabaseInstaller {
 			return $status;
 		}
 		/**
-		 * @var $conn DatabaseBase
+		 * @var $conn Database
 		 */
 		$conn = $status->value;
 
 		// Check version
-		$version = $conn->getServerVersion();
-		if ( version_compare( $version, $this->minimumVersion ) < 0 ) {
-			return Status::newFatal( 'config-mssql-old', $this->minimumVersion, $version );
-		}
-
-		return $status;
+		return static::meetsMinimumRequirement( $conn->getServerVersion() );
 	}
 
 	/**
@@ -212,14 +212,15 @@ class MssqlInstaller extends DatabaseInstaller {
 		}
 
 		try {
-			$db = DatabaseBase::factory( 'mssql', array(
+			$db = Database::factory( 'mssql', [
 				'host' => $this->getVar( 'wgDBserver' ),
+				'port' => $this->getVar( 'wgDBport' ),
 				'user' => $user,
 				'password' => $password,
 				'dbname' => false,
 				'flags' => 0,
 				'schema' => $this->getVar( 'wgDBmwschema' ),
-				'tablePrefix' => $this->getVar( 'wgDBprefix' ) ) );
+				'tablePrefix' => $this->getVar( 'wgDBprefix' ) ] );
 			$db->prepareStatements( false );
 			$db->scrollableCursor( false );
 			$status->value = $db;
@@ -240,7 +241,7 @@ class MssqlInstaller extends DatabaseInstaller {
 			return;
 		}
 		/**
-		 * @var $conn DatabaseBase
+		 * @var $conn Database
 		 */
 		$conn = $status->value;
 		$conn->selectDB( $this->getVar( 'wgDBname' ) );
@@ -261,15 +262,15 @@ class MssqlInstaller extends DatabaseInstaller {
 		if ( !$status->isOK() ) {
 			return false;
 		}
-		/** @var $conn DatabaseBase */
+		/** @var Database $conn */
 		$conn = $status->value;
 
 		// We need the server-level ALTER ANY LOGIN permission to create new accounts
 		$res = $conn->query( "SELECT permission_name FROM sys.fn_my_permissions( NULL, 'SERVER' )" );
-		$serverPrivs = array(
+		$serverPrivs = [
 			'ALTER ANY LOGIN' => false,
 			'CONTROL SERVER' => false,
-		);
+		];
 
 		foreach ( $res as $row ) {
 			$serverPrivs[$row->permission_name] = true;
@@ -282,27 +283,27 @@ class MssqlInstaller extends DatabaseInstaller {
 		// Check to ensure we can grant everything needed as well
 		// We can't actually tell if we have WITH GRANT OPTION for a given permission, so we assume we do
 		// and just check for the permission
-		// http://technet.microsoft.com/en-us/library/ms178569.aspx
+		// https://technet.microsoft.com/en-us/library/ms178569.aspx
 		// The following array sets up which permissions imply whatever permissions we specify
-		$implied = array(
+		$implied = [
 			// schema           database  server
-			'DELETE'  => array( 'DELETE', 'CONTROL SERVER' ),
-			'EXECUTE' => array( 'EXECUTE', 'CONTROL SERVER' ),
-			'INSERT'  => array( 'INSERT', 'CONTROL SERVER' ),
-			'SELECT'  => array( 'SELECT', 'CONTROL SERVER' ),
-			'UPDATE'  => array( 'UPDATE', 'CONTROL SERVER' ),
-		);
+			'DELETE'  => [ 'DELETE', 'CONTROL SERVER' ],
+			'EXECUTE' => [ 'EXECUTE', 'CONTROL SERVER' ],
+			'INSERT'  => [ 'INSERT', 'CONTROL SERVER' ],
+			'SELECT'  => [ 'SELECT', 'CONTROL SERVER' ],
+			'UPDATE'  => [ 'UPDATE', 'CONTROL SERVER' ],
+		];
 
 		$grantOptions = array_flip( $this->webUserPrivs );
 
 		// Check for schema and db-level permissions, but only if the schema/db exists
-		$schemaPrivs = $dbPrivs = array(
+		$schemaPrivs = $dbPrivs = [
 			'DELETE' => false,
 			'EXECUTE' => false,
 			'INSERT' => false,
 			'SELECT' => false,
 			'UPDATE' => false,
-		);
+		];
 
 		$dbPrivs['ALTER ANY USER'] = false;
 
@@ -365,30 +366,30 @@ class MssqlInstaller extends DatabaseInstaller {
 			? 'display: none'
 			: '';
 		$s = Html::openElement( 'fieldset' ) .
-			Html::element( 'legend', array(), wfMessage( 'config-db-web-account' )->text() ) .
+			Html::element( 'legend', [], wfMessage( 'config-db-web-account' )->text() ) .
 			$this->getCheckBox(
 				'_SameAccount', 'config-db-web-account-same',
-				array( 'class' => 'hideShowRadio', 'rel' => 'dbOtherAccount' )
+				[ 'class' => 'hideShowRadio', 'rel' => 'dbOtherAccount' ]
 			) .
-			Html::openElement( 'div', array( 'id' => 'dbOtherAccount', 'style' => $wrapperStyle ) ) .
-			$this->getRadioSet( array(
+			Html::openElement( 'div', [ 'id' => 'dbOtherAccount', 'style' => $wrapperStyle ] ) .
+			$this->getRadioSet( [
 				'var' => '_WebWindowsAuthentication',
 				'label' => 'config-mssql-auth',
 				'itemLabelPrefix' => 'config-mssql-',
-				'values' => array( 'sqlauth', 'windowsauth' ),
-				'itemAttribs' => array(
-					'sqlauth' => array(
+				'values' => [ 'sqlauth', 'windowsauth' ],
+				'itemAttribs' => [
+					'sqlauth' => [
 						'class' => 'showHideRadio',
 						'rel' => 'dbCredentialBox',
-					),
-					'windowsauth' => array(
+					],
+					'windowsauth' => [
 						'class' => 'hideShowRadio',
 						'rel' => 'dbCredentialBox',
-					)
-				),
+					]
+				],
 				'help' => $this->parent->getHelpBox( 'config-mssql-web-auth' )
-			) ) .
-			Html::openElement( 'div', array( 'id' => 'dbCredentialBox', 'style' => $displayStyle ) ) .
+			] ) .
+			Html::openElement( 'div', [ 'id' => 'dbCredentialBox', 'style' => $displayStyle ] ) .
 			$this->getTextBox( 'wgDBuser', 'config-db-username' ) .
 			$this->getPasswordBox( 'wgDBpassword', 'config-db-password' ) .
 			Html::closeElement( 'div' );
@@ -408,13 +409,13 @@ class MssqlInstaller extends DatabaseInstaller {
 	 * @return Status
 	 */
 	public function submitSettingsForm() {
-		$this->setVarsFromRequest( array(
+		$this->setVarsFromRequest( [
 				'wgDBuser',
 				'wgDBpassword',
 				'_SameAccount',
 				'_CreateDBAccount',
 				'_WebWindowsAuthentication'
-		) );
+		] );
 
 		if ( $this->getVar( '_SameAccount' ) ) {
 			$this->setVar( '_WebWindowsAuthentication', $this->getVar( '_InstallWindowsAuthentication' ) );
@@ -457,7 +458,7 @@ class MssqlInstaller extends DatabaseInstaller {
 			}
 
 			try {
-				DatabaseBase::factory( 'mssql', array(
+				Database::factory( 'mssql', [
 					'host' => $this->getVar( 'wgDBserver' ),
 					'user' => $user,
 					'password' => $password,
@@ -465,7 +466,7 @@ class MssqlInstaller extends DatabaseInstaller {
 					'flags' => 0,
 					'tablePrefix' => $this->getVar( 'wgDBprefix' ),
 					'schema' => $this->getVar( 'wgDBmwschema' ),
-				) );
+				] );
 			} catch ( DBConnectionError $e ) {
 				return Status::newFatal( 'config-connection-error', $e->getMessage() );
 			}
@@ -476,10 +477,10 @@ class MssqlInstaller extends DatabaseInstaller {
 
 	public function preInstall() {
 		# Add our user callback to installSteps, right before the tables are created.
-		$callback = array(
+		$callback = [
 			'name' => 'user',
-			'callback' => array( $this, 'setupUser' ),
-		);
+			'callback' => [ $this, 'setupUser' ],
+		];
 		$this->parent->addInstallStep( $callback, 'tables' );
 	}
 
@@ -491,7 +492,7 @@ class MssqlInstaller extends DatabaseInstaller {
 		if ( !$status->isOK() ) {
 			return $status;
 		}
-		/** @var DatabaseBase $conn */
+		/** @var Database $conn */
 		$conn = $status->value;
 		$dbName = $this->getVar( 'wgDBname' );
 		$schemaName = $this->getVar( 'wgDBmwschema' );
@@ -500,19 +501,19 @@ class MssqlInstaller extends DatabaseInstaller {
 				"CREATE DATABASE " . $conn->addIdentifierQuotes( $dbName ),
 				__METHOD__
 			);
-			$conn->selectDB( $dbName );
-			if ( !$this->schemaExists( $schemaName ) ) {
-				$conn->query(
-					"CREATE SCHEMA " . $conn->addIdentifierQuotes( $schemaName ),
-					__METHOD__
-				);
-			}
-			if ( !$this->catalogExists( $schemaName ) ) {
-				$conn->query(
-					"CREATE FULLTEXT CATALOG " . $conn->addIdentifierQuotes( $schemaName ),
-					__METHOD__
-				);
-			}
+		}
+		$conn->selectDB( $dbName );
+		if ( !$this->schemaExists( $schemaName ) ) {
+			$conn->query(
+				"CREATE SCHEMA " . $conn->addIdentifierQuotes( $schemaName ),
+				__METHOD__
+			);
+		}
+		if ( !$this->catalogExists( $schemaName ) ) {
+			$conn->query(
+				"CREATE FULLTEXT CATALOG " . $conn->addIdentifierQuotes( $schemaName ),
+				__METHOD__
+			);
 		}
 		$this->setupSchemaVars();
 
@@ -554,7 +555,7 @@ class MssqlInstaller extends DatabaseInstaller {
 		$escUser = $this->db->addIdentifierQuotes( $dbUser );
 		$escDb = $this->db->addIdentifierQuotes( $dbName );
 		$escSchema = $this->db->addIdentifierQuotes( $schemaName );
-		$grantableNames = array();
+		$grantableNames = [];
 		if ( $tryToCreate ) {
 			$escPass = $this->db->addQuotes( $password );
 
@@ -572,7 +573,7 @@ class MssqlInstaller extends DatabaseInstaller {
 					$grantableNames[] = $dbUser;
 				} catch ( DBQueryError $dqe ) {
 					$this->db->rollback();
-					$status->warning( 'config-install-user-create-failed', $dbUser, $dqe->getText() );
+					$status->warning( 'config-install-user-create-failed', $dbUser, $dqe->getMessage() );
 				}
 			} elseif ( !$this->userExists( $dbUser ) ) {
 				try {
@@ -583,7 +584,7 @@ class MssqlInstaller extends DatabaseInstaller {
 					$grantableNames[] = $dbUser;
 				} catch ( DBQueryError $dqe ) {
 					$this->db->rollback();
-					$status->warning( 'config-install-user-create-failed', $dbUser, $dqe->getText() );
+					$status->warning( 'config-install-user-create-failed', $dbUser, $dqe->getMessage() );
 				}
 			} else {
 				$status->warning( 'config-install-user-alreadyexists', $dbUser );
@@ -596,10 +597,10 @@ class MssqlInstaller extends DatabaseInstaller {
 		foreach ( $grantableNames as $name ) {
 			try {
 				// First try to grant full permissions
-				$fullPrivArr = array(
+				$fullPrivArr = [
 					'BACKUP DATABASE', 'BACKUP LOG', 'CREATE FUNCTION', 'CREATE PROCEDURE',
 					'CREATE TABLE', 'CREATE VIEW', 'CREATE FULLTEXT CATALOG', 'SHOWPLAN'
-				);
+				];
 				$fullPrivList = implode( ', ', $fullPrivArr );
 				$this->db->begin();
 				$this->db->query( "GRANT $fullPrivList ON DATABASE :: $escDb TO $escUser", __METHOD__ );
@@ -615,7 +616,7 @@ class MssqlInstaller extends DatabaseInstaller {
 					$this->db->commit();
 				} catch ( DBQueryError $dqe ) {
 					$this->db->rollback();
-					$status->fatal( 'config-install-user-grant-failed', $dbUser, $dqe->getText() );
+					$status->fatal( 'config-install-user-grant-failed', $dbUser, $dqe->getMessage() );
 				}
 				// Also try to grant SHOWPLAN on the db, but don't fail if we can't
 				// (just makes a couple things in mediawiki run slower since
@@ -634,14 +635,14 @@ class MssqlInstaller extends DatabaseInstaller {
 		$status = parent::createTables();
 
 		// Do last-minute stuff like fulltext indexes (since they can't be inside a transaction)
-		if ( $status->isOk() ) {
+		if ( $status->isOK() ) {
 			$searchindex = $this->db->tableName( 'searchindex' );
 			$schema = $this->db->addIdentifierQuotes( $this->getVar( 'wgDBmwschema' ) );
 			try {
 				$this->db->query( "CREATE FULLTEXT INDEX ON $searchindex (si_title, si_text) "
 					. "KEY INDEX si_page ON $schema" );
 			} catch ( DBQueryError $dqe ) {
-				$status->fatal( 'config-install-tables-failed', $dqe->getText() );
+				$status->fatal( 'config-install-tables-failed', $dqe->getMessage() );
 			}
 		}
 
@@ -651,9 +652,9 @@ class MssqlInstaller extends DatabaseInstaller {
 	public function getGlobalDefaults() {
 		// The default $wgDBmwschema is null, which breaks Postgres and other DBMSes that require
 		// the use of a schema, so we need to set it here
-		return array_merge( parent::getGlobalDefaults(), array(
+		return array_merge( parent::getGlobalDefaults(), [
 			'wgDBmwschema' => 'mediawiki',
-		) );
+		] );
 	}
 
 	/**
@@ -662,7 +663,7 @@ class MssqlInstaller extends DatabaseInstaller {
 	 * @return bool
 	 */
 	private function loginExists( $user ) {
-		$res = $this->db->selectField( 'sys.sql_logins', 1, array( 'name' => $user ) );
+		$res = $this->db->selectField( 'sys.sql_logins', 1, [ 'name' => $user ] );
 		return (bool)$res;
 	}
 
@@ -673,7 +674,7 @@ class MssqlInstaller extends DatabaseInstaller {
 	 * @return bool
 	 */
 	private function userExists( $user ) {
-		$res = $this->db->selectField( 'sys.sysusers', 1, array( 'name' => $user ) );
+		$res = $this->db->selectField( 'sys.sysusers', 1, [ 'name' => $user ] );
 		return (bool)$res;
 	}
 
@@ -683,7 +684,7 @@ class MssqlInstaller extends DatabaseInstaller {
 	 * @return bool
 	 */
 	private function databaseExists( $dbName ) {
-		$res = $this->db->selectField( 'sys.databases', 1, array( 'name' => $dbName ) );
+		$res = $this->db->selectField( 'sys.databases', 1, [ 'name' => $dbName ] );
 		return (bool)$res;
 	}
 
@@ -694,7 +695,7 @@ class MssqlInstaller extends DatabaseInstaller {
 	 * @return bool
 	 */
 	private function schemaExists( $schemaName ) {
-		$res = $this->db->selectField( 'sys.schemas', 1, array( 'name' => $schemaName ) );
+		$res = $this->db->selectField( 'sys.schemas', 1, [ 'name' => $schemaName ] );
 		return (bool)$res;
 	}
 
@@ -705,7 +706,7 @@ class MssqlInstaller extends DatabaseInstaller {
 	 * @return bool
 	 */
 	private function catalogExists( $catalogName ) {
-		$res = $this->db->selectField( 'sys.fulltext_catalogs', 1, array( 'name' => $catalogName ) );
+		$res = $this->db->selectField( 'sys.fulltext_catalogs', 1, [ 'name' => $catalogName ] );
 		return (bool)$res;
 	}
 
@@ -715,12 +716,12 @@ class MssqlInstaller extends DatabaseInstaller {
 	 * @return array
 	 */
 	public function getSchemaVars() {
-		return array(
+		return [
 			'wgDBname' => $this->getVar( 'wgDBname' ),
 			'wgDBmwschema' => $this->getVar( 'wgDBmwschema' ),
 			'wgDBuser' => $this->getVar( 'wgDBuser' ),
 			'wgDBpassword' => $this->getVar( 'wgDBpassword' ),
-		);
+		];
 	}
 
 	public function getLocalSettings() {

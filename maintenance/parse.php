@@ -61,19 +61,20 @@ class CLIParser extends Maintenance {
 
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Parse a given wikitext";
+		$this->addDescription( 'Parse a given wikitext' );
 		$this->addOption(
 			'title',
 			'Title name for the given wikitext (Default: \'CLIParser\')',
 			false,
 			true
 		);
+		$this->addOption( 'tidy', 'Tidy the output' );
 		$this->addArg( 'file', 'File containing wikitext (Default: stdin)', false );
 	}
 
 	public function execute() {
 		$this->initParser();
-		print $this->render( $this->WikiText() );
+		print $this->render( $this->Wikitext() );
 	}
 
 	/**
@@ -127,10 +128,14 @@ class CLIParser extends Maintenance {
 	 * @return ParserOutput
 	 */
 	protected function parse( $wikitext ) {
+		$options = new ParserOptions;
+		if ( $this->getOption( 'tidy' ) ) {
+			$options->setTidy( true );
+		}
 		return $this->parser->parse(
 			$wikitext,
 			$this->getTitle(),
-			new ParserOptions()
+			$options
 		);
 	}
 }

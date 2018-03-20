@@ -4,7 +4,7 @@
  * @copyright 2011-2015 MediaWiki Widgets Team and others; see AUTHORS.txt
  * @license The MIT License (MIT); see LICENSE.txt
  */
-/*global moment */
+/* global moment */
 ( function ( $, mw ) {
 
 	/**
@@ -19,6 +19,8 @@
 	 *
 	 * @constructor
 	 * @param {Object} [config] Configuration options
+	 * @cfg {boolean} [lazyInitOnToggle=false] Don't build most of the interface until
+	 *     `.toggle( true )` is called. Meant to be used when the calendar is not immediately visible.
 	 * @cfg {string} [precision='day'] Date precision to use, 'day' or 'month'
 	 * @cfg {string|null} [date=null] Day or month date (depending on `precision`), in the format
 	 *     'YYYY-MM-DD' or 'YYYY-MM'. When null, the calendar will show today's date, but not select
@@ -36,6 +38,7 @@
 		OO.ui.mixin.FloatableElement.call( this, config );
 
 		// Properties
+		this.lazyInitOnToggle = !!config.lazyInitOnToggle;
 		this.precision = config.precision || 'day';
 		// Currently selected date (day or month)
 		this.date = null;
@@ -47,36 +50,8 @@
 		this.$bodyOuterWrapper = $( '<div>' ).addClass( 'mw-widget-calendarWidget-body-outer-wrapper' );
 		this.$bodyWrapper = $( '<div>' ).addClass( 'mw-widget-calendarWidget-body-wrapper' );
 		this.$body = $( '<div>' ).addClass( 'mw-widget-calendarWidget-body' );
-		this.labelButton = new OO.ui.ButtonWidget( {
-			tabIndex: -1,
-			label: '',
-			framed: false,
-			classes: [ 'mw-widget-calendarWidget-labelButton' ]
-		} );
-		this.upButton = new OO.ui.ButtonWidget( {
-			tabIndex: -1,
-			framed: false,
-			icon: 'collapse',
-			classes: [ 'mw-widget-calendarWidget-upButton' ]
-		} );
-		this.prevButton = new OO.ui.ButtonWidget( {
-			tabIndex: -1,
-			framed: false,
-			icon: 'previous',
-			classes: [ 'mw-widget-calendarWidget-prevButton' ]
-		} );
-		this.nextButton = new OO.ui.ButtonWidget( {
-			tabIndex: -1,
-			framed: false,
-			icon: 'next',
-			classes: [ 'mw-widget-calendarWidget-nextButton' ]
-		} );
 
 		// Events
-		this.labelButton.connect( this, { click: 'onUpButtonClick' } );
-		this.upButton.connect( this, { click: 'onUpButtonClick' } );
-		this.prevButton.connect( this, { click: 'onPrevButtonClick' } );
-		this.nextButton.connect( this, { click: 'onNextButtonClick' } );
 		this.$element.on( {
 			focus: this.onFocus.bind( this ),
 			mousedown: this.onClick.bind( this ),
@@ -87,12 +62,9 @@
 		this.$element
 			.addClass( 'mw-widget-calendarWidget' )
 			.append( this.$header, this.$bodyOuterWrapper.append( this.$bodyWrapper.append( this.$body ) ) );
-		this.$header.append(
-			this.prevButton.$element,
-			this.nextButton.$element,
-			this.upButton.$element,
-			this.labelButton.$element
-		);
+		if ( !this.lazyInitOnToggle ) {
+			this.buildHeaderButtons();
+		}
 		this.setDate( config.date !== undefined ? config.date : null );
 	};
 
@@ -119,7 +91,7 @@
 	 * internally and for dates accepted by #setDate and returned by #getDate.
 	 *
 	 * @private
-	 * @returns {string} Format
+	 * @return {string} Format
 	 */
 	mw.widgets.CalendarWidget.prototype.getDateFormat = function () {
 		return {
@@ -132,7 +104,7 @@
 	 * Get the date precision this calendar uses, 'day' or 'month'.
 	 *
 	 * @private
-	 * @returns {string} Precision, 'day' or 'month'
+	 * @return {string} Precision, 'day' or 'month'
 	 */
 	mw.widgets.CalendarWidget.prototype.getPrecision = function () {
 		return this.precision;
@@ -142,7 +114,7 @@
 	 * Get list of possible display layers.
 	 *
 	 * @private
-	 * @returns {string[]} Layers
+	 * @return {string[]} Layers
 	 */
 	mw.widgets.CalendarWidget.prototype.getDisplayLayers = function () {
 		return [ 'month', 'year', 'duodecade' ].slice( this.precision === 'month' ? 1 : 0 );
@@ -155,11 +127,15 @@
 	 * @param {string|null} [fade=null] Direction in which to fade out current calendar contents,
 	 *     'previous', 'next', 'up' or 'down'; or 'auto', which has the same result as 'previous' or
 	 *     'next' depending on whether the current date is later or earlier than the previous.
-	 * @returns {string} Format
 	 */
 	mw.widgets.CalendarWidget.prototype.updateUI = function ( fade ) {
 		var items, today, selected, currentMonth, currentYear, currentDay, i, needsFade,
 			$bodyWrapper = this.$bodyWrapper;
+
+		if ( this.lazyInitOnToggle ) {
+			// We're being called from the constructor and not being shown yet, do nothing
+			return;
+		}
 
 		if (
 			this.displayLayer === this.previousDisplayLayer &&
@@ -199,87 +175,93 @@
 		selected = moment( this.getDate(), this.getDateFormat() );
 
 		switch ( this.displayLayer ) {
-		case 'month':
-			this.labelButton.setLabel( this.moment.format( 'MMMM YYYY' ) );
-			this.upButton.toggle( true );
+			case 'month':
+				this.labelButton.setLabel( this.moment.format( 'MMMM YYYY' ) );
+				this.upButton.toggle( true );
 
-			// First week displayed is the first week spanned by the month, unless it begins on Monday, in
-			// which case first week displayed is the previous week. This makes the calendar "balanced"
-			// and also neatly handles 28-day February sometimes spanning only 4 weeks.
-			currentDay = moment( this.moment ).startOf( 'month' ).subtract( 1, 'day' ).startOf( 'week' );
+				// First week displayed is the first week spanned by the month, unless it begins on Monday, in
+				// which case first week displayed is the previous week. This makes the calendar "balanced"
+				// and also neatly handles 28-day February sometimes spanning only 4 weeks.
+				currentDay = moment( this.moment ).startOf( 'month' ).subtract( 1, 'day' ).startOf( 'week' );
 
-			// Day-of-week labels. Localisation-independent: works with weeks starting on Saturday, Sunday
-			// or Monday.
-			for ( i = 0; i < 7; i++ ) {
-				items.push(
-					$( '<div>' )
-						.addClass( 'mw-widget-calendarWidget-day-heading' )
-						.text( currentDay.format( 'dd' ) )
-				);
-				currentDay.add( 1, 'day' );
-			}
-			currentDay.subtract( 7, 'days' );
+				// Day-of-week labels. Localisation-independent: works with weeks starting on Saturday, Sunday
+				// or Monday.
+				for ( i = 0; i < 7; i++ ) {
+					items.push(
+						$( '<div>' )
+							.addClass( 'mw-widget-calendarWidget-day-heading' )
+							.text( currentDay.format( 'dd' ) )
+					);
+					currentDay.add( 1, 'day' );
+				}
+				currentDay.subtract( 7, 'days' );
 
-			// Actual calendar month. Always displays 6 weeks, for consistency (months can span 4 to 6
-			// weeks).
-			for ( i = 0; i < 42; i++ ) {
-				items.push(
-					$( '<div>' )
-						.addClass( 'mw-widget-calendarWidget-item mw-widget-calendarWidget-day' )
-						.toggleClass( 'mw-widget-calendarWidget-day-additional', !currentDay.isSame( this.moment, 'month' ) )
-						.toggleClass( 'mw-widget-calendarWidget-day-today', currentDay.isSame( today, 'day' ) )
-						.toggleClass( 'mw-widget-calendarWidget-item-selected', currentDay.isSame( selected, 'day' ) )
-						.text( currentDay.format( 'D' ) )
-						.data( 'date', currentDay.date() )
-						.data( 'month', currentDay.month() )
-						.data( 'year', currentDay.year() )
-				);
-				currentDay.add( 1, 'day' );
-			}
-			break;
+				// Actual calendar month. Always displays 6 weeks, for consistency (months can span 4 to 6
+				// weeks).
+				for ( i = 0; i < 42; i++ ) {
+					items.push(
+						$( '<div>' )
+							.addClass( 'mw-widget-calendarWidget-item mw-widget-calendarWidget-day' )
+							.toggleClass( 'mw-widget-calendarWidget-day-additional', !currentDay.isSame( this.moment, 'month' ) )
+							.toggleClass( 'mw-widget-calendarWidget-day-today', currentDay.isSame( today, 'day' ) )
+							.toggleClass( 'mw-widget-calendarWidget-item-selected', currentDay.isSame( selected, 'day' ) )
+							.text( currentDay.format( 'D' ) )
+							.data( 'date', currentDay.date() )
+							.data( 'month', currentDay.month() )
+							.data( 'year', currentDay.year() )
+					);
+					currentDay.add( 1, 'day' );
+				}
+				break;
 
-		case 'year':
-			this.labelButton.setLabel( this.moment.format( 'YYYY' ) );
-			this.upButton.toggle( true );
+			case 'year':
+				this.labelButton.setLabel( this.moment.format( 'YYYY' ) );
+				this.upButton.toggle( true );
 
-			currentMonth = moment( this.moment ).startOf( 'year' );
-			for ( i = 0; i < 12; i++ ) {
-				items.push(
-					$( '<div>' )
-						.addClass( 'mw-widget-calendarWidget-item mw-widget-calendarWidget-month' )
-						.toggleClass( 'mw-widget-calendarWidget-item-selected', currentMonth.isSame( selected, 'month' ) )
-						.text( currentMonth.format( 'MMMM' ) )
-						.data( 'month', currentMonth.month() )
-				);
-				currentMonth.add( 1, 'month' );
-			}
-			// Shuffle the array to display months in columns rather than rows.
-			items = [
-				items[ 0 ], items[ 6 ],      //  | January  | July      |
-				items[ 1 ], items[ 7 ],      //  | February | August    |
-				items[ 2 ], items[ 8 ],      //  | March    | September |
-				items[ 3 ], items[ 9 ],      //  | April    | October   |
-				items[ 4 ], items[ 10 ],     //  | May      | November  |
-				items[ 5 ], items[ 11 ]      //  | June     | December  |
-			];
-			break;
+				currentMonth = moment( this.moment ).startOf( 'year' );
+				for ( i = 0; i < 12; i++ ) {
+					items.push(
+						$( '<div>' )
+							.addClass( 'mw-widget-calendarWidget-item mw-widget-calendarWidget-month' )
+							.toggleClass( 'mw-widget-calendarWidget-item-selected', currentMonth.isSame( selected, 'month' ) )
+							.text( currentMonth.format( 'MMMM' ) )
+							.data( 'month', currentMonth.month() )
+					);
+					currentMonth.add( 1, 'month' );
+				}
+				// Shuffle the array to display months in columns rather than rows:
+				// | Jan | Jul |
+				// | Feb | Aug |
+				// | Mar | Sep |
+				// | Apr | Oct |
+				// | May | Nov |
+				// | Jun | Dec |
+				items = [
+					items[ 0 ], items[ 6 ],
+					items[ 1 ], items[ 7 ],
+					items[ 2 ], items[ 8 ],
+					items[ 3 ], items[ 9 ],
+					items[ 4 ], items[ 10 ],
+					items[ 5 ], items[ 11 ]
+				];
+				break;
 
-		case 'duodecade':
-			this.labelButton.setLabel( null );
-			this.upButton.toggle( false );
+			case 'duodecade':
+				this.labelButton.setLabel( null );
+				this.upButton.toggle( false );
 
-			currentYear = moment( { year: Math.floor( this.moment.year() / 20 ) * 20 } );
-			for ( i = 0; i < 20; i++ ) {
-				items.push(
-					$( '<div>' )
-						.addClass( 'mw-widget-calendarWidget-item mw-widget-calendarWidget-year' )
-						.toggleClass( 'mw-widget-calendarWidget-item-selected', currentYear.isSame( selected, 'year' ) )
-						.text( currentYear.format( 'YYYY' ) )
-						.data( 'year', currentYear.year() )
-				);
-				currentYear.add( 1, 'year' );
-			}
-			break;
+				currentYear = moment( { year: Math.floor( this.moment.year() / 20 ) * 20 } );
+				for ( i = 0; i < 20; i++ ) {
+					items.push(
+						$( '<div>' )
+							.addClass( 'mw-widget-calendarWidget-item mw-widget-calendarWidget-year' )
+							.toggleClass( 'mw-widget-calendarWidget-item-selected', currentYear.isSame( selected, 'year' ) )
+							.text( currentYear.format( 'YYYY' ) )
+							.data( 'year', currentYear.year() )
+					);
+					currentYear.add( 1, 'year' );
+				}
+				break;
 		}
 
 		this.$body.append.apply( this.$body, items );
@@ -312,7 +294,7 @@
 			}
 			setTimeout( function () {
 				$bodyWrapper.addClass( 'mw-widget-calendarWidget-body-wrapper-fade-' + fade );
-			}.bind( this ), 0 );
+			} );
 		} else {
 			this.$oldBody.replaceWith( this.$body );
 		}
@@ -322,6 +304,50 @@
 		this.previousDate = this.date;
 
 		this.$body.on( 'click', this.onBodyClick.bind( this ) );
+	};
+
+	/**
+	 * Construct and display buttons to navigate the calendar.
+	 *
+	 * @private
+	 */
+	mw.widgets.CalendarWidget.prototype.buildHeaderButtons = function () {
+		this.labelButton = new OO.ui.ButtonWidget( {
+			tabIndex: -1,
+			label: '',
+			framed: false,
+			classes: [ 'mw-widget-calendarWidget-labelButton' ]
+		} );
+		this.upButton = new OO.ui.ButtonWidget( {
+			tabIndex: -1,
+			framed: false,
+			icon: 'collapse',
+			classes: [ 'mw-widget-calendarWidget-upButton' ]
+		} );
+		this.prevButton = new OO.ui.ButtonWidget( {
+			tabIndex: -1,
+			framed: false,
+			icon: 'previous',
+			classes: [ 'mw-widget-calendarWidget-prevButton' ]
+		} );
+		this.nextButton = new OO.ui.ButtonWidget( {
+			tabIndex: -1,
+			framed: false,
+			icon: 'next',
+			classes: [ 'mw-widget-calendarWidget-nextButton' ]
+		} );
+
+		this.labelButton.connect( this, { click: 'onUpButtonClick' } );
+		this.upButton.connect( this, { click: 'onUpButtonClick' } );
+		this.prevButton.connect( this, { click: 'onPrevButtonClick' } );
+		this.nextButton.connect( this, { click: 'onNextButtonClick' } );
+
+		this.$header.append(
+			this.prevButton.$element,
+			this.nextButton.$element,
+			this.upButton.$element,
+			this.labelButton.$element
+		);
 	};
 
 	/**
@@ -349,15 +375,15 @@
 	 */
 	mw.widgets.CalendarWidget.prototype.onPrevButtonClick = function () {
 		switch ( this.displayLayer ) {
-		case 'month':
-			this.moment.subtract( 1, 'month' );
-			break;
-		case 'year':
-			this.moment.subtract( 1, 'year' );
-			break;
-		case 'duodecade':
-			this.moment.subtract( 20, 'years' );
-			break;
+			case 'month':
+				this.moment.subtract( 1, 'month' );
+				break;
+			case 'year':
+				this.moment.subtract( 1, 'year' );
+				break;
+			case 'duodecade':
+				this.moment.subtract( 20, 'years' );
+				break;
 		}
 		this.updateUI( 'previous' );
 	};
@@ -369,15 +395,15 @@
 	 */
 	mw.widgets.CalendarWidget.prototype.onNextButtonClick = function () {
 		switch ( this.displayLayer ) {
-		case 'month':
-			this.moment.add( 1, 'month' );
-			break;
-		case 'year':
-			this.moment.add( 1, 'year' );
-			break;
-		case 'duodecade':
-			this.moment.add( 20, 'years' );
-			break;
+			case 'month':
+				this.moment.add( 1, 'month' );
+				break;
+			case 'year':
+				this.moment.add( 1, 'year' );
+				break;
+			case 'duodecade':
+				this.moment.add( 20, 'years' );
+				break;
 		}
 		this.updateUI( 'next' );
 	};
@@ -388,6 +414,7 @@
 	 * what gets clicked.
 	 *
 	 * @private
+	 * @param {jQuery.Event} e Click event
 	 */
 	mw.widgets.CalendarWidget.prototype.onBodyClick = function ( e ) {
 		var
@@ -463,7 +490,7 @@
 	 * Get current date, in the format 'YYYY-MM-DD' or 'YYYY-MM', depending on precision. Digits will
 	 * not be localised.
 	 *
-	 * @returns {string|null} Date string
+	 * @return {string|null} Date string
 	 */
 	mw.widgets.CalendarWidget.prototype.getDate = function () {
 		return this.date;
@@ -484,6 +511,7 @@
 	 *
 	 * @private
 	 * @param {jQuery.Event} e Mouse click event
+	 * @return {boolean} False to cancel the default event
 	 */
 	mw.widgets.CalendarWidget.prototype.onClick = function ( e ) {
 		if ( !this.isDisabled() && e.which === 1 ) {
@@ -497,39 +525,38 @@
 	 *
 	 * @private
 	 * @param {jQuery.Event} e Key down event
+	 * @return {boolean} False to cancel the default event
 	 */
 	mw.widgets.CalendarWidget.prototype.onKeyDown = function ( e ) {
 		var
-			/*jshint -W024*/
 			dir = OO.ui.Element.static.getDir( this.$element ),
-			/*jshint +W024*/
 			nextDirectionKey = dir === 'ltr' ? OO.ui.Keys.RIGHT : OO.ui.Keys.LEFT,
 			prevDirectionKey = dir === 'ltr' ? OO.ui.Keys.LEFT : OO.ui.Keys.RIGHT,
 			changed = true;
 
 		if ( !this.isDisabled() ) {
 			switch ( e.which ) {
-			case prevDirectionKey:
-				this.moment.subtract( 1, this.precision === 'month' ? 'month' : 'day' );
-				break;
-			case nextDirectionKey:
-				this.moment.add( 1, this.precision === 'month' ? 'month' : 'day' );
-				break;
-			case OO.ui.Keys.UP:
-				this.moment.subtract( 1, this.precision === 'month' ? 'month' : 'week' );
-				break;
-			case OO.ui.Keys.DOWN:
-				this.moment.add( 1, this.precision === 'month' ? 'month' : 'week' );
-				break;
-			case OO.ui.Keys.PAGEUP:
-				this.moment.subtract( 1, this.precision === 'month' ? 'year' : 'month' );
-				break;
-			case OO.ui.Keys.PAGEDOWN:
-				this.moment.add( 1, this.precision === 'month' ? 'year' : 'month' );
-				break;
-			default:
-				changed = false;
-				break;
+				case prevDirectionKey:
+					this.moment.subtract( 1, this.precision === 'month' ? 'month' : 'day' );
+					break;
+				case nextDirectionKey:
+					this.moment.add( 1, this.precision === 'month' ? 'month' : 'day' );
+					break;
+				case OO.ui.Keys.UP:
+					this.moment.subtract( 1, this.precision === 'month' ? 'month' : 'week' );
+					break;
+				case OO.ui.Keys.DOWN:
+					this.moment.add( 1, this.precision === 'month' ? 'month' : 'week' );
+					break;
+				case OO.ui.Keys.PAGEUP:
+					this.moment.subtract( 1, this.precision === 'month' ? 'year' : 'month' );
+					break;
+				case OO.ui.Keys.PAGEDOWN:
+					this.moment.add( 1, this.precision === 'month' ? 'year' : 'month' );
+					break;
+				default:
+					changed = false;
+					break;
 			}
 
 			if ( changed ) {
@@ -545,6 +572,12 @@
 	 * @inheritdoc
 	 */
 	mw.widgets.CalendarWidget.prototype.toggle = function ( visible ) {
+		if ( this.lazyInitOnToggle && visible ) {
+			this.lazyInitOnToggle = false;
+			this.buildHeaderButtons();
+			this.updateUI();
+		}
+
 		// Parent method
 		mw.widgets.CalendarWidget.parent.prototype.toggle.call( this, visible );
 

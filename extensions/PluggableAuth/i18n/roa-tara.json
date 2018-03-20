@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Joetaras"
+		]
+	},
+	"pluggableauth-desc": "Dèje 'nu framework pe attaccà autendicaziune e autorizzazziune",
+	"pluggableauth-not-authorized": "{{GENDER:$1|Utende}} $1 none autorizzate."
+}

@@ -24,6 +24,9 @@
  * @author Ævar Arnfjörð Bjarmason <avarab@gmail.com>
  */
 
+use Wikimedia\Rdbms\ResultWrapper;
+use Wikimedia\Rdbms\IDatabase;
+
 /**
  * A querypage to show categories ordered in descending order by the pages in them
  *
@@ -39,13 +42,13 @@ class MostlinkedCategoriesPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array(
-			'tables' => array( 'category' ),
-			'fields' => array( 'title' => 'cat_title',
+		return [
+			'tables' => [ 'category' ],
+			'fields' => [ 'title' => 'cat_title',
 				'namespace' => NS_CATEGORY,
-				'value' => 'cat_pages' ),
-			'conds' => array( 'cat_pages > 0' ),
-		);
+				'value' => 'cat_pages' ],
+			'conds' => [ 'cat_pages > 0' ],
+		];
 	}
 
 	function sortDescending() {
@@ -59,18 +62,7 @@ class MostlinkedCategoriesPage extends QueryPage {
 	 * @param ResultWrapper $res
 	 */
 	function preprocessResults( $db, $res ) {
-		if ( !$res->numRows() ) {
-			return;
-		}
-
-		$batch = new LinkBatch;
-		foreach ( $res as $row ) {
-			$batch->add( NS_CATEGORY, $row->title );
-		}
-		$batch->execute();
-
-		// Back to start for display
-		$res->seek( 0 );
+		$this->executeLBFromResultWrapper( $res );
 	}
 
 	/**
@@ -85,7 +77,7 @@ class MostlinkedCategoriesPage extends QueryPage {
 		if ( !$nt ) {
 			return Html::element(
 				'span',
-				array( 'class' => 'mw-invalidtitle' ),
+				[ 'class' => 'mw-invalidtitle' ],
 				Linker::getInvalidTitleDescription(
 					$this->getContext(),
 					NS_CATEGORY,
@@ -94,7 +86,7 @@ class MostlinkedCategoriesPage extends QueryPage {
 		}
 
 		$text = $wgContLang->convert( $nt->getText() );
-		$plink = Linker::link( $nt, htmlspecialchars( $text ) );
+		$plink = $this->getLinkRenderer()->makeLink( $nt, $text );
 		$nlinks = $this->msg( 'nmembers' )->numParams( $result->value )->escaped();
 
 		return $this->getLanguage()->specialList( $plink, $nlinks );

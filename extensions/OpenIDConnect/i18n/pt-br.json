@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"!Silent"
+		]
+	},
+	"openidconnect-desc": "Fornece autenticação usando o OpenID Connect em conjunto com o PluggableAuth",
+	"selectopenidconnectissuer": "Selecionar emissor de autenticação"
+}

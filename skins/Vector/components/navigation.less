@@ -1,7 +1,7 @@
-@import "mediawiki.mixins";
-@import "personalMenu";
-@import "search";
-@import "tabs";
+@import 'mediawiki.mixins';
+@import 'personalMenu';
+@import 'search';
+@import 'tabs';
 
 /* Hide, but keep accessible for screen-readers */
 #mw-navigation h2 {
@@ -15,10 +15,9 @@
 	background-position: bottom left;
 	background-repeat: repeat-x;
 	/* This image is only a fallback (for IE 6-9), so we do not @embed it. */
-	/*GCChange commented out the following*/
-	/*background-image: url('images/page-fade.png');
+	background-image: url( images/page-fade.png );
 	.vertical-gradient(@body-background-color, @menu-background-color, 50%, 100%);
-	background-color: @body-background-color;*/
+	background-color: @body-background-color;
 }
 
 #mw-head-base {
@@ -29,7 +28,7 @@
 
 div#mw-head {
 	position: absolute;
-	top: 145px;
+	top: 0;
 	right: 0;
 	width: 100%;
 
@@ -43,7 +42,7 @@ div#mw-head {
 #left-navigation {
 	float: left;
 	margin-left: 10em;
-	margin-top: 2.1em;
+	margin-top: 2.5em;
 	/* When right nav would overlap left nav, it's placed below it
 	   (normal CSS floats behavior). This rule ensures that no empty space
 	   is shown between them due to right nav's margin-top. Page layout
@@ -56,15 +55,11 @@ div#mw-head {
 
 #right-navigation {
 	float: right;
-	margin-top: 2.1em;
-	margin-right: 2em;
+	margin-top: 2.5em;
 }
 
 /* Logo */
 #p-logo {
-	position: absolute;
-	top: -160px;
-	left: 0;
 	width: 10em;
 	height: 160px;
 
@@ -82,8 +77,7 @@ div#mw-head {
 div#mw-panel {
 	font-size: @menu-main-font-size;
 	position: absolute;
-	top: 160px;
-	padding-top: 1em;
+	top: 0;
 	width: 10em;
 	left: 0;
 
@@ -93,21 +87,22 @@ div#mw-panel {
 		direction: ltr;
 		background-position: top left;
 		background-repeat: no-repeat;
-		.background-image('images/portal-break.png');
 
 		h3 {
 			font-size: @menu-main-heading-font-size;
 			color: @menu-main-heading-color;
 			font-weight: normal;
-			margin: 0;
-			padding: @menu-main-heading-padding;
+			margin: 0.5em 0 0 (@menu-main-body-margin-left/@menu-main-heading-font-size);
+			padding: 0.25em 0;
 			cursor: default;
-			border: none;
+			border: 0;
 		}
 
 		div.body {
-			margin: @menu-main-body-margin;
+			margin-left: @menu-main-body-margin-left;
 			padding-top: 0;
+			.background-image( 'images/portal-break.png' );
+			background-repeat: no-repeat;
 
 			ul {
 				list-style-type: none;
@@ -136,12 +131,13 @@ div#mw-panel {
 	/* First sidebar portlet. Not using :first-of-type for IE<=8 support. */
 	#p-logo + div.portal {
 		background-image: none;
-		margin-top: 0;
+		margin-top: 1em;
 		h3 {
 			display: none;
 		}
 		div.body {
-			margin-left: 0.5em;
+			background-image: none;
+			margin-left: @menu-main-body-margin-left;
 		}
 	}
 }

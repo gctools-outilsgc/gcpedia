@@ -1,0 +1,69 @@
+{
+	"name": "PluggableAuth",
+	"version": "4.0",
+	"author": [
+		"[https://www.mediawiki.org/wiki/User:Cindy.cicalese Cindy Cicalese]"
+	],
+	"url": "https://www.mediawiki.org/wiki/Extension:PluggableAuth",
+	"descriptionmsg": "pluggableauth-desc",
+	"type": "other",
+	"SpecialPages": {
+		"PluggableAuthLogin": "PluggableAuthLogin"
+	},
+	"MessagesDirs": {
+		"PluggableAuth": [
+			"i18n"
+		]
+	},
+	"ExtensionMessagesFiles": {
+		"PluggableAuthAlias": "PluggableAuth.alias.php"
+	},
+	"AutoloadClasses": {
+		"PluggableAuth": "PluggableAuth.class.php",
+		"PluggableAuthHooks": "PluggableAuthHooks.php",
+		"PluggableAuthPrimaryAuthenticationProvider": "PluggableAuthPrimaryAuthenticationProvider.php",
+		"PluggableAuthBeginAuthenticationRequest": "PluggableAuthBeginAuthenticationRequest.php",
+		"PluggableAuthContinueAuthenticationRequest": "PluggableAuthContinueAuthenticationRequest.php",
+		"PluggableAuthLogin": "PluggableAuthLogin.php"
+	},
+	"ResourceModules": {
+		"ext.PluggableAuthAutoLogin" : {
+			"scripts": [
+				"ext.PluggableAuthAutoLogin.js"
+			],
+			"position": "top",
+			"targets": [
+				"desktop",
+				"mobile"
+			]
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "PluggableAuth"
+	},
+	"callback": "PluggableAuthHooks::onRegistration",
+	"Hooks": {
+		"TitleReadWhitelist": "PluggableAuthHooks::onTitleReadWhitelist",
+		"UserLogoutComplete": "PluggableAuthHooks::deauthenticate",
+		"AuthChangeFormFields": "PluggableAuthHooks::onAuthChangeFormFields",
+		"BeforePageDisplay": "PluggableAuthHooks::autoLoginInit",
+		"PersonalUrls": "PluggableAuthHooks::modifyLoginURLs"
+	},
+	"AuthManagerAutoConfig": {
+		"primaryauth": {
+			"PluggableAuthPrimaryAuthenticationProvider": {
+				"class": "PluggableAuthPrimaryAuthenticationProvider",
+				"sort": 0
+			}
+		}
+	},
+	"PluggableAuthLoginSpecialPages": [
+		"PluggableAuthLogin"
+	],
+	"config": {
+		"PluggableAuth_EnableAutoLogin": false,
+		"PluggableAuth_EnableLocalLogin": false
+	},
+	"manifest_version": 1
+}

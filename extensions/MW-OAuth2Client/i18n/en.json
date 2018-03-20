@@ -1,0 +1,13 @@
+{
+	"oauth2client": "OAuth2 Client",
+	"oauth2client-act-as-a-client-to-any-oauth2-server": "Act as a client to any OAuth2 server",
+	"oauth2client-couldnotconnect": "Could not connect to OAuth2 Server",
+	"oauth2client-header-link-text": "$1 login",
+	"oauth2client-login-header": "$1 login",
+	"oauth2client-you-can-login-to-this-wiki-with-oauth2": "You can login this wiki with your $1 account",
+	"oauth2client-login-with-oauth2": "[[$1|Login with $2]]",
+	"oauth2client-youre-already-loggedin": "You're already logged in.",
+	"oauth2client-logout-header": "$1 logged out",
+	"oauth2client-logged-out": "You have been logged out of this wiki.",
+	"oauth2client-login-with-oauth2-again": "[[$1|You can login again with your $2 account]]"
+}

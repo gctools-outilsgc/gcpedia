@@ -8,10 +8,9 @@
  *
  */
 
-$specialPageAliases = array(
-	'Uncategorizedcategories'   => array( 'UncategorisedCategories' ),
-	'Uncategorizedimages'       => array( 'UncategorisedFiles', 'UncategorisedImages' ),
-	'Uncategorizedpages'        => array( 'UncategorisedPages' ),
-	'Uncategorizedtemplates'    => array( 'UncategorisedTemplates' ),
-);
-
+$specialPageAliases = [
+	'Uncategorizedcategories'   => [ 'UncategorisedCategories' ],
+	'Uncategorizedimages'       => [ 'UncategorisedFiles', 'UncategorisedImages' ],
+	'Uncategorizedpages'        => [ 'UncategorisedPages' ],
+	'Uncategorizedtemplates'    => [ 'UncategorisedTemplates' ],
+];

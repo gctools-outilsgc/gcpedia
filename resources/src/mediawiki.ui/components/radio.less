@@ -1,12 +1,12 @@
-@import "mediawiki.mixins";
-@import "mediawiki.ui/variables";
+@import 'mediawiki.mixins';
+@import 'mediawiki.ui/variables';
 
 // Radio
 //
 // Styling radios in a way that works cross browser is a tricky problem to solve.
 // In MediaWiki UI put a radio and label inside a mw-ui-radio div.
-// This renders in all browsers except IE6-8 which do not support the :checked selector;
-// these are kept backwards-compatible using the :not(#noop) selector.
+// This renders in all browsers except IE 6-8 which do not support the :checked selector;
+// these are kept backwards-compatible using the `:not( #noop )` selector.
 // You should give the radio and label matching "id" and "for" attributes, respectively.
 //
 // Markup:
@@ -33,84 +33,118 @@
 	vertical-align: middle;
 }
 
-@radioSize: 2em;
-
 // We use the not selector to cancel out styling on IE 8 and below.
-// We also disable this styling on javascript disabled devices. This fixes the issue with
+// We also disable this styling on JavaScript disabled devices. This fixes the issue with
 // Opera Mini where checking/unchecking doesn't apply styling but potentially leaves other
 // more capable browsers with unstyled radio buttons.
-.client-js .mw-ui-radio:not(#noop) {
+.client-js .mw-ui-radio:not( #noop ) {
 	// Position relatively so we can make use of absolute pseudo elements
 	position: relative;
-	line-height: @radioSize;
+	line-height: @sizeInputBinary;
 
 	* {
-		// reset font sizes (see bug 72727)
+		// reset font sizes (see T74727)
 		font: inherit;
 		vertical-align: middle;
 	}
 
-	input[type="radio"] {
-		// we hide the input element as instead we will style the label that follows
-		// we use opacity so that VoiceOver software can still identify it
-		opacity: 0;
+	[type='radio'] {
 		// ensure the invisible radio takes up the required width
-		width: @radioSize;
-		height: @radioSize;
-		// This is needed for Firefox mobile (See bug 71750 to workaround default Firefox stylesheet)
+		width: @sizeInputBinary;
+		height: @sizeInputBinary;
+		// This is needed for Firefox mobile (See T73750 to workaround default Firefox stylesheet)
 		max-width: none;
-		margin-right: 0.4em;
+		margin: 0;
+		// Hide `input[type=radio]` and instead style the label that follows
+		// Support: VoiceOver. Use `opacity` so that VoiceOver can still identify the radio
+		opacity: 0;
 
-		// the pseudo before element of the label after the radio now looks like a radio
-		& + label::before {
-			.transition( 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) );
-			content: '';
+		& + label {
+			padding-left: 0.4em;
+
+			// Pseudo `:before` element of the label after the radio now looks like a radio
+			&:before {
+				content: '';
+				background-color: #fff;
+				.box-sizing( border-box );
+				position: absolute;
+				left: 0;
+				width: @sizeInputBinary;
+				height: @sizeInputBinary;
+				border: 1px solid @colorGray7;
+				border-radius: 100%;
+			}
+
+			// Needed for `:focus` state's inner white circle
+			&:after {
+				content: ' ';
+				position: absolute;
+				top: 2px; // `px` unit due to pixel rounding error when using `@sizeInputBinary / 4`
+				left: 2px;
+				width: 1.14285em; // equals `@sizeInputBinary - 4px`
+				height: 1.14285em;
+				border: 1px solid transparent;
+				border-radius: 100%;
+			}
+		}
+
+		// Apply a dot on the pseudo `:before` element when the input is checked
+		&:checked + label:before {
+			border-width: @borderWidthRadioChecked;
+		}
+
+		&:enabled {
 			cursor: pointer;
-			.box-sizing(border-box);
-			position: absolute;
-			left: 0;
-			border-radius: 100%;
-			width: @radioSize;
-			height: @radioSize;
-			background-color: #fff;
-			border: 1px solid @colorGray7;
-			.background-image-svg('images/radio_checked.svg', 'images/radio_checked.png');
-			.background-size( @radioSize, @radioSize );
-			background-repeat: no-repeat;
-			background-position: center center;
-			background-origin: border-box;
-			background-size: 0 0;
+
+			& + label:before {
+				cursor: pointer;
+				.transition( ~'background-color 100ms, color 100ms, border-color 100ms' );
+			}
+
+			&:hover + label:before {
+				border-color: @colorProgressive;
+			}
+
+			&:active + label:before {
+				background-color: @colorProgressiveActive;
+				border-color: @borderColorInputBinaryActive;
+			}
+
+			&:checked {
+				& + label:before {
+					border-color: @borderColorInputBinaryChecked;
+				}
+
+				&:focus + label:after {
+					border-color: #fff;
+				}
+
+				&:hover + label:before {
+					border-color: @colorProgressiveHighlight;
+				}
+
+				&:active {
+					& + label:before {
+						border-color: @borderColorInputBinaryActive;
+						box-shadow: @boxShadowInputBinaryActive;
+					}
+
+					& + label:after {
+						border-color: @borderColorInputBinaryActive;
+					}
+				}
+			}
 		}
 
-		// when the input is checked, style the label pseudo before element that followed as a checked radio
-		&:checked + label::before {
-			background-size: 100% 100%;
-		}
+		&:disabled {
+			& + label:before {
+				background-color: @colorGray12;
+				border-color: @colorGray12;
+			}
 
-		&:active + label::before {
-			background-color: @colorGray13;
-			border-color: @colorGray13;
-		}
-
-		&:focus + label::before {
-			border-width: 2px;
-		}
-
-		&:focus:hover + label::before,
-		&:hover + label::before {
-			border-bottom-width: 3px;
-		}
-
-		// disabled radios have a gray background
-		&:disabled + label::before {
-			cursor: default;
-			background-color: @colorGray14;
-			border-color: @colorGray14;
-		}
-
-		// disabled and checked radios have a white circle
-		&:disabled:checked + label::before {
-			.background-image-svg('images/radio_disabled.svg', 'images/radio_disabled.png');
+			&:checked + label:before {
+				background-color: #fff;
+			}
 		}
 	}
 }

@@ -1,8 +1,0 @@
-{
-	"@metadata": {
-		"authors": [
-			"Lejonel"
-		]
-	},
-	"charinsert-desc": "Gör det möjligt att infoga [[MediaWiki:Edittools|specialtecken]] i redigeringsrutan med hjälp av JavaScript"
-}

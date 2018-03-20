@@ -2,7 +2,7 @@
 /**
  * Created on Oct 3, 2014
  *
- * Copyright © 2014 Brad Jorsch "bjorsch@wikimedia.org"
+ * Copyright © 2014 Wikimedia Foundation and contributors
  *
  * Heavily based on ApiQueryDeletedrevs,
  * Copyright © 2007 Roan Kattouw "<Firstname>.<Lastname>@gmail.com"
@@ -41,20 +41,22 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 	 * @return void
 	 */
 	protected function run( ApiPageSet $resultPageSet = null ) {
-		$user = $this->getUser();
 		// Before doing anything at all, let's check permissions
-		if ( !$user->isAllowed( 'deletedhistory' ) ) {
-			$this->dieUsage(
-				'You don\'t have permission to view deleted revision information',
-				'permissiondenied'
-			);
-		}
+		$this->checkUserRightsAny( 'deletedhistory' );
 
+		$user = $this->getUser();
 		$db = $this->getDB();
 		$params = $this->extractRequestParams( false );
 
 		$result = $this->getResult();
-		$pageSet = $this->getPageSet();
+
+		// If the user wants no namespaces, they get no pages.
+		if ( $params['namespace'] === [] ) {
+			if ( $resultPageSet === null ) {
+				$result->addValue( 'query', $this->getModuleName(), [] );
+			}
+			return;
+		}
 
 		// This module operates in two modes:
 		// 'user': List deleted revs by a certain user
@@ -65,19 +67,23 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 		}
 
 		if ( $mode == 'user' ) {
-			foreach ( array( 'from', 'to', 'prefix', 'excludeuser' ) as $param ) {
+			foreach ( [ 'from', 'to', 'prefix', 'excludeuser' ] as $param ) {
 				if ( !is_null( $params[$param] ) ) {
 					$p = $this->getModulePrefix();
-					$this->dieUsage( "The '{$p}{$param}' parameter cannot be used with '{$p}user'",
-						'badparams' );
+					$this->dieWithError(
+						[ 'apierror-invalidparammix-cannotusewith', $p.$param, "{$p}user" ],
+						'invalidparammix'
+					);
 				}
 			}
 		} else {
-			foreach ( array( 'start', 'end' ) as $param ) {
+			foreach ( [ 'start', 'end' ] as $param ) {
 				if ( !is_null( $params[$param] ) ) {
 					$p = $this->getModulePrefix();
-					$this->dieUsage( "The '{$p}{$param}' parameter may only be used with '{$p}user'",
-						'badparams' );
+					$this->dieWithError(
+						[ 'apierror-invalidparammix-mustusewith', $p.$param, "{$p}user" ],
+						'invalidparammix'
+					);
 				}
 			}
 		}
@@ -93,7 +99,7 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 				$optimizeGenerateTitles = true;
 			} else {
 				$p = $this->getModulePrefix();
-				$this->setWarning( "For better performance when generating titles, set {$p}dir=newer" );
+				$this->addWarning( [ 'apiwarn-alldeletedrevisions-performance', $p ], 'performance' );
 			}
 		}
 
@@ -101,21 +107,21 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 		if ( $resultPageSet === null ) {
 			$this->parseParameters( $params );
 			$this->addFields( Revision::selectArchiveFields() );
-			$this->addFields( array( 'ar_title', 'ar_namespace' ) );
+			$this->addFields( [ 'ar_title', 'ar_namespace' ] );
 		} else {
 			$this->limit = $this->getParameter( 'limit' ) ?: 10;
-			$this->addFields( array( 'ar_title', 'ar_namespace' ) );
+			$this->addFields( [ 'ar_title', 'ar_namespace' ] );
 			if ( $optimizeGenerateTitles ) {
 				$this->addOption( 'DISTINCT' );
 			} else {
-				$this->addFields( array( 'ar_timestamp', 'ar_rev_id', 'ar_id' ) );
+				$this->addFields( [ 'ar_timestamp', 'ar_rev_id', 'ar_id' ] );
 			}
 		}
 
 		if ( $this->fld_tags ) {
 			$this->addTables( 'tag_summary' );
 			$this->addJoinConds(
-				array( 'tag_summary' => array( 'LEFT JOIN', array( 'ar_rev_id=ts_rev_id' ) ) )
+				[ 'tag_summary' => [ 'LEFT JOIN', [ 'ar_rev_id=ts_rev_id' ] ] ]
 			);
 			$this->addFields( 'ts_tags' );
 		}
@@ -123,7 +129,7 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 		if ( !is_null( $params['tag'] ) ) {
 			$this->addTables( 'change_tag' );
 			$this->addJoinConds(
-				array( 'change_tag' => array( 'INNER JOIN', array( 'ar_rev_id=ct_rev_id' ) ) )
+				[ 'change_tag' => [ 'INNER JOIN', [ 'ar_rev_id=ct_rev_id' ] ] ]
 			);
 			$this->addWhereFld( 'ct_tag', $params['tag'] );
 		}
@@ -136,17 +142,12 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 			// we have to LEFT JOIN and fetch all four fields.
 			$this->addTables( 'text' );
 			$this->addJoinConds(
-				array( 'text' => array( 'LEFT JOIN', array( 'ar_text_id=old_id' ) ) )
+				[ 'text' => [ 'LEFT JOIN', [ 'ar_text_id=old_id' ] ] ]
 			);
-			$this->addFields( array( 'ar_text', 'ar_flags', 'old_text', 'old_flags' ) );
+			$this->addFields( [ 'ar_text', 'ar_flags', 'old_text', 'old_flags' ] );
 
 			// This also means stricter restrictions
-			if ( !$user->isAllowedAny( 'undelete', 'deletedtext' ) ) {
-				$this->dieUsage(
-					'You don\'t have permission to view deleted revision content',
-					'permissiondenied'
-				);
-			}
+			$this->checkUserRightsAny( [ 'deletedtext', 'undelete' ] );
 		}
 
 		$miser_ns = null;
@@ -154,10 +155,10 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 		if ( $mode == 'all' ) {
 			if ( $params['namespace'] !== null ) {
 				$namespaces = $params['namespace'];
-				$this->addWhereFld( 'ar_namespace', $namespaces );
 			} else {
 				$namespaces = MWNamespace::getValidNamespaces();
 			}
+			$this->addWhereFld( 'ar_namespace', $namespaces );
 
 			// For from/to/prefix, we have to consider the potential
 			// transformations of the title in all specified namespaces.
@@ -167,9 +168,9 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 				$isDirNewer = ( $dir === 'newer' );
 				$after = ( $isDirNewer ? '>=' : '<=' );
 				$before = ( $isDirNewer ? '<=' : '>=' );
-				$where = array();
+				$where = [];
 				foreach ( $namespaces as $ns ) {
-					$w = array();
+					$w = [];
 					if ( $params['from'] !== null ) {
 						$w[] = 'ar_title' . $after .
 							$db->addQuotes( $this->titlePartToKey( $params['from'], $ns ) );
@@ -185,16 +186,16 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 					$where = key( $where );
 					$this->addWhere( $where );
 				} else {
-					$where2 = array();
+					$where2 = [];
 					foreach ( $where as $w => $ns ) {
-						$where2[] = $db->makeList( array( $w, 'ar_namespace' => $ns ), LIST_AND );
+						$where2[] = $db->makeList( [ $w, 'ar_namespace' => $ns ], LIST_AND );
 					}
 					$this->addWhere( $db->makeList( $where2, LIST_OR ) );
 				}
 			}
 
 			if ( isset( $params['prefix'] ) ) {
-				$where = array();
+				$where = [];
 				foreach ( $namespaces as $ns ) {
 					$w = 'ar_title' . $db->buildLike(
 						$this->titlePartToKey( $params['prefix'], $ns ),
@@ -205,9 +206,9 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 					$where = key( $where );
 					$this->addWhere( $where );
 				} else {
-					$where2 = array();
+					$where2 = [];
 					foreach ( $where as $w => $ns ) {
-						$where2[] = $db->makeList( array( $w, 'ar_namespace' => $ns ), LIST_AND );
+						$where2[] = $db->makeList( [ $w, 'ar_namespace' => $ns ], LIST_AND );
 					}
 					$this->addWhere( $db->makeList( $where2, LIST_OR ) );
 				}
@@ -229,7 +230,7 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 		}
 
 		if ( !is_null( $params['user'] ) || !is_null( $params['excludeuser'] ) ) {
-			// Paranoia: avoid brute force searches (bug 17342)
+			// Paranoia: avoid brute force searches (T19342)
 			// (shouldn't be able to get here without 'deletedhistory', but
 			// check it again just in case)
 			if ( !$user->isAllowed( 'deletedhistory' ) ) {
@@ -283,7 +284,7 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 		$this->addOption( 'LIMIT', $this->limit + 1 );
 
 		$sort = ( $dir == 'newer' ? '' : ' DESC' );
-		$orderby = array();
+		$orderby = [];
 		if ( $optimizeGenerateTitles ) {
 			// Targeting index name_title_timestamp
 			if ( $params['namespace'] === null || count( array_unique( $params['namespace'] ) ) > 1 ) {
@@ -307,10 +308,10 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 		$this->addOption( 'ORDER BY', $orderby );
 
 		$res = $this->select( __METHOD__ );
-		$pageMap = array(); // Maps ns&title to array index
+		$pageMap = []; // Maps ns&title to array index
 		$count = 0;
 		$nextIndex = 0;
-		$generated = array();
+		$generated = [];
 		foreach ( $res as $row ) {
 			if ( ++$count > $this->limit ) {
 				// We've had enough
@@ -348,17 +349,17 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 					$index = $nextIndex++;
 					$pageMap[$row->ar_namespace][$row->ar_title] = $index;
 					$title = $revision->getTitle();
-					$a = array(
+					$a = [
 						'pageid' => $title->getArticleID(),
-						'revisions' => array( $rev ),
-					);
+						'revisions' => [ $rev ],
+					];
 					ApiResult::setIndexedTagName( $a['revisions'], 'rev' );
 					ApiQueryBase::addTitleInfo( $a, $title );
-					$fit = $result->addValue( array( 'query', $this->getModuleName() ), $index, $a );
+					$fit = $result->addValue( [ 'query', $this->getModuleName() ], $index, $a );
 				} else {
 					$index = $pageMap[$row->ar_namespace][$row->ar_title];
 					$fit = $result->addValue(
-						array( 'query', $this->getModuleName(), $index, 'revisions' ),
+						[ 'query', $this->getModuleName(), $index, 'revisions' ],
 						null, $rev );
 				}
 				if ( !$fit ) {
@@ -381,80 +382,79 @@ class ApiQueryAllDeletedRevisions extends ApiQueryRevisionsBase {
 				$resultPageSet->populateFromRevisionIDs( $generated );
 			}
 		} else {
-			$result->addIndexedTagName( array( 'query', $this->getModuleName() ), 'page' );
+			$result->addIndexedTagName( [ 'query', $this->getModuleName() ], 'page' );
 		}
 	}
 
 	public function getAllowedParams() {
-		$ret = parent::getAllowedParams() + array(
-			'user' => array(
+		$ret = parent::getAllowedParams() + [
+			'user' => [
 				ApiBase::PARAM_TYPE => 'user'
-			),
-			'namespace' => array(
+			],
+			'namespace' => [
 				ApiBase::PARAM_ISMULTI => true,
 				ApiBase::PARAM_TYPE => 'namespace',
-				ApiBase::PARAM_DFLT => null,
-			),
-			'start' => array(
+			],
+			'start' => [
 				ApiBase::PARAM_TYPE => 'timestamp',
-				ApiBase::PARAM_HELP_MSG_INFO => array( array( 'useronly' ) ),
-			),
-			'end' => array(
+				ApiBase::PARAM_HELP_MSG_INFO => [ [ 'useronly' ] ],
+			],
+			'end' => [
 				ApiBase::PARAM_TYPE => 'timestamp',
-				ApiBase::PARAM_HELP_MSG_INFO => array( array( 'useronly' ) ),
-			),
-			'dir' => array(
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_HELP_MSG_INFO => [ [ 'useronly' ] ],
+			],
+			'dir' => [
+				ApiBase::PARAM_TYPE => [
 					'newer',
 					'older'
-				),
+				],
 				ApiBase::PARAM_DFLT => 'older',
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-direction',
-			),
-			'from' => array(
-				ApiBase::PARAM_HELP_MSG_INFO => array( array( 'nonuseronly' ) ),
-			),
-			'to' => array(
-				ApiBase::PARAM_HELP_MSG_INFO => array( array( 'nonuseronly' ) ),
-			),
-			'prefix' => array(
-				ApiBase::PARAM_HELP_MSG_INFO => array( array( 'nonuseronly' ) ),
-			),
-			'excludeuser' => array(
+			],
+			'from' => [
+				ApiBase::PARAM_HELP_MSG_INFO => [ [ 'nonuseronly' ] ],
+			],
+			'to' => [
+				ApiBase::PARAM_HELP_MSG_INFO => [ [ 'nonuseronly' ] ],
+			],
+			'prefix' => [
+				ApiBase::PARAM_HELP_MSG_INFO => [ [ 'nonuseronly' ] ],
+			],
+			'excludeuser' => [
 				ApiBase::PARAM_TYPE => 'user',
-				ApiBase::PARAM_HELP_MSG_INFO => array( array( 'nonuseronly' ) ),
-			),
+				ApiBase::PARAM_HELP_MSG_INFO => [ [ 'nonuseronly' ] ],
+			],
 			'tag' => null,
-			'continue' => array(
+			'continue' => [
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-continue',
-			),
-			'generatetitles' => array(
+			],
+			'generatetitles' => [
 				ApiBase::PARAM_DFLT => false
-			),
-		);
+			],
+		];
 
 		if ( $this->getConfig()->get( 'MiserMode' ) ) {
-			$ret['user'][ApiBase::PARAM_HELP_MSG_APPEND] = array(
+			$ret['user'][ApiBase::PARAM_HELP_MSG_APPEND] = [
 				'apihelp-query+alldeletedrevisions-param-miser-user-namespace',
-			);
-			$ret['namespace'][ApiBase::PARAM_HELP_MSG_APPEND] = array(
+			];
+			$ret['namespace'][ApiBase::PARAM_HELP_MSG_APPEND] = [
 				'apihelp-query+alldeletedrevisions-param-miser-user-namespace',
-			);
+			];
 		}
 
 		return $ret;
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=query&list=alldeletedrevisions&adruser=Example&adrlimit=50'
 				=> 'apihelp-query+alldeletedrevisions-example-user',
-			'action=query&list=alldeletedrevisions&adrdir=newer&adrlimit=50'
+			'action=query&list=alldeletedrevisions&adrdir=newer&adrnamespace=0&adrlimit=50'
 				=> 'apihelp-query+alldeletedrevisions-example-ns-main',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Alldeletedrevisions';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Alldeletedrevisions';
 	}
 }

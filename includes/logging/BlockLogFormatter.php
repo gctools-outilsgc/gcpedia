@@ -22,6 +22,8 @@
  * @since 1.25
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * This class formats block log entries.
  *
@@ -57,8 +59,15 @@ class BlockLogFormatter extends LogFormatter {
 			// The lrm is needed to make sure that the number
 			// is shown on the correct side of the tooltip text.
 			$durationTooltip = '&lrm;' . htmlspecialchars( $params[4] );
-			$params[4] = Message::rawParam( "<span class='blockExpiry' title='$durationTooltip'>" .
-				$this->context->getLanguage()->translateBlockExpiry( $params[4] ) . '</span>' );
+			$params[4] = Message::rawParam(
+				"<span class=\"blockExpiry\" title=\"$durationTooltip\">" .
+				$this->context->getLanguage()->translateBlockExpiry(
+					$params[4],
+					$this->context->getUser(),
+					wfTimestamp( TS_UNIX, $this->entry->getTimestamp() )
+				) .
+				'</span>'
+			);
 			$params[5] = isset( $params[5] ) ?
 				self::formatBlockFlags( $params[5], $this->context->getLanguage() ) : '';
 		}
@@ -83,13 +92,14 @@ class BlockLogFormatter extends LogFormatter {
 		$title = $this->entry->getTarget();
 		// Preload user page for non-autoblocks
 		if ( substr( $title->getText(), 0, 1 ) !== '#' ) {
-			return array( $title->getTalkPage() );
+			return [ $title->getTalkPage() ];
 		}
-		return array();
+		return [];
 	}
 
 	public function getActionLinks() {
 		$subtype = $this->entry->getSubtype();
+		$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
 		if ( $this->entry->isDeleted( LogPage::DELETED_ACTION ) // Action is hidden
 			|| !( $subtype === 'block' || $subtype === 'reblock' )
 			|| !$this->context->getUser()->isAllowed( 'block' )
@@ -99,16 +109,16 @@ class BlockLogFormatter extends LogFormatter {
 
 		// Show unblock/change block link
 		$title = $this->entry->getTarget();
-		$links = array(
-			Linker::linkKnown(
+		$links = [
+			$linkRenderer->makeKnownLink(
 				SpecialPage::getTitleFor( 'Unblock', $title->getDBkey() ),
-				$this->msg( 'unblocklink' )->escaped()
+				$this->msg( 'unblocklink' )->text()
 			),
-			Linker::linkKnown(
+			$linkRenderer->makeKnownLink(
 				SpecialPage::getTitleFor( 'Block', $title->getDBkey() ),
-				$this->msg( 'change-blocklink' )->escaped()
+				$this->msg( 'change-blocklink' )->text()
 			)
-		);
+		];
 
 		return $this->msg( 'parentheses' )->rawParams(
 			$this->context->getLanguage()->pipeList( $links ) )->escaped();
@@ -125,7 +135,7 @@ class BlockLogFormatter extends LogFormatter {
 	public static function formatBlockFlags( $flags, $lang ) {
 		$flags = trim( $flags );
 		if ( $flags === '' ) {
-			return ''; //nothing to do
+			return ''; // nothing to do
 		}
 		$flags = explode( ',', $flags );
 		$flagsCount = count( $flags );
@@ -146,7 +156,7 @@ class BlockLogFormatter extends LogFormatter {
 	 * @return string
 	 */
 	public static function formatBlockFlag( $flag, $lang ) {
-		static $messages = array();
+		static $messages = [];
 
 		if ( !isset( $messages[$flag] ) ) {
 			$messages[$flag] = htmlspecialchars( $flag ); // Fallback
@@ -173,13 +183,13 @@ class BlockLogFormatter extends LogFormatter {
 		$entry = $this->entry;
 		$params = $entry->getParameters();
 
-		static $map = array(
+		static $map = [
 			// While this looks wrong to be starting at 5 rather than 4, it's
 			// because getMessageParameters uses $4 for its own purposes.
 			'5::duration',
 			'6:array:flags',
 			'6::flags' => '6:array:flags',
-		);
+		];
 		foreach ( $map as $index => $key ) {
 			if ( isset( $params[$index] ) ) {
 				$params[$key] = $params[$index];
@@ -190,14 +200,14 @@ class BlockLogFormatter extends LogFormatter {
 		$subtype = $entry->getSubtype();
 		if ( $subtype === 'block' || $subtype === 'reblock' ) {
 			// Defaults for old log entries missing some fields
-			$params += array(
+			$params += [
 				'5::duration' => 'infinite',
-				'6:array:flags' => array(),
-			);
+				'6:array:flags' => [],
+			];
 
 			if ( !is_array( $params['6:array:flags'] ) ) {
 				$params['6:array:flags'] = $params['6:array:flags'] === ''
-					? array()
+					? []
 					: explode( ',', $params['6:array:flags'] );
 			}
 

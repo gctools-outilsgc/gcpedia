@@ -1,25 +1,38 @@
 <?php
 
+// check if install is needed
+if( file_exists("/var/www/html/docker_gcpedia/LocalSettings.php") )
+  exit("\nLocalSettings.php found, not running install.\n\n");
+
+$enabled = getenv('DOCKER') != ''; //are we in a Docker container?
+if (!$enabled) {
+  echo "This script should be run only in a properly configured Docker container environment.\n";
+  exit(1);
+}
+
 // environment variables from docker-compose
-if (getenv('DBHOST') != '')
-	$dbhost = getenv('DBHOST');
-else
-	$dbhost = 'gcpedia-db';
+$dbhost = (getenv('DBHOST') != '') ? getenv('DBHOST') : 'gcpedia-db';
+$host = (getenv('HOST') != '') ? getenv('HOST') : 'localhost';
+$port = (getenv('PORT') != '') ? ":".getenv('PORT') : '';
+$saml = (getenv('USESAML') != '') ? getenv('USESAML') : false;
+$oauth = (getenv('OAUTH') != '') ? getenv('OAUTH') : false;
+$openid = (getenv('OPENID') != '') ? getenv('OPENID') : false;
 
-if (getenv('HOST') != '')
-  $host = getenv('HOST');
-else
-  $host = 'localhost';
-if (getenv('PORT') != '')
-  $port = ":".getenv('PORT');
-else
-  $port = '';
-
-if (getenv('USESAML') != '')
-	$saml = getenv('USESAML');
-else
-	$saml = false;
 echo "Using dbhost: $dbhost   and host: $host \n";
+
+// wait for db to be ready
+echo "Connecting to database..";
+$etmp = error_reporting(E_ERROR);     // don't need all the connection errors...
+
+do{
+  echo ".";
+  sleep(1); // wait for the db container
+  $dbconnect = mysqli_connect($dbhost, 'wiki', 'gcpedia');
+}while(!$dbconnect);
+
+echo "Connected!";
+mysqli_close($dbconnect);
+error_reporting($etmp);     // revert error reporting to default
 
 // first run regular cli install script
 shell_exec("php /var/www/html/docker_gcpedia/maintenance/install.php --confpath=/var/www/html/docker_gcpedia/ \
@@ -28,12 +41,19 @@ shell_exec("php /var/www/html/docker_gcpedia/maintenance/install.php --confpath=
  --pass=adminpassword 'GCpedia' 'admin' ");
 echo "basic setup complete\n";
 
+// create an htaccess file for short urls
+$htaccess = fopen("/var/www/html/docker_gcpedia/.htaccess", 'a');   // a for append
+fwrite($htaccess, htaccessText());
+fclose($htaccess);
+
 // then add extensions; some require extra configuration so this will get a bit long...
 $local_settings = fopen("/var/www/html/docker_gcpedia/LocalSettings.php", 'a');		// a for append
 
 // using single brackets as a simple way to prevent parsing of variable names, etc.
 fwrite($local_settings, returnLocalSettingsText());
 if ($saml) fwrite($local_settings, returnLocalSettingsSAMLText());
+if ($oauth) fwrite($local_settings, returnLocalSettingsOAuthText());
+if ($openid) fwrite($local_settings, returnLocalSettingsOpenIDText());
 fclose($local_settings);
 echo "LocalSettings.php setup complete\n";
 
@@ -43,190 +63,8 @@ echo "DB update complete\n  Install Complete!\n";
 
 function returnLocalSettingsText(){
   return <<< 'EOD'
-# Disable EDIT for 'everyone'
-$wgGroupPermissions['*']['edit']              = false;
-
-# Disable for users, too: by default 'user' is allowed to edit, even if '*' is not.
-//REGULAR USER PERMISSIONS
-$wgGroupPermissions['user']['edit']           = true;
-$wgGroupPermissions['user']['move']           = true;
-$wgGroupPermissions['user']['delete']         = false;
-$wgGroupPermissions['user']['undelete']       = true;
-$wgGroupPermissions['user']['deletedhistory'] = true;
-
-$wgFileExtensions = array('pub','png','gif','jpg','jpeg','pdf','xls','docx','pptx','doc','ppt','svg','xml','mpg','swf','odp','odt','wmv','flv','vsd','mpp','ai','zip','txt','wpd','rtf','drf','xlsx','xlsm', 'oft');
-
-$wgUseAjax = true;
-
-$wgGroupPermissions['sysop']['deletelogentry'] = true;
-$wgGroupPermissions['sysop']['deleterevision'] = true;
-
-
-////  extensions
-
-wfLoadExtension( "ParserFunctions" );
-
-$wgUseAjax = true;
-require_once "$IP/extensions/AjaxShowEditors/AjaxShowEditors.php";
-require_once "$IP/extensions/awards/awards.php";
-require_once "$IP/extensions/customUserCreateForm/customUserCreateForm.php";
-require_once "$IP/extensions/EmailUpdate/EmailUpdate.php";
-$wgGroupPermissions["sysop"]["emailupdate"] = true;
-require_once "$IP/extensions/MagicNoNumberedHeadings/MagicNoNumberedHeadings.php";
-require_once "$IP/extensions/MagicNumberedHeadings/MagicNumberedHeadings.php";
-
-$wgEnableAPI = true;
-require_once "$IP/extensions/UniversalLanguageSelector/UniversalLanguageSelector.php";
-$wgULSGeoService = false;
-require_once( "$IP/extensions/WikiEditor/WikiEditor.php" );
-# Enable WikiEditor toolbar as default (but still allow users to disable)
-$wgDefaultUserOptions["usebetatoolbar"] = 1;
-$wgDefaultUserOptions["usebetatoolbar-cgd"] = 0;
-$wgDefaultUserOptions["wikieditor-preview"] = 0;
-wfLoadExtension( "Cite" );
-wfLoadExtension( "DeletePagesForGood" );
-$wgGroupPermissions["*"]         ["deleteperm"] = false;
-$wgGroupPermissions["user"]      ["deleteperm"] = false;
-$wgGroupPermissions["bureaucrat"]["deleteperm"] = true;
-$wgGroupPermissions["sysop"]     ["deleteperm"] = false;
-$wgGroupPermissions["IMadmin"]   ["deleteperm"] = true;
-$wgGroupPermissions["IMadmin"]   ["delete"] = true;
-$wgGroupPermissions["IMadmin"]   ["undelete"] = true;
-wfLoadExtension( "Renameuser" );
-wfLoadExtension( "CharInsert" );
-wfLoadExtension( "TreeAndMenu" );
-wfLoadExtension( "InputBox" );
-wfLoadExtension( "Gadgets" );
-wfLoadExtension( "ImageMap" );
-$wgImageMapAllowExternalLinks = true;
-wfLoadExtension( "InputBox" );
-require_once("$IP/extensions/Lingo/Lingo.php");
-
-
-
-/** Visual Editor configuration START **/
-wfLoadExtension( "VisualEditor" );
-
-// Enable by default for everybody
-$wgDefaultUserOptions["visualeditor-enable"] = 1;
-
-// Don"t allow users to disable it
-$wgHiddenPrefs[] = "visualeditor-enable";
-
-// Parsoid link
-$wgVirtualRestConfig["modules"]["parsoid"] = array(
-  // URL to the Parsoid instance
-  // Use port 8142 if you use the Debian package
-  "url" => "parsoid:8000",
-  // Parsoid "domain", see below (optional)
-  "domain" => "localhost",
-  // Parsoid "prefix", see below (optional)
-  //"prefix" => "gcwiki"
-);
-// List of skins VisualEditor integration supports
-$wgVisualEditorSupportedSkins = array( "vector" );
-// Namespaces to enable VisualEditor in
-$wgVisualEditorNamespaces =  array( NS_MAIN, NS_USER, NS_PROJECT );
-
-/** Visual Editor configuration END **/
-
-
-// Collection extension
-require_once "$IP/extensions/Collection/Collection.php";
-$wgCollectionMWServeURL = "mwlib:8899";
-
-$wgCollectionPODPartners = false;
-$wgCollectionFormats = array(
-      "rl" => "PDF", # enabled by default
-    "odf" => "ODT",
-//    "docbook" => "DocBook XML",
-//    "xhtml" => "XHTML 1.0 Transitional",
-//    "epub" => "e-book (EPUB)",
-//    "zim" => "Kiwix (OpenZIM)",
-);
-
-$wgGroupPermissions["user"]["collectionsaveascommunitypage"] = true;
-$wgGroupPermissions["user"]["collectionsaveasuserpage"]      = true;
-
-$wgCollectionMaxArticles = 250;     // max # of articles per book
-
-
-## Video Enableing Extensions
-require_once("$IP/extensions/FramedVideo/FramedVideo.php");
-include_once('extensions/wikiFlvPlayer/wikiFlvPlayer.php');
-require_once('extensions/ExtVideo/ExtVideo.php');
-
-
-require_once("$IP/extensions/intersection/DynamicPageList.php");
-# Configuration variables. Warning: These use DLP instead of DPL
-# for historical reasons (pretend Dynamic list of pages)
-$wgDLPmaxCategories = 6;                // Maximum number of categories to look for
-$wgDLPMaxResultCount = 200;             // Maximum number of results to allow
-$wgDLPAllowUnlimitedResults = false;    // Allow unlimited results
-$wgDLPAllowUnlimitedCategories = false; // Allow unlimited categories
-// How long to cache pages using DPL's in seconds. Default to 1 day. Set to
-// false to use the normal amount of page caching (most efficient), Set to 0 to disable
-// cache altogether (inefficient, but results will never be outdated)
-$wgDLPMaxCacheTime = 60*60*24;          // How long to cache pages in seconds
-
-require_once "$IP/extensions/LookupUser/LookupUser.php";
-$wgGroupPermissions['sysop']['lookupuser'] = true;
-
-
-require_once "$IP/extensions/CategoryTree/CategoryTree.php";
-require_once("$IP/extensions/CSS/CSS.php");
-require_once("$IP/extensions/EditUser/EditUser.php");
-$wgGroupPermissions['bureaucrat']['edituser'] = true;
-$wgGroupPermissions['sysop']['edituser-exempt'] = true;
-
-require_once( "$IP/extensions/NewUserPage/NewUserPage.php" );
-
-require_once( "$IP/extensions/CategoryWatch/CategoryWatch.php" );
-require_once("extensions/tag_cloud.php");
-
-require_once "$IP/extensions/RSS/RSS.php";
-$wgRSSUrlWhitelist = array("*");
-$wgRSSUrlNumberOfAllowedRedirects = 1;
-
-require_once("$IP/extensions/EmailUpdate/EmailUpdate.php");
-$wgGroupPermissions['sysop']['emailupdate'] = true;
-
-require_once( "$IP/extensions/Multilang/multilang.php" );
-
-require_once("$IP/extensions/MobileFrontend/MobileFrontend.php");
-
-require_once("$IP/extensions/GC_Messages/GC_Messages.php");
-
-require_once( "$IP/extensions/GCRandomImage/GCRandomImage.php" );
-
-require_once("{$IP}/extensions/Poll/Poll.php");
-//wfLoadExtension( 'AJAXPoll' );
-require_once("$IP/extensions/AJAXPoll/AJAXPoll.php");
-
-/* Disclaimer */
-require_once("$IP/extensions/GC_tcDisclaimer/disclaimer.php");
-$wgDisclaimReset = 162; //time to reset disclaimer, in days
-
-# Add a Star icon for selecting favorites:
-# $wgUseIconFavorite = true; 
-# Add a "My Favorites" link to the personal URLs area:
-require_once("$IP/extensions/Favorites/Favorites.php");
-$wgFavoritesPersonalURL = true;
-$wgUseIconFavorite = true;
-
-require_once( "$IP/extensions/ReplaceText/ReplaceText.php" );
-$wgGroupPermissions['bureaucrat']['replacetext'] = true;
-require_once "$IP/extensions/wikiFlvPlayer/wikiFlvPlayer.php";
-
-require_once "$IP/extensions/UserMerge/UserMerge.php";
-$wgGroupPermissions['sysop']['usermerge'] = true;
-$wgUserMergeUnmergeable = array( 'sysop', 'awesomeusers' );
- 
-$wgShowSQLErrors = true;
-$wgShowExceptionDetails = true;
-
-wfLoadExtension( 'MsCalendar' );
-
+include('/super/secrets.php');
+include('./config.php');
 EOD;
 }
 function returnLocalSettingsSAMLText(){
@@ -256,5 +94,44 @@ $wgSamlGroupMap = array(
         'groups' => array('admin'),
     ),
 );
+EOD;
+}
+function returnLocalSettingsOAuthText(){
+  return <<< 'EOD'
+
+wfLoadExtension( 'MW-OAuth2Client' );
+
+$wgOAuth2Client['client']['id'] = '';
+$wgOAuth2Client['client']['secret'] = '';
+
+$wgOAuth2Client['configuration']['authorize_endpoint'] = '';
+$wgOAuth2Client['configuration']['access_token_endpoint'] = '';
+$wgOAuth2Client['configuration']['api_endpoint'] = '';
+$wgOAuth2Client['configuration']['redirect_uri'] = '';
+EOD;
+}
+function returnLocalSettingsOpenIDText(){
+  return <<< 'EOD'
+
+wfLoadExtension( 'PluggableAuth' );
+wfLoadExtension( 'OpenIDConnect' );
+
+$wgGroupPermissions['*']['createaccount'] = false;
+$wgGroupPermissions['*']['autocreateaccount'] = true;
+$wgOpenIDConnect_UseEmailNameAsUserName = true;
+
+$wgOpenIDConnect_Config[''] = [
+    'clientID' => '',
+    'clientsecret' => '',
+    'scope' => ['openid', 'profile', 'email']
+];
+EOD;
+}
+function htaccessText(){
+  return <<< 'EOD'
+RewriteEngine On
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-f
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-d
+RewriteRule ^(.*)$ %{DOCUMENT_ROOT}/index.php [L]
 EOD;
 }

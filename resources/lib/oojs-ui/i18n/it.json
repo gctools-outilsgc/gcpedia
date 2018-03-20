@@ -15,7 +15,8 @@
 			"Ontsed",
 			"Alexmar983",
 			"Nemo bis",
-			"Jdforrester"
+			"Jdforrester",
+			"Fringio"
 		]
 	},
 	"ooui-outline-control-move-down": "Sposta in basso",
@@ -24,6 +25,7 @@
 	"ooui-toolbar-more": "Altro",
 	"ooui-toolgroup-expand": "Altro",
 	"ooui-toolgroup-collapse": "Meno",
+	"ooui-item-remove": "Rimuovi",
 	"ooui-dialog-message-accept": "OK",
 	"ooui-dialog-message-reject": "Annulla",
 	"ooui-dialog-process-error": "Qualcosa è andato storto",
@@ -33,5 +35,5 @@
 	"ooui-selectfile-button-select": "Seleziona un file",
 	"ooui-selectfile-not-supported": "La selezione del file non è supportata",
 	"ooui-selectfile-placeholder": "Nessun file è selezionato",
-	"ooui-selectfile-dragdrop-placeholder": "Posiziona i files qui"
+	"ooui-selectfile-dragdrop-placeholder": "Posiziona i file qui"
 }

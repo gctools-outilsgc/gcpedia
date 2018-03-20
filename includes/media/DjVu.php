@@ -47,7 +47,7 @@ class DjVuHandler extends ImageHandler {
 	 * @param File $file
 	 * @return bool
 	 */
-	function mustRender( $file ) {
+	public function mustRender( $file ) {
 		return true;
 	}
 
@@ -64,18 +64,18 @@ class DjVuHandler extends ImageHandler {
 	 * @param File $file
 	 * @return bool
 	 */
-	function isMultiPage( $file ) {
+	public function isMultiPage( $file ) {
 		return true;
 	}
 
 	/**
 	 * @return array
 	 */
-	function getParamMap() {
-		return array(
+	public function getParamMap() {
+		return [
 			'img_width' => 'width',
 			'img_page' => 'page',
-		);
+		];
 	}
 
 	/**
@@ -83,13 +83,13 @@ class DjVuHandler extends ImageHandler {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	function validateParam( $name, $value ) {
+	public function validateParam( $name, $value ) {
 		if ( $name === 'page' && trim( $value ) !== (string)intval( $value ) ) {
 			// Extra junk on the end of page, probably actually a caption
 			// e.g. [[File:Foo.djvu|thumb|Page 3 of the document shows foo]]
 			return false;
 		}
-		if ( in_array( $name, array( 'width', 'height', 'page' ) ) ) {
+		if ( in_array( $name, [ 'width', 'height', 'page' ] ) ) {
 			if ( $value <= 0 ) {
 				return false;
 			} else {
@@ -104,7 +104,7 @@ class DjVuHandler extends ImageHandler {
 	 * @param array $params
 	 * @return bool|string
 	 */
-	function makeParamString( $params ) {
+	public function makeParamString( $params ) {
 		$page = isset( $params['page'] ) ? $params['page'] : 1;
 		if ( !isset( $params['width'] ) ) {
 			return false;
@@ -117,10 +117,10 @@ class DjVuHandler extends ImageHandler {
 	 * @param string $str
 	 * @return array|bool
 	 */
-	function parseParamString( $str ) {
+	public function parseParamString( $str ) {
 		$m = false;
 		if ( preg_match( '/^page(\d+)-(\d+)px$/', $str, $m ) ) {
-			return array( 'width' => $m[2], 'page' => $m[1] );
+			return [ 'width' => $m[2], 'page' => $m[1] ];
 		} else {
 			return false;
 		}
@@ -131,10 +131,10 @@ class DjVuHandler extends ImageHandler {
 	 * @return array
 	 */
 	function getScriptParams( $params ) {
-		return array(
+		return [
 			'width' => $params['width'],
 			'page' => $params['page'],
-		);
+		];
 	}
 
 	/**
@@ -156,11 +156,11 @@ class DjVuHandler extends ImageHandler {
 		$page = $params['page'];
 
 		if ( $flags & self::TRANSFORM_LATER ) {
-			$params = array(
+			$params = [
 				'width' => $width,
 				'height' => $height,
 				'page' => $page
-			);
+			];
 
 			return new ThumbnailImage( $image, $dstUrl, $dstPath, $params );
 		}
@@ -170,7 +170,7 @@ class DjVuHandler extends ImageHandler {
 				'thumbnail_error',
 				$width,
 				$height,
-				wfMessage( 'thumbnail_dest_directory' )->text()
+				wfMessage( 'thumbnail_dest_directory' )
 			);
 		}
 
@@ -179,11 +179,11 @@ class DjVuHandler extends ImageHandler {
 		// Provide a way to pool count limit the number of downloaders.
 		if ( $image->getSize() >= 1e7 ) { // 10MB
 			$work = new PoolCounterWorkViaCallback( 'GetLocalFileCopy', sha1( $image->getName() ),
-				array(
+				[
 					'doWork' => function () use ( $image ) {
 						return $image->getLocalRefPath();
 					}
-				)
+				]
 			);
 			$srcPath = $work->execute();
 		} else {
@@ -197,7 +197,7 @@ class DjVuHandler extends ImageHandler {
 
 			return new MediaTransformError( 'thumbnail_error',
 				$params['width'], $params['height'],
-				wfMessage( 'filemissing' )->text()
+				wfMessage( 'filemissing' )
 			);
 		}
 
@@ -222,11 +222,11 @@ class DjVuHandler extends ImageHandler {
 			$this->logErrorForExternalProcess( $retval, $err, $cmd );
 			return new MediaTransformError( 'thumbnail_error', $width, $height, $err );
 		} else {
-			$params = array(
+			$params = [
 				'width' => $width,
 				'height' => $height,
 				'page' => $page
-			);
+			];
 
 			return new ThumbnailImage( $image, $dstUrl, $dstPath, $params );
 		}
@@ -235,7 +235,7 @@ class DjVuHandler extends ImageHandler {
 	/**
 	 * Cache an instance of DjVuImage in an Image object, return that instance
 	 *
-	 * @param File $image
+	 * @param File|FSFile $image
 	 * @param string $path
 	 * @return DjVuImage
 	 */
@@ -289,7 +289,7 @@ class DjVuHandler extends ImageHandler {
 	 * @param bool $gettext DOCUMENT (Default: false)
 	 * @return bool|SimpleXMLElement
 	 */
-	function getMetaTree( $image, $gettext = false ) {
+	public function getMetaTree( $image, $gettext = false ) {
 		if ( $gettext && isset( $image->djvuTextTree ) ) {
 			return $image->djvuTextTree;
 		}
@@ -304,30 +304,10 @@ class DjVuHandler extends ImageHandler {
 			return false;
 		}
 
-		MediaWiki\suppressWarnings();
-		try {
-			// Set to false rather than null to avoid further attempts
-			$image->dejaMetaTree = false;
-			$image->djvuTextTree = false;
-			$tree = new SimpleXMLElement( $metadata );
-			if ( $tree->getName() == 'mw-djvu' ) {
-				/** @var SimpleXMLElement $b */
-				foreach ( $tree->children() as $b ) {
-					if ( $b->getName() == 'DjVuTxt' ) {
-						// @todo File::djvuTextTree and File::dejaMetaTree are declared
-						// dynamically. Add a public File::$data to facilitate this?
-						$image->djvuTextTree = $b;
-					} elseif ( $b->getName() == 'DjVuXML' ) {
-						$image->dejaMetaTree = $b;
-					}
-				}
-			} else {
-				$image->dejaMetaTree = $tree;
-			}
-		} catch ( Exception $e ) {
-			wfDebug( "Bogus multipage XML metadata on '{$image->getName()}'\n" );
-		}
-		MediaWiki\restoreWarnings();
+		$trees = $this->extractTreesFromMetadata( $metadata );
+		$image->djvuTextTree = $trees['TextTree'];
+		$image->dejaMetaTree = $trees['MetaTree'];
+
 		if ( $gettext ) {
 			return $image->djvuTextTree;
 		} else {
@@ -336,10 +316,39 @@ class DjVuHandler extends ImageHandler {
 	}
 
 	/**
-	 * @param File $image
-	 * @param string $path
-	 * @return bool|array False on failure
+	 * Extracts metadata and text trees from metadata XML in string form
+	 * @param string $metadata XML metadata as a string
+	 * @return array
 	 */
+	protected function extractTreesFromMetadata( $metadata ) {
+		MediaWiki\suppressWarnings();
+		try {
+			// Set to false rather than null to avoid further attempts
+			$metaTree = false;
+			$textTree = false;
+			$tree = new SimpleXMLElement( $metadata, LIBXML_PARSEHUGE );
+			if ( $tree->getName() == 'mw-djvu' ) {
+				/** @var SimpleXMLElement $b */
+				foreach ( $tree->children() as $b ) {
+					if ( $b->getName() == 'DjVuTxt' ) {
+						// @todo File::djvuTextTree and File::dejaMetaTree are declared
+						// dynamically. Add a public File::$data to facilitate this?
+						$textTree = $b;
+					} elseif ( $b->getName() == 'DjVuXML' ) {
+						$metaTree = $b;
+					}
+				}
+			} else {
+				$metaTree = $tree;
+			}
+		} catch ( Exception $e ) {
+			wfDebug( "Bogus multipage XML metadata\n" );
+		}
+		MediaWiki\restoreWarnings();
+
+		return [ 'MetaTree' => $metaTree, 'TextTree' => $textTree ];
+	}
+
 	function getImageSize( $image, $path ) {
 		return $this->getDjVuImage( $image, $path )->getImageSize();
 	}
@@ -352,7 +361,7 @@ class DjVuHandler extends ImageHandler {
 			$mime = $magic->guessTypesForExtension( $wgDjvuOutputExtension );
 		}
 
-		return array( $wgDjvuOutputExtension, $mime );
+		return [ $wgDjvuOutputExtension, $mime ];
 	}
 
 	function getMetadata( $image, $path ) {
@@ -361,9 +370,9 @@ class DjVuHandler extends ImageHandler {
 		$xml = $this->getDjVuImage( $image, $path )->retrieveMetaData();
 		if ( $xml === false ) {
 			// Special value so that we don't repetitively try and decode a broken file.
-			return serialize( array( 'error' => 'Error extracting metadata' ) );
+			return serialize( [ 'error' => 'Error extracting metadata' ] );
 		} else {
-			return serialize( array( 'xml' => $xml ) );
+			return serialize( [ 'xml' => $xml ] );
 		}
 	}
 
@@ -372,59 +381,64 @@ class DjVuHandler extends ImageHandler {
 	}
 
 	function isMetadataValid( $image, $metadata ) {
-		return !empty( $metadata ) && $metadata != serialize( array() );
+		return !empty( $metadata ) && $metadata != serialize( [] );
 	}
 
-	function pageCount( $image ) {
-		global $wgMemc;
+	function pageCount( File $image ) {
+		$info = $this->getDimensionInfo( $image );
 
-		$key = wfMemcKey( 'file-djvu', 'pageCount', $image->getSha1() );
-
-		$count = $wgMemc->get( $key );
-		if ( $count === false ) {
-			$tree = $this->getMetaTree( $image );
-			if ( !$tree ) {
-				return false;
-			}
-			$count = count( $tree->xpath( '//OBJECT' ) );
-			$wgMemc->set( $key, $count );
-		}
-
-		return $count;
+		return $info ? $info['pageCount'] : false;
 	}
 
-	function getPageDimensions( $image, $page ) {
-		global $wgMemc;
-
-		$key = wfMemcKey( 'file-djvu', 'dimensions', $image->getSha1() );
-
-		$dimsByPage = $wgMemc->get( $key );
-		if ( !is_array( $dimsByPage ) ) {
-			$tree = $this->getMetaTree( $image );
-			if ( !$tree ) {
-				return false;
-			}
-
-			$dimsByPage = array();
-			$count = count( $tree->xpath( '//OBJECT' ) );
-			for ( $i = 0; $i < $count; ++$i ) {
-				$o = $tree->BODY[0]->OBJECT[$i];
-				if ( $o ) {
-					$dimsByPage[$i] = array(
-						'width' => (int)$o['width'],
-						'height' => (int)$o['height']
-					);
-				} else {
-					$dimsByPage[$i] = false;
-				}
-			}
-
-			$wgMemc->set( $key, $dimsByPage );
-		}
-
+	function getPageDimensions( File $image, $page ) {
 		$index = $page - 1; // MW starts pages at 1
 
-		return isset( $dimsByPage[$index] ) ? $dimsByPage[$index] : false;
+		$info = $this->getDimensionInfo( $image );
+		if ( $info && isset( $info['dimensionsByPage'][$index] ) ) {
+			return $info['dimensionsByPage'][$index];
+		}
+
+		return false;
+	}
+
+	protected function getDimensionInfo( File $file ) {
+		$cache = ObjectCache::getMainWANInstance();
+		return $cache->getWithSetCallback(
+			$cache->makeKey( 'file-djvu', 'dimensions', $file->getSha1() ),
+			$cache::TTL_INDEFINITE,
+			function () use ( $file ) {
+				$tree = $this->getMetaTree( $file );
+				return $this->getDimensionInfoFromMetaTree( $tree );
+			},
+			[ 'pcTTL' => $cache::TTL_INDEFINITE ]
+		);
+	}
+
+	/**
+	 * Given an XML metadata tree, returns dimension information about the document
+	 * @param bool|SimpleXMLElement $metatree The file's XML metadata tree
+	 * @return bool|array
+	 */
+	protected function getDimensionInfoFromMetaTree( $metatree ) {
+		if ( !$metatree ) {
+			return false;
+		}
+
+		$dimsByPage = [];
+		$count = count( $metatree->xpath( '//OBJECT' ) );
+		for ( $i = 0; $i < $count; $i++ ) {
+			$o = $metatree->BODY[0]->OBJECT[$i];
+			if ( $o ) {
+				$dimsByPage[$i] = [
+					'width' => (int)$o['width'],
+					'height' => (int)$o['height'],
+				];
+			} else {
+				$dimsByPage[$i] = false;
+			}
+		}
+
+		return [ 'pageCount' => $count, 'dimensionsByPage' => $dimsByPage ];
 	}
 
 	/**
@@ -432,7 +446,7 @@ class DjVuHandler extends ImageHandler {
 	 * @param int $page Page number to get information for
 	 * @return bool|string Page text or false when no text found.
 	 */
-	function getPageText( $image, $page ) {
+	function getPageText( File $image, $page ) {
 		$tree = $this->getMetaTree( $image, true );
 		if ( !$tree ) {
 			return false;

@@ -16,24 +16,24 @@ class ExtraParserTest extends MediaWikiTestCase {
 		parent::setUp();
 
 		$contLang = Language::factory( 'en' );
-		$this->setMwGlobals( array(
+		$this->setMwGlobals( [
 			'wgShowDBErrorBacktrace' => true,
-			'wgLanguageCode' => 'en',
-			'wgContLang' => $contLang,
-			'wgLang' => Language::factory( 'en' ),
-			'wgMemc' => new EmptyBagOStuff,
 			'wgCleanSignatures' => true,
-		) );
+		] );
+		$this->setUserLang( 'en' );
+		$this->setContentLang( $contLang );
 
+		// FIXME: This test should pass without setting global content language
 		$this->options = ParserOptions::newFromUserAndLang( new User, $contLang );
-		$this->options->setTemplateCallback( array( __CLASS__, 'statelessFetchTemplate' ) );
+		$this->options->setTemplateCallback( [ __CLASS__, 'statelessFetchTemplate' ] );
+		$this->options->setWrapOutputClass( false );
 		$this->parser = new Parser;
 
 		MagicWord::clearCache();
 	}
 
 	/**
-	 * @see Bug 8689
+	 * @see T10689
 	 * @covers Parser::parse
 	 */
 	public function testLongNumericLinesDontKillTheParser() {
@@ -41,6 +41,7 @@ class ExtraParserTest extends MediaWikiTestCase {
 
 		$title = Title::newFromText( 'Unit test' );
 		$options = ParserOptions::newFromUser( new User() );
+		$options->setWrapOutputClass( false );
 		$this->assertEquals( "<p>$longLine</p>",
 			$this->parser->parse( $longLine, $title, $options )->getText() );
 	}
@@ -120,11 +121,11 @@ class ExtraParserTest extends MediaWikiTestCase {
 	}
 
 	public static function provideStringsForCleanSigInSig() {
-		return array(
-			array( "{{Foo}} ~~~~", "{{Foo}} " ),
-			array( "~~~", "" ),
-			array( "~~~~~", "" ),
-		);
+		return [
+			[ "{{Foo}} ~~~~", "{{Foo}} " ],
+			[ "~~~", "" ],
+			[ "~~~~~", "" ],
+		];
 	}
 
 	/**
@@ -183,12 +184,12 @@ class ExtraParserTest extends MediaWikiTestCase {
 	 */
 	static function statelessFetchTemplate( $title, $parser = false ) {
 		$text = "Content of ''" . $title->getFullText() . "''";
-		$deps = array();
+		$deps = [];
 
-		return array(
+		return [
 			'text' => $text,
 			'finalTitle' => $title,
-			'deps' => $deps );
+			'deps' => $deps ];
 	}
 
 	/**
@@ -199,7 +200,7 @@ class ExtraParserTest extends MediaWikiTestCase {
 		$title = Title::newFromText( __FUNCTION__ );
 		$catName = wfMessage( 'broken-file-category' )->inContentLanguage()->text();
 		$cat = Title::makeTitleSafe( NS_CATEGORY, $catName );
-		$expected = array( $cat->getDBkey() );
+		$expected = [ $cat->getDBkey() ];
 		$parserOutput = $this->parser->parse( "[[file:nonexistent]]", $title, $this->options );
 		$result = $parserOutput->getCategoryLinks();
 		$this->assertEquals( $expected, $result );

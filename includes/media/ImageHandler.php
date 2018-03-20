@@ -31,16 +31,16 @@ abstract class ImageHandler extends MediaHandler {
 	 * @param File $file
 	 * @return bool
 	 */
-	function canRender( $file ) {
+	public function canRender( $file ) {
 		return ( $file->getWidth() && $file->getHeight() );
 	}
 
-	function getParamMap() {
-		return array( 'img_width' => 'width' );
+	public function getParamMap() {
+		return [ 'img_width' => 'width' ];
 	}
 
-	function validateParam( $name, $value ) {
-		if ( in_array( $name, array( 'width', 'height' ) ) ) {
+	public function validateParam( $name, $value ) {
+		if ( in_array( $name, [ 'width', 'height' ] ) ) {
 			if ( $value <= 0 ) {
 				return false;
 			} else {
@@ -51,7 +51,7 @@ abstract class ImageHandler extends MediaHandler {
 		}
 	}
 
-	function makeParamString( $params ) {
+	public function makeParamString( $params ) {
 		if ( isset( $params['physicalWidth'] ) ) {
 			$width = $params['physicalWidth'];
 		} elseif ( isset( $params['width'] ) ) {
@@ -61,26 +61,26 @@ abstract class ImageHandler extends MediaHandler {
 		}
 
 		# Removed for ProofreadPage
-		#$width = intval( $width );
+		# $width = intval( $width );
 		return "{$width}px";
 	}
 
-	function parseParamString( $str ) {
+	public function parseParamString( $str ) {
 		$m = false;
 		if ( preg_match( '/^(\d+)px$/', $str, $m ) ) {
-			return array( 'width' => $m[1] );
+			return [ 'width' => $m[1] ];
 		} else {
 			return false;
 		}
 	}
 
 	function getScriptParams( $params ) {
-		return array( 'width' => $params['width'] );
+		return [ 'width' => $params['width'] ];
 	}
 
 	/**
 	 * @param File $image
-	 * @param array $params
+	 * @param array &$params
 	 * @return bool
 	 */
 	function normaliseParams( $image, &$params ) {
@@ -152,8 +152,8 @@ abstract class ImageHandler extends MediaHandler {
 	/**
 	 * Validate thumbnail parameters and fill in the correct height
 	 *
-	 * @param int $width Specified width (input/output)
-	 * @param int $height Height (output only)
+	 * @param int &$width Specified width (input/output)
+	 * @param int &$height Height (output only)
 	 * @param int $srcWidth Width of the source image
 	 * @param int $srcHeight Height of the source image
 	 * @param string $mimeType Unused

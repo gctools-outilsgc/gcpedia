@@ -116,7 +116,7 @@ class SiteImporter {
 	 * @return Site[]
 	 */
 	private function makeSiteList( DOMElement $root ) {
-		$sites = array();
+		$sites = [];
 
 		// Old sites, to get the row IDs that correspond to the global site IDs.
 		// TODO: Get rid of internal row IDs, they just get in the way. Get rid of ORMRow, too.
@@ -183,15 +183,15 @@ class SiteImporter {
 			$site->addLocalId( $idType, $id );
 		}
 
-		//@todo: import <data>
-		//@todo: import <config>
+		// @todo: import <data>
+		// @todo: import <config>
 
 		return $site;
 	}
 
 	/**
 	 * @param DOMElement $element
-	 * @param $name
+	 * @param string $name
 	 * @param string|null|bool $default
 	 *
 	 * @return null|string

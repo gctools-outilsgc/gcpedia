@@ -43,18 +43,22 @@
  * ($wgProfiler['exclude']) containing an array of function names.
  * Shell-style patterns are also accepted.
  *
- * @author Bryan Davis <bd808@wikimedia.org>
- * @copyright © 2014 Bryan Davis and Wikimedia Foundation.
+ * It is also possible to use the Tideways PHP extension, which is mostly
+ * a drop-in replacement for Xhprof. Just change the XHPROF_FLAGS_* constants
+ * to TIDEWAYS_FLAGS_*.
+ *
+ * @copyright © 2014 Wikimedia Foundation and contributors
  * @ingroup Profiler
  * @see Xhprof
  * @see https://php.net/xhprof
  * @see https://github.com/facebook/hhvm/blob/master/hphp/doc/profiling.md
+ * @see https://github.com/tideways/php-profiler-extension
  */
 class ProfilerXhprof extends Profiler {
 	/**
-	 * @var Xhprof $xhprof
+	 * @var XhprofData|null $xhprofData
 	 */
-	protected $xhprof;
+	protected $xhprofData;
 
 	/**
 	 * Profiler for explicit, arbitrary, frame labels
@@ -66,10 +70,24 @@ class ProfilerXhprof extends Profiler {
 	 * @param array $params
 	 * @see Xhprof::__construct()
 	 */
-	public function __construct( array $params = array() ) {
+	public function __construct( array $params = [] ) {
 		parent::__construct( $params );
-		$this->xhprof = new Xhprof( $params );
+
+		$flags = isset( $params['flags'] ) ? $params['flags'] : 0;
+		$options = isset( $params['exclude'] )
+			? [ 'ignored_functions' => $params['exclude'] ] : [];
+		Xhprof::enable( $flags, $options );
 		$this->sprofiler = new SectionProfiler();
+	}
+
+	/**
+	 * @return XhprofData
+	 */
+	public function getXhprofData() {
+		if ( !$this->xhprofData ) {
+			$this->xhprofData = new XhprofData( Xhprof::disable(), $this->params );
+		}
+		return $this->xhprofData;
 	}
 
 	public function scopedProfileIn( $section ) {
@@ -112,8 +130,8 @@ class ProfilerXhprof extends Profiler {
 	}
 
 	public function getFunctionStats() {
-		$metrics = $this->xhprof->getCompleteMetrics();
-		$profile = array();
+		$metrics = $this->getXhprofData()->getCompleteMetrics();
+		$profile = [];
 
 		$main = null; // units in ms
 		foreach ( $metrics as $fname => $stats ) {
@@ -121,7 +139,7 @@ class ProfilerXhprof extends Profiler {
 				continue;
 			}
 			// Convert elapsed times from μs to ms to match interface
-			$entry = array(
+			$entry = [
 				'name' => $fname,
 				'calls' => $stats['ct'],
 				'real' => $stats['wt']['total'] / 1000,
@@ -132,7 +150,7 @@ class ProfilerXhprof extends Profiler {
 				'%memory' => isset( $stats['mu'] ) ? $stats['mu']['percent'] : 0,
 				'min_real' => $stats['wt']['min'] / 1000,
 				'max_real' => $stats['wt']['max'] / 1000
-			);
+			];
 			$profile[] = $entry;
 			if ( $fname === 'main()' ) {
 				$main = $entry;
@@ -182,7 +200,7 @@ class ProfilerXhprof extends Profiler {
 	 */
 	protected function getFunctionReport() {
 		$data = $this->getFunctionStats();
-		usort( $data, function( $a, $b ) {
+		usort( $data, function ( $a, $b ) {
 			if ( $a['real'] === $b['real'] ) {
 				return 0;
 			}
@@ -192,7 +210,7 @@ class ProfilerXhprof extends Profiler {
 		$width = 140;
 		$nameWidth = $width - 65;
 		$format = "%-{$nameWidth}s %6d %9d %9d %9d %9d %7.3f%% %9d";
-		$out = array();
+		$out = [];
 		$out[] = sprintf( "%-{$nameWidth}s %6s %9s %9s %9s %9s %7s %9s",
 			'Name', 'Calls', 'Total', 'Min', 'Each', 'Max', '%', 'Mem'
 		);
@@ -216,6 +234,6 @@ class ProfilerXhprof extends Profiler {
 	 * @return array
 	 */
 	public function getRawData() {
-		return $this->xhprof->getRawData();
+		return $this->getXhprofData()->getRawData();
 	}
 }

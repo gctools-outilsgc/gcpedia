@@ -9,7 +9,7 @@ class XmlTest extends MediaWikiTestCase {
 		parent::setUp();
 
 		$langObj = Language::factory( 'en' );
-		$langObj->setNamespaces( array(
+		$langObj->setNamespaces( [
 			-2 => 'Media',
 			-1 => 'Special',
 			0 => '',
@@ -26,12 +26,12 @@ class XmlTest extends MediaWikiTestCase {
 			11 => 'Template_talk',
 			100 => 'Custom',
 			101 => 'Custom_talk',
-		) );
+		] );
 
-		$this->setMwGlobals( array(
+		$this->setMwGlobals( [
 			'wgLang' => $langObj,
-			'wgWellFormedXml' => true,
-		) );
+			'wgUseMediaWikiUIEverywhere' => false,
+		] );
 	}
 
 	/**
@@ -41,7 +41,7 @@ class XmlTest extends MediaWikiTestCase {
 		$this->assertNull( Xml::expandAttributes( null ),
 			'Converting a null list of attributes'
 		);
-		$this->assertEquals( '', Xml::expandAttributes( array() ),
+		$this->assertEquals( '', Xml::expandAttributes( [] ),
 			'Converting an empty list of attributes'
 		);
 	}
@@ -83,7 +83,7 @@ class XmlTest extends MediaWikiTestCase {
 		$this->assertEquals(
 			'<input name="name" value="0" />',
 			Xml::input( 'name', false, 0 ),
-			'Input with a value of 0 (bug 23797)'
+			'Input with a value of 0 (T25797)'
 		);
 	}
 
@@ -113,7 +113,7 @@ class XmlTest extends MediaWikiTestCase {
 	public function testElementAttributes() {
 		$this->assertEquals(
 			'<element key="value" <>="&lt;&gt;">',
-			Xml::element( 'element', array( 'key' => 'value', '<>' => '<>' ), null ),
+			Xml::element( 'element', [ 'key' => 'value', '<>' => '<>' ], null ),
 			'Element attributes, keys are not escaped'
 		);
 	}
@@ -124,7 +124,7 @@ class XmlTest extends MediaWikiTestCase {
 	public function testOpenElement() {
 		$this->assertEquals(
 			'<element k="v">',
-			Xml::openElement( 'element', array( 'k' => 'v' ) ),
+			Xml::openElement( 'element', [ 'k' => 'v' ] ),
 			'openElement() shortcut'
 		);
 	}
@@ -152,7 +152,7 @@ class XmlTest extends MediaWikiTestCase {
 
 		$this->assertEquals(
 			'<label for="year">From year (and earlier):</label> ' .
-				'<input id="year" maxlength="4" size="7" type="number" value="2011" name="year" /> ' .
+				'<input id="year" maxlength="4" size="7" type="number" value="2011" name="year"/> ' .
 				'<label for="month">From month (and earlier):</label> ' .
 				'<select name="month" id="month" class="mw-month-selector">' .
 				'<option value="-1">all</option>' . "\n" .
@@ -173,7 +173,7 @@ class XmlTest extends MediaWikiTestCase {
 		);
 		$this->assertEquals(
 			'<label for="year">From year (and earlier):</label> ' .
-				'<input id="year" maxlength="4" size="7" type="number" value="2011" name="year" /> ' .
+				'<input id="year" maxlength="4" size="7" type="number" value="2011" name="year"/> ' .
 				'<label for="month">From month (and earlier):</label> ' .
 				'<select name="month" id="month" class="mw-month-selector">' .
 				'<option value="-1">all</option>' . "\n" .
@@ -207,7 +207,7 @@ class XmlTest extends MediaWikiTestCase {
 
 		$this->assertEquals(
 			'<label for="year">From year (and earlier):</label> ' .
-				'<input id="year" maxlength="4" size="7" type="number" name="year" /> ' .
+				'<input id="year" maxlength="4" size="7" type="number" name="year"/> ' .
 				'<label for="month">From month (and earlier):</label> ' .
 				'<select name="month" id="month" class="mw-month-selector">' .
 				'<option value="-1">all</option>' . "\n" .
@@ -267,27 +267,27 @@ class XmlTest extends MediaWikiTestCase {
 	public function testLabelAttributeCanOnlyBeClassOrTitle() {
 		$this->assertEquals(
 			'<label for="id">name</label>',
-			Xml::label( 'name', 'id', array( 'generated' => true ) ),
+			Xml::label( 'name', 'id', [ 'generated' => true ] ),
 			'label() can not be given a generated attribute'
 		);
 		$this->assertEquals(
 			'<label for="id" class="nice">name</label>',
-			Xml::label( 'name', 'id', array( 'class' => 'nice' ) ),
+			Xml::label( 'name', 'id', [ 'class' => 'nice' ] ),
 			'label() can get a class attribute'
 		);
 		$this->assertEquals(
 			'<label for="id" title="nice tooltip">name</label>',
-			Xml::label( 'name', 'id', array( 'title' => 'nice tooltip' ) ),
+			Xml::label( 'name', 'id', [ 'title' => 'nice tooltip' ] ),
 			'label() can get a title attribute'
 		);
 		$this->assertEquals(
 			'<label for="id" class="nice" title="nice tooltip">name</label>',
-			Xml::label( 'name', 'id', array(
+			Xml::label( 'name', 'id', [
 					'generated' => true,
 					'class' => 'nice',
 					'title' => 'nice tooltip',
 					'anotherattr' => 'value',
-				)
+				]
 			),
 			'label() skip all attributes but "class" and "title"'
 		);
@@ -298,21 +298,10 @@ class XmlTest extends MediaWikiTestCase {
 	 */
 	public function testLanguageSelector() {
 		$select = Xml::languageSelector( 'en', true, null,
-			array( 'id' => 'testlang' ), wfMessage( 'yourlanguage' ) );
+			[ 'id' => 'testlang' ], wfMessage( 'yourlanguage' ) );
 		$this->assertEquals(
 			'<label for="testlang">Language:</label>',
 			$select[0]
-		);
-	}
-
-	/**
-	 * @covers Xml::escapeJsString
-	 */
-	public function testEscapeJsStringSpecialChars() {
-		$this->assertEquals(
-			'\\\\\r\n',
-			Xml::escapeJsString( "\\\r\n" ),
-			'escapeJsString() with special characters'
 		);
 	}
 
@@ -344,12 +333,12 @@ class XmlTest extends MediaWikiTestCase {
 	public function testEncodeJsVarArray() {
 		$this->assertEquals(
 			'["a",1]',
-			Xml::encodeJsVar( array( 'a', 1 ) ),
+			Xml::encodeJsVar( [ 'a', 1 ] ),
 			'encodeJsVar() with array'
 		);
 		$this->assertEquals(
 			'{"a":"a","b":1}',
-			Xml::encodeJsVar( array( 'a' => 'a', 'b' => 1 ) ),
+			Xml::encodeJsVar( [ 'a' => 'a', 'b' => 1 ] ),
 			'encodeJsVar() with associative array'
 		);
 	}
@@ -360,7 +349,7 @@ class XmlTest extends MediaWikiTestCase {
 	public function testEncodeJsVarObject() {
 		$this->assertEquals(
 			'{"a":"a","b":1}',
-			Xml::encodeJsVar( (object)array( 'a' => 'a', 'b' => 1 ) ),
+			Xml::encodeJsVar( (object)[ 'a' => 'a', 'b' => 1 ] ),
 			'encodeJsVar() with object'
 		);
 	}
@@ -406,6 +395,137 @@ class XmlTest extends MediaWikiTestCase {
 			'"1.23456"',
 			Xml::encodeJsVar( '1.23456' ),
 			'encodeJsVar() with float-like string'
+		);
+	}
+
+	/**
+	 * @covers Xml::listDropDown
+	 */
+	public function testListDropDown() {
+		$this->assertEquals(
+			'<select name="test-name" id="test-name" class="test-css" tabindex="2">' .
+				'<option value="other">other reasons</option>' . "\n" .
+				'<optgroup label="Foo">' .
+				'<option value="Foo 1">Foo 1</option>' . "\n" .
+				'<option value="Example" selected="">Example</option>' . "\n" .
+				'</optgroup>' . "\n" .
+				'<optgroup label="Bar">' .
+				'<option value="Bar 1">Bar 1</option>' . "\n" .
+				'</optgroup>' .
+				'</select>',
+			Xml::listDropDown(
+				// name
+				'test-name',
+				// source list
+				"* Foo\n** Foo 1\n** Example\n* Bar\n** Bar 1",
+				// other
+				'other reasons',
+				// selected
+				'Example',
+				// class
+				'test-css',
+				// tabindex
+				2
+			)
+		);
+	}
+
+	/**
+	 * @covers Xml::listDropDownOptions
+	 */
+	public function testListDropDownOptions() {
+		$this->assertEquals(
+			[
+				'other reasons' => 'other',
+				'Foo' => [
+					'Foo 1' => 'Foo 1',
+					'Example' => 'Example',
+				],
+				'Bar' => [
+					'Bar 1' => 'Bar 1',
+				],
+			],
+			Xml::listDropDownOptions(
+				"* Foo\n** Foo 1\n** Example\n* Bar\n** Bar 1",
+				[ 'other' => 'other reasons' ]
+			)
+		);
+	}
+
+	/**
+	 * @covers Xml::listDropDownOptionsOoui
+	 */
+	public function testListDropDownOptionsOoui() {
+		$this->assertEquals(
+			[
+				[ 'data' => 'other', 'label' => 'other reasons' ],
+				[ 'optgroup' => 'Foo' ],
+				[ 'data' => 'Foo 1', 'label' => 'Foo 1' ],
+				[ 'data' => 'Example', 'label' => 'Example' ],
+				[ 'optgroup' => 'Bar' ],
+				[ 'data' => 'Bar 1', 'label' => 'Bar 1' ],
+			],
+			Xml::listDropDownOptionsOoui( [
+				'other reasons' => 'other',
+				'Foo' => [
+					'Foo 1' => 'Foo 1',
+					'Example' => 'Example',
+				],
+				'Bar' => [
+					'Bar 1' => 'Bar 1',
+				],
+			] )
+		);
+	}
+
+	/**
+	 * @covers Xml::fieldset
+	 */
+	public function testFieldset() {
+		$this->assertEquals(
+			"<fieldset>\n",
+			Xml::fieldset(),
+			'Opening tag'
+		);
+		$this->assertEquals(
+			"<fieldset>\n",
+			Xml::fieldset( false ),
+			'Opening tag (false means no legend)'
+		);
+		$this->assertEquals(
+			"<fieldset>\n",
+			Xml::fieldset( '' ),
+			'Opening tag (empty string also means no legend)'
+		);
+		$this->assertEquals(
+			"<fieldset>\n<legend>Foo</legend>\n",
+			Xml::fieldset( 'Foo' ),
+			'Opening tag with legend'
+		);
+		$this->assertEquals(
+			"<fieldset>\n<legend>Foo</legend>\nBar\n</fieldset>\n",
+			Xml::fieldset( 'Foo', 'Bar' ),
+			'Entire element with legend'
+		);
+		$this->assertEquals(
+			"<fieldset>\n<legend>Foo</legend>\n",
+			Xml::fieldset( 'Foo', false ),
+			'Opening tag with legend (false means no content and no closing tag)'
+		);
+		$this->assertEquals(
+			"<fieldset>\n<legend>Foo</legend>\n\n</fieldset>\n",
+			Xml::fieldset( 'Foo', '' ),
+			'Entire element with legend but no content (empty string generates a closing tag)'
+		);
+		$this->assertEquals(
+			"<fieldset class=\"bar\">\n<legend>Foo</legend>\nBar\n</fieldset>\n",
+			Xml::fieldset( 'Foo', 'Bar', [ 'class' => 'bar' ] ),
+			'Opening tag with legend and attributes'
+		);
+		$this->assertEquals(
+			"<fieldset class=\"bar\">\n<legend>Foo</legend>\n",
+			Xml::fieldset( 'Foo', false, [ 'class' => 'bar' ] ),
+			'Entire element with legend and attributes'
 		);
 	}
 }

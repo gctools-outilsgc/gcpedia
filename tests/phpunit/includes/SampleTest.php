@@ -13,11 +13,11 @@ class TestSample extends MediaWikiLangTestCase {
 
 		// This sets the globals and will restore them automatically
 		// after each test.
-		$this->setMwGlobals( array(
+		$this->setMwGlobals( [
 			'wgContLang' => Language::factory( 'en' ),
 			'wgLanguageCode' => 'en',
 			'wgCapitalLinks' => true,
-		) );
+		] );
 	}
 
 	/**
@@ -32,7 +32,7 @@ class TestSample extends MediaWikiLangTestCase {
 	 * they run.  While MediaWiki isn't strictly an Agile Programming
 	 * project, you are encouraged to use the naming described under
 	 * "Agile Documentation" at
-	 * http://www.phpunit.de/manual/3.4/en/other-uses-for-tests.html
+	 * https://www.phpunit.de/manual/3.4/en/other-uses-for-tests.html
 	 */
 	public function testTitleObjectStringConversion() {
 		$title = Title::newFromText( "text" );
@@ -45,24 +45,24 @@ class TestSample extends MediaWikiLangTestCase {
 
 	/**
 	 * If you want to run a the same test with a variety of data, use a data provider.
-	 * see: http://www.phpunit.de/manual/3.4/en/writing-tests-for-phpunit.html
+	 * see: https://www.phpunit.de/manual/3.4/en/writing-tests-for-phpunit.html
 	 */
 	public static function provideTitles() {
-		return array(
-			array( 'Text', NS_MEDIA, 'Media:Text' ),
-			array( 'Text', null, 'Text' ),
-			array( 'text', null, 'Text' ),
-			array( 'Text', NS_USER, 'User:Text' ),
-			array( 'Photo.jpg', NS_FILE, 'File:Photo.jpg' )
-		);
+		return [
+			[ 'Text', NS_MEDIA, 'Media:Text' ],
+			[ 'Text', null, 'Text' ],
+			[ 'text', null, 'Text' ],
+			[ 'Text', NS_USER, 'User:Text' ],
+			[ 'Photo.jpg', NS_FILE, 'File:Photo.jpg' ]
+		];
 	}
 
+	// @codingStandardsIgnoreStart Generic.Files.LineLength
 	/**
 	 * @dataProvider provideTitles
-	 * @codingStandardsIgnoreStart Ignore long line warning
-	 * See http://phpunit.de/manual/3.7/en/appendixes.annotations.html#appendixes.annotations.dataProvider
-	 * @codingStandardsIgnoreEnd
+	 * See https://phpunit.de/manual/3.7/en/appendixes.annotations.html#appendixes.annotations.dataProvider
 	 */
+	// @codingStandardsIgnoreEnd
 	public function testCreateBasicListOfTitles( $titleName, $ns, $text ) {
 		$title = Title::newFromText( $titleName, $ns );
 		$this->assertEquals( $text, "$title", "see if '$titleName' matches '$text'" );
@@ -89,16 +89,16 @@ class TestSample extends MediaWikiLangTestCase {
 
 	/**
 	 * @depends testSetUpMainPageTitleForNextTest
-	 * See http://phpunit.de/manual/3.7/en/appendixes.annotations.html#appendixes.annotations.depends
+	 * See https://phpunit.de/manual/3.7/en/appendixes.annotations.html#appendixes.annotations.depends
 	 */
 	public function testCheckMainPageTitleIsConsideredLocal( $title ) {
 		$this->assertTrue( $title->isLocal() );
 	}
 
-	// @codingStandardsIgnoreStart Ignore long line warning
+	// @codingStandardsIgnoreStart Generic.Files.LineLength
 	/**
 	 * @expectedException InvalidArgumentException
-	 * See http://phpunit.de/manual/3.7/en/appendixes.annotations.html#appendixes.annotations.expectedException
+	 * See https://phpunit.de/manual/3.7/en/appendixes.annotations.html#appendixes.annotations.expectedException
 	 */
 	// @codingStandardsIgnoreEnd
 	public function testTitleObjectFromObject() {

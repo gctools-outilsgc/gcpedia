@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Jon Harald Søby"
+		]
+	},
+	"openidconnect-desc": "Gir autentisering med OpenID Connect i forbindelse med PluggableAuth",
+	"selectopenidconnectissuer": "Velg autentiseringsutsteder"
+}

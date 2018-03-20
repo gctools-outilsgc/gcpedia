@@ -12,40 +12,40 @@ class HooksTest extends MediaWikiTestCase {
 	public static function provideHooks() {
 		$i = new NothingClass();
 
-		return array(
-			array(
+		return [
+			[
 				'Object and method',
-				array( $i, 'someNonStatic' ),
+				[ $i, 'someNonStatic' ],
 				'changed-nonstatic',
 				'changed-nonstatic'
-			),
-			array( 'Object and no method', array( $i ), 'changed-onevent', 'original' ),
-			array(
+			],
+			[ 'Object and no method', [ $i ], 'changed-onevent', 'original' ],
+			[
 				'Object and method with data',
-				array( $i, 'someNonStaticWithData', 'data' ),
+				[ $i, 'someNonStaticWithData', 'data' ],
 				'data',
 				'original'
-			),
-			array( 'Object and static method', array( $i, 'someStatic' ), 'changed-static', 'original' ),
-			array(
+			],
+			[ 'Object and static method', [ $i, 'someStatic' ], 'changed-static', 'original' ],
+			[
 				'Class::method static call',
-				array( 'NothingClass::someStatic' ),
+				[ 'NothingClass::someStatic' ],
 				'changed-static',
 				'original'
-			),
-			array( 'Global function', array( 'NothingFunction' ), 'changed-func', 'original' ),
-			array( 'Global function with data', array( 'NothingFunctionData', 'data' ), 'data', 'original' ),
-			array( 'Closure', array( function ( &$foo, $bar ) {
+			],
+			[ 'Global function', [ 'NothingFunction' ], 'changed-func', 'original' ],
+			[ 'Global function with data', [ 'NothingFunctionData', 'data' ], 'data', 'original' ],
+			[ 'Closure', [ function ( &$foo, $bar ) {
 				$foo = 'changed-closure';
 
 				return true;
-			} ), 'changed-closure', 'original' ),
-			array( 'Closure with data', array( function ( $data, &$foo, $bar ) {
+			} ], 'changed-closure', 'original' ],
+			[ 'Closure with data', [ function ( $data, &$foo, $bar ) {
 				$foo = $data;
 
 				return true;
-			}, 'data' ), 'data', 'original' )
-		);
+			}, 'data' ], 'data', 'original' ]
+		];
 	}
 
 	/**
@@ -57,7 +57,7 @@ class HooksTest extends MediaWikiTestCase {
 		$foo = $bar = 'original';
 
 		$wgHooks['MediaWikiHooksTest001'][] = $hook;
-		wfRunHooks( 'MediaWikiHooksTest001', array( &$foo, &$bar ) );
+		wfRunHooks( 'MediaWikiHooksTest001', [ &$foo, &$bar ] );
 
 		$this->assertSame( $expectedFoo, $foo, $msg );
 		$this->assertSame( $expectedBar, $bar, $msg );
@@ -72,7 +72,7 @@ class HooksTest extends MediaWikiTestCase {
 		$foo = $bar = 'original';
 
 		Hooks::register( 'MediaWikiHooksTest001', $hook );
-		Hooks::run( 'MediaWikiHooksTest001', array( &$foo, &$bar ) );
+		Hooks::run( 'MediaWikiHooksTest001', [ &$foo, &$bar ] );
 
 		$this->assertSame( $expectedFoo, $foo, $msg );
 		$this->assertSame( $expectedBar, $bar, $msg );
@@ -106,7 +106,7 @@ class HooksTest extends MediaWikiTestCase {
 		$foo = 'quux';
 		$bar = 'qaax';
 
-		Hooks::run( 'MediaWikiHooksTest001', array( &$foo, &$bar ) );
+		Hooks::run( 'MediaWikiHooksTest001', [ &$foo, &$bar ] );
 		$this->assertEquals(
 			1,
 			$a->calls,
@@ -125,7 +125,7 @@ class HooksTest extends MediaWikiTestCase {
 	 */
 	public function testUncallableFunction() {
 		Hooks::register( 'MediaWikiHooksTest001', 'ThisFunctionDoesntExist' );
-		Hooks::run( 'MediaWikiHooksTest001', array() );
+		Hooks::run( 'MediaWikiHooksTest001', [] );
 	}
 
 	/**
@@ -141,8 +141,51 @@ class HooksTest extends MediaWikiTestCase {
 			return true;
 		} );
 		$foo = 'original';
-		Hooks::run( 'MediaWikiHooksTest001', array( &$foo ) );
-		$this->assertSame( 'original', $foo, 'Hooks continued processing after a false return.' );
+		Hooks::run( 'MediaWikiHooksTest001', [ &$foo ] );
+		$this->assertSame( 'original', $foo, 'Hooks abort after a false return.' );
+	}
+
+	/**
+	 * @covers Hooks::runWithoutAbort
+	 */
+	public function testRunWithoutAbort() {
+		$list = [];
+		Hooks::register( 'MediaWikiHooksTest001', function ( &$list ) {
+			$list[] = 1;
+			return true; // Explicit true
+		} );
+		Hooks::register( 'MediaWikiHooksTest001', function ( &$list ) {
+			$list[] = 2;
+			return; // Implicit null
+		} );
+		Hooks::register( 'MediaWikiHooksTest001', function ( &$list ) {
+			$list[] = 3;
+			// No return
+		} );
+
+		Hooks::runWithoutAbort( 'MediaWikiHooksTest001', [ &$list ] );
+		$this->assertSame( [ 1, 2, 3 ], $list, 'All hooks ran.' );
+	}
+
+	/**
+	 * @covers Hooks::runWithoutAbort
+	 */
+	public function testRunWithoutAbortWarning() {
+		Hooks::register( 'MediaWikiHooksTest001', function ( &$foo ) {
+			return false;
+		} );
+		Hooks::register( 'MediaWikiHooksTest001', function ( &$foo ) {
+			$foo = 'test';
+			return true;
+		} );
+		$foo = 'original';
+
+		$this->setExpectedException(
+			UnexpectedValueException::class,
+			'Invalid return from hook-MediaWikiHooksTest001-closure for ' .
+				'unabortable MediaWikiHooksTest001'
+		);
+		Hooks::runWithoutAbort( 'MediaWikiHooksTest001', [ &$foo ] );
 	}
 
 	/**
@@ -153,7 +196,7 @@ class HooksTest extends MediaWikiTestCase {
 		Hooks::register( 'MediaWikiHooksTest001', function () {
 			return 'test';
 		} );
-		Hooks::run( 'MediaWikiHooksTest001', array() );
+		Hooks::run( 'MediaWikiHooksTest001', [] );
 	}
 }
 

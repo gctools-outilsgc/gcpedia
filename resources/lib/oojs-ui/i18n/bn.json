@@ -18,6 +18,7 @@
 	"ooui-toolbar-more": "আরও",
 	"ooui-toolgroup-expand": "আরও",
 	"ooui-toolgroup-collapse": "কম দেখাও",
+	"ooui-item-remove": "সরান",
 	"ooui-dialog-message-accept": "ঠিক আছে",
 	"ooui-dialog-message-reject": "বাতিল",
 	"ooui-dialog-process-error": "কিছু একটায় ত্রুটি হয়েছে",
@@ -25,7 +26,7 @@
 	"ooui-dialog-process-retry": "আবার চেষ্টা করুন",
 	"ooui-dialog-process-continue": "অগ্রসর হোন",
 	"ooui-selectfile-button-select": "একটি ফাইল নির্বাচন করুন",
-	"ooui-selectfile-not-supported": "চিত্র নির্বাচন সমর্থন করছে না।",
-	"ooui-selectfile-placeholder": " কোন চিত্র নির্বাচিত হয়নি।",
+	"ooui-selectfile-not-supported": "চিত্র নির্বাচন সমর্থিত নয়",
+	"ooui-selectfile-placeholder": "কোন চিত্র নির্বাচিত হয়নি",
 	"ooui-selectfile-dragdrop-placeholder": "এখানে ফাইল ছাড়ুন"
 }

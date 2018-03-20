@@ -19,6 +19,8 @@
  * @ingroup Maintenance
  */
 
+use Wikimedia\Rdbms\DBQueryError;
+
 /**
  * When using shared tables that are referenced by foreign keys on local
  * tables you have to change the constraints on local tables.
@@ -32,7 +34,7 @@ require_once __DIR__ . '/../Maintenance.php';
 class AlterSharedConstraints extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Alter foreign key to reference master tables in shared database setup.";
+		$this->addDescription( 'Alter foreign key to reference master tables in shared database setup.' );
 	}
 
 	public function getDbType() {
@@ -48,7 +50,7 @@ class AlterSharedConstraints extends Maintenance {
 			return;
 		}
 
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = $this->getDB( DB_MASTER );
 		foreach ( $wgSharedTables as $table ) {
 			$stable = $dbw->tableNameInternal( $table );
 			if ( $wgSharedPrefix != null ) {
@@ -65,8 +67,8 @@ class AlterSharedConstraints extends Maintenance {
 						AND ucc.constraint_name = uc.constraint_name
 						AND uccpk.constraint_name = uc.r_constraint_name
 						AND uccpk.table_name = '$ltable'" );
-			while ( ( $row = $result->fetchRow() ) !== false ) {
 
+			while ( ( $row = $result->fetchRow() ) !== false ) {
 				$this->output( "Altering {$row['constraint_name']} ..." );
 
 				try {

@@ -28,7 +28,7 @@
  * @ingroup Language
  */
 class LanguageKsh extends Language {
-	private static $familygender = array(
+	private static $familygender = [
 		// Do not add male wiki families, since that's the default.
 		// No need add neuter wikis having names ending in -wiki.
 			'wikipedia' => 'f',
@@ -40,7 +40,7 @@ class LanguageKsh extends Language {
 			'wikitravel' => 'n',
 			'wikia' => 'f',
 			'translatewiki.net' => 'n',
-		);
+		];
 
 	/**
 	 * Convert from the nominative form of a noun to other cases.
@@ -63,13 +63,11 @@ class LanguageKsh extends Language {
 	 *
 	 * Possible values for the type of genitive are:
 	 *	Sing, Iehr            prepositioned genitive = possessive dative
-	 *	Vun, Fon, -omitted-   postpositioned genitive
-	 *	                               = preposition "vun" with dative
+	 *	Vun, Fon, -omitted-   postpositioned genitive = preposition "vun" with dative
 	 *
 	 * Values of case overrides & prepositions, in the order of preceedence:
 	 *	Sing, Iehr            possessive dative = prepositioned genitive
-	 *	Vun, Fon              preposition "vun" with dative
-	 *	                                     = postpositioned genitive
+	 *	Vun, Fon              preposition "vun" with dative = postpositioned genitive
 	 *	En, em                preposition "en" with dative
 	 *
 	 * Values for object gender specifiers of the possessive dative, or

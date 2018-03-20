@@ -1,0 +1,14 @@
+{
+	"name": "mediawiki/OpenIDConnect",
+	"description": "Provides authentication using OpenID Connect in conjunction with PluggableAuth",
+	"require": {
+		"jumbojett/openid-connect-php": "*"
+	},
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Cindy Cicalese",
+			"email": "cicalese@mitre.org"
+		}
+	]
+}

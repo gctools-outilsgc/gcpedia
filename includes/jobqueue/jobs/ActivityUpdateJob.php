@@ -16,7 +16,6 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @file
- * @author Aaron Schulz
  * @ingroup JobQueue
  */
 
@@ -41,7 +40,8 @@ class ActivityUpdateJob extends Job {
 		if ( $this->params['type'] === 'updateWatchlistNotification' ) {
 			$this->updateWatchlistNotification();
 		} else {
-			throw new Exception( "Invalid 'type' parameter '{$this->params['type']}'." );
+			throw new InvalidArgumentException(
+				"Invalid 'type' parameter '{$this->params['type']}'." );
 		}
 
 		return true;
@@ -54,10 +54,10 @@ class ActivityUpdateJob extends Job {
 
 		$dbw = wfGetDB( DB_MASTER );
 		$dbw->update( 'watchlist',
-			array(
+			[
 				'wl_notificationtimestamp' => $dbw->timestampOrNull( $this->params['notifTime'] )
-			),
-			array(
+			],
+			[
 				'wl_user' => $this->params['userid'],
 				'wl_namespace' => $this->title->getNamespace(),
 				'wl_title' => $this->title->getDBkey(),
@@ -68,7 +68,7 @@ class ActivityUpdateJob extends Job {
 				// is non-NULL, make sure not to set it back in time or set it to
 				// NULL when newer revisions were in fact added to the page.
 				'wl_notificationtimestamp < ' . $dbw->addQuotes( $dbw->timestamp( $casTimestamp ) )
-			),
+			],
 			__METHOD__
 		);
 	}

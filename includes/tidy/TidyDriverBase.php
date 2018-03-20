@@ -14,6 +14,7 @@ abstract class TidyDriverBase {
 
 	/**
 	 * Return true if validate() can be used
+	 * @return bool
 	 */
 	public function supportsValidate() {
 		return false;
@@ -24,17 +25,18 @@ abstract class TidyDriverBase {
 	 *
 	 * @param string $text
 	 * @param string &$errorStr Return the error string
+	 * @throws \MWException
 	 * @return bool Whether the HTML is valid
 	 */
 	public function validate( $text, &$errorStr ) {
-		throw new MWException( get_class( $this ) . " does not support validate()" );
+		throw new \MWException( static::class . ' does not support validate()' );
 	}
 
 	/**
 	 * Clean up HTML
 	 *
-	 * @param string HTML document fragment to clean up
-	 * @param string The corrected HTML output
+	 * @param string $text HTML document fragment to clean up
+	 * @return string The corrected HTML output
 	 */
-	public abstract function tidy( $text );
+	abstract public function tidy( $text );
 }

@@ -29,7 +29,7 @@ class RestbaseVirtualRESTService extends VirtualRESTService {
 	 *  POST /local/v1/transform/html/to/wikitext{/title}{/revision}
 	 *   * body: array( 'html' => ... )
 	 *  POST /local/v1/transform/wikitext/to/html{/title}{/revision}
-	 *   * body: array( 'wikitext' => ... ) or array( 'wikitext' => ..., 'bodyOnly' => true/false )
+	 *   * body: array( 'wikitext' => ... ) or array( 'wikitext' => ..., 'body_only' => true/false )
 	 *
 	 * @param array $params Key/value map
 	 *   - url            : RESTBase server URL
@@ -44,24 +44,26 @@ class RestbaseVirtualRESTService extends VirtualRESTService {
 	 *   - HTTPProxy      : HTTP proxy to use (optional)
 	 *   - parsoidCompat  : whether to parse URL as if they were meant for Parsoid
 	 *                       boolean (optional)
+	 *   - fixedUrl       : Do not append domain to the url. For example to use
+	 *                       English Wikipedia restbase, you would this to true
+	 *                       and url to https://en.wikipedia.org/api/rest_#version#
 	 */
 	public function __construct( array $params ) {
 		// set up defaults and merge them with the given params
-		$mparams = array_merge( array(
+		$mparams = array_merge( [
 			'name' => 'restbase',
 			'url' => 'http://localhost:7231/',
 			'domain' => 'localhost',
 			'timeout' => 100,
 			'forwardCookies' => false,
 			'HTTPProxy' => null,
-			'parsoidCompat' => false
-		), $params );
+			'parsoidCompat' => false,
+			'fixedUrl' => false,
+		], $params );
 		// Ensure that the url parameter has a trailing slash.
-		$mparams['url'] = preg_replace(
-			'#/?$#',
-			'/',
-			$mparams['url']
-		);
+		if ( substr( $mparams['url'], -1 ) !== '/' ) {
+			$mparams['url'] .= '/';
+		}
 		// Ensure the correct domain format: strip protocol, port,
 		// and trailing slash if present.  This lets us use
 		// $wgCanonicalServer as a default value, which is very convenient.
@@ -74,17 +76,24 @@ class RestbaseVirtualRESTService extends VirtualRESTService {
 	}
 
 	public function onRequests( array $reqs, Closure $idGenFunc ) {
-
 		if ( $this->params['parsoidCompat'] ) {
 			return $this->onParsoidRequests( $reqs, $idGenFunc );
 		}
 
-		$result = array();
+		$result = [];
 		foreach ( $reqs as $key => $req ) {
-			// replace /local/ with the current domain
-			$req['url'] = preg_replace( '#^local/#', $this->params['domain'] . '/', $req['url'] );
-			// and prefix it with the service URL
-			$req['url'] = $this->params['url'] . $req['url'];
+			if ( $this->params['fixedUrl'] ) {
+				$version = explode( '/', $req['url'] )[1];
+				$req['url'] =
+					str_replace( '#version#', $version, $this->params['url'] ) .
+					preg_replace( '#^local/v./#', '', $req['url'] );
+			} else {
+				// replace /local/ with the current domain
+				$req['url'] = preg_replace( '#^local/#', $this->params['domain'] . '/', $req['url'] );
+				// and prefix it with the service URL
+				$req['url'] = $this->params['url'] . $req['url'];
+			}
+
 			// set the appropriate proxy, timeout and headers
 			if ( $this->params['HTTPProxy'] ) {
 				$req['proxy'] = $this->params['HTTPProxy'];
@@ -99,20 +108,22 @@ class RestbaseVirtualRESTService extends VirtualRESTService {
 		}
 
 		return $result;
-
 	}
 
 	/**
 	 * Remaps Parsoid v1/v3 requests to RESTBase v1 requests.
+	 * @param array $reqs
+	 * @param Closure $idGeneratorFunc
+	 * @return array
+	 * @throws Exception
 	 */
 	public function onParsoidRequests( array $reqs, Closure $idGeneratorFunc ) {
-
-		$result = array();
+		$result = [];
 		foreach ( $reqs as $key => $req ) {
-			$parts = explode( '/', $req['url'] );
-			if ( $parts[1] === 'v3' ) {
+			$version = explode( '/', $req['url'] )[1];
+			if ( $version === 'v3' ) {
 				$result[$key] = $this->onParsoid3Request( $req, $idGeneratorFunc );
-			} elseif ( $parts[1] === 'v1' ) {
+			} elseif ( $version === 'v1' ) {
 				$result[$key] = $this->onParsoid1Request( $req, $idGeneratorFunc );
 			} else {
 				throw new Exception( "Only v1 and v3 are supported." );
@@ -120,7 +131,6 @@ class RestbaseVirtualRESTService extends VirtualRESTService {
 		}
 
 		return $result;
-
 	}
 
 	/**
@@ -139,6 +149,10 @@ class RestbaseVirtualRESTService extends VirtualRESTService {
 	 * NOTE: the POST APIs aren't "real" Parsoid v1 APIs, they are just what
 	 * Visual Editor "pretends" the V1 API is like.  (See
 	 * ParsoidVirtualRESTService.)
+	 * @param array $req
+	 * @param Closure $idGeneratorFunc
+	 * @return array
+	 * @throws Exception
 	 */
 	public function onParsoid1Request( array $req, Closure $idGeneratorFunc ) {
 		$parts = explode( '/', $req['url'] );
@@ -193,7 +207,7 @@ class RestbaseVirtualRESTService extends VirtualRESTService {
 					throw new Exception( "You must set a 'wikitext' body key for this request" );
 				}
 				if ( isset( $req['body']['body'] ) ) {
-					$req['body']['bodyOnly'] = $req['body']['body'];
+					$req['body']['body_only'] = $req['body']['body'];
 					unset( $req['body']['body'] );
 				}
 			} else {
@@ -212,7 +226,6 @@ class RestbaseVirtualRESTService extends VirtualRESTService {
 		}
 
 		return $req;
-
 	}
 
 	/**
@@ -225,12 +238,15 @@ class RestbaseVirtualRESTService extends VirtualRESTService {
 	 *   * body: array( 'html' => ... )
 	 *   * $title and $revision are optional
 	 *  POST /local/v3/transform/wikitext/to/html/{$title}{/$revision}
-	 *   * body: array( 'wikitext' => ... ) or array( 'wikitext' => ..., 'bodyOnly' => true/false )
+	 *   * body: array( 'wikitext' => ... ) or array( 'wikitext' => ..., 'body_only' => true/false )
 	 *   * $title is optional
 	 *   * $revision is optional
+	 * @param array $req
+	 * @param Closure $idGeneratorFunc
+	 * @return array
+	 * @throws Exception
 	 */
 	public function onParsoid3Request( array $req, Closure $idGeneratorFunc ) {
-
 		$parts = explode( '/', $req['url'] );
 		list(
 			$targetWiki, // 'local'
@@ -261,7 +277,6 @@ class RestbaseVirtualRESTService extends VirtualRESTService {
 		}
 
 		return $req;
-
 	}
 
 }

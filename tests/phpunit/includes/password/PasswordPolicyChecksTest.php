@@ -42,7 +42,7 @@ class PasswordPolicyChecksTest extends MediaWikiTestCase {
 			'Password is shorter than minimal policy'
 		);
 		$this->assertTrue(
-			$statusShort->isOk(),
+			$statusShort->isOK(),
 			'Password is shorter than minimal policy, not fatal'
 		);
 	}
@@ -67,7 +67,7 @@ class PasswordPolicyChecksTest extends MediaWikiTestCase {
 			'Password is shorter than minimum login policy'
 		);
 		$this->assertFalse(
-			$statusShort->isOk(),
+			$statusShort->isOK(),
 			'Password is shorter than minimum login policy, fatal'
 		);
 	}
@@ -90,7 +90,7 @@ class PasswordPolicyChecksTest extends MediaWikiTestCase {
 		$this->assertFalse( $statusLong->isGood(),
 			'Password is longer than maximal policy'
 		);
-		$this->assertFalse( $statusLong->isOk(),
+		$this->assertFalse( $statusLong->isOK(),
 			'Password is longer than maximal policy, fatal'
 		);
 	}
@@ -111,7 +111,7 @@ class PasswordPolicyChecksTest extends MediaWikiTestCase {
 			'user'  // password
 		);
 		$this->assertFalse( $statusLong->isGood(), 'Password matches username' );
-		$this->assertTrue( $statusLong->isOk(), 'Password matches username, not fatal' );
+		$this->assertTrue( $statusLong->isOK(), 'Password matches username, not fatal' );
 	}
 
 	/**
@@ -130,7 +130,30 @@ class PasswordPolicyChecksTest extends MediaWikiTestCase {
 			'Passpass1'  // password
 		);
 		$this->assertFalse( $statusLong->isGood(), 'Password matches blacklist' );
-		$this->assertTrue( $statusLong->isOk(), 'Password matches blacklist, not fatal' );
+		$this->assertTrue( $statusLong->isOK(), 'Password matches blacklist, not fatal' );
 	}
 
+	public static function providePopularBlacklist() {
+		return [
+			[ false, 'sitename' ],
+			[ false, 'password' ],
+			[ false, '12345' ],
+			[ true, 'hqY98gCZ6qM8s8' ],
+		];
+	}
+
+	/**
+	 * @covers PasswordPolicyChecks::checkPopularPasswordBlacklist
+	 * @dataProvider providePopularBlacklist
+	 */
+	public function testCheckPopularPasswordBlacklist( $expected, $password ) {
+		global $IP;
+		$this->setMwGlobals( [
+			'wgSitename' => 'sitename',
+			'wgPopularPasswordFile' => "$IP/serialized/commonpasswords.cdb"
+		] );
+		$user = User::newFromName( 'username' );
+		$status = PasswordPolicyChecks::checkPopularPasswordBlacklist( PHP_INT_MAX, $user, $password );
+		$this->assertSame( $expected, $status->isGood() );
+	}
 }

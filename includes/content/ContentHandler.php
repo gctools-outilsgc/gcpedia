@@ -1,4 +1,7 @@
 <?php
+
+use MediaWiki\Search\ParserOutputSearchDataExtractor;
+
 /**
  * Base class for content handling.
  *
@@ -24,15 +27,6 @@
  *
  * @author Daniel Kinzler
  */
-
-/**
- * Exception representing a failure to serialize or unserialize a content object.
- *
- * @ingroup Content
- */
-class MWContentSerializationException extends MWException {
-}
-
 /**
  * A content handler knows how do deal with a specific type of content on a wiki
  * page. Content is stored in the database in a serialized form (using a
@@ -53,15 +47,6 @@ class MWContentSerializationException extends MWException {
  * @ingroup Content
  */
 abstract class ContentHandler {
-	/**
-	 * Switch for enabling deprecation warnings. Used by ContentHandler::deprecated()
-	 * and ContentHandler::runLegacyHooks().
-	 *
-	 * Once the ContentHandler code has settled in a bit, this should be set to true to
-	 * make extensions etc. show warnings when using deprecated functions and hooks.
-	 */
-	protected static $enableDeprecationWarnings = false;
-
 	/**
 	 * Convenience function for getting flat text from a Content object. This
 	 * should only be used in the context of backwards compatibility with code
@@ -151,7 +136,7 @@ abstract class ContentHandler {
 			$modelId = $title->getContentModel();
 		}
 
-		$handler = ContentHandler::getForModelID( $modelId );
+		$handler = self::getForModelID( $modelId );
 
 		return $handler->unserializeContent( $text, $format );
 	}
@@ -201,7 +186,7 @@ abstract class ContentHandler {
 		$model = MWNamespace::getNamespaceContentModel( $ns );
 
 		// Hook can determine default model
-		if ( !Hooks::run( 'ContentHandlerDefaultModelFor', array( $title, &$model ) ) ) {
+		if ( !Hooks::run( 'ContentHandlerDefaultModelFor', [ $title, &$model ] ) ) {
 			if ( !is_null( $model ) ) {
 				return $model;
 			}
@@ -212,9 +197,6 @@ abstract class ContentHandler {
 		if ( $isCodePage ) {
 			$ext = $m[1];
 		}
-
-		// Hook can force JS/CSS
-		Hooks::run( 'TitleIsCssOrJsPage', array( $title, &$isCodePage ), '1.25' );
 
 		// Is this a user subpage containing code?
 		$isCodeSubpage = NS_USER == $ns
@@ -227,9 +209,6 @@ abstract class ContentHandler {
 		// Is this wikitext, according to $wgNamespaceContentModels or the DefaultModelFor hook?
 		$isWikitext = is_null( $model ) || $model == CONTENT_MODEL_WIKITEXT;
 		$isWikitext = $isWikitext && !$isCodePage && !$isCodeSubpage;
-
-		// Hook can override $isWikitext
-		Hooks::run( 'TitleIsWikitextPage', array( $title, &$isWikitext ), '1.25' );
 
 		if ( !$isWikitext ) {
 			switch ( $ext ) {
@@ -261,7 +240,7 @@ abstract class ContentHandler {
 	public static function getForTitle( Title $title ) {
 		$modelId = $title->getContentModel();
 
-		return ContentHandler::getForModelID( $modelId );
+		return self::getForModelID( $modelId );
 	}
 
 	/**
@@ -277,7 +256,7 @@ abstract class ContentHandler {
 	public static function getForContent( Content $content ) {
 		$modelId = $content->getModel();
 
-		return ContentHandler::getForModelID( $modelId );
+		return self::getForModelID( $modelId );
 	}
 
 	/**
@@ -307,34 +286,40 @@ abstract class ContentHandler {
 	 * @param string $modelId The ID of the content model for which to get a
 	 *    handler. Use CONTENT_MODEL_XXX constants.
 	 *
-	 * @throws MWException If no handler is known for the model ID.
+	 * @throws MWException For internal errors and problems in the configuration.
+	 * @throws MWUnknownContentModelException If no handler is known for the model ID.
 	 * @return ContentHandler The ContentHandler singleton for handling the model given by the ID.
 	 */
 	public static function getForModelID( $modelId ) {
 		global $wgContentHandlers;
 
-		if ( isset( ContentHandler::$handlers[$modelId] ) ) {
-			return ContentHandler::$handlers[$modelId];
+		if ( isset( self::$handlers[$modelId] ) ) {
+			return self::$handlers[$modelId];
 		}
 
 		if ( empty( $wgContentHandlers[$modelId] ) ) {
 			$handler = null;
 
-			Hooks::run( 'ContentHandlerForModelID', array( $modelId, &$handler ) );
+			Hooks::run( 'ContentHandlerForModelID', [ $modelId, &$handler ] );
 
 			if ( $handler === null ) {
-				throw new MWException( "No handler for model '$modelId' registered in \$wgContentHandlers" );
+				throw new MWUnknownContentModelException( $modelId );
 			}
 
 			if ( !( $handler instanceof ContentHandler ) ) {
 				throw new MWException( "ContentHandlerForModelID must supply a ContentHandler instance" );
 			}
 		} else {
-			$class = $wgContentHandlers[$modelId];
-			$handler = new $class( $modelId );
+			$classOrCallback = $wgContentHandlers[$modelId];
+
+			if ( is_callable( $classOrCallback ) ) {
+				$handler = call_user_func( $classOrCallback, $modelId );
+			} else {
+				$handler = new $classOrCallback( $modelId );
+			}
 
 			if ( !( $handler instanceof ContentHandler ) ) {
-				throw new MWException( "$class from \$wgContentHandlers is not " .
+				throw new MWException( "$classOrCallback from \$wgContentHandlers is not " .
 					"compatible with ContentHandler" );
 			}
 		}
@@ -342,9 +327,9 @@ abstract class ContentHandler {
 		wfDebugLog( 'ContentHandler', 'Created handler for ' . $modelId
 			. ': ' . get_class( $handler ) );
 
-		ContentHandler::$handlers[$modelId] = $handler;
+		self::$handlers[$modelId] = $handler;
 
-		return ContentHandler::$handlers[$modelId];
+		return self::$handlers[$modelId];
 	}
 
 	/**
@@ -376,16 +361,18 @@ abstract class ContentHandler {
 	public static function getContentModels() {
 		global $wgContentHandlers;
 
-		return array_keys( $wgContentHandlers );
+		$models = array_keys( $wgContentHandlers );
+		Hooks::run( 'GetContentModels', [ &$models ] );
+		return $models;
 	}
 
 	public static function getAllContentFormats() {
 		global $wgContentHandlers;
 
-		$formats = array();
+		$formats = [];
 
 		foreach ( $wgContentHandlers as $model => $class ) {
-			$handler = ContentHandler::getForModelID( $model );
+			$handler = self::getForModelID( $model );
 			$formats = array_merge( $formats, $handler->getSupportedFormats() );
 		}
 
@@ -418,10 +405,6 @@ abstract class ContentHandler {
 	public function __construct( $modelId, $formats ) {
 		$this->mModelID = $modelId;
 		$this->mSupportedFormats = $formats;
-
-		$this->mModelName = preg_replace( '/(Content)?Handler$/', '', get_class( $this ) );
-		$this->mModelName = preg_replace( '/[_\\\\]/', '', $this->mModelName );
-		$this->mModelName = strtolower( $this->mModelName );
 	}
 
 	/**
@@ -609,10 +592,15 @@ abstract class ContentHandler {
 	 *
 	 * @since 1.21
 	 *
-	 * @return array Always an empty array.
+	 * @return array An array mapping action names (typically "view", "edit", "history" etc.) to
+	 *  either the full qualified class name of an Action class, a callable taking ( Page $page,
+	 *  IContextSource $context = null ) as parameters and returning an Action object, or an actual
+	 *  Action object. An empty array in this default implementation.
+	 *
+	 * @see Action::factory
 	 */
 	public function getActionOverrides() {
-		return array();
+		return [];
 	}
 
 	/**
@@ -630,13 +618,13 @@ abstract class ContentHandler {
 	 * @return DifferenceEngine
 	 */
 	public function createDifferenceEngine( IContextSource $context, $old = 0, $new = 0,
-		$rcid = 0, //FIXME: Deprecated, no longer used
-		$refreshCache = false, $unhide = false ) {
-
+		$rcid = 0, // FIXME: Deprecated, no longer used
+		$refreshCache = false, $unhide = false
+	) {
 		// hook: get difference engine
 		$differenceEngine = null;
 		if ( !Hooks::run( 'GetDifferenceEngine',
-			array( $context, $old, $new, $refreshCache, $unhide, &$differenceEngine )
+			[ $context, $old, $new, $refreshCache, $unhide, &$differenceEngine ]
 		) ) {
 			return $differenceEngine;
 		}
@@ -670,10 +658,10 @@ abstract class ContentHandler {
 		if ( $title->getNamespace() == NS_MEDIAWIKI ) {
 			// Parse mediawiki messages with correct target language
 			list( /* $unused */, $lang ) = MessageCache::singleton()->figureMessage( $title->getText() );
-			$pageLang = wfGetLangObj( $lang );
+			$pageLang = Language::factory( $lang );
 		}
 
-		Hooks::run( 'PageContentLanguage', array( $title, &$pageLang, $wgLang ) );
+		Hooks::run( 'PageContentLanguage', [ $title, &$pageLang, $wgLang ] );
 
 		return wfGetLangObj( $pageLang );
 	}
@@ -732,7 +720,7 @@ abstract class ContentHandler {
 	public function canBeUsedOn( Title $title ) {
 		$ok = true;
 
-		Hooks::run( 'ContentModelCanBeUsedOn', array( $this->getModelID(), $title, &$ok ) );
+		Hooks::run( 'ContentModelCanBeUsedOn', [ $this->getModelID(), $title, &$ok ] );
 
 		return $ok;
 	}
@@ -745,7 +733,7 @@ abstract class ContentHandler {
 	 * @return string
 	 */
 	protected function getDiffEngineClass() {
-		return 'DifferenceEngine';
+		return DifferenceEngine::class;
 	}
 
 	/**
@@ -860,7 +848,7 @@ abstract class ContentHandler {
 	 * have it / want it.
 	 */
 	public function getAutoDeleteReason( Title $title, &$hasHistory ) {
-		$dbw = wfGetDB( DB_MASTER );
+		$dbr = wfGetDB( DB_REPLICA );
 
 		// Get the last revision
 		$rev = Revision::newFromTitle( $title );
@@ -890,13 +878,13 @@ abstract class ContentHandler {
 
 		// Find out if there was only one contributor
 		// Only scan the last 20 revisions
-		$res = $dbw->select( 'revision', 'rev_user_text',
-			array(
+		$res = $dbr->select( 'revision', 'rev_user_text',
+			[
 				'rev_page' => $title->getArticleID(),
-				$dbw->bitAnd( 'rev_deleted', Revision::DELETED_USER ) . ' = 0'
-			),
+				$dbr->bitAnd( 'rev_deleted', Revision::DELETED_USER ) . ' = 0'
+			],
 			__METHOD__,
-			array( 'LIMIT' => 20 )
+			[ 'LIMIT' => 20 ]
 		);
 
 		if ( $res === false ) {
@@ -905,13 +893,13 @@ abstract class ContentHandler {
 		}
 
 		$hasHistory = ( $res->numRows() > 1 );
-		$row = $dbw->fetchObject( $res );
+		$row = $dbr->fetchObject( $res );
 
 		if ( $row ) { // $row is false if the only contributor is hidden
 			$onlyAuthor = $row->rev_user_text;
 			// Try to find a second contributor
 			foreach ( $res as $row ) {
-				if ( $row->rev_user_text != $onlyAuthor ) { // Bug 22999
+				if ( $row->rev_user_text != $onlyAuthor ) { // T24999
 					$onlyAuthor = false;
 					break;
 				}
@@ -978,9 +966,21 @@ abstract class ContentHandler {
 			return false; // no content to undo
 		}
 
-		$this->checkModelID( $cur_content->getModel() );
-		$this->checkModelID( $undo_content->getModel() );
-		$this->checkModelID( $undoafter_content->getModel() );
+		try {
+			$this->checkModelID( $cur_content->getModel() );
+			$this->checkModelID( $undo_content->getModel() );
+			if ( $current->getId() !== $undo->getId() ) {
+				// If we are undoing the most recent revision,
+				// its ok to revert content model changes. However
+				// if we are undoing a revision in the middle, then
+				// doing that will be confusing.
+				$this->checkModelID( $undoafter_content->getModel() );
+			}
+		} catch ( MWException $e ) {
+			// If the revisions have different content models
+			// just return false
+			return false;
+		}
 
 		if ( $cur_content->equals( $undo_content ) ) {
 			// No use doing a merge if it's just a straight revert.
@@ -1007,22 +1007,22 @@ abstract class ContentHandler {
 	 * @return ParserOptions
 	 */
 	public function makeParserOptions( $context ) {
-		global $wgContLang, $wgEnableParserLimitReporting;
+		global $wgContLang;
 
 		if ( $context instanceof IContextSource ) {
-			$options = ParserOptions::newFromContext( $context );
+			$user = $context->getUser();
+			$lang = $context->getLanguage();
 		} elseif ( $context instanceof User ) { // settings per user (even anons)
-			$options = ParserOptions::newFromUser( $context );
+			$user = $context;
+			$lang = null;
 		} elseif ( $context === 'canonical' ) { // canonical settings
-			$options = ParserOptions::newFromUserAndLang( new User, $wgContLang );
+			$user = new User;
+			$lang = $wgContLang;
 		} else {
 			throw new MWException( "Bad context for parser options: $context" );
 		}
 
-		$options->enableLimitReport( $wgEnableParserLimitReporting ); // show inclusion/loop reports
-		$options->setTidy( true ); // fix bad HTML
-
-		return $options;
+		return ParserOptions::newCanonical( $user, $lang );
 	}
 
 	/**
@@ -1048,6 +1048,16 @@ abstract class ContentHandler {
 	 */
 	public function supportsSections() {
 		return false;
+	}
+
+	/**
+	 * Returns true if this content model supports categories.
+	 * The default implementation returns true.
+	 *
+	 * @return bool Always true.
+	 */
+	public function supportsCategories() {
+		return true;
 	}
 
 	/**
@@ -1082,123 +1092,122 @@ abstract class ContentHandler {
 	}
 
 	/**
-	 * Logs a deprecation warning, visible if $wgDevelopmentWarnings, but only if
-	 * self::$enableDeprecationWarnings is set to true.
+	 * Get fields definition for search index
 	 *
-	 * @param string $func The name of the deprecated function
-	 * @param string $version The version since the method is deprecated. Usually 1.21
-	 *   for ContentHandler related stuff.
-	 * @param string|bool $component : Component to which the function belongs.
-	 *   If false, it is assumed the function is in MediaWiki core.
+	 * @todo Expose title, redirect, namespace, text, source_text, text_bytes
+	 *       field mappings here. (see T142670 and T143409)
 	 *
-	 * @see ContentHandler::$enableDeprecationWarnings
-	 * @see wfDeprecated
+	 * @param SearchEngine $engine
+	 * @return SearchIndexField[] List of fields this content handler can provide.
+	 * @since 1.28
 	 */
-	public static function deprecated( $func, $version, $component = false ) {
-		if ( self::$enableDeprecationWarnings ) {
-			wfDeprecated( $func, $version, $component, 3 );
-		}
+	public function getFieldsForSearchIndex( SearchEngine $engine ) {
+		$fields['category'] = $engine->makeSearchFieldMapping(
+			'category',
+			SearchIndexField::INDEX_TYPE_TEXT
+		);
+		$fields['category']->setFlag( SearchIndexField::FLAG_CASEFOLD );
+
+		$fields['external_link'] = $engine->makeSearchFieldMapping(
+			'external_link',
+			SearchIndexField::INDEX_TYPE_KEYWORD
+		);
+
+		$fields['outgoing_link'] = $engine->makeSearchFieldMapping(
+			'outgoing_link',
+			SearchIndexField::INDEX_TYPE_KEYWORD
+		);
+
+		$fields['template'] = $engine->makeSearchFieldMapping(
+			'template',
+			SearchIndexField::INDEX_TYPE_KEYWORD
+		);
+		$fields['template']->setFlag( SearchIndexField::FLAG_CASEFOLD );
+
+		$fields['content_model'] = $engine->makeSearchFieldMapping(
+			'content_model',
+			SearchIndexField::INDEX_TYPE_KEYWORD
+		);
+
+		return $fields;
 	}
 
 	/**
-	 * Call a legacy hook that uses text instead of Content objects.
-	 * Will log a warning when a matching hook function is registered.
-	 * If the textual representation of the content is changed by the
-	 * hook function, a new Content object is constructed from the new
-	 * text.
-	 *
-	 * @param string $event Event name
-	 * @param array $args Parameters passed to hook functions
-	 * @param bool $warn Whether to log a warning.
-	 *                    Default to self::$enableDeprecationWarnings.
-	 *                    May be set to false for testing.
-	 *
-	 * @return bool True if no handler aborted the hook
-	 *
-	 * @see ContentHandler::$enableDeprecationWarnings
+	 * Add new field definition to array.
+	 * @param SearchIndexField[] &$fields
+	 * @param SearchEngine $engine
+	 * @param string $name
+	 * @param int $type
+	 * @return SearchIndexField[] new field defs
+	 * @since 1.28
 	 */
-	public static function runLegacyHooks( $event, $args = array(),
-		$warn = null
-	) {
-
-		if ( $warn === null ) {
-			$warn = self::$enableDeprecationWarnings;
-		}
-
-		if ( !Hooks::isRegistered( $event ) ) {
-			return true; // nothing to do here
-		}
-
-		if ( $warn ) {
-			// Log information about which handlers are registered for the legacy hook,
-			// so we can find and fix them.
-
-			$handlers = Hooks::getHandlers( $event );
-			$handlerInfo = array();
-
-			MediaWiki\suppressWarnings();
-
-			foreach ( $handlers as $handler ) {
-				if ( is_array( $handler ) ) {
-					if ( is_object( $handler[0] ) ) {
-						$info = get_class( $handler[0] );
-					} else {
-						$info = $handler[0];
-					}
-
-					if ( isset( $handler[1] ) ) {
-						$info .= '::' . $handler[1];
-					}
-				} elseif ( is_object( $handler ) ) {
-					$info = get_class( $handler[0] );
-					$info .= '::on' . $event;
-				} else {
-					$info = $handler;
-				}
-
-				$handlerInfo[] = $info;
-			}
-
-			MediaWiki\restoreWarnings();
-
-			wfWarn( "Using obsolete hook $event via ContentHandler::runLegacyHooks()! Handlers: " .
-				implode( ', ', $handlerInfo ), 2 );
-		}
-
-		// convert Content objects to text
-		$contentObjects = array();
-		$contentTexts = array();
-
-		foreach ( $args as $k => $v ) {
-			if ( $v instanceof Content ) {
-				/* @var Content $v */
-
-				$contentObjects[$k] = $v;
-
-				$v = $v->serialize();
-				$contentTexts[$k] = $v;
-				$args[$k] = $v;
-			}
-		}
-
-		// call the hook functions
-		$ok = Hooks::run( $event, $args );
-
-		// see if the hook changed the text
-		foreach ( $contentTexts as $k => $orig ) {
-			/* @var Content $content */
-
-			$modified = $args[$k];
-			$content = $contentObjects[$k];
-
-			if ( $modified !== $orig ) {
-				// text was changed, create updated Content object
-				$content = $content->getContentHandler()->unserializeContent( $modified );
-			}
-
-			$args[$k] = $content;
-		}
-
-		return $ok;
+	protected function addSearchField( &$fields, SearchEngine $engine, $name, $type ) {
+		$fields[$name] = $engine->makeSearchFieldMapping( $name, $type );
+		return $fields;
 	}
+
+	/**
+	 * Return fields to be indexed by search engine
+	 * as representation of this document.
+	 * Overriding class should call parent function or take care of calling
+	 * the SearchDataForIndex hook.
+	 * @param WikiPage $page Page to index
+	 * @param ParserOutput $output
+	 * @param SearchEngine $engine Search engine for which we are indexing
+	 * @return array Map of name=>value for fields
+	 * @since 1.28
+	 */
+	public function getDataForSearchIndex(
+		WikiPage $page,
+		ParserOutput $output,
+		SearchEngine $engine
+	) {
+		$fieldData = [];
+		$content = $page->getContent();
+
+		if ( $content ) {
+			$searchDataExtractor = new ParserOutputSearchDataExtractor();
+
+			$fieldData['category'] = $searchDataExtractor->getCategories( $output );
+			$fieldData['external_link'] = $searchDataExtractor->getExternalLinks( $output );
+			$fieldData['outgoing_link'] = $searchDataExtractor->getOutgoingLinks( $output );
+			$fieldData['template'] = $searchDataExtractor->getTemplates( $output );
+
+			$text = $content->getTextForSearchIndex();
+
+			$fieldData['text'] = $text;
+			$fieldData['source_text'] = $text;
+			$fieldData['text_bytes'] = $content->getSize();
+			$fieldData['content_model'] = $content->getModel();
+		}
+
+		Hooks::run( 'SearchDataForIndex', [ &$fieldData, $this, $page, $output, $engine ] );
+		return $fieldData;
+	}
+
+	/**
+	 * Produce page output suitable for indexing.
+	 *
+	 * Specific content handlers may override it if they need different content handling.
+	 *
+	 * @param WikiPage $page
+	 * @param ParserCache $cache
+	 * @return ParserOutput
+	 */
+	public function getParserOutputForIndexing( WikiPage $page, ParserCache $cache = null ) {
+		$parserOptions = $page->makeParserOptions( 'canonical' );
+		$revId = $page->getRevision()->getId();
+		if ( $cache ) {
+			$parserOutput = $cache->get( $page, $parserOptions );
+		}
+		if ( empty( $parserOutput ) ) {
+			$parserOutput =
+				$page->getContent()->getParserOutput( $page->getTitle(), $revId, $parserOptions );
+			if ( $cache ) {
+				$cache->save( $parserOutput, $page, $parserOptions );
+			}
+		}
+		return $parserOutput;
+	}
+
 }

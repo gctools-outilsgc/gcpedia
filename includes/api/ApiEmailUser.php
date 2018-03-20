@@ -34,9 +34,18 @@ class ApiEmailUser extends ApiBase {
 		$params = $this->extractRequestParams();
 
 		// Validate target
-		$targetUser = SpecialEmailUser::getTarget( $params['target'] );
+		$targetUser = SpecialEmailUser::getTarget( $params['target'], $this->getUser() );
 		if ( !( $targetUser instanceof User ) ) {
-			$this->dieUsageMsg( array( $targetUser ) );
+			switch ( $targetUser ) {
+				case 'notarget':
+					$this->dieWithError( 'apierror-notarget' );
+				case 'noemail':
+					$this->dieWithError( [ 'noemail', $params['target'] ] );
+				case 'nowikiemail':
+					$this->dieWithError( 'nowikiemailtext', 'nowikiemail' );
+				default:
+					$this->dieWithError( [ 'apierror-unknownerror', $targetUser ] );
+			}
 		}
 
 		// Check permissions and errors
@@ -46,35 +55,26 @@ class ApiEmailUser extends ApiBase {
 			$this->getConfig()
 		);
 		if ( $error ) {
-			$this->dieUsageMsg( array( $error ) );
+			$this->dieWithError( $error );
 		}
 
-		$data = array(
+		$data = [
 			'Target' => $targetUser->getName(),
 			'Text' => $params['text'],
 			'Subject' => $params['subject'],
 			'CCMe' => $params['ccme'],
-		);
+		];
 		$retval = SpecialEmailUser::submit( $data, $this->getContext() );
-
-		if ( $retval instanceof Status ) {
-			// SpecialEmailUser sometimes returns a status
-			// sometimes it doesn't.
-			if ( $retval->isGood() ) {
-				$retval = true;
-			} else {
-				$retval = $retval->getErrorsArray();
-			}
+		if ( !$retval instanceof Status ) {
+			// This is probably the reason
+			$retval = Status::newFatal( 'hookaborted' );
 		}
 
-		if ( $retval === true ) {
-			$result = array( 'result' => 'Success' );
-		} else {
-			$result = array(
-				'result' => 'Failure',
-				'message' => $retval
-			);
-		}
+		$result = array_filter( [
+			'result' => $retval->isGood() ? 'Success' : ( $retval->isOk() ? 'Warnings' : 'Failure' ),
+			'warnings' => $this->getErrorFormatter()->arrayFromStatus( $retval, 'warning' ),
+			'errors' => $this->getErrorFormatter()->arrayFromStatus( $retval, 'error' ),
+		] );
 
 		$this->getResult()->addValue( null, $this->getModuleName(), $result );
 	}
@@ -88,18 +88,18 @@ class ApiEmailUser extends ApiBase {
 	}
 
 	public function getAllowedParams() {
-		return array(
-			'target' => array(
+		return [
+			'target' => [
 				ApiBase::PARAM_TYPE => 'string',
 				ApiBase::PARAM_REQUIRED => true
-			),
+			],
 			'subject' => null,
-			'text' => array(
+			'text' => [
 				ApiBase::PARAM_TYPE => 'text',
 				ApiBase::PARAM_REQUIRED => true
-			),
+			],
 			'ccme' => false,
-		);
+		];
 	}
 
 	public function needsToken() {
@@ -107,13 +107,13 @@ class ApiEmailUser extends ApiBase {
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=emailuser&target=WikiSysop&text=Content&token=123ABC'
 				=> 'apihelp-emailuser-example-email',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Email';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Email';
 	}
 }

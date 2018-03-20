@@ -52,6 +52,9 @@ class FormOptions implements ArrayAccess {
 	 * This is useful for the namespace selector.
 	 */
 	const INTNULL = 3;
+	/** Array type, maps guessType() to WebRequest::getArray()
+	 * @since 1.29 */
+	const ARR = 5;
 	/* @} */
 
 	/**
@@ -64,7 +67,7 @@ class FormOptions implements ArrayAccess {
 	 *   consumeValue() or consumeValues()
 	 * - 'type' - one of the type constants (but never AUTO)
 	 */
-	protected $options = array();
+	protected $options = [];
 
 	# Setting up
 
@@ -76,7 +79,7 @@ class FormOptions implements ArrayAccess {
 	 * @param int $type One of the type constants (optional, defaults to AUTO)
 	 */
 	public function add( $name, $default, $type = self::AUTO ) {
-		$option = array();
+		$option = [];
 		$option['default'] = $default;
 		$option['value'] = null;
 		$option['consumed'] = false;
@@ -120,6 +123,8 @@ class FormOptions implements ArrayAccess {
 			return self::FLOAT;
 		} elseif ( is_string( $data ) ) {
 			return self::STRING;
+		} elseif ( is_array( $data ) ) {
+			return self::ARR;
 		} else {
 			throw new MWException( 'Unsupported datatype' );
 		}
@@ -228,7 +233,7 @@ class FormOptions implements ArrayAccess {
 	 * @return array Array of option values, or the default values if they are null
 	 */
 	public function consumeValues( $names ) {
-		$out = array();
+		$out = [];
 
 		foreach ( $names as $name ) {
 			$this->validateName( $name, true );
@@ -241,6 +246,9 @@ class FormOptions implements ArrayAccess {
 
 	/**
 	 * @see validateBounds()
+	 * @param string $name
+	 * @param int $min
+	 * @param int $max
 	 */
 	public function validateIntBounds( $name, $min, $max ) {
 		$this->validateBounds( $name, $min, $max );
@@ -278,7 +286,7 @@ class FormOptions implements ArrayAccess {
 	 * @return array
 	 */
 	public function getUnconsumedValues( $all = false ) {
-		$values = array();
+		$values = [];
 
 		foreach ( $this->options as $name => $data ) {
 			if ( !$data['consumed'] ) {
@@ -296,7 +304,7 @@ class FormOptions implements ArrayAccess {
 	 * @return array
 	 */
 	public function getChangedValues() {
-		$values = array();
+		$values = [];
 
 		foreach ( $this->options as $name => $data ) {
 			if ( $data['value'] !== null ) {
@@ -312,7 +320,7 @@ class FormOptions implements ArrayAccess {
 	 * @return array
 	 */
 	public function getAllValues() {
-		$values = array();
+		$values = [];
 
 		foreach ( $this->options as $name => $data ) {
 			$values[$name] = $this->getValueReal( $data );
@@ -358,6 +366,9 @@ class FormOptions implements ArrayAccess {
 				case self::INTNULL:
 					$value = $r->getIntOrNull( $name );
 					break;
+				case self::ARR:
+					$value = $r->getArray( $name );
+					break;
 				default:
 					throw new MWException( 'Unsupported datatype' );
 			}
@@ -370,7 +381,7 @@ class FormOptions implements ArrayAccess {
 
 	/** @name ArrayAccess functions
 	 * These functions implement the ArrayAccess PHP interface.
-	 * @see http://php.net/manual/en/class.arrayaccess.php
+	 * @see https://secure.php.net/manual/en/class.arrayaccess.php
 	 */
 	/* @{ */
 	/**

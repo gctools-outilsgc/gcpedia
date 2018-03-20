@@ -34,9 +34,32 @@ class SkinVector extends SkinTemplate {
 	 * @var Config
 	 */
 	private $vectorConfig;
+	private $responsiveMode = false;
 
 	public function __construct() {
-		$this->vectorConfig = ConfigFactory::getDefaultInstance()->makeConfig( 'vector' );
+		$this->vectorConfig = \MediaWiki\MediaWikiServices::getInstance()->getConfigFactory()
+			->makeConfig( 'vector' );
+	}
+
+	/** @inheritDoc */
+	public function getPageClasses( $title ) {
+		$className = parent::getPageClasses( $title );
+		if ( $this->vectorConfig->get( 'VectorExperimentalPrintStyles' ) ) {
+			$className .= ' vector-experimental-print-styles';
+		}
+		return $className;
+	}
+
+	/**
+	 * Enables the responsive mode
+	 */
+	public function enableResponsiveMode() {
+		if ( !$this->responsiveMode ) {
+			$out = $this->getOutput();
+			$out->addMeta( 'viewport', 'width=device-width, initial-scale=1' );
+			$out->addModuleStyles( 'skins.vector.styles.responsive' );
+			$this->responsiveMode = true;
+		}
 	}
 
 	/**
@@ -47,9 +70,18 @@ class SkinVector extends SkinTemplate {
 		parent::initPage( $out );
 
 		if ( $this->vectorConfig->get( 'VectorResponsive' ) ) {
-			$out->addMeta( 'viewport', 'width=device-width, initial-scale=1' );
-			$out->addModuleStyles( 'skins.vector.styles.responsive' );
+			$this->enableResponsiveMode();
 		}
+
+		// Print styles are feature flagged.
+		// This flag can be removed when T169732 is resolved.
+		if ( $this->vectorConfig->get( 'VectorExperimentalPrintStyles' ) ) {
+			// Note, when deploying (T169732) we'll want to fold the stylesheet into
+			// skins.vector.styles and remove this module altogether.
+			$out->addModuleStyles( 'skins.vector.styles.experimental.print' );
+		}
+
+		$this->addMetaTags();
 
 		// Append CSS which includes IE only behavior fixes for hover support -
 		// this is better than including this in a CSS file since it doesn't
@@ -61,13 +93,35 @@ class SkinVector extends SkinTemplate {
 				"/{$this->stylename}/csshover{$min}.htc\")}</style><![endif]-->"
 		);
 		global $wgScriptPath;
-$out->addHeadItem( 'gcpcss',
+		$out->addHeadItem( 'gcpcss',
 			'<link rel="stylesheet" href="' . $wgScriptPath . '/skins/Vector/GCWeb/css/gcpedia.css">
 			 <link rel="stylesheet" href="' . $wgScriptPath . '/skins/Vector/GCWeb/css/theme.css">
 			 <link href="' . $wgScriptPath . '/skins/Vector/GCWeb/assets/favicon.ico" rel="icon" type="image/x-icon">'
 		);
 		$out->addModules( array( 'skins.vector.js' ) );
+
 	}
+
+
+	public function addMetaTags() {
+		$out = $this->getOutput();
+		
+		$category_array = $out->getCategories();
+		$category_string = (is_array($category_array)) ? implode(",", $category_array) : '';
+		$timestamp = $this->getOutput()->getRevisionTimestamp();
+		$timestamp = preg_replace( '/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/', "$1-$2-$3 $4:$5:$6", $timestamp);
+		$language = $_GET['setlang'];
+		
+		if (!$language) $language = 'en';
+		
+		$out->addMeta( 'platform', 'gcpedia' );
+		$out->addMeta( 'dcterms.language', $language );
+		$out->addMeta( 'dcterms.title', $this->getTitle() );
+		$out->addMeta( 'dcterms.type', $category_string );
+		$out->addMeta( 'dcterms.modified', $timestamp );
+		$out->addMeta( 'dcterms.description', strip_tags($out->mBodytext) );
+	}
+
 
 	/**
 	 * Loads skin and user CSS files.
@@ -76,15 +130,28 @@ $out->addHeadItem( 'gcpcss',
 	function setupSkinUserCss( OutputPage $out ) {
 		parent::setupSkinUserCss( $out );
 
-		$styles = array( 'mediawiki.skinning.interface', 'skins.vector.styles' );
-		Hooks::run( 'SkinVectorStyleModules', array( $this, &$styles ) );
+		$styles = [ 'mediawiki.skinning.interface', 'skins.vector.styles' ];
+		Hooks::run( 'SkinVectorStyleModules', [ $this, &$styles ] );
 		$out->addModuleStyles( $styles );
 	}
 
 	/**
 	 * Override to pass our Config instance to it
+	 * @param string $classname
+	 * @param bool|string $repository
+	 * @param bool|string $cache_dir
+	 * @return QuickTemplate
 	 */
 	public function setupTemplate( $classname, $repository = false, $cache_dir = false ) {
 		return new $classname( $this->vectorConfig );
+	}
+
+	/**
+	 * Whether the logo should be preloaded with an HTTP link header or not
+	 * @since 1.29
+	 * @return bool
+	 */
+	public function shouldPreloadLogo() {
+		return true;
 	}
 }

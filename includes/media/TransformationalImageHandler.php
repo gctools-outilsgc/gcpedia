@@ -25,6 +25,7 @@
  * @file
  * @ingroup Media
  */
+use MediaWiki\MediaWikiServices;
 
 /**
  * Handler for images that need to be transformed
@@ -35,7 +36,7 @@
 abstract class TransformationalImageHandler extends ImageHandler {
 	/**
 	 * @param File $image
-	 * @param array $params Transform parameters. Entries with the keys 'width'
+	 * @param array &$params Transform parameters. Entries with the keys 'width'
 	 * and 'height' are the respective screen width and height, while the keys
 	 * 'physicalWidth' and 'physicalHeight' indicate the thumbnail dimensions.
 	 * @return bool
@@ -86,7 +87,7 @@ abstract class TransformationalImageHandler extends ImageHandler {
 			$height = $params['physicalHeight'];
 		}
 
-		return array( $width, $height );
+		return [ $width, $height ];
 	}
 
 	/**
@@ -108,7 +109,7 @@ abstract class TransformationalImageHandler extends ImageHandler {
 		}
 
 		# Create a parameter array to pass to the scaler
-		$scalerParams = array(
+		$scalerParams = [
 			# The size to which the image will be resized
 			'physicalWidth' => $params['physicalWidth'],
 			'physicalHeight' => $params['physicalHeight'],
@@ -126,7 +127,8 @@ abstract class TransformationalImageHandler extends ImageHandler {
 			'mimeType' => $image->getMimeType(),
 			'dstPath' => $dstPath,
 			'dstUrl' => $dstUrl,
-		);
+			'interlace' => isset( $params['interlace'] ) ? $params['interlace'] : false,
+		];
 
 		if ( isset( $params['quality'] ) && $params['quality'] === 'low' ) {
 			$scalerParams['quality'] = 30;
@@ -154,7 +156,6 @@ abstract class TransformationalImageHandler extends ImageHandler {
 			&& $scalerParams['physicalHeight'] == $scalerParams['srcHeight']
 			&& !isset( $scalerParams['quality'] )
 		) {
-
 			# normaliseParams (or the user) wants us to return the unscaled image
 			wfDebug( __METHOD__ . ": returning unscaled image\n" );
 
@@ -174,10 +175,10 @@ abstract class TransformationalImageHandler extends ImageHandler {
 
 		if ( $flags & self::TRANSFORM_LATER ) {
 			wfDebug( __METHOD__ . ": Transforming later per flags.\n" );
-			$newParams = array(
+			$newParams = [
 				'width' => $scalerParams['clientWidth'],
 				'height' => $scalerParams['clientHeight']
-			);
+			];
 			if ( isset( $params['quality'] ) ) {
 				$newParams['quality'] = $params['quality'];
 			}
@@ -215,14 +216,14 @@ abstract class TransformationalImageHandler extends ImageHandler {
 
 			return new MediaTransformError( 'thumbnail_error',
 				$scalerParams['clientWidth'], $scalerParams['clientHeight'],
-				wfMessage( 'filemissing' )->text()
+				wfMessage( 'filemissing' )
 			);
 		}
 
 		# Try a hook. Called "Bitmap" for historical reasons.
-		/** @var $mto MediaTransformOutput */
+		/** @var MediaTransformOutput $mto */
 		$mto = null;
-		Hooks::run( 'BitmapHandlerTransform', array( $this, $image, &$scalerParams, &$mto ) );
+		Hooks::run( 'BitmapHandlerTransform', [ $this, $image, &$scalerParams, &$mto ] );
 		if ( !is_null( $mto ) ) {
 			wfDebug( __METHOD__ . ": Hook to BitmapHandlerTransform created an mto\n" );
 			$scaler = 'hookaborted';
@@ -265,15 +266,15 @@ abstract class TransformationalImageHandler extends ImageHandler {
 			# Thumbnail was zero-byte and had to be removed
 			return new MediaTransformError( 'thumbnail_error',
 				$scalerParams['clientWidth'], $scalerParams['clientHeight'],
-				wfMessage( 'unknown-error' )->text()
+				wfMessage( 'unknown-error' )
 			);
 		} elseif ( $mto ) {
 			return $mto;
 		} else {
-			$newParams = array(
+			$newParams = [
 				'width' => $scalerParams['clientWidth'],
 				'height' => $scalerParams['clientHeight']
-			);
+			];
 			if ( isset( $params['quality'] ) ) {
 				$newParams['quality'] = $params['quality'];
 			}
@@ -287,9 +288,9 @@ abstract class TransformationalImageHandler extends ImageHandler {
 	/**
 	 * Get the source file for the transform
 	 *
-	 * @param $file File
-	 * @param $params Array
-	 * @return Array Array with keys  width, height and path.
+	 * @param File $file
+	 * @param array $params
+	 * @return array Array with keys  width, height and path.
 	 */
 	protected function getThumbnailSource( $file, $params ) {
 		return $file->getThumbnailSource( $params );
@@ -301,7 +302,7 @@ abstract class TransformationalImageHandler extends ImageHandler {
 	 * Values can be one of client, im, custom, gd, imext, or an array
 	 * of object, method-name to call that specific method.
 	 *
-	 * If specifying a custom scaler command with array( Obj, method ),
+	 * If specifying a custom scaler command with [ Obj, method ],
 	 * the method in question should take 2 parameters, a File object,
 	 * and a $scalerParams array with various options (See doTransform
 	 * for what is in $scalerParams). On error it should return a
@@ -329,12 +330,12 @@ abstract class TransformationalImageHandler extends ImageHandler {
 	 * @todo FIXME: No rotation support
 	 */
 	protected function getClientScalingThumbnailImage( $image, $scalerParams ) {
-		$params = array(
+		$params = [
 			'width' => $scalerParams['clientWidth'],
 			'height' => $scalerParams['clientHeight']
-		);
+		];
 
-		return new ThumbnailImage( $image, $image->getURL(), null, $params );
+		return new ThumbnailImage( $image, $image->getUrl(), null, $params );
 	}
 
 	/**
@@ -505,30 +506,32 @@ abstract class TransformationalImageHandler extends ImageHandler {
 	 * Retrieve the version of the installed ImageMagick
 	 * You can use PHPs version_compare() to use this value
 	 * Value is cached for one hour.
-	 * @return string Representing the IM version.
+	 * @return string|bool Representing the IM version; false on error
 	 */
 	protected function getMagickVersion() {
-		global $wgMemc;
+		$cache = MediaWikiServices::getInstance()->getLocalServerObjectCache();
+		$method = __METHOD__;
+		return $cache->getWithSetCallback(
+			'imagemagick-version',
+			$cache::TTL_HOUR,
+			function () use ( $method ) {
+				global $wgImageMagickConvertCommand;
 
-		$cache = $wgMemc->get( "imagemagick-version" );
-		if ( !$cache ) {
-			global $wgImageMagickConvertCommand;
-			$cmd = wfEscapeShellArg( $wgImageMagickConvertCommand ) . ' -version';
-			wfDebug( __METHOD__ . ": Running convert -version\n" );
-			$retval = '';
-			$return = wfShellExec( $cmd, $retval );
-			$x = preg_match( '/Version: ImageMagick ([0-9]*\.[0-9]*\.[0-9]*)/', $return, $matches );
-			if ( $x != 1 ) {
-				wfDebug( __METHOD__ . ": ImageMagick version check failed\n" );
+				$cmd = wfEscapeShellArg( $wgImageMagickConvertCommand ) . ' -version';
+				wfDebug( $method . ": Running convert -version\n" );
+				$retval = '';
+				$return = wfShellExecWithStderr( $cmd, $retval );
+				$x = preg_match(
+					'/Version: ImageMagick ([0-9]*\.[0-9]*\.[0-9]*)/', $return, $matches
+				);
+				if ( $x != 1 ) {
+					wfDebug( $method . ": ImageMagick version check failed\n" );
+					return false;
+				}
 
-				return null;
+				return $matches[1];
 			}
-			$wgMemc->set( "imagemagick-version", $matches[1], 3600 );
-
-			return $matches[1];
-		}
-
-		return $cache;
+		);
 	}
 
 	/**
@@ -561,11 +564,11 @@ abstract class TransformationalImageHandler extends ImageHandler {
 	 * @param array $params Rotate parameters.
 	 *   'rotation' clockwise rotation in degrees, allowed are multiples of 90
 	 * @since 1.24 Is non-static. From 1.21 it was static
-	 * @return bool
+	 * @return bool|MediaTransformError
 	 */
 	public function rotate( $file, $params ) {
 		return new MediaTransformError( 'thumbnail_error', 0, 0,
-			get_class( $this ) . ' rotation not implemented' );
+			static::class . ' rotation not implemented' );
 	}
 
 	/**
@@ -585,7 +588,7 @@ abstract class TransformationalImageHandler extends ImageHandler {
 	 * Runs the 'BitmapHandlerCheckImageArea' hook.
 	 *
 	 * @param File $file
-	 * @param array $params
+	 * @param array &$params
 	 * @return bool
 	 * @since 1.25
 	 */
@@ -596,7 +599,7 @@ abstract class TransformationalImageHandler extends ImageHandler {
 		$checkImageAreaHookResult = null;
 		Hooks::run(
 			'BitmapHandlerCheckImageArea',
-			array( $file, &$params, &$checkImageAreaHookResult )
+			[ $file, &$params, &$checkImageAreaHookResult ]
 		);
 
 		if ( !is_null( $checkImageAreaHookResult ) ) {

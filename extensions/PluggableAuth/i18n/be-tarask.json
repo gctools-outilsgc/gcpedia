@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Red Winged Duck"
+		]
+	},
+	"pluggableauth-desc": "Забясьпечвае структуру для зьменнай аўтэнтыфікацыі і аўтарызацыі",
+	"pluggableauth-not-authorized": "{{GENDER:$1|Удзельнік|Удзельніца}} $1 не {{GENDER:$1|аўтарызаваны|аўтарызаваная}}.",
+	"pluggableauth-authentication-failure": "Удзельнік ня можа быць аўтэнтыфікаваны.",
+	"pluggableauth-authentication-workflow-failure": "Памылка працэсу аўтэнтыфікацыі.",
+	"pluggableauth-loginbutton-label": "Увайсьці ў сыстэму з дапамогай PluggableAuth",
+	"pluggableauth-loginbutton-help": "Аўтэнтыфікуе вас з дапамогай PluggableAuth"
+}

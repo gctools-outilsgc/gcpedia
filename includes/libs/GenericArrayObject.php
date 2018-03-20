@@ -45,7 +45,7 @@ abstract class GenericArrayObject extends ArrayObject {
 	/**
 	 * @see SiteList::getNewOffset()
 	 * @since 1.20
-	 * @var integer
+	 * @var int
 	 */
 	protected $indexOffset = 0;
 
@@ -56,7 +56,7 @@ abstract class GenericArrayObject extends ArrayObject {
 	 *
 	 * @since 1.20
 	 *
-	 * @return integer
+	 * @return int
 	 */
 	protected function getNewOffset() {
 		while ( $this->offsetExists( $this->indexOffset ) ) {
@@ -67,7 +67,6 @@ abstract class GenericArrayObject extends ArrayObject {
 	}
 
 	/**
-	 * Constructor.
 	 * @see ArrayObject::__construct
 	 *
 	 * @since 1.20
@@ -77,7 +76,7 @@ abstract class GenericArrayObject extends ArrayObject {
 	 * @param string $iterator_class
 	 */
 	public function __construct( $input = null, $flags = 0, $iterator_class = 'ArrayIterator' ) {
-		parent::__construct( array(), $flags, $iterator_class );
+		parent::__construct( [], $flags, $iterator_class );
 
 		if ( !is_null( $input ) ) {
 			foreach ( $input as $offset => $value ) {
@@ -144,7 +143,7 @@ abstract class GenericArrayObject extends ArrayObject {
 		if ( !$this->hasValidType( $value ) ) {
 			throw new InvalidArgumentException(
 				'Can only add '	. $this->getObjectType() . ' implementing objects to '
-				. get_called_class() . '.'
+				. static::class . '.'
 			);
 		}
 
@@ -168,7 +167,7 @@ abstract class GenericArrayObject extends ArrayObject {
 	 *
 	 * @since 1.20
 	 *
-	 * @param integer|string $index
+	 * @param int|string $index
 	 * @param mixed $value
 	 *
 	 * @return bool
@@ -198,10 +197,10 @@ abstract class GenericArrayObject extends ArrayObject {
 	 * @return array
 	 */
 	protected function getSerializationData() {
-		return array(
+		return [
 			'data' => $this->getArrayCopy(),
 			'index' => $this->indexOffset,
-		);
+		];
 	}
 
 	/**

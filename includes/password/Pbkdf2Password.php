@@ -30,15 +30,20 @@
  */
 class Pbkdf2Password extends ParameterizedPassword {
 	protected function getDefaultParams() {
-		return array(
+		return [
 			'algo' => $this->config['algo'],
 			'rounds' => $this->config['cost'],
 			'length' => $this->config['length']
-		);
+		];
 	}
 
 	protected function getDelimiter() {
 		return ':';
+	}
+
+	protected function shouldUseHashExtension() {
+		return isset( $this->config['use-hash-extension'] ) ?
+			$this->config['use-hash-extension'] : function_exists( 'hash_pbkdf2' );
 	}
 
 	public function crypt( $password ) {
@@ -46,7 +51,7 @@ class Pbkdf2Password extends ParameterizedPassword {
 			$this->args[] = base64_encode( MWCryptRand::generate( 16, true ) );
 		}
 
-		if ( function_exists( 'hash_pbkdf2' ) ) {
+		if ( $this->shouldUseHashExtension() ) {
 			$hash = hash_pbkdf2(
 				$this->params['algo'],
 				$password,
@@ -55,8 +60,15 @@ class Pbkdf2Password extends ParameterizedPassword {
 				(int)$this->params['length'],
 				true
 			);
+			if ( !is_string( $hash ) ) {
+				throw new PasswordError( 'Error when hashing password.' );
+			}
 		} else {
-			$hashLen = strlen( hash( $this->params['algo'], '', true ) );
+			$hashLenHash = hash( $this->params['algo'], '', true );
+			if ( !is_string( $hashLenHash ) ) {
+				throw new PasswordError( 'Error when hashing password.' );
+			}
+			$hashLen = strlen( $hashLenHash );
 			$blockCount = ceil( $this->params['length'] / $hashLen );
 
 			$hash = '';

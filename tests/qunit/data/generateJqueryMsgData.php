@@ -16,7 +16,7 @@
 /*
  * @example QUnit
  * <code>
-	QUnit.test( 'Output matches PHP parser', mw.libs.phpParserData.tests.length, function ( assert ) {
+	QUnit.test( 'Output matches PHP parser', function ( assert ) {
 		mw.messages.set( mw.libs.phpParserData.messages );
 		$.each( mw.libs.phpParserData.tests, function ( i, test ) {
 			QUnit.stop();
@@ -65,22 +65,22 @@ require __DIR__ . '/../../../maintenance/Maintenance.php';
 
 class GenerateJqueryMsgData extends Maintenance {
 
-	public static $keyToTestArgs = array(
-		'undelete_short' => array(
-			array( 0 ),
-			array( 1 ),
-			array( 2 ),
-			array( 5 ),
-			array( 21 ),
-			array( 101 )
-		),
-		'category-subcat-count' => array(
-			array( 0, 10 ),
-			array( 1, 1 ),
-			array( 1, 2 ),
-			array( 3, 30 )
-		)
-	);
+	public static $keyToTestArgs = [
+		'undelete_short' => [
+			[ 0 ],
+			[ 1 ],
+			[ 2 ],
+			[ 5 ],
+			[ 21 ],
+			[ 101 ]
+		],
+		'category-subcat-count' => [
+			[ 0, 10 ],
+			[ 1, 1 ],
+			[ 1, 2 ],
+			[ 3, 30 ]
+		]
+	];
 
 	public function __construct() {
 		parent::__construct();
@@ -94,9 +94,9 @@ class GenerateJqueryMsgData extends Maintenance {
 	}
 
 	private function getMessagesAndTests() {
-		$messages = array();
-		$tests = array();
-		foreach ( array( 'en', 'fr', 'ar', 'jp', 'zh' ) as $languageCode ) {
+		$messages = [];
+		$tests = [];
+		foreach ( [ 'en', 'fr', 'ar', 'jp', 'zh' ] as $languageCode ) {
 			foreach ( self::$keyToTestArgs as $key => $testArgs ) {
 				foreach ( $testArgs as $args ) {
 					// Get the raw message, without any transformations.
@@ -109,31 +109,31 @@ class GenerateJqueryMsgData extends Maintenance {
 					// fake multiple languages by flattening them together.
 					$langKey = $languageCode . '_' . $key;
 					$messages[$langKey] = $template;
-					$tests[] = array(
-						'name' => $languageCode . ' ' . $key . ' ' . join( ',', $args ),
+					$tests[] = [
+						'name' => $languageCode . ' ' . $key . ' ' . implode( ',', $args ),
 						'key' => $langKey,
 						'args' => $args,
 						'result' => $result,
 						'lang' => $languageCode
-					);
+					];
 				}
 			}
 		}
-		return array( $messages, $tests );
+		return [ $messages, $tests ];
 	}
 
 	private function writeJavascriptFile( $messages, $tests, $dataSpecFile ) {
-		$phpParserData = array(
+		$phpParserData = [
 			'messages' => $messages,
 			'tests' => $tests,
-		);
+		];
 
 		$output =
 			"// This file stores the output from the PHP parser for various messages, arguments,\n"
 				. "// languages, and parser modes. Intended for use by a unit test framework by looping\n"
 				. "// through the object and comparing its parser return value with the 'result' property.\n"
 				. '// Last generated with ' . basename( __FILE__ ) . ' at ' . gmdate( 'r' ) . "\n"
-				. "//jscs:disable\n"
+				. "/* eslint-disable */\n"
 				. "\n"
 				. 'mediaWiki.libs.phpParserData = ' . FormatJson::encode( $phpParserData, true ) . ";\n";
 

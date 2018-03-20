@@ -14,7 +14,7 @@ class EnhancedChangesListTest extends MediaWikiLangTestCase {
 	 */
 	private $testRecentChangesHelper;
 
-	public function __construct( $name = null, array $data = array(), $dataName = '' ) {
+	public function __construct( $name = null, array $data = [], $dataName = '' ) {
 		parent::__construct( $name, $data, $dataName );
 
 		$this->testRecentChangesHelper = new TestRecentChangesHelper();
@@ -74,6 +74,61 @@ class EnhancedChangesListTest extends MediaWikiLangTestCase {
 		$this->assertEquals( '', $html );
 	}
 
+	public function testRecentChangesPrefix() {
+		$mockContext = $this->getMockBuilder( RequestContext::class )
+			->setMethods( [ 'getTitle' ] )
+			->getMock();
+		$mockContext->method( 'getTitle' )
+			->will( $this->returnValue( Title::newFromText( 'Expected Context Title' ) ) );
+
+		// One group of two lines
+		$enhancedChangesList = $this->newEnhancedChangesList();
+		$enhancedChangesList->setContext( $mockContext );
+		$enhancedChangesList->setChangeLinePrefixer( function ( $rc, $changesList ) {
+			// Make sure RecentChange and ChangesList objects are the same
+			$this->assertEquals( 'Expected Context Title', $changesList->getContext()->getTitle() );
+			$this->assertTrue( $rc->getTitle() == 'Cat' || $rc->getTitle() == 'Dog' );
+			return 'Hello world prefix';
+		} );
+		$enhancedChangesList->beginRecentChangesList();
+
+		$recentChange = $this->getEditChange( '20131103092153' );
+		$enhancedChangesList->recentChangesLine( $recentChange );
+		$recentChange = $this->getEditChange( '20131103092154' );
+		$enhancedChangesList->recentChangesLine( $recentChange );
+
+		$html = $enhancedChangesList->endRecentChangesList();
+
+		$this->assertRegExp( '/Hello world prefix/', $html );
+
+		// Two separate lines
+		$enhancedChangesList->beginRecentChangesList();
+
+		$recentChange = $this->getEditChange( '20131103092153' );
+		$enhancedChangesList->recentChangesLine( $recentChange );
+		$recentChange = $this->getEditChange( '20131103092154', 'Dog' );
+		$enhancedChangesList->recentChangesLine( $recentChange );
+
+		$html = $enhancedChangesList->endRecentChangesList();
+
+		preg_match_all( '/Hello world prefix/', $html, $matches );
+		$this->assertCount( 2, $matches[0] );
+	}
+
+	public function testCategorizationLineFormatting() {
+		$html = $this->createCategorizationLine(
+			$this->getCategorizationChange( '20150629191735', 0, 0 )
+		);
+		$this->assertNotContains( '(diff | hist)', strip_tags( $html ) );
+	}
+
+	public function testCategorizationLineFormattingWithRevision() {
+		$html = $this->createCategorizationLine(
+			$this->getCategorizationChange( '20150629191735', 1025, 1024 )
+		);
+		$this->assertContains( '(diff | hist)', strip_tags( $html ) );
+	}
+
 	/**
 	 * @todo more tests for actual formatting, this is more of a smoke test
 	 */
@@ -84,6 +139,12 @@ class EnhancedChangesListTest extends MediaWikiLangTestCase {
 		$recentChange = $this->getEditChange( '20131103092153' );
 		$enhancedChangesList->recentChangesLine( $recentChange, false );
 
+		$html = $enhancedChangesList->endRecentChangesList();
+		$this->assertRegExp(
+			'/data-mw-revid="5" data-mw-ts="20131103092153" class="[^"]*mw-enhanced-rc[^"]*"/',
+			$html
+		);
+
 		$recentChange2 = $this->getEditChange( '20131103092253' );
 		$enhancedChangesList->recentChangesLine( $recentChange2, false );
 
@@ -91,6 +152,17 @@ class EnhancedChangesListTest extends MediaWikiLangTestCase {
 
 		preg_match_all( '/td class="mw-enhanced-rc-nested"/', $html, $matches );
 		$this->assertCount( 2, $matches[0] );
+
+		preg_match_all( '/data-target-page="Cat"/', $html, $matches );
+		$this->assertCount( 2, $matches[0] );
+
+		$recentChange3 = $this->getLogChange();
+		$enhancedChangesList->recentChangesLine( $recentChange3, false );
+
+		$html = $enhancedChangesList->endRecentChangesList();
+		$this->assertContains( 'data-mw-logaction="foo/bar"', $html );
+		$this->assertContains( 'data-mw-logid="25"', $html );
+		$this->assertContains( 'data-target-page="Title"', $html );
 	}
 
 	/**
@@ -106,26 +178,51 @@ class EnhancedChangesListTest extends MediaWikiLangTestCase {
 	/**
 	 * @return RecentChange
 	 */
-	private function getEditChange( $timestamp ) {
-		$user = $this->getTestUser();
+	private function getEditChange( $timestamp, $pageTitle = 'Cat' ) {
+		$user = $this->getMutableTestUser()->getUser();
 		$recentChange = $this->testRecentChangesHelper->makeEditRecentChange(
-			$user, 'Cat', $timestamp, 5, 191, 190, 0, 0
+			$user, $pageTitle, 0, 5, 191, $timestamp, 0, 0
+		);
+
+		return $recentChange;
+	}
+
+	private function getLogChange() {
+		$user = $this->getMutableTestUser()->getUser();
+		$recentChange = $this->testRecentChangesHelper->makeLogRecentChange( 'foo', 'bar', $user,
+			'Title', '20131103092153', 0, 0
 		);
 
 		return $recentChange;
 	}
 
 	/**
-	 * @return User
+	 * @return RecentChange
 	 */
-	private function getTestUser() {
-		$user = User::newFromName( 'TestRecentChangesUser' );
+	private function getCategorizationChange( $timestamp, $thisId, $lastId ) {
+		$wikiPage = new WikiPage( Title::newFromText( 'Testpage' ) );
+		$wikiPage->doEditContent( new WikitextContent( 'Some random text' ), 'page created' );
 
-		if ( !$user->getId() ) {
-			$user->addToDatabase();
-		}
+		$wikiPage = new WikiPage( Title::newFromText( 'Category:Foo' ) );
+		$wikiPage->doEditContent( new WikitextContent( 'Some random text' ), 'category page created' );
 
-		return $user;
+		$user = $this->getMutableTestUser()->getUser();
+		$recentChange = $this->testRecentChangesHelper->makeCategorizationRecentChange(
+			$user, 'Category:Foo', $wikiPage->getId(), $thisId, $lastId, $timestamp
+		);
+
+		return $recentChange;
+	}
+
+	private function createCategorizationLine( $recentChange ) {
+		$enhancedChangesList = $this->newEnhancedChangesList();
+		$cacheEntry = $this->testRecentChangesHelper->getCacheEntry( $recentChange );
+
+		$reflection = new \ReflectionClass( get_class( $enhancedChangesList ) );
+		$method = $reflection->getMethod( 'recentChangesBlockLine' );
+		$method->setAccessible( true );
+
+		return $method->invokeArgs( $enhancedChangesList, [ $cacheEntry ] );
 	}
 
 }

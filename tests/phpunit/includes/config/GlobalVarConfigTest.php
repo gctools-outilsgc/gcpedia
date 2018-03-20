@@ -29,17 +29,18 @@ class GlobalVarConfigTest extends MediaWikiTestCase {
 	}
 
 	public static function provideConstructor() {
-		return array(
-			array( 'wg' ),
-			array( 'ef' ),
-			array( 'smw' ),
-			array( 'blahblahblahblah' ),
-			array( '' ),
-		);
+		return [
+			[ 'wg' ],
+			[ 'ef' ],
+			[ 'smw' ],
+			[ 'blahblahblahblah' ],
+			[ '' ],
+		];
 	}
 
 	/**
 	 * @covers GlobalVarConfig::has
+	 * @covers GlobalVarConfig::hasWithPrefix
 	 */
 	public function testHas() {
 		$this->maybeStashGlobal( 'wgGlobalVarConfigTestHas' );
@@ -51,33 +52,33 @@ class GlobalVarConfigTest extends MediaWikiTestCase {
 	}
 
 	public static function provideGet() {
-		$set = array(
+		$set = [
 			'wgSomething' => 'default1',
 			'wgFoo' => 'default2',
 			'efVariable' => 'default3',
 			'BAR' => 'default4',
-		);
+		];
 
 		foreach ( $set as $var => $value ) {
 			$GLOBALS[$var] = $value;
 		}
 
-		return array(
-			array( 'Something', 'wg', 'default1' ),
-			array( 'Foo', 'wg', 'default2' ),
-			array( 'Variable', 'ef', 'default3' ),
-			array( 'BAR', '', 'default4' ),
-			array( 'ThisGlobalWasNotSetAbove', 'wg', false )
-		);
+		return [
+			[ 'Something', 'wg', 'default1' ],
+			[ 'Foo', 'wg', 'default2' ],
+			[ 'Variable', 'ef', 'default3' ],
+			[ 'BAR', '', 'default4' ],
+			[ 'ThisGlobalWasNotSetAbove', 'wg', false ]
+		];
 	}
 
 	/**
-	 * @param string $name
-	 * @param string $prefix
-	 * @param string $expected
 	 * @dataProvider provideGet
 	 * @covers GlobalVarConfig::get
 	 * @covers GlobalVarConfig::getWithPrefix
+	 * @param string $name
+	 * @param string $prefix
+	 * @param string $expected
 	 */
 	public function testGet( $name, $prefix, $expected ) {
 		$config = new GlobalVarConfig( $prefix );

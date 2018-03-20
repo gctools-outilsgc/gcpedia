@@ -20,10 +20,14 @@
  * @file
  */
 
+use MediaWiki\MediaWikiServices;
+use Wikimedia\Rdbms\ResultWrapper;
+use Wikimedia\Rdbms\IDatabase;
+
 /**
  * List for revision table items for a single page
  */
-abstract class RevisionListBase extends ContextSource {
+abstract class RevisionListBase extends ContextSource implements Iterator {
 	/** @var Title */
 	public $title;
 
@@ -33,7 +37,7 @@ abstract class RevisionListBase extends ContextSource {
 	/** @var ResultWrapper|bool */
 	protected $res;
 
-	/** @var bool|object */
+	/** @var bool|Revision */
 	protected $current;
 
 	/**
@@ -81,12 +85,16 @@ abstract class RevisionListBase extends ContextSource {
 	 */
 	public function reset() {
 		if ( !$this->res ) {
-			$this->res = $this->doQuery( wfGetDB( DB_SLAVE ) );
+			$this->res = $this->doQuery( wfGetDB( DB_REPLICA ) );
 		} else {
 			$this->res->rewind();
 		}
 		$this->initCurrent();
 		return $this->current;
+	}
+
+	public function rewind() {
+		$this->reset();
 	}
 
 	/**
@@ -107,6 +115,14 @@ abstract class RevisionListBase extends ContextSource {
 		return $this->current;
 	}
 
+	public function key() {
+		return $this->res ? $this->res->key() : 0;
+	}
+
+	public function valid() {
+		return $this->res ? $this->res->valid() : false;
+	}
+
 	/**
 	 * Get the number of items in the list.
 	 * @return int
@@ -121,7 +137,7 @@ abstract class RevisionListBase extends ContextSource {
 
 	/**
 	 * Do the DB query to iterate through the objects.
-	 * @param DatabaseBase $db DatabaseBase object to use for the query
+	 * @param IDatabase $db DB object to use for the query
 	 */
 	abstract public function doQuery( $db );
 
@@ -256,6 +272,14 @@ abstract class RevisionItemBase {
 	 * This is used to show the list in HTML form, by the special page.
 	 */
 	abstract public function getHTML();
+
+	/**
+	 * Returns an instance of LinkRenderer
+	 * @return \MediaWiki\Linker\LinkRenderer
+	 */
+	protected function getLinkRenderer() {
+		return MediaWikiServices::getInstance()->getLinkRenderer();
+	}
 }
 
 class RevisionList extends RevisionListBase {
@@ -264,23 +288,23 @@ class RevisionList extends RevisionListBase {
 	}
 
 	/**
-	 * @param DatabaseBase $db
+	 * @param IDatabase $db
 	 * @return mixed
 	 */
 	public function doQuery( $db ) {
-		$conds = array( 'rev_page' => $this->title->getArticleID() );
+		$conds = [ 'rev_page' => $this->title->getArticleID() ];
 		if ( $this->ids !== null ) {
 			$conds['rev_id'] = array_map( 'intval', $this->ids );
 		}
 		return $db->select(
-			array( 'revision', 'page', 'user' ),
+			[ 'revision', 'page', 'user' ],
 			array_merge( Revision::selectFields(), Revision::selectUserFields() ),
 			$conds,
 			__METHOD__,
-			array( 'ORDER BY' => 'rev_id DESC' ),
-			array(
+			[ 'ORDER BY' => 'rev_id DESC' ],
+			[
 				'page' => Revision::pageJoinCond(),
-				'user' => Revision::userJoinCond() )
+				'user' => Revision::userJoinCond() ]
 		);
 	}
 
@@ -341,20 +365,21 @@ class RevisionItem extends RevisionItemBase {
 	 * @return string
 	 */
 	protected function getRevisionLink() {
-		$date = htmlspecialchars( $this->list->getLanguage()->userTimeAndDate(
-			$this->revision->getTimestamp(), $this->list->getUser() ) );
+		$date = $this->list->getLanguage()->userTimeAndDate(
+			$this->revision->getTimestamp(), $this->list->getUser() );
 
 		if ( $this->isDeleted() && !$this->canViewContent() ) {
-			return $date;
+			return htmlspecialchars( $date );
 		}
-		return Linker::linkKnown(
+		$linkRenderer = $this->getLinkRenderer();
+		return $linkRenderer->makeKnownLink(
 			$this->list->title,
 			$date,
-			array(),
-			array(
+			[],
+			[
 				'oldid' => $this->revision->getId(),
 				'unhide' => 1
-			)
+			]
 		);
 	}
 
@@ -369,15 +394,16 @@ class RevisionItem extends RevisionItemBase {
 		if ( $this->isDeleted() && !$this->canViewContent() ) {
 			return $this->context->msg( 'diff' )->escaped();
 		} else {
-			return Linker::linkKnown(
+			$linkRenderer = $this->getLinkRenderer();
+			return $linkRenderer->makeKnownLink(
 					$this->list->title,
-					$this->list->msg( 'diff' )->escaped(),
-					array(),
-					array(
+					$this->list->msg( 'diff' )->text(),
+					[],
+					[
 						'diff' => $this->revision->getId(),
 						'oldid' => 'prev',
 						'unhide' => 1
-					)
+					]
 				);
 		}
 	}

@@ -81,7 +81,7 @@ class ArchivedFile {
 	/** @var string SHA-1 hash of file content */
 	private $sha1;
 
-	/** @var string Number of pages of a multipage document, or false for
+	/** @var int|false Number of pages of a multipage document, or false for
 	 * documents which aren't multipage documents
 	 */
 	private $pageCount;
@@ -155,7 +155,7 @@ class ArchivedFile {
 		if ( $this->dataLoaded ) {
 			return true;
 		}
-		$conds = array();
+		$conds = [];
 
 		if ( $this->id > 0 ) {
 			$conds['fa_id'] = $this->id;
@@ -177,13 +177,13 @@ class ArchivedFile {
 
 		if ( !$this->title || $this->title->getNamespace() == NS_FILE ) {
 			$this->dataLoaded = true; // set it here, to have also true on miss
-			$dbr = wfGetDB( DB_SLAVE );
+			$dbr = wfGetDB( DB_REPLICA );
 			$row = $dbr->selectRow(
 				'filearchive',
 				self::selectFields(),
 				$conds,
 				__METHOD__,
-				array( 'ORDER BY' => 'fa_timestamp DESC' )
+				[ 'ORDER BY' => 'fa_timestamp DESC' ]
 			);
 			if ( !$row ) {
 				// this revision does not exist?
@@ -215,10 +215,12 @@ class ArchivedFile {
 
 	/**
 	 * Fields in the filearchive table
+	 * @todo Deprecate this in favor of a method that returns tables and joins
+	 *  as well, and use CommentStore::getJoin().
 	 * @return array
 	 */
 	static function selectFields() {
-		return array(
+		return [
 			'fa_id',
 			'fa_name',
 			'fa_archive_name',
@@ -232,14 +234,13 @@ class ArchivedFile {
 			'fa_media_type',
 			'fa_major_mime',
 			'fa_minor_mime',
-			'fa_description',
 			'fa_user',
 			'fa_user_text',
 			'fa_timestamp',
 			'fa_deleted',
 			'fa_deleted_timestamp', /* Used by LocalFileRestoreBatch */
 			'fa_sha1',
-		);
+		] + CommentStore::newKey( 'fa_description' )->getFields();
 	}
 
 	/**
@@ -261,7 +262,9 @@ class ArchivedFile {
 		$this->metadata = $row->fa_metadata;
 		$this->mime = "$row->fa_major_mime/$row->fa_minor_mime";
 		$this->media_type = $row->fa_media_type;
-		$this->description = $row->fa_description;
+		$this->description = CommentStore::newKey( 'fa_description' )
+			// Legacy because $row probably came from self::selectFields()
+			->getCommentLegacy( wfGetDB( DB_REPLICA ), $row )->text;
 		$this->user = $row->fa_user;
 		$this->user_text = $row->fa_user_text;
 		$this->timestamp = $row->fa_timestamp;
@@ -425,6 +428,7 @@ class ArchivedFile {
 	 */
 	function pageCount() {
 		if ( !isset( $this->pageCount ) ) {
+			// @FIXME: callers expect File objects
 			if ( $this->getHandler() && $this->handler->isMultiPage( $this ) ) {
 				$this->pageCount = $this->handler->pageCount( $this );
 			} else {
@@ -492,25 +496,9 @@ class ArchivedFile {
 	}
 
 	/**
-	 * Return the user name of the uploader.
-	 *
-	 * @deprecated since 1.23 Use getUser( 'text' ) instead.
-	 * @return string
-	 */
-	public function getUserText() {
-		wfDeprecated( __METHOD__, '1.23' );
-		$this->load();
-		if ( $this->isDeleted( File::DELETED_USER ) ) {
-			return 0;
-		} else {
-			return $this->user_text;
-		}
-	}
-
-	/**
 	 * Return upload description.
 	 *
-	 * @return string
+	 * @return string|int
 	 */
 	public function getDescription() {
 		$this->load();

@@ -39,17 +39,17 @@ class ApiClearHasMsg extends ApiBase {
 	}
 
 	public function mustBePosted() {
-		return false;
+		return true;
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=clearhasmsg'
 				=> 'apihelp-clearhasmsg-example-1',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:ClearHasMsg';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:ClearHasMsg';
 	}
 }

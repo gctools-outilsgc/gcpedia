@@ -26,12 +26,11 @@ use Monolog\Formatter\NormalizerFormatter;
 /**
  * Log message formatter that mimics the legacy log message formatting of
  * `wfDebug`, `wfDebugLog`, `wfLogDBError` and `wfErrorLog` global functions by
- * delegating the formatting to \\MediaWiki\\Logger\\LegacyLogger.
+ * delegating the formatting to \MediaWiki\Logger\LegacyLogger.
  *
  * @since 1.25
- * @author Bryan Davis <bd808@wikimedia.org>
- * @copyright © 2013 Bryan Davis and Wikimedia Foundation.
- * @see \\MediaWiki\\Logger\\LegacyLogger
+ * @copyright © 2013 Wikimedia Foundation and contributors
+ * @see \MediaWiki\Logger\LegacyLogger
  */
 class LegacyFormatter extends NormalizerFormatter {
 

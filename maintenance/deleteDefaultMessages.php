@@ -33,33 +33,43 @@ require_once __DIR__ . '/Maintenance.php';
 class DeleteDefaultMessages extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Deletes all pages in the MediaWiki namespace" .
-			" which were last edited by \"MediaWiki default\"";
+		$this->addDescription( 'Deletes all pages in the MediaWiki namespace' .
+			' which were last edited by "MediaWiki default"' );
+		$this->addOption( 'dry-run', 'Perform a dry run, delete nothing' );
 	}
 
 	public function execute() {
 		global $wgUser;
 
 		$this->output( "Checking existence of old default messages..." );
-		$dbr = wfGetDB( DB_SLAVE );
-		$res = $dbr->select( array( 'page', 'revision' ),
-			array( 'page_namespace', 'page_title' ),
-			array(
+		$dbr = $this->getDB( DB_REPLICA );
+		$res = $dbr->select( [ 'page', 'revision' ],
+			[ 'page_namespace', 'page_title' ],
+			[
 				'page_namespace' => NS_MEDIAWIKI,
 				'page_latest=rev_id',
 				'rev_user_text' => 'MediaWiki default',
-			)
+			]
 		);
 
 		if ( $dbr->numRows( $res ) == 0 ) {
-			# No more messages left
+			// No more messages left
 			$this->output( "done.\n" );
-
 			return;
 		}
 
-		# Deletions will be made by $user temporarly added to the bot group
-		# in order to hide it in RecentChanges.
+		$dryrun = $this->hasOption( 'dry-run' );
+		if ( $dryrun ) {
+			foreach ( $res as $row ) {
+				$title = Title::makeTitle( $row->page_namespace, $row->page_title );
+				$this->output( "\n* [[$title]]" );
+			}
+			$this->output( "\n\nRun again without --dry-run to delete these pages.\n" );
+			return;
+		}
+
+		// Deletions will be made by $user temporarly added to the bot group
+		// in order to hide it in RecentChanges.
 		$user = User::newFromName( 'MediaWiki default' );
 		if ( !$user ) {
 			$this->error( "Invalid username", true );
@@ -67,9 +77,9 @@ class DeleteDefaultMessages extends Maintenance {
 		$user->addGroup( 'bot' );
 		$wgUser = $user;
 
-		# Handle deletion
+		// Handle deletion
 		$this->output( "\n...deleting old default messages (this may take a long time!)...", 'msg' );
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = $this->getDB( DB_MASTER );
 
 		foreach ( $res as $row ) {
 			wfWaitForSlaves();

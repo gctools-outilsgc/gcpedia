@@ -40,14 +40,14 @@ abstract class ParameterizedPassword extends Password {
 	 * Named parameters that have default values for this password type
 	 * @var array
 	 */
-	protected $params = array();
+	protected $params = [];
 
 	/**
 	 * Extra arguments that were found in the hash. This may or may not make
 	 * the hash invalid.
 	 * @var array
 	 */
-	protected $args = array();
+	protected $args = [];
 
 	protected function parseHash( $hash ) {
 		parent::parseHash( $hash );
@@ -79,7 +79,7 @@ abstract class ParameterizedPassword extends Password {
 	}
 
 	public function needsUpdate() {
-		return parent::needsUpdate() || $this->params !== $this->getDefaultParams();
+		return $this->params !== $this->getDefaultParams();
 	}
 
 	public function toString() {
@@ -90,7 +90,9 @@ abstract class ParameterizedPassword extends Password {
 			$str .= $this->getDelimiter();
 		}
 
-		return $str . $this->hash;
+		$res = $str . $this->hash;
+		$this->assertIsSafeSize( $res );
+		return $res;
 	}
 
 	/**

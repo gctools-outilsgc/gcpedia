@@ -29,13 +29,13 @@
 class SpecialFilepath extends RedirectSpecialPage {
 	public function __construct() {
 		parent::__construct( 'Filepath' );
-		$this->mAllowedRedirectParams = array( 'width', 'height' );
+		$this->mAllowedRedirectParams = [ 'width', 'height' ];
 	}
 
 	/**
 	 * Implement by redirecting through Special:Redirect/file.
 	 *
-	 * @param string|null $subpage
+	 * @param string|null $par
 	 * @return Title
 	 */
 	public function getRedirect( $par ) {

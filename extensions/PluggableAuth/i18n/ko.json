@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Revi",
+			"Ykhwong"
+		]
+	},
+	"pluggableauth-desc": "플러그 가능한 식별과 인증을 위한 프레임워크 제공",
+	"pluggableauth-not-authorized": "$1 {{GENDER:$1|사용자}}가 인증되지 않았습니다.",
+	"pluggableauth-authentication-failure": "사용자를 인증할 수 없습니다.",
+	"pluggableauth-loginbutton-label": "PluggableAuth로 로그인"
+}

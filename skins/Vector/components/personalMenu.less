@@ -1,9 +1,4 @@
 /* Personal */
-/*GCChange to make links more visible since body background change*/
-#p-personal a.new:visited, #p-personal a {
-	color: blue;
-}
-
 #p-personal {
 	position: absolute;
 	top: 0.33em;
@@ -41,5 +36,10 @@
 	/* SVG support using a transparent gradient to guarantee cross-browser
 	 * compatibility (browsers able to understand gradient syntax support also SVG) */
 	.background-image-svg('images/user-icon.svg', 'images/user-icon.png');
-	padding-left: 15px !important;
+	padding-left: 15px !important; // stylelint-disable-line declaration-no-important
+}
+
+/* Show "Not logged in" text in gray */
+#pt-anonuserpage {
+	color: #707070;
 }

@@ -19,12 +19,17 @@
  */
 
 use MediaWiki\Logger\LoggerFactory;
+use MediaWiki\MediaWikiServices;
+use Psr\Log\LogLevel;
+use Wikimedia\Rdbms\DBError;
 
 /**
  * Handler class for MWExceptions
  * @ingroup Exception
  */
 class MWExceptionHandler {
+	const CAUGHT_BY_HANDLER = 'mwe_handler'; // error reported by this exception handler
+	const CAUGHT_BY_OTHER = 'other'; // error reported by direct logException() call
 
 	/**
 	 * @var string $reservedMemory
@@ -33,10 +38,10 @@ class MWExceptionHandler {
 	/**
 	 * @var array $fatalErrorTypes
 	 */
-	protected static $fatalErrorTypes = array(
+	protected static $fatalErrorTypes = [
 		E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR,
 		/* HHVM's FATAL_ERROR level */ 16777217,
-	);
+	];
 	/**
 	 * @var bool $handledFatalCallback
 	 */
@@ -59,92 +64,51 @@ class MWExceptionHandler {
 	 * @param Exception|Throwable $e
 	 */
 	protected static function report( $e ) {
-		global $wgShowExceptionDetails;
-
-		$cmdLine = MWException::isCommandLine();
-
-		if ( $e instanceof MWException ) {
-			try {
-				// Try and show the exception prettily, with the normal skin infrastructure
+		try {
+			// Try and show the exception prettily, with the normal skin infrastructure
+			if ( $e instanceof MWException ) {
+				// Delegate to MWException until all subclasses are handled by
+				// MWExceptionRenderer and MWException::report() has been
+				// removed.
 				$e->report();
-			} catch ( Exception $e2 ) {
-				// Exception occurred from within exception handler
-				// Show a simpler message for the original exception,
-				// don't try to invoke report()
-				$message = "MediaWiki internal error.\n\n";
-
-				if ( $wgShowExceptionDetails ) {
-					$message .= 'Original exception: ' . self::getLogMessage( $e ) .
-						"\nBacktrace:\n" . self::getRedactedTraceAsString( $e ) .
-						"\n\nException caught inside exception handler: " . self::getLogMessage( $e2 ) .
-						"\nBacktrace:\n" . self::getRedactedTraceAsString( $e2 );
-				} else {
-					$message .= "Exception caught inside exception handler.\n\n" .
-						"Set \$wgShowExceptionDetails = true; at the bottom of LocalSettings.php " .
-						"to show detailed debugging information.";
-				}
-
-				$message .= "\n";
-
-				if ( $cmdLine ) {
-					self::printError( $message );
-				} else {
-					echo nl2br( htmlspecialchars( $message ) ) . "\n";
-				}
-			}
-		} else {
-			$message = "Exception encountered, of type \"" . get_class( $e ) . "\"";
-
-			if ( $wgShowExceptionDetails ) {
-				$message .= "\n" . self::getLogMessage( $e ) . "\nBacktrace:\n" .
-					self::getRedactedTraceAsString( $e ) . "\n";
-			}
-
-			if ( $cmdLine ) {
-				self::printError( $message );
 			} else {
-				echo nl2br( htmlspecialchars( $message ) ) . "\n";
+				MWExceptionRenderer::output( $e, MWExceptionRenderer::AS_PRETTY );
 			}
-
+		} catch ( Exception $e2 ) {
+			// Exception occurred from within exception handler
+			// Show a simpler message for the original exception,
+			// don't try to invoke report()
+			MWExceptionRenderer::output( $e, MWExceptionRenderer::AS_RAW, $e2 );
 		}
 	}
 
 	/**
-	 * Print a message, if possible to STDERR.
-	 * Use this in command line mode only (see isCommandLine)
+	 * Roll back any open database transactions and log the stack trace of the exception
 	 *
-	 * @param string $message Failure text
-	 */
-	public static function printError( $message ) {
-		# NOTE: STDERR may not be available, especially if php-cgi is used from the
-		# command line (bug #15602). Try to produce meaningful output anyway. Using
-		# echo may corrupt output to STDOUT though.
-		if ( defined( 'STDERR' ) ) {
-			fwrite( STDERR, $message );
-		} else {
-			echo $message;
-		}
-	}
-
-	/**
-	 * If there are any open database transactions, roll them back and log
-	 * the stack trace of the exception that should have been caught so the
-	 * transaction could be aborted properly.
+	 * This method is used to attempt to recover from exceptions
 	 *
 	 * @since 1.23
 	 * @param Exception|Throwable $e
 	 */
 	public static function rollbackMasterChangesAndLog( $e ) {
-		$factory = wfGetLBFactory();
-		if ( $factory->hasMasterChanges() ) {
-			$logger = LoggerFactory::getInstance( 'Bug56269' );
-			$logger->warning(
-				'Exception thrown with an uncommited database transaction: ' .
-				self::getLogMessage( $e ),
-				self::getLogContext( $e )
-			);
-			$factory->rollbackMasterChanges();
+		$services = MediaWikiServices::getInstance();
+		if ( !$services->isServiceDisabled( 'DBLoadBalancerFactory' ) ) {
+			// Rollback DBs to avoid transaction notices. This might fail
+			// to rollback some databases due to connection issues or exceptions.
+			// However, any sane DB driver will rollback implicitly anyway.
+			try {
+				$services->getDBLoadBalancerFactory()->rollbackMasterChanges( __METHOD__ );
+			} catch ( DBError $e2 ) {
+				// If the DB is unreacheable, rollback() will throw an error
+				// and the error report() method might need messages from the DB,
+				// which would result in an exception loop. PHP may escalate such
+				// errors to "Exception thrown without a stack frame" fatals, but
+				// it's better to be explicit here.
+				self::logException( $e2, self::CAUGHT_BY_HANDLER );
+			}
 		}
+
+		self::logException( $e, self::CAUGHT_BY_HANDLER );
 	}
 
 	/**
@@ -162,25 +126,8 @@ class MWExceptionHandler {
 	 * @param Exception|Throwable $e
 	 */
 	public static function handleException( $e ) {
-		try {
-			// Rollback DBs to avoid transaction notices. This may fail
-			// to rollback some DB due to connection issues or exceptions.
-			// However, any sane DB driver will rollback implicitly anyway.
-			self::rollbackMasterChangesAndLog( $e );
-		} catch ( DBError $e2 ) {
-			// If the DB is unreacheable, rollback() will throw an error
-			// and the error report() method might need messages from the DB,
-			// which would result in an exception loop. PHP may escalate such
-			// errors to "Exception thrown without a stack frame" fatals, but
-			// it's better to be explicit here.
-			self::logException( $e2 );
-		}
-
-		self::logException( $e );
+		self::rollbackMasterChangesAndLog( $e );
 		self::report( $e );
-
-		// Exit value should be nonzero for the benefit of shell jobs
-		exit( 1 );
 	}
 
 	/**
@@ -197,6 +144,7 @@ class MWExceptionHandler {
 	 * @param string $message
 	 * @param string $file
 	 * @param int $line
+	 * @return bool
 	 *
 	 * @see logError()
 	 */
@@ -214,37 +162,42 @@ class MWExceptionHandler {
 		switch ( $level ) {
 			case E_RECOVERABLE_ERROR:
 				$levelName = 'Error';
+				$severity = LogLevel::ERROR;
 				break;
 			case E_WARNING:
 			case E_CORE_WARNING:
 			case E_COMPILE_WARNING:
 			case E_USER_WARNING:
 				$levelName = 'Warning';
+				$severity = LogLevel::WARNING;
 				break;
 			case E_NOTICE:
 			case E_USER_NOTICE:
 				$levelName = 'Notice';
+				$severity = LogLevel::INFO;
 				break;
 			case E_STRICT:
 				$levelName = 'Strict Standards';
+				$severity = LogLevel::DEBUG;
 				break;
 			case E_DEPRECATED:
 			case E_USER_DEPRECATED:
 				$levelName = 'Deprecated';
+				$severity = LogLevel::INFO;
 				break;
 			default:
 				$levelName = 'Unknown error';
+				$severity = LogLevel::ERROR;
 				break;
 		}
 
 		$e = new ErrorException( "PHP $levelName: $message", 0, $level, $file, $line );
-		self::logError( $e, 'error' );
+		self::logError( $e, 'error', $severity );
 
 		// This handler is for logging only. Return false will instruct PHP
 		// to continue regular handling.
 		return false;
 	}
-
 
 	/**
 	 * Dual purpose callback used as both a set_error_handler() callback and
@@ -326,17 +279,18 @@ TXT;
 		// log.
 		$trace = $trace ?: debug_backtrace();
 		$logger = LoggerFactory::getInstance( 'fatal' );
-		$logger->error( $msg, array(
-			'exception' => array(
+		$logger->error( $msg, [
+			'fatal_exception' => [
 				'class' => 'ErrorException',
 				'message' => "PHP Fatal Error: {$message}",
 				'code' => $level,
 				'file' => $file,
 				'line' => $line,
 				'trace' => static::redactTrace( $trace ),
-			),
+			],
 			'exception_id' => wfRandomString( 8 ),
-		) );
+			'caught_by' => self::CAUGHT_BY_HANDLER
+		] );
 
 		// Remember call so we don't double process via HHVM's fatal
 		// notifications and the shutdown hook behavior
@@ -369,21 +323,24 @@ TXT;
 	public static function prettyPrintTrace( array $trace, $pad = '' ) {
 		$text = '';
 
+		$level = 0;
 		foreach ( $trace as $level => $frame ) {
 			if ( isset( $frame['file'] ) && isset( $frame['line'] ) ) {
 				$text .= "{$pad}#{$level} {$frame['file']}({$frame['line']}): ";
 			} else {
 				// 'file' and 'line' are unset for calls via call_user_func
-				// (bug 55634) This matches behaviour of
+				// (T57634) This matches behaviour of
 				// Exception::getTraceAsString to instead display "[internal
 				// function]".
 				$text .= "{$pad}#{$level} [internal function]: ";
 			}
 
-			if ( isset( $frame['class'] ) ) {
+			if ( isset( $frame['class'] ) && isset( $frame['type'] ) && isset( $frame['function'] ) ) {
 				$text .= $frame['class'] . $frame['type'] . $frame['function'];
-			} else {
+			} elseif ( isset( $frame['function'] ) ) {
 				$text .= $frame['function'];
+			} else {
+				$text .= 'NO_FUNCTION_GIVEN';
 			}
 
 			if ( isset( $frame['args'] ) ) {
@@ -442,14 +399,13 @@ TXT;
 	 * $wgShowExceptionDetails is set to false), to the entry in the debug log.
 	 *
 	 * @since 1.22
+	 * @deprecated since 1.27: Exception IDs are synonymous with request IDs.
 	 * @param Exception|Throwable $e
 	 * @return string
 	 */
 	public static function getLogId( $e ) {
-		if ( !isset( $e->_mwLogId ) ) {
-			$e->_mwLogId = wfRandomString( 8 );
-		}
-		return $e->_mwLogId;
+		wfDeprecated( __METHOD__, '1.27' );
+		return WebRequest::getRequestId();
 	}
 
 	/**
@@ -475,7 +431,7 @@ TXT;
 	 * @return string
 	 */
 	public static function getLogMessage( $e ) {
-		$id = self::getLogId( $e );
+		$id = WebRequest::getRequestId();
 		$type = get_class( $e );
 		$file = $e->getFile();
 		$line = $e->getLine();
@@ -486,6 +442,36 @@ TXT;
 	}
 
 	/**
+	 * Get a normalised message for formatting with PSR-3 log event context.
+	 *
+	 * Must be used together with `getLogContext()` to be useful.
+	 *
+	 * @since 1.30
+	 * @param Exception|Throwable $e
+	 * @return string
+	 */
+	public static function getLogNormalMessage( $e ) {
+		$type = get_class( $e );
+		$file = $e->getFile();
+		$line = $e->getLine();
+		$message = $e->getMessage();
+
+		return "[{exception_id}] {exception_url}   $type from line $line of $file: $message";
+	}
+
+	/**
+	 * @param Exception|Throwable $e
+	 * @return string
+	 */
+	public static function getPublicLogMessage( $e ) {
+		$reqId = WebRequest::getRequestId();
+		$type = get_class( $e );
+		return '[' . $reqId . '] '
+			. gmdate( 'Y-m-d H:i:s' ) . ': '
+			. 'Fatal exception of type "' . $type . '"';
+	}
+
+	/**
 	 * Get a PSR-3 log event context from an Exception.
 	 *
 	 * Creates a structured array containing information about the provided
@@ -493,13 +479,16 @@ TXT;
 	 * logger.
 	 *
 	 * @param Exception|Throwable $e
+	 * @param string $catcher CAUGHT_BY_* class constant indicating what caught the error
 	 * @return array
 	 */
-	public static function getLogContext( $e ) {
-		return array(
+	public static function getLogContext( $e, $catcher = self::CAUGHT_BY_OTHER ) {
+		return [
 			'exception' => $e,
-			'exception_id' => static::getLogId( $e ),
-		);
+			'exception_id' => WebRequest::getRequestId(),
+			'exception_url' => self::getURL() ?: '[no req]',
+			'caught_by' => $catcher
+		];
 	}
 
 	/**
@@ -510,20 +499,23 @@ TXT;
 	 * will be redacted as per getRedactedTraceAsArray().
 	 *
 	 * @param Exception|Throwable $e
+	 * @param string $catcher CAUGHT_BY_* class constant indicating what caught the error
 	 * @return array
 	 * @since 1.26
 	 */
-	public static function getStructuredExceptionData( $e ) {
+	public static function getStructuredExceptionData( $e, $catcher = self::CAUGHT_BY_OTHER ) {
 		global $wgLogExceptionBacktrace;
-		$data = array(
-			'id' => self::getLogId( $e ),
+
+		$data = [
+			'id' => WebRequest::getRequestId(),
 			'type' => get_class( $e ),
 			'file' => $e->getFile(),
 			'line' => $e->getLine(),
 			'message' => $e->getMessage(),
 			'code' => $e->getCode(),
 			'url' => self::getURL() ?: null,
-		);
+			'caught_by' => $catcher
+		];
 
 		if ( $e instanceof ErrorException &&
 			( error_reporting() & $e->getSeverity() ) === 0
@@ -538,7 +530,7 @@ TXT;
 
 		$previous = $e->getPrevious();
 		if ( $previous !== null ) {
-			$data['previous'] = self::getStructuredExceptionData( $previous );
+			$data['previous'] = self::getStructuredExceptionData( $previous, $catcher );
 		}
 
 		return $data;
@@ -595,11 +587,17 @@ TXT;
 	 * @param Exception|Throwable $e
 	 * @param bool $pretty Add non-significant whitespace to improve readability (default: false).
 	 * @param int $escaping Bitfield consisting of FormatJson::.*_OK class constants.
+	 * @param string $catcher CAUGHT_BY_* class constant indicating what caught the error
 	 * @return string|false JSON string if successful; false upon failure
 	 */
-	public static function jsonSerializeException( $e, $pretty = false, $escaping = 0 ) {
-		$data = self::getStructuredExceptionData( $e );
-		return FormatJson::encode( $data, $pretty, $escaping );
+	public static function jsonSerializeException(
+		$e, $pretty = false, $escaping = 0, $catcher = self::CAUGHT_BY_OTHER
+	) {
+		return FormatJson::encode(
+			self::getStructuredExceptionData( $e, $catcher ),
+			$pretty,
+			$escaping
+		);
 	}
 
 	/**
@@ -610,22 +608,23 @@ TXT;
 	 *
 	 * @since 1.22
 	 * @param Exception|Throwable $e
+	 * @param string $catcher CAUGHT_BY_* class constant indicating what caught the error
 	 */
-	public static function logException( $e ) {
+	public static function logException( $e, $catcher = self::CAUGHT_BY_OTHER ) {
 		if ( !( $e instanceof MWException ) || $e->isLoggable() ) {
 			$logger = LoggerFactory::getInstance( 'exception' );
 			$logger->error(
-				self::getLogMessage( $e ),
-				self::getLogContext( $e )
+				self::getLogNormalMessage( $e ),
+				self::getLogContext( $e, $catcher )
 			);
 
-			$json = self::jsonSerializeException( $e, false, FormatJson::ALL_OK );
+			$json = self::jsonSerializeException( $e, false, FormatJson::ALL_OK, $catcher );
 			if ( $json !== false ) {
 				$logger = LoggerFactory::getInstance( 'exception-json' );
-				$logger->error( $json, array( 'private' => true ) );
+				$logger->error( $json, [ 'private' => true ] );
 			}
 
-			Hooks::run( 'LogException', array( $e, false ) );
+			Hooks::run( 'LogException', [ $e, false ] );
 		}
 	}
 
@@ -635,27 +634,32 @@ TXT;
 	 * @since 1.25
 	 * @param ErrorException $e
 	 * @param string $channel
-	*/
-	protected static function logError( ErrorException $e, $channel ) {
+	 * @param string $level
+	 */
+	protected static function logError(
+		ErrorException $e, $channel, $level = LogLevel::ERROR
+	) {
+		$catcher = self::CAUGHT_BY_HANDLER;
 		// The set_error_handler callback is independent from error_reporting.
 		// Filter out unwanted errors manually (e.g. when
 		// MediaWiki\suppressWarnings is active).
 		$suppressed = ( error_reporting() & $e->getSeverity() ) === 0;
 		if ( !$suppressed ) {
 			$logger = LoggerFactory::getInstance( $channel );
-			$logger->error(
-				self::getLogMessage( $e ),
-				self::getLogContext( $e )
+			$logger->log(
+				$level,
+				self::getLogNormalMessage( $e ),
+				self::getLogContext( $e, $catcher )
 			);
 		}
 
 		// Include all errors in the json log (surpressed errors will be flagged)
-		$json = self::jsonSerializeException( $e, false, FormatJson::ALL_OK );
+		$json = self::jsonSerializeException( $e, false, FormatJson::ALL_OK, $catcher );
 		if ( $json !== false ) {
 			$logger = LoggerFactory::getInstance( "{$channel}-json" );
-			$logger->error( $json, array( 'private' => true ) );
+			$logger->log( $level, $json, [ 'private' => true ] );
 		}
 
-		Hooks::run( 'LogException', array( $e, $suppressed ) );
+		Hooks::run( 'LogException', [ $e, $suppressed ] );
 	}
 }

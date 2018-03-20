@@ -15,7 +15,8 @@
 		slice = Array.prototype.slice,
 		parserDefaults = {
 			magic: {
-				SITENAME: mw.config.get( 'wgSiteName' )
+				PAGENAME: mw.config.get( 'wgPageName' ),
+				PAGENAMEE: mw.util.wikiUrlencode( mw.config.get( 'wgPageName' ) )
 			},
 			// Whitelist for allowed HTML elements in wikitext.
 			// Self-closing tags are not currently supported.
@@ -53,7 +54,6 @@
 			// applies to direct calls to jqueryMsg. The default for mediawiki.js itself
 			// is 'text', including when it uses jqueryMsg.
 			format: 'parse'
-
 		};
 
 	/**
@@ -73,7 +73,7 @@
 	function appendWithoutParsing( $parent, children ) {
 		var i, len;
 
-		if ( !$.isArray( children ) ) {
+		if ( !Array.isArray( children ) ) {
 			children = [ children ];
 		}
 
@@ -133,17 +133,21 @@
 	 * @return {jQuery} return.return
 	 */
 	function getFailableParserFn( options ) {
-		var parser = new mw.jqueryMsg.parser( options );
-
 		return function ( args ) {
 			var fallback,
+				// eslint-disable-next-line new-cap
+				parser = new mw.jqueryMsg.parser( options ),
 				key = args[ 0 ],
-				argsArray = $.isArray( args[ 1 ] ) ? args[ 1 ] : slice.call( args, 1 );
+				argsArray = Array.isArray( args[ 1 ] ) ? args[ 1 ] : slice.call( args, 1 );
 			try {
 				return parser.parse( key, argsArray );
 			} catch ( e ) {
 				fallback = parser.settings.messages.get( key );
 				mw.log.warn( 'mediawiki.jqueryMsg: ' + key + ': ' + e.message );
+				mw.track( 'mediawiki.jqueryMsg.error', {
+					messageKey: key,
+					errorMessage: e.message
+				} );
 				return $( '<span>' ).text( fallback );
 			}
 		};
@@ -159,12 +163,27 @@
 	 * parsers, pass the relevant options to mw.jqueryMsg.parser.
 	 *
 	 * @private
-	 * @param {Object} data
+	 * @param {Object} data New data to extend parser defaults with
+	 * @param {boolean} [deep=false] Whether the extend is done recursively (deep)
 	 */
-	mw.jqueryMsg.setParserDefaults = function ( data ) {
-		if ( data.allowedHtmlElements ) {
-			parserDefaults.allowedHtmlElements = data.allowedHtmlElements;
+	mw.jqueryMsg.setParserDefaults = function ( data, deep ) {
+		if ( deep ) {
+			$.extend( true, parserDefaults, data );
+		} else {
+			$.extend( parserDefaults, data );
 		}
+	};
+
+	/**
+	 * Get current parser defaults.
+	 *
+	 * Primarily used for the unit test. Returns a copy.
+	 *
+	 * @private
+	 * @return {Object}
+	 */
+	mw.jqueryMsg.getParserDefaults = function () {
+		return $.extend( {}, parserDefaults );
 	};
 
 	/**
@@ -198,10 +217,11 @@
 		}
 
 		return function () {
+			var failableResult;
 			if ( !failableParserFn ) {
 				failableParserFn = getFailableParserFn( options );
 			}
-			var failableResult = failableParserFn( arguments );
+			failableResult = failableParserFn( arguments );
 			if ( format === 'text' || format === 'escaped' ) {
 				return failableResult.text();
 			} else {
@@ -236,10 +256,11 @@
 		var failableParserFn;
 
 		return function () {
+			var $target;
 			if ( !failableParserFn ) {
 				failableParserFn = getFailableParserFn( options );
 			}
-			var $target = this.empty();
+			$target = this.empty();
 			appendWithoutParsing( $target, failableParserFn( arguments ) );
 			return $target;
 		};
@@ -256,7 +277,9 @@
 	mw.jqueryMsg.parser = function ( options ) {
 		this.settings = $.extend( {}, parserDefaults, options );
 		this.settings.onlyCurlyBraceTransform = ( this.settings.format === 'text' || this.settings.format === 'escaped' );
+		this.astCache = {};
 
+		// eslint-disable-next-line new-cap
 		this.emitter = new mw.jqueryMsg.htmlEmitter( this.settings.language, this.settings.magic );
 	};
 
@@ -271,22 +294,28 @@
 		 * @return {jQuery}
 		 */
 		parse: function ( key, replacements ) {
-			return this.emitter.emit( this.getAst( key ), replacements );
+			var ast = this.getAst( key );
+			return this.emitter.emit( ast, replacements );
 		},
 
 		/**
 		 * Fetch the message string associated with a key, return parsed structure. Memoized.
-		 * Note that we pass '[' + key + ']' back for a missing message here.
+		 * Note that we pass '⧼' + key + '⧽' back for a missing message here.
 		 *
 		 * @param {string} key
-		 * @return {string|Array} string of '[key]' if message missing, simple string if possible, array of arrays if needs parsing
+		 * @return {string|Array} string of '⧼key⧽' if message missing, simple string if possible, array of arrays if needs parsing
 		 */
 		getAst: function ( key ) {
-			var wikiText = this.settings.messages.get( key );
-			if ( typeof wikiText !== 'string' ) {
-				wikiText = '\\[' + key + '\\]';
+			var wikiText;
+
+			if ( !this.astCache.hasOwnProperty( key ) ) {
+				wikiText = this.settings.messages.get( key );
+				if ( typeof wikiText !== 'string' ) {
+					wikiText = '⧼' + key + '⧽';
+				}
+				this.astCache[ key ] = this.wikiTextToAst( wikiText );
 			}
-			return this.wikiTextToAst( wikiText );
+			return this.astCache[ key ];
 		},
 
 		/**
@@ -462,10 +491,12 @@
 			// recursive functions seem not to work in all browsers then. (Tested IE6-7, Opera, Safari, FF)
 			// This may be because, to save code, memoization was removed
 
+			/* eslint-disable no-useless-escape */
 			regularLiteral = makeRegexParser( /^[^{}\[\]$<\\]/ );
 			regularLiteralWithoutBar = makeRegexParser( /^[^{}\[\]$\\|]/ );
 			regularLiteralWithoutSpace = makeRegexParser( /^[^{}\[\]$\s]/ );
 			regularLiteralWithSquareBrackets = makeRegexParser( /^[^{}$\\]/ );
+			/* eslint-enable no-useless-escape */
 
 			backslash = makeStringParser( '\\' );
 			doubleQuote = makeStringParser( '"' );
@@ -519,7 +550,7 @@
 				return result === null ? null : result.join( '' );
 			}
 
-			asciiAlphabetLiteral = makeRegexParser( /[A-Za-z]+/ );
+			asciiAlphabetLiteral = makeRegexParser( /^[A-Za-z]+/ );
 			htmlDoubleQuoteAttributeValue = makeRegexParser( /^[^"]*/ );
 			htmlSingleQuoteAttributeValue = makeRegexParser( /^[^']*/ );
 
@@ -760,10 +791,29 @@
 				return result;
 			}
 
+			// <nowiki>...</nowiki> tag. The tags are stripped and the contents are returned unparsed.
+			function nowiki() {
+				var parsedResult, plainText,
+					result = null;
+
+				parsedResult = sequence( [
+					makeStringParser( '<nowiki>' ),
+					// We use a greedy non-backtracking parser, so we must ensure here that we don't take too much
+					makeRegexParser( /^.*?(?=<\/nowiki>)/ ),
+					makeStringParser( '</nowiki>' )
+				] );
+				if ( parsedResult !== null ) {
+					plainText = parsedResult[ 1 ];
+					result = [ 'CONCAT' ].concat( plainText );
+				}
+
+				return result;
+			}
+
 			templateName = transform(
 				// see $wgLegalTitleChars
 				// not allowing : due to the need to catch "PLURAL:$1"
-				makeRegexParser( /^[ !"$&'()*,.\/0-9;=?@A-Z\^_`a-z~\x80-\xFF+\-]+/ ),
+				makeRegexParser( /^[ !"$&'()*,./0-9;=?@A-Z^_`a-z~\x80-\xFF+-]+/ ),
 				function ( result ) { return result.toString(); }
 			);
 			function templateParam() {
@@ -847,6 +897,7 @@
 				wikilink,
 				extlink,
 				replacement,
+				nowiki,
 				html,
 				literal
 			] );
@@ -862,7 +913,8 @@
 			/**
 			 * Starts the parse
 			 *
-			 * @param {Function} rootExpression root parse function
+			 * @param {Function} rootExpression Root parse function
+			 * @return {Array|null}
 			 */
 			function start( rootExpression ) {
 				var result = nOrMore( 0, rootExpression )();
@@ -892,10 +944,13 @@
 
 	/**
 	 * htmlEmitter - object which primarily exists to emit HTML from parser ASTs
+	 *
+	 * @param {Object} language
+	 * @param {Object} magic
 	 */
 	mw.jqueryMsg.htmlEmitter = function ( language, magic ) {
-		this.language = language;
 		var jmsg = this;
+		this.language = language;
 		$.each( magic, function ( key, val ) {
 			jmsg[ key.toLowerCase() ] = function () {
 				return val;
@@ -979,7 +1034,7 @@
 		 *
 		 * @param {Array} nodes List of one element, integer, n >= 0
 		 * @param {Array} replacements List of at least n strings
-		 * @return {String} replacement
+		 * @return {string} replacement
 		 */
 		replace: function ( nodes, replacements ) {
 			var index = parseInt( nodes[ 0 ], 10 );
@@ -1004,7 +1059,8 @@
 		 * from the server, since the replacement is done at save time.
 		 * It may, though, if the wikitext appears in extension-controlled content.
 		 *
-		 * @param {String[]} nodes
+		 * @param {string[]} nodes
+		 * @return {jQuery}
 		 */
 		wikilink: function ( nodes ) {
 			var page, anchor, url, $el;
@@ -1073,7 +1129,7 @@
 		 *
 		 * TODO: throw an error if nodes.length > 2 ?
 		 *
-		 * @param {Array} nodes List of two elements, {jQuery|Function|String} and {String}
+		 * @param {Array} nodes List of two elements, {jQuery|Function|String} and {string}
 		 * @return {jQuery}
 		 */
 		extlink: function ( nodes ) {
@@ -1085,16 +1141,22 @@
 			} else {
 				$el = $( '<a>' );
 				if ( typeof arg === 'function' ) {
-					$el.attr( 'href', '#' )
-					.click( function ( e ) {
-						e.preventDefault();
-					} )
-					.click( arg );
+					$el.attr( {
+						role: 'button',
+						tabindex: 0
+					} ).on( 'click keypress', function ( e ) {
+						if (
+							e.type === 'click' ||
+							e.type === 'keypress' && e.which === 13
+						) {
+							arg.call( this, e );
+						}
+					} );
 				} else {
 					$el.attr( 'href', textify( arg ) );
 				}
 			}
-			return appendWithoutParsing( $el, contents );
+			return appendWithoutParsing( $el.empty(), contents );
 		},
 
 		/**
@@ -1203,6 +1265,22 @@
 		},
 
 		/**
+		 * Get localized namespace name from canonical name or namespace number.
+		 * Invoked by putting `{{ns:foo}}` into a message
+		 *
+		 * @param {Array} nodes List of nodes
+		 * @return {string} Localized namespace name
+		 */
+		ns: function ( nodes ) {
+			var ns = $.trim( textify( nodes[ 0 ] ) );
+			if ( !/^\d+$/.test( ns ) ) {
+				ns = mw.config.get( 'wgNamespaceIds' )[ ns.replace( / /g, '_' ).toLowerCase() ];
+			}
+			ns = mw.config.get( 'wgFormattedNamespaces' )[ ns ];
+			return ns || '';
+		},
+
+		/**
 		 * Takes an unformatted number (arab, no group separators and . as decimal separator)
 		 * and outputs it in the localized digit script and formatted with decimal
 		 * separator, according to the current language.
@@ -1211,10 +1289,52 @@
 		 * @return {number|string} Formatted number
 		 */
 		formatnum: function ( nodes ) {
-			var isInteger = ( nodes[ 1 ] && nodes[ 1 ] === 'R' ) ? true : false,
+			var isInteger = !!nodes[ 1 ] && nodes[ 1 ] === 'R',
 				number = nodes[ 0 ];
 
 			return this.language.convertNumber( number, isInteger );
+		},
+
+		/**
+		 * Lowercase text
+		 *
+		 * @param {Array} nodes List of nodes
+		 * @return {string} The given text, all in lowercase
+		 */
+		lc: function ( nodes ) {
+			return textify( nodes[ 0 ] ).toLowerCase();
+		},
+
+		/**
+		 * Uppercase text
+		 *
+		 * @param {Array} nodes List of nodes
+		 * @return {string} The given text, all in uppercase
+		 */
+		uc: function ( nodes ) {
+			return textify( nodes[ 0 ] ).toUpperCase();
+		},
+
+		/**
+		 * Lowercase first letter of input, leaving the rest unchanged
+		 *
+		 * @param {Array} nodes List of nodes
+		 * @return {string} The given text, with the first character in lowercase
+		 */
+		lcfirst: function ( nodes ) {
+			var text = textify( nodes[ 0 ] );
+			return text.charAt( 0 ).toLowerCase() + text.slice( 1 );
+		},
+
+		/**
+		 * Uppercase first letter of input, leaving the rest unchanged
+		 *
+		 * @param {Array} nodes List of nodes
+		 * @return {string} The given text, with the first character in uppercase
+		 */
+		ucfirst: function ( nodes ) {
+			var text = textify( nodes[ 0 ] );
+			return text.charAt( 0 ).toUpperCase() + text.slice( 1 );
 		}
 	};
 
@@ -1235,23 +1355,36 @@
 	// Replace the default message parser with jqueryMsg
 	oldParser = mw.Message.prototype.parser;
 	mw.Message.prototype.parser = function () {
-		var messageFunction;
-
-		// TODO: should we cache the message function so we don't create a new one every time? Benchmark this maybe?
-		// Caching is somewhat problematic, because we do need different message functions for different maps, so
-		// we'd have to cache the parser as a member of this.map, which sounds a bit ugly.
-		// Do not use mw.jqueryMsg unless required
-		if ( this.format === 'plain' || !/\{\{|[\[<>]/.test( this.map.get( this.key ) ) ) {
+		if ( this.format === 'plain' || !/\{\{|[<>[&]/.test( this.map.get( this.key ) ) ) {
 			// Fall back to mw.msg's simple parser
 			return oldParser.apply( this );
 		}
 
-		messageFunction = mw.jqueryMsg.getMessageFunction( {
-			messages: this.map,
-			// For format 'escaped', escaping part is handled by mediawiki.js
-			format: this.format
-		} );
-		return messageFunction( this.key, this.parameters );
+		if ( !this.map.hasOwnProperty( this.format ) ) {
+			this.map[ this.format ] = mw.jqueryMsg.getMessageFunction( {
+				messages: this.map,
+				// For format 'escaped', escaping part is handled by mediawiki.js
+				format: this.format
+			} );
+		}
+		return this.map[ this.format ]( this.key, this.parameters );
 	};
+
+	/**
+	 * Parse the message to DOM nodes, rather than HTML string like #parse.
+	 *
+	 * This method is only available when jqueryMsg is loaded.
+	 *
+	 * @since 1.27
+	 * @method parseDom
+	 * @member mw.Message
+	 * @return {jQuery}
+	 */
+	mw.Message.prototype.parseDom = ( function () {
+		var reusableParent = $( '<div>' );
+		return function () {
+			return reusableParent.msg( this.key, this.parameters ).contents().detach();
+		};
+	}() );
 
 }( mediaWiki, jQuery ) );

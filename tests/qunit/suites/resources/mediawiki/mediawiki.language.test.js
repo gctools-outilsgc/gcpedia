@@ -1,13 +1,15 @@
 ( function ( mw, $ ) {
 	'use strict';
 
+	var grammarTests, bcp47Tests;
+
 	QUnit.module( 'mediawiki.language', QUnit.newMwEnvironment( {
 		setup: function () {
-			this.liveLangData = mw.language.data.values;
-			mw.language.data.values = $.extend( true, {}, this.liveLangData );
+			this.liveLangData = mw.language.data;
+			mw.language.data = {};
 		},
 		teardown: function () {
-			mw.language.data.values = this.liveLangData;
+			mw.language.data = this.liveLangData;
 		},
 		messages: {
 			// mw.language.listToText test
@@ -17,7 +19,7 @@
 		}
 	} ) );
 
-	QUnit.test( 'mw.language getData and setData', 3, function ( assert ) {
+	QUnit.test( 'mw.language getData and setData', function ( assert ) {
 		mw.language.setData( 'en', 'testkey', 'testvalue' );
 		assert.equal( mw.language.getData( 'en', 'testkey' ), 'testvalue', 'Getter setter test for mw.language' );
 		assert.equal( mw.language.getData( 'en', 'invalidkey' ), undefined, 'Getter setter test for mw.language with invalid key' );
@@ -25,7 +27,7 @@
 		assert.equal( mw.language.getData( 'en-US', 'testkey' ), 'testvalue', 'Case insensitive test for mw.language' );
 	} );
 
-	QUnit.test( 'mw.language.commafy test', 9, function ( assert ) {
+	QUnit.test( 'mw.language.commafy test', function ( assert ) {
 		mw.language.setData( 'en', 'digitGroupingPattern', null );
 		mw.language.setData( 'en', 'digitTransformTable', null );
 		mw.language.setData( 'en', 'separatorTransformTable', null );
@@ -43,13 +45,47 @@
 		assert.equal( mw.language.commafy( 123456789.567, '###,###,#0.00' ), '1,234,567,89.56', 'Decimal part as group of 3 and last one 2' );
 	} );
 
+	QUnit.test( 'mw.language.convertNumber', function ( assert ) {
+		mw.language.setData( 'en', 'digitGroupingPattern', null );
+		mw.language.setData( 'en', 'digitTransformTable', null );
+		mw.language.setData( 'en', 'separatorTransformTable', { ',': '.', '.': ',' } );
+		mw.config.set( 'wgUserLanguage', 'en' );
+		mw.config.set( 'wgTranslateNumerals', true );
+
+		assert.equal( mw.language.convertNumber( 1800 ), '1.800', 'formatting' );
+		assert.equal( mw.language.convertNumber( '1.800', true ), '1800', 'unformatting' );
+	} );
+
+	QUnit.test( 'mw.language.convertNumber - digitTransformTable', function ( assert ) {
+		mw.config.set( 'wgUserLanguage', 'hi' );
+		mw.config.set( 'wgTranslateNumerals', true );
+		mw.language.setData( 'hi', 'digitGroupingPattern', null );
+		mw.language.setData( 'hi', 'separatorTransformTable', { ',': '.', '.': ',' } );
+
+		// Example from Hindi (MessagesHi.php)
+		mw.language.setData( 'hi', 'digitTransformTable', {
+			0: '०',
+			1: '१',
+			2: '२'
+		} );
+
+		assert.equal( mw.language.convertNumber( 1200 ), '१.२००', 'format' );
+		assert.equal( mw.language.convertNumber( '१.२००', true ), '1200', 'unformat from digit transform' );
+		assert.equal( mw.language.convertNumber( '1.200', true ), '1200', 'unformat plain' );
+
+		mw.config.set( 'wgTranslateNumerals', false );
+
+		assert.equal( mw.language.convertNumber( 1200 ), '1.200', 'format (digit transform disabled)' );
+		assert.equal( mw.language.convertNumber( '१.२००', true ), '1200', 'unformat from digit transform (when disabled)' );
+		assert.equal( mw.language.convertNumber( '1.200', true ), '1200', 'unformat plain (digit transform disabled)' );
+	} );
+
 	function grammarTest( langCode, test ) {
 		// The test works only if the content language is opt.language
 		// because it requires [lang].js to be loaded.
 		QUnit.test( 'Grammar test for lang=' + langCode, function ( assert ) {
-			QUnit.expect( test.length );
-
-			for ( var i = 0; i < test.length; i++ ) {
+			var i;
+			for ( i = 0; i < test.length; i++ ) {
 				assert.equal(
 					mw.language.convertGrammar( test[ i ].word, test[ i ].grammarForm ),
 					test[ i ].expected,
@@ -60,7 +96,7 @@
 	}
 
 	// These tests run only for the current UI language.
-	var grammarTests = {
+	grammarTests = {
 		bs: [
 			{
 				word: 'word',
@@ -99,7 +135,7 @@
 				word: 'Wikipedia',
 				grammarForm: 'תחילית',
 				expected: '־Wikipedia',
-				description: 'GAdd a hyphen (maqaf) before non-Hebrew letters'
+				description: 'Add a hyphen (maqaf) before non-Hebrew letters'
 			},
 			{
 				word: '1995',
@@ -307,6 +343,84 @@
 				grammarForm: 'prepositional',
 				expected: 'данных',
 				description: 'Grammar test for prepositional case, данные -> данных'
+			},
+			{
+				word: 'русский',
+				grammarForm: 'languagegen',
+				expected: 'русского',
+				description: 'Grammar test for languagegen case, русский -> русского'
+			},
+			{
+				word: 'немецкий',
+				grammarForm: 'languagegen',
+				expected: 'немецкого',
+				description: 'Grammar test for languagegen case, немецкий -> немецкого'
+			},
+			{
+				word: 'иврит',
+				grammarForm: 'languagegen',
+				expected: 'иврита',
+				description: 'Grammar test for languagegen case, иврит -> иврита'
+			},
+			{
+				word: 'эсперанто',
+				grammarForm: 'languagegen',
+				expected: 'эсперанто',
+				description: 'Grammar test for languagegen case, эсперанто -> эсперанто'
+			},
+			{
+				word: 'русский',
+				grammarForm: 'languageprep',
+				expected: 'русском',
+				description: 'Grammar test for languageprep case, русский -> русском'
+			},
+			{
+				word: 'немецкий',
+				grammarForm: 'languageprep',
+				expected: 'немецком',
+				description: 'Grammar test for languageprep case, немецкий -> немецком'
+			},
+			{
+				word: 'идиш',
+				grammarForm: 'languageprep',
+				expected: 'идише',
+				description: 'Grammar test for languageprep case, идиш -> идише'
+			},
+			{
+				word: 'эсперанто',
+				grammarForm: 'languageprep',
+				expected: 'эсперанто',
+				description: 'Grammar test for languageprep case, эсперанто -> эсперанто'
+			},
+			{
+				word: 'русский',
+				grammarForm: 'languageadverb',
+				expected: 'по-русски',
+				description: 'Grammar test for languageadverb case, русский -> по-русски'
+			},
+			{
+				word: 'немецкий',
+				grammarForm: 'languageadverb',
+				expected: 'по-немецки',
+				description: 'Grammar test for languageadverb case, немецкий -> по-немецки'
+			},
+			{
+				word: 'иврит',
+				grammarForm: 'languageadverb',
+				expected: 'на иврите',
+				description: 'Grammar test for languageadverb case, иврит -> на иврите'
+			},
+			{
+				word: 'эсперанто',
+				grammarForm: 'languageadverb',
+				expected: 'на эсперанто',
+				description: 'Grammar test for languageadverb case, эсперанто -> на эсперанто'
+			},
+			{
+				word: 'гуарани',
+				grammarForm: 'languageadverb',
+				expected: 'на языке гуарани',
+				description: 'Grammar test for languageadverb case, гуарани -> на языке гуарани'
 			}
 		],
 
@@ -354,39 +468,27 @@
 
 		uk: [
 			{
-				word: 'тесть',
-				grammarForm: 'genitive',
-				expected: 'тестя',
-				description: 'Grammar test for genitive case'
-			},
-			{
 				word: 'Вікіпедія',
 				grammarForm: 'genitive',
 				expected: 'Вікіпедії',
 				description: 'Grammar test for genitive case'
 			},
 			{
-				word: 'установка',
+				word: 'Віківиди',
 				grammarForm: 'genitive',
-				expected: 'установки',
+				expected: 'Віківидів',
 				description: 'Grammar test for genitive case'
 			},
 			{
-				word: 'похоти',
+				word: 'Вікіцитати',
 				grammarForm: 'genitive',
-				expected: 'похотей',
+				expected: 'Вікіцитат',
 				description: 'Grammar test for genitive case'
 			},
 			{
-				word: 'доводы',
+				word: 'Вікіпідручник',
 				grammarForm: 'genitive',
-				expected: 'доводов',
-				description: 'Grammar test for genitive case'
-			},
-			{
-				word: 'песчаник',
-				grammarForm: 'genitive',
-				expected: 'песчаника',
+				expected: 'Вікіпідручника',
 				description: 'Grammar test for genitive case'
 			},
 			{
@@ -479,10 +581,106 @@
 		}
 	} );
 
-	QUnit.test( 'List to text test', 4, function ( assert ) {
+	QUnit.test( 'List to text test', function ( assert ) {
 		assert.equal( mw.language.listToText( [] ), '', 'Blank list' );
 		assert.equal( mw.language.listToText( [ 'a' ] ), 'a', 'Single item' );
 		assert.equal( mw.language.listToText( [ 'a', 'b' ] ), 'a and b', 'Two items' );
 		assert.equal( mw.language.listToText( [ 'a', 'b', 'c' ] ), 'a, b and c', 'More than two items' );
+	} );
+
+	bcp47Tests = [
+		// Extracted from BCP 47 (list not exhaustive)
+		// # 2.1.1
+		[ 'en-ca-x-ca', 'en-CA-x-ca' ],
+		[ 'sgn-be-fr', 'sgn-BE-FR' ],
+		[ 'az-latn-x-latn', 'az-Latn-x-latn' ],
+		// # 2.2
+		[ 'sr-Latn-RS', 'sr-Latn-RS' ],
+		[ 'az-arab-ir', 'az-Arab-IR' ],
+
+		// # 2.2.5
+		[ 'sl-nedis', 'sl-nedis' ],
+		[ 'de-ch-1996', 'de-CH-1996' ],
+
+		// # 2.2.6
+		[
+			'en-latn-gb-boont-r-extended-sequence-x-private',
+			'en-Latn-GB-boont-r-extended-sequence-x-private'
+		],
+
+		// Examples from BCP 47 Appendix A
+		// # Simple language subtag:
+		[ 'DE', 'de' ],
+		[ 'fR', 'fr' ],
+		[ 'ja', 'ja' ],
+
+		// # Language subtag plus script subtag:
+		[ 'zh-hans', 'zh-Hans' ],
+		[ 'sr-cyrl', 'sr-Cyrl' ],
+		[ 'sr-latn', 'sr-Latn' ],
+
+		// # Extended language subtags and their primary language subtag
+		// # counterparts:
+		[ 'zh-cmn-hans-cn', 'zh-cmn-Hans-CN' ],
+		[ 'cmn-hans-cn', 'cmn-Hans-CN' ],
+		[ 'zh-yue-hk', 'zh-yue-HK' ],
+		[ 'yue-hk', 'yue-HK' ],
+
+		// # Language-Script-Region:
+		[ 'zh-hans-cn', 'zh-Hans-CN' ],
+		[ 'sr-latn-RS', 'sr-Latn-RS' ],
+
+		// # Language-Variant:
+		[ 'sl-rozaj', 'sl-rozaj' ],
+		[ 'sl-rozaj-biske', 'sl-rozaj-biske' ],
+		[ 'sl-nedis', 'sl-nedis' ],
+
+		// # Language-Region-Variant:
+		[ 'de-ch-1901', 'de-CH-1901' ],
+		[ 'sl-it-nedis', 'sl-IT-nedis' ],
+
+		// # Language-Script-Region-Variant:
+		[ 'hy-latn-it-arevela', 'hy-Latn-IT-arevela' ],
+
+		// # Language-Region:
+		[ 'de-de', 'de-DE' ],
+		[ 'en-us', 'en-US' ],
+		[ 'es-419', 'es-419' ],
+
+		// # Private use subtags:
+		[ 'de-ch-x-phonebk', 'de-CH-x-phonebk' ],
+		[ 'az-arab-x-aze-derbend', 'az-Arab-x-aze-derbend' ],
+		/**
+		 * Previous test does not reflect the BCP 47 which states:
+		 *  az-Arab-x-AZE-derbend
+		 * AZE being private, it should be lower case, hence the test above
+		 * should probably be:
+		 * [ 'az-arab-x-aze-derbend', 'az-Arab-x-AZE-derbend' ],
+		 */
+
+		// # Private use registry values:
+		[ 'x-whatever', 'x-whatever' ],
+		[ 'qaa-qaaa-qm-x-southern', 'qaa-Qaaa-QM-x-southern' ],
+		[ 'de-qaaa', 'de-Qaaa' ],
+		[ 'sr-latn-qm', 'sr-Latn-QM' ],
+		[ 'sr-qaaa-rs', 'sr-Qaaa-RS' ],
+
+		// # Tags that use extensions
+		[ 'en-us-u-islamcal', 'en-US-u-islamcal' ],
+		[ 'zh-cn-a-myext-x-private', 'zh-CN-a-myext-x-private' ],
+		[ 'en-a-myext-b-another', 'en-a-myext-b-another' ]
+
+		// # Invalid:
+		// de-419-DE
+		// a-DE
+		// ar-a-aaa-b-bbb-a-ccc
+	];
+
+	QUnit.test( 'mw.language.bcp47', function ( assert ) {
+		bcp47Tests.forEach( function ( data ) {
+			var input = data[ 0 ],
+				expected = data[ 1 ];
+			assert.equal( mw.language.bcp47( input ), expected );
+		} );
 	} );
 }( mediaWiki, jQuery ) );

@@ -2,6 +2,24 @@
  * Vector-specific scripts
  */
 jQuery( function ( $ ) {
+
+	/**
+	 * Collapsible tabs
+	 */
+	var $cactions = $( '#p-cactions' ),
+		$tabContainer = $( '#p-views ul' ),
+		rAF = window.requestAnimationFrame || setTimeout,
+		// Avoid forced style calculation during page load
+		initialCactionsWidth = function () {
+			var width = $cactions.width();
+			initialCactionsWidth = function () {
+				return width;
+			};
+			return width;
+		};
+
+	rAF( initialCactionsWidth );
+
 	/**
 	 * Focus search input at the very end
 	 */
@@ -12,7 +30,7 @@ jQuery( function ( $ ) {
 	 */
 	$( 'div.vectorMenu' ).each( function () {
 		var $el = $( this );
-		$el.find( '> h3 > a' ).parent()
+		$el.find( '> h3 > span' ).parent()
 			.attr( 'tabindex', '0' )
 			// For accessibility, show the menu when the h3 is clicked (bug 24298/46486)
 			.on( 'click keypress', function ( e ) {
@@ -23,36 +41,26 @@ jQuery( function ( $ ) {
 			} )
 			// When the heading has focus, also set a class that will change the arrow icon
 			.focus( function () {
-				$el.find( '> a' ).addClass( 'vectorMenuFocus' );
+				$el.find( '> span' ).addClass( 'vectorMenuFocus' );
 			} )
 			.blur( function () {
-				$el.find( '> a' ).removeClass( 'vectorMenuFocus' );
-			} )
-			.find( '> a:first' )
-			// As the h3 can already be focused there's no need for the link to be focusable
-			.attr( 'tabindex', '-1' );
+				$el.find( '> span' ).removeClass( 'vectorMenuFocus' );
+			} );
 	} );
-
-	/**
-	 * Collapsible tabs
-	 */
-	var $cactions = $( '#p-cactions' ),
-		$tabContainer = $( '#p-views ul' ),
-		originalDropdownWidth = $cactions.width();
 
 	// Bind callback functions to animate our drop down menu in and out
 	// and then call the collapsibleTabs function on the menu
 	$tabContainer
-		.bind( 'beforeTabCollapse', function () {
+		.on( 'beforeTabCollapse', function () {
 			// If the dropdown was hidden, show it
 			if ( $cactions.hasClass( 'emptyPortlet' ) ) {
-				$cactions
-					.removeClass( 'emptyPortlet' )
-					.find( 'h3' )
-						.css( 'width', '1px' ).animate( { width: originalDropdownWidth }, 'normal' );
+				$cactions.removeClass( 'emptyPortlet' );
+				$cactions.find( 'h3' )
+					.css( 'width', '1px' )
+					.animate( { width: initialCactionsWidth() }, 'normal' );
 			}
 		} )
-		.bind( 'beforeTabExpand', function () {
+		.on( 'beforeTabExpand', function () {
 			// If we're removing the last child node right now, hide the dropdown
 			if ( $cactions.find( 'li' ).length === 1 ) {
 				$cactions.find( 'h3' ).animate( { width: '1px' }, 'normal', function () {
@@ -74,7 +82,7 @@ jQuery( function ( $ ) {
 					// Maybe we can still expand? Account for the width of the "Actions" dropdown if the
 					// expansion would hide it.
 					if ( $cactions.find( 'li' ).length === 1 ) {
-						return distance >= eleWidth + 1 - originalDropdownWidth;
+						return distance >= eleWidth + 1 - initialCactionsWidth();
 					} else {
 						return false;
 					}
@@ -90,7 +98,7 @@ jQuery( function ( $ ) {
 					// But only if the width of the tab to collapse is smaller than the width of the dropdown
 					// we would have to insert. An example language where this happens is Lithuanian (lt).
 					if ( $cactions.hasClass( 'emptyPortlet' ) ) {
-						return $tabContainer.children( 'li.collapsible:last' ).width() > originalDropdownWidth;
+						return $tabContainer.children( 'li.collapsible:last' ).width() > initialCactionsWidth();
 					} else {
 						return true;
 					}

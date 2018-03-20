@@ -1,3 +1,6 @@
+@import 'mediawiki.mixins';
+@import 'mediawiki.ui/variables';
+
 /* Search */
 #p-search {
 	/* @noflip */
@@ -6,7 +9,7 @@
 	margin-left: 0.5em;
 
 	h3 {
-		display: none;
+		.mixin-screen-reader-text;
 	}
 
 	form,
@@ -19,15 +22,18 @@
 div#simpleSearch {
 	display: block;
 	width: 12.6em;
+	width: 20vw; /* responsive width */
+	min-width: 5em;
+	max-width: 20em;
 	padding-right: 1.4em;
 	height: 1.4em;
 	margin-top: 0.65em;
 	position: relative;
 	min-height: 1px; /* Gotta trigger hasLayout for IE7 */
 	border: solid 1px #aaa;
-	color: black;
-	background-color: white;
-	.background-image('images/search-fade.png');
+	color: #000;
+	background-color: #fff;
+	.background-image( 'images/search-fade.png' );
 	background-position: top left;
 	background-repeat: repeat-x;
 
@@ -37,7 +43,7 @@ div#simpleSearch {
 		padding: 0;
 		border: 0;
 		background-color: transparent;
-		color: black;
+		color: #000;
 	}
 
 	// The search input
@@ -48,26 +54,15 @@ div#simpleSearch {
 		direction: ltr;
 
 		&:focus {
-			outline: none;
+			outline: 0;
 		}
 
-		// These rules MAY NOT be merged because of how CSS requires browsers
-		// to parse unrecognized selectors!
-		// Note these rules ensure that placeholder text can be distinguished from
-		// standard text. In browsers which make this distinction clear these rules
-		// are not necessary.
-		// For inputs that use jquery.placeholder.js e.g. IE9-
-		&.placeholder {
-			color: #999;
-		}
-		// Distinguish placeholder text in IE10+
-		&:-ms-input-placeholder {
-			color: #999;
-		}
-		// Distinguish placeholder text in Firefox 18-
-		&:-moz-placeholder {
-			color: #999;
-		}
+		/* stylelint-disable indentation */
+		.mixin-placeholder( {
+			color: @colorGray7;
+			opacity: 1;
+		} );
+		/* stylelint-enable indentation */
 
 		// Undo the styles Webkit browsers apply to type=search fields,
 		// we provide our own
@@ -100,6 +95,9 @@ div#simpleSearch {
 		direction: ltr;
 		white-space: nowrap;
 		overflow: hidden;
+	}
+
+	#searchButton {
 		.background-image-svg('images/search-ltr.svg', 'images/search-ltr.png');
 		background-position: center center;
 		background-repeat: no-repeat;

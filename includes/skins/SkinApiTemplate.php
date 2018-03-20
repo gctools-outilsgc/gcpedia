@@ -6,7 +6,7 @@
  *
  * Created on Sep 08, 2014
  *
- * Copyright © 2014 Brad Jorsch <bjorsch@wikimedia.org>
+ * Copyright © 2014 Wikimedia Foundation and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,14 +50,14 @@ class SkinApiTemplate extends BaseTemplate {
 	// Skip work and hooks for stuff we don't use
 
 	function getToolbox() {
-		return array();
+		return [];
 	}
 
 	function getPersonalTools() {
-		return array();
+		return [];
 	}
 
-	function getSidebar( $options = array() ) {
-		return array();
+	function getSidebar( $options = [] ) {
+		return [];
 	}
 }

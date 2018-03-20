@@ -25,16 +25,15 @@ class OldChangesList extends ChangesList {
 	/**
 	 * Format a line using the old system (aka without any javascript).
 	 *
-	 * @param RecentChange $rc Passed by reference
+	 * @param RecentChange &$rc Passed by reference
 	 * @param bool $watched (default false)
 	 * @param int $linenumber (default null)
 	 *
 	 * @return string|bool
 	 */
 	public function recentChangesLine( &$rc, $watched = false, $linenumber = null ) {
-
-		$classes = array();
-		// use mw-line-even/mw-line-odd class only if linenumber is given (feature from bug 14468)
+		$classes = $this->getHTMLClasses( $rc, $watched );
+		// use mw-line-even/mw-line-odd class only if linenumber is given (feature from T16468)
 		if ( $linenumber ) {
 			if ( $linenumber & 1 ) {
 				$classes[] = 'mw-line-odd';
@@ -43,11 +42,6 @@ class OldChangesList extends ChangesList {
 			}
 		}
 
-		// Indicate watched status on the line to allow for more
-		// comprehensive styling.
-		$classes[] = $watched && $rc->mAttribs['rc_timestamp'] >= $watched
-			? 'mw-changeslist-line-watched' : 'mw-changeslist-line-not-watched';
-
 		$html = $this->formatChangeLine( $rc, $classes, $watched );
 
 		if ( $this->watchlist ) {
@@ -55,14 +49,23 @@ class OldChangesList extends ChangesList {
 				$rc->mAttribs['rc_namespace'] . '-' . $rc->mAttribs['rc_title'] );
 		}
 
-		if ( !Hooks::run( 'OldChangesListRecentChangesLine', array( &$this, &$html, $rc, &$classes ) ) ) {
+		$attribs = $this->getDataAttributes( $rc );
+
+		// Avoid PHP 7.1 warning from passing $this by reference
+		$list = $this;
+		if ( !Hooks::run( 'OldChangesListRecentChangesLine',
+			[ &$list, &$html, $rc, &$classes, &$attribs ] )
+		) {
 			return false;
 		}
+		$attribs = wfArrayFilterByKey( $attribs, [ Sanitizer::class, 'isReservedDataAttribute' ] );
 
 		$dateheader = ''; // $html now contains only <li>...</li>, for hooks' convenience.
 		$this->insertDateHeader( $dateheader, $rc->mAttribs['rc_timestamp'] );
 
-		return "$dateheader<li class=\"" . implode( ' ', $classes ) . "\">" . $html . "</li>\n";
+		$attribs['class'] = implode( ' ', $classes );
+
+		return $dateheader . Html::rawElement( 'li', $attribs,  $html ) . "\n";
 	}
 
 	/**
@@ -74,10 +77,16 @@ class OldChangesList extends ChangesList {
 	 */
 	private function formatChangeLine( RecentChange $rc, array &$classes, $watched ) {
 		$html = '';
+		$unpatrolled = $this->showAsUnpatrolled( $rc );
 
 		if ( $rc->mAttribs['rc_log_type'] ) {
 			$logtitle = SpecialPage::getTitleFor( 'Log', $rc->mAttribs['rc_log_type'] );
 			$this->insertLog( $html, $logtitle, $rc->mAttribs['rc_log_type'] );
+			$flags = $this->recentChangesFlags( [ 'unpatrolled' => $unpatrolled,
+				'bot' => $rc->mAttribs['rc_bot'] ], '' );
+			if ( $flags !== '' ) {
+				$html .= ' ' . $flags;
+			}
 		// Log entries (old format) or log targets, and special pages
 		} elseif ( $rc->mAttribs['rc_namespace'] == NS_SPECIAL ) {
 			list( $name, $htmlubpage ) = SpecialPageFactory::resolveAlias( $rc->mAttribs['rc_title'] );
@@ -86,20 +95,18 @@ class OldChangesList extends ChangesList {
 			}
 		// Regular entries
 		} else {
-			$unpatrolled = $this->showAsUnpatrolled( $rc );
-
-			$this->insertDiffHist( $html, $rc, $unpatrolled );
+			$this->insertDiffHist( $html, $rc );
 			# M, N, b and ! (minor, new, bot and unpatrolled)
 			$html .= $this->recentChangesFlags(
-				array(
+				[
 					'newpage' => $rc->mAttribs['rc_type'] == RC_NEW,
 					'minor' => $rc->mAttribs['rc_minor'],
 					'unpatrolled' => $unpatrolled,
 					'bot' => $rc->mAttribs['rc_bot']
-				),
+				],
 				''
 			);
-			$this->insertArticleLink( $html, $rc, $unpatrolled, $watched );
+			$html .= $this->getArticleLink( $rc, $unpatrolled, $watched );
 		}
 		# Edit/log timestamp
 		$this->insertTimestamp( $html, $rc );
@@ -113,6 +120,8 @@ class OldChangesList extends ChangesList {
 
 		if ( $rc->mAttribs['rc_type'] == RC_LOG ) {
 			$html .= $this->insertLogEntry( $rc );
+		} elseif ( $this->isCategorizationWithoutRevision( $rc ) ) {
+			$html .= $this->insertComment( $rc );
 		} else {
 			# User tool links
 			$this->insertUserRelatedLinks( $html, $rc );
@@ -131,6 +140,15 @@ class OldChangesList extends ChangesList {
 		# How many users watch this page
 		if ( $rc->numberofWatchingusers > 0 ) {
 			$html .= ' ' . $this->numberofWatchingusers( $rc->numberofWatchingusers );
+		}
+
+		$html = Html::rawElement( 'span', [
+			'class' => 'mw-changeslist-line-inner',
+			'data-target-page' => $rc->getTitle(), // Used for reliable determination of the affiliated page
+		], $html );
+		if ( is_callable( $this->changeLinePrefixer ) ) {
+			$prefix = call_user_func( $this->changeLinePrefixer, $rc, $this, false );
+			$html = Html::rawElement( 'span', [ 'class' => 'mw-changeslist-line-prefix' ], $prefix ) . $html;
 		}
 
 		return $html;

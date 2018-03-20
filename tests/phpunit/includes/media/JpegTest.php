@@ -38,17 +38,86 @@ class JpegTest extends MediaWikiMediaTestCase {
 	public function testGetIndependentMetaArray() {
 		$file = $this->dataFile( 'test.jpg', 'image/jpeg' );
 		$res = $this->handler->getCommonMetaArray( $file );
-		$expected = array(
+		$expected = [
 			'ImageDescription' => 'Test file',
 			'XResolution' => '72/1',
 			'YResolution' => '72/1',
 			'ResolutionUnit' => 2,
 			'YCbCrPositioning' => 1,
-			'JPEGFileComment' => array(
+			'JPEGFileComment' => [
 				'Created with GIMP',
-			),
-		);
+			],
+		];
 
 		$this->assertEquals( $res, $expected );
+	}
+
+	/**
+	 * @dataProvider provideSwappingICCProfile
+	 * @covers JpegHandler::swapICCProfile
+	 */
+	public function testSwappingICCProfile(
+		$sourceFilename, $controlFilename, $newProfileFilename, $oldProfileName
+	) {
+		global $wgExiftool;
+
+		if ( !$wgExiftool || !is_file( $wgExiftool ) ) {
+			$this->markTestSkipped( "Exiftool not installed, cannot test ICC profile swapping" );
+		}
+
+		$this->setMwGlobals( 'wgUseTinyRGBForJPGThumbnails', true );
+
+		$sourceFilepath = $this->filePath . $sourceFilename;
+		$controlFilepath = $this->filePath . $controlFilename;
+		$profileFilepath = $this->filePath . $newProfileFilename;
+		$filepath = $this->getNewTempFile();
+
+		copy( $sourceFilepath, $filepath );
+
+		$file = $this->dataFile( $sourceFilename, 'image/jpeg' );
+		$this->handler->swapICCProfile(
+			$filepath,
+			[ 'sRGB', '-' ],
+			[ $oldProfileName ],
+			$profileFilepath
+		);
+
+		$this->assertEquals(
+			sha1( file_get_contents( $filepath ) ),
+			sha1( file_get_contents( $controlFilepath ) )
+		);
+	}
+
+	public function provideSwappingICCProfile() {
+		return [
+			// File with sRGB should end up with TinyRGB
+			[
+				'srgb.jpg',
+				'tinyrgb.jpg',
+				'tinyrgb.icc',
+				'sRGB IEC61966-2.1'
+			],
+			// File with TinyRGB should be left unchanged
+			[
+				'tinyrgb.jpg',
+				'tinyrgb.jpg',
+				'tinyrgb.icc',
+				'sRGB IEC61966-2.1'
+			],
+			// File without profile should end up with TinyRGB
+			[
+				'missingprofile.jpg',
+				'tinyrgb.jpg',
+				'tinyrgb.icc',
+				'sRGB IEC61966-2.1'
+			],
+			// Non-sRGB file should be left untouched
+			[
+				'adobergb.jpg',
+				'adobergb.jpg',
+				'tinyrgb.icc',
+				'sRGB IEC61966-2.1'
+			]
+		];
 	}
 }

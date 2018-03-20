@@ -46,38 +46,75 @@ class ApiParamInfo extends ApiBase {
 		$this->context->setLanguage( $this->getMain()->getLanguage() );
 
 		if ( is_array( $params['modules'] ) ) {
-			$modules = $params['modules'];
+			$modules = [];
+			foreach ( $params['modules'] as $path ) {
+				if ( $path === '*' || $path === '**' ) {
+					$path = "main+$path";
+				}
+				if ( substr( $path, -2 ) === '+*' || substr( $path, -2 ) === ' *' ) {
+					$submodules = true;
+					$path = substr( $path, 0, -2 );
+					$recursive = false;
+				} elseif ( substr( $path, -3 ) === '+**' || substr( $path, -3 ) === ' **' ) {
+					$submodules = true;
+					$path = substr( $path, 0, -3 );
+					$recursive = true;
+				} else {
+					$submodules = false;
+				}
+
+				if ( $submodules ) {
+					try {
+						$module = $this->getModuleFromPath( $path );
+					} catch ( ApiUsageException $ex ) {
+						foreach ( $ex->getStatusValue()->getErrors() as $error ) {
+							$this->addWarning( $error );
+						}
+						continue;
+					}
+					$submodules = $this->listAllSubmodules( $module, $recursive );
+					if ( $submodules ) {
+						$modules = array_merge( $modules, $submodules );
+					} else {
+						$this->addWarning( [ 'apierror-badmodule-nosubmodules', $path ], 'badmodule' );
+					}
+				} else {
+					$modules[] = $path;
+				}
+			}
 		} else {
-			$modules = array();
+			$modules = [];
 		}
 
 		if ( is_array( $params['querymodules'] ) ) {
-			$this->logFeatureUsage( 'action=paraminfo&querymodules' );
 			$queryModules = $params['querymodules'];
 			foreach ( $queryModules as $m ) {
 				$modules[] = 'query+' . $m;
 			}
 		} else {
-			$queryModules = array();
+			$queryModules = [];
 		}
 
 		if ( is_array( $params['formatmodules'] ) ) {
-			$this->logFeatureUsage( 'action=paraminfo&formatmodules' );
 			$formatModules = $params['formatmodules'];
 			foreach ( $formatModules as $m ) {
 				$modules[] = $m;
 			}
 		} else {
-			$formatModules = array();
+			$formatModules = [];
 		}
 
-		$res = array();
+		$modules = array_unique( $modules );
+
+		$res = [];
 
 		foreach ( $modules as $m ) {
 			try {
 				$module = $this->getModuleFromPath( $m );
-			} catch ( UsageException $ex ) {
-				$this->setWarning( $ex->getMessage() );
+			} catch ( ApiUsageException $ex ) {
+				foreach ( $ex->getStatusValue()->getErrors() as $error ) {
+					$this->addWarning( $error );
+				}
 				continue;
 			}
 			$key = 'modules';
@@ -102,19 +139,17 @@ class ApiParamInfo extends ApiBase {
 		}
 
 		$result = $this->getResult();
-		$result->addValue( array( $this->getModuleName() ), 'helpformat', $this->helpFormat );
+		$result->addValue( [ $this->getModuleName() ], 'helpformat', $this->helpFormat );
 
 		foreach ( $res as $key => $stuff ) {
 			ApiResult::setIndexedTagName( $res[$key], 'module' );
 		}
 
 		if ( $params['mainmodule'] ) {
-			$this->logFeatureUsage( 'action=paraminfo&mainmodule' );
 			$res['mainmodule'] = $this->getModuleInfo( $this->getMain() );
 		}
 
 		if ( $params['pagesetmodule'] ) {
-			$this->logFeatureUsage( 'action=paraminfo&pagesetmodule' );
 			$pageSet = new ApiPageSet( $this->getMain()->getModuleManager()->getModule( 'query' ) );
 			$res['pagesetmodule'] = $this->getModuleInfo( $pageSet );
 			unset( $res['pagesetmodule']['name'] );
@@ -126,7 +161,30 @@ class ApiParamInfo extends ApiBase {
 	}
 
 	/**
-	 * @param array $res Result array
+	 * List all submodules of a module
+	 * @param ApiBase $module
+	 * @param bool $recursive
+	 * @return string[]
+	 */
+	private function listAllSubmodules( ApiBase $module, $recursive ) {
+		$manager = $module->getModuleManager();
+		if ( $manager ) {
+			$paths = [];
+			$names = $manager->getNames();
+			sort( $names );
+			foreach ( $names as $name ) {
+				$submodule = $manager->getModule( $name );
+				$paths[] = $submodule->getModulePath();
+				if ( $recursive && $submodule->getModuleManager() ) {
+					$paths = array_merge( $paths, $this->listAllSubmodules( $submodule, $recursive ) );
+				}
+			}
+		}
+		return $paths;
+	}
+
+	/**
+	 * @param array &$res Result array
 	 * @param string $key Result key
 	 * @param Message[] $msgs
 	 * @param bool $joinLists
@@ -137,22 +195,22 @@ class ApiParamInfo extends ApiBase {
 				break;
 
 			case 'wikitext':
-				$ret = array();
+				$ret = [];
 				foreach ( $msgs as $m ) {
 					$ret[] = $m->setContext( $this->context )->text();
 				}
-				$res[$key] = join( "\n\n", $ret );
+				$res[$key] = implode( "\n\n", $ret );
 				if ( $joinLists ) {
 					$res[$key] = preg_replace( '!^(([*#:;])[^\n]*)\n\n(?=\2)!m', "$1\n", $res[$key] );
 				}
 				break;
 
 			case 'html':
-				$ret = array();
+				$ret = [];
 				foreach ( $msgs as $m ) {
 					$ret[] = $m->setContext( $this->context )->parseAsBlock();
 				}
-				$ret = join( "\n", $ret );
+				$ret = implode( "\n", $ret );
 				if ( $joinLists ) {
 					$ret = preg_replace( '!\s*</([oud]l)>\s*<\1>\s*!', "\n", $ret );
 				}
@@ -160,12 +218,13 @@ class ApiParamInfo extends ApiBase {
 				break;
 
 			case 'raw':
-				$res[$key] = array();
+				$res[$key] = [];
 				foreach ( $msgs as $m ) {
-					$a = array(
+					$a = [
 						'key' => $m->getKey(),
 						'params' => $m->getParams(),
-					);
+					];
+					ApiResult::setIndexedTagName( $a['params'], 'param' );
 					if ( $m instanceof ApiHelpParamValueMessage ) {
 						$a['forvalue'] = $m->getParamValue();
 					}
@@ -178,11 +237,10 @@ class ApiParamInfo extends ApiBase {
 
 	/**
 	 * @param ApiBase $module
-	 * @return ApiResult
+	 * @return array
 	 */
 	private function getModuleInfo( $module ) {
-		$result = $this->getResult();
-		$ret = array();
+		$ret = [];
 		$path = $module->getModulePath();
 
 		$ret['name'] = $module->getModuleName();
@@ -204,7 +262,7 @@ class ApiParamInfo extends ApiBase {
 				$ret['sourcename'] = $ret['source'];
 			}
 
-			$link = SpecialPage::getTitleFor( 'Version', 'License/' . $sourceInfo['name'] )->getFullUrl();
+			$link = SpecialPage::getTitleFor( 'Version', 'License/' . $sourceInfo['name'] )->getFullURL();
 			if ( isset( $sourceInfo['license-name'] ) ) {
 				$ret['licensetag'] = $sourceInfo['license-name'];
 				$ret['licenselink'] = (string)$link;
@@ -221,23 +279,23 @@ class ApiParamInfo extends ApiBase {
 
 		$ret['helpurls'] = (array)$module->getHelpUrls();
 		if ( isset( $ret['helpurls'][0] ) && $ret['helpurls'][0] === false ) {
-			$ret['helpurls'] = array();
+			$ret['helpurls'] = [];
 		}
 		ApiResult::setIndexedTagName( $ret['helpurls'], 'helpurl' );
 
 		if ( $this->helpFormat !== 'none' ) {
-			$ret['examples'] = array();
+			$ret['examples'] = [];
 			$examples = $module->getExamplesMessages();
 			foreach ( $examples as $qs => $msg ) {
-				$item = array(
+				$item = [
 					'query' => $qs
-				);
-				$msg = ApiBase::makeMessage( $msg, $this->context, array(
+				];
+				$msg = ApiBase::makeMessage( $msg, $this->context, [
 					$module->getModulePrefix(),
 					$module->getModuleName(),
 					$module->getModulePath()
-				) );
-				$this->formatHelpMessages( $item, 'description', array( $msg ) );
+				] );
+				$this->formatHelpMessages( $item, 'description', [ $msg ] );
 				if ( isset( $item['description'] ) ) {
 					if ( is_array( $item['description'] ) ) {
 						$item['description'] = $item['description'][0];
@@ -250,17 +308,17 @@ class ApiParamInfo extends ApiBase {
 			ApiResult::setIndexedTagName( $ret['examples'], 'example' );
 		}
 
-		$ret['parameters'] = array();
+		$ret['parameters'] = [];
 		$params = $module->getFinalParams( ApiBase::GET_VALUES_FOR_HELP );
 		$paramDesc = $module->getFinalParamDescription();
 		foreach ( $params as $name => $settings ) {
 			if ( !is_array( $settings ) ) {
-				$settings = array( ApiBase::PARAM_DFLT => $settings );
+				$settings = [ ApiBase::PARAM_DFLT => $settings ];
 			}
 
-			$item = array(
+			$item = [
 				'name' => $name
-			);
+			];
 			if ( isset( $paramDesc[$name] ) ) {
 				$this->formatHelpMessages( $item, 'description', $paramDesc[$name], true );
 			}
@@ -313,11 +371,15 @@ class ApiParamInfo extends ApiBase {
 
 			$item['multi'] = !empty( $settings[ApiBase::PARAM_ISMULTI] );
 			if ( $item['multi'] ) {
-				$item['limit'] = $this->getMain()->canApiHighLimits() ?
-					ApiBase::LIMIT_SML2 :
-					ApiBase::LIMIT_SML1;
-				$item['lowlimit'] = ApiBase::LIMIT_SML1;
-				$item['highlimit'] = ApiBase::LIMIT_SML2;
+				$item['lowlimit'] = !empty( $settings[ApiBase::PARAM_ISMULTI_LIMIT1] )
+					? $settings[ApiBase::PARAM_ISMULTI_LIMIT1]
+					: ApiBase::LIMIT_SML1;
+				$item['highlimit'] = !empty( $settings[ApiBase::PARAM_ISMULTI_LIMIT2] )
+					? $settings[ApiBase::PARAM_ISMULTI_LIMIT2]
+					: ApiBase::LIMIT_SML2;
+				$item['limit'] = $this->getMain()->canApiHighLimits()
+					? $item['highlimit']
+					: $item['lowlimit'];
 			}
 
 			if ( !empty( $settings[ApiBase::PARAM_ALLOW_DUPLICATES] ) ) {
@@ -335,7 +397,7 @@ class ApiParamInfo extends ApiBase {
 						sort( $item['type'] );
 						$prefix = $module->isMain()
 							? '' : ( $module->getModulePath() . '+' );
-						$item['submodules'] = array();
+						$item['submodules'] = [];
 						foreach ( $item['type'] as $v ) {
 							$item['submodules'][$v] = $prefix . $v;
 						}
@@ -343,6 +405,27 @@ class ApiParamInfo extends ApiBase {
 					if ( isset( $settings[ApiBase::PARAM_SUBMODULE_PARAM_PREFIX] ) ) {
 						$item['submoduleparamprefix'] = $settings[ApiBase::PARAM_SUBMODULE_PARAM_PREFIX];
 					}
+
+					$deprecatedSubmodules = [];
+					foreach ( $item['submodules'] as $v => $submodulePath ) {
+						try {
+							$submod = $this->getModuleFromPath( $submodulePath );
+							if ( $submod && $submod->isDeprecated() ) {
+								$deprecatedSubmodules[] = $v;
+							}
+						} catch ( ApiUsageException $ex ) {
+							// Ignore
+						}
+					}
+					if ( $deprecatedSubmodules ) {
+						$item['type'] = array_merge(
+							array_diff( $item['type'], $deprecatedSubmodules ),
+							$deprecatedSubmodules
+						);
+						$item['deprecatedvalues'] = $deprecatedSubmodules;
+					}
+				} elseif ( $settings[ApiBase::PARAM_TYPE] === 'tags' ) {
+					$item['type'] = ChangeTags::listExplicitlyDefinedTags();
 				} else {
 					$item['type'] = $settings[ApiBase::PARAM_TYPE];
 				}
@@ -350,6 +433,30 @@ class ApiParamInfo extends ApiBase {
 					// To prevent sparse arrays from being serialized to JSON as objects
 					$item['type'] = array_values( $item['type'] );
 					ApiResult::setIndexedTagName( $item['type'], 't' );
+				}
+
+				// Add 'allspecifier' if applicable
+				if ( $item['type'] === 'namespace' ) {
+					$allowAll = true;
+					$allSpecifier = ApiBase::ALL_DEFAULT_STRING;
+				} else {
+					$allowAll = isset( $settings[ApiBase::PARAM_ALL] )
+						? $settings[ApiBase::PARAM_ALL]
+						: false;
+					$allSpecifier = ( is_string( $allowAll ) ? $allowAll : ApiBase::ALL_DEFAULT_STRING );
+				}
+				if ( $allowAll && $item['multi'] &&
+					( is_array( $item['type'] ) || $item['type'] === 'namespace' ) ) {
+					$item['allspecifier'] = $allSpecifier;
+				}
+
+				if ( $item['type'] === 'namespace' &&
+					isset( $settings[ApiBase::PARAM_EXTRA_NAMESPACES] ) &&
+					is_array( $settings[ApiBase::PARAM_EXTRA_NAMESPACES] )
+				) {
+					$item['extranamespaces'] = $settings[ApiBase::PARAM_EXTRA_NAMESPACES];
+					ApiResult::setArrayType( $item['extranamespaces'], 'array' );
+					ApiResult::setIndexedTagName( $item['extranamespaces'], 'ns' );
 				}
 			}
 			if ( isset( $settings[ApiBase::PARAM_MAX] ) ) {
@@ -364,24 +471,34 @@ class ApiParamInfo extends ApiBase {
 			if ( !empty( $settings[ApiBase::PARAM_RANGE_ENFORCE] ) ) {
 				$item['enforcerange'] = true;
 			}
+			if ( !empty( $settings[ApiBase::PARAM_DEPRECATED_VALUES] ) ) {
+				$deprecatedValues = array_keys( $settings[ApiBase::PARAM_DEPRECATED_VALUES] );
+				if ( is_array( $item['type'] ) ) {
+					$deprecatedValues = array_intersect( $deprecatedValues, $item['type'] );
+				}
+				if ( $deprecatedValues ) {
+					$item['deprecatedvalues'] = array_values( $deprecatedValues );
+					ApiResult::setIndexedTagName( $item['deprecatedvalues'], 'v' );
+				}
+			}
 
 			if ( !empty( $settings[ApiBase::PARAM_HELP_MSG_INFO] ) ) {
-				$item['info'] = array();
+				$item['info'] = [];
 				foreach ( $settings[ApiBase::PARAM_HELP_MSG_INFO] as $i ) {
 					$tag = array_shift( $i );
-					$info = array(
+					$info = [
 						'name' => $tag,
-					);
+					];
 					if ( count( $i ) ) {
 						$info['values'] = $i;
 						ApiResult::setIndexedTagName( $info['values'], 'v' );
 					}
-					$this->formatHelpMessages( $info, 'text', array(
+					$this->formatHelpMessages( $info, 'text', [
 						$this->context->msg( "apihelp-{$path}-paraminfo-{$tag}" )
 							->numParams( count( $i ) )
 							->params( $this->context->getLanguage()->commaList( $i ) )
 							->params( $module->getModulePrefix() )
-					) );
+					] );
 					ApiResult::setSubelementsList( $info, 'text' );
 					$item['info'][] = $info;
 				}
@@ -391,6 +508,20 @@ class ApiParamInfo extends ApiBase {
 			$ret['parameters'][] = $item;
 		}
 		ApiResult::setIndexedTagName( $ret['parameters'], 'param' );
+
+		$dynamicParams = $module->dynamicParameterDocumentation();
+		if ( $dynamicParams !== null ) {
+			if ( $this->helpFormat === 'none' ) {
+				$ret['dynamicparameters'] = true;
+			} else {
+				$dynamicParams = ApiBase::makeMessage( $dynamicParams, $this->context, [
+					$module->getModulePrefix(),
+					$module->getModuleName(),
+					$module->getModulePath()
+				] );
+				$this->formatHelpMessages( $ret, 'dynamicparameters', [ $dynamicParams ] );
+			}
+		}
 
 		return $ret;
 	}
@@ -407,42 +538,44 @@ class ApiParamInfo extends ApiBase {
 		$formatmodules = $this->getMain()->getModuleManager()->getNames( 'format' );
 		sort( $formatmodules );
 
-		return array(
-			'modules' => array(
+		return [
+			'modules' => [
 				ApiBase::PARAM_ISMULTI => true,
-			),
-			'helpformat' => array(
+			],
+			'helpformat' => [
 				ApiBase::PARAM_DFLT => 'none',
-				ApiBase::PARAM_TYPE => array( 'html', 'wikitext', 'raw', 'none' ),
-			),
+				ApiBase::PARAM_TYPE => [ 'html', 'wikitext', 'raw', 'none' ],
+			],
 
-			'querymodules' => array(
+			'querymodules' => [
 				ApiBase::PARAM_DEPRECATED => true,
 				ApiBase::PARAM_ISMULTI => true,
 				ApiBase::PARAM_TYPE => $querymodules,
-			),
-			'mainmodule' => array(
+			],
+			'mainmodule' => [
 				ApiBase::PARAM_DEPRECATED => true,
-			),
-			'pagesetmodule' => array(
+			],
+			'pagesetmodule' => [
 				ApiBase::PARAM_DEPRECATED => true,
-			),
-			'formatmodules' => array(
+			],
+			'formatmodules' => [
 				ApiBase::PARAM_DEPRECATED => true,
 				ApiBase::PARAM_ISMULTI => true,
 				ApiBase::PARAM_TYPE => $formatmodules,
-			)
-		);
+			]
+		];
 	}
 
 	protected function getExamplesMessages() {
-		return array(
-			'action=paraminfo&modules=parse|phpfm|query+allpages|query+siteinfo'
+		return [
+			'action=paraminfo&modules=parse|phpfm|query%2Ballpages|query%2Bsiteinfo'
 				=> 'apihelp-paraminfo-example-1',
-		);
+			'action=paraminfo&modules=query%2B*'
+				=> 'apihelp-paraminfo-example-2',
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Parameter_information';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Parameter_information';
 	}
 }

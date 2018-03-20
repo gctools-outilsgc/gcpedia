@@ -53,13 +53,11 @@ class SVGReader {
 	private $mDebug = false;
 
 	/** @var array */
-	private $metadata = array();
-	private $languages = array();
-	private $languagePrefixes = array();
+	private $metadata = [];
+	private $languages = [];
+	private $languagePrefixes = [];
 
 	/**
-	 * Constructor
-	 *
 	 * Creates an SVGReader drawing from the source provided
 	 * @param string $source URI from which to read
 	 * @throws MWException|Exception
@@ -86,13 +84,13 @@ class SVGReader {
 		}
 
 		// Expand entities, since Adobe Illustrator uses them for xmlns
-		// attributes (bug 31719). Note that libxml2 has some protection
+		// attributes (T33719). Note that libxml2 has some protection
 		// against large recursive entity expansions so this is not as
 		// insecure as it might appear to be. However, it is still extremely
 		// insecure. It's necessary to wrap any read() calls with
 		// libxml_disable_entity_loader() to avoid arbitrary local file
 		// inclusion, or even arbitrary code execution if the expect
-		// extension is installed (bug 46859).
+		// extension is installed (T48859).
 		$oldDisable = libxml_disable_entity_loader( true );
 		$this->reader->setParserProperty( XMLReader::SUBST_ENTITIES, true );
 
@@ -229,7 +227,7 @@ class SVGReader {
 		}
 		// @todo Find and store type of xml snippet. metadata['metadataType'] = "rdf"
 		if ( method_exists( $this->reader, 'readInnerXML' ) ) {
-			$this->metadata[$metafield] = trim( $this->reader->readInnerXML() );
+			$this->metadata[$metafield] = trim( $this->reader->readInnerXml() );
 		} else {
 			throw new MWException( "The PHP XMLReader extension does not come " .
 				"with readInnerXML() method. Your libxml is probably out of " .
@@ -264,7 +262,7 @@ class SVGReader {
 			) {
 				$sysLang = $this->reader->getAttribute( 'systemLanguage' );
 				if ( !is_null( $sysLang ) && $sysLang !== '' ) {
-					// See http://www.w3.org/TR/SVG/struct.html#SystemLanguageAttribute
+					// See https://www.w3.org/TR/SVG/struct.html#SystemLanguageAttribute
 					$langList = explode( ',', $sysLang );
 					foreach ( $langList as $langItem ) {
 						$langItem = trim( $langItem );
@@ -305,12 +303,6 @@ class SVGReader {
 			}
 			$keepReading = $this->reader->read();
 		}
-	}
-
-	// @todo FIXME: Unused, remove?
-	private function throwXmlError( $err ) {
-		$this->debug( "FAILURE: $err" );
-		wfDebug( "SVGReader XML error: $err\n" );
 	}
 
 	private function debug( $data ) {
@@ -369,14 +361,14 @@ class SVGReader {
 
 	/**
 	 * Return a rounded pixel equivalent for a labeled CSS/SVG length.
-	 * http://www.w3.org/TR/SVG11/coords.html#UnitIdentifiers
+	 * https://www.w3.org/TR/SVG11/coords.html#Units
 	 *
 	 * @param string $length CSS/SVG length.
 	 * @param float|int $viewportSize Optional scale for percentage units...
 	 * @return float Length in pixels
 	 */
 	static function scaleSVGUnit( $length, $viewportSize = 512 ) {
-		static $unitLength = array(
+		static $unitLength = [
 			'px' => 1.0,
 			'pt' => 1.25,
 			'pc' => 15.0,
@@ -386,8 +378,8 @@ class SVGReader {
 			'em' => 16.0, // fake it?
 			'ex' => 12.0, // fake it?
 			'' => 1.0, // "User units" pixels by default
-		);
-		$matches = array();
+		];
+		$matches = [];
 		if ( preg_match( '/^\s*(\d+(?:\.\d+)?)(em|ex|px|pt|pc|cm|mm|in|%|)\s*$/', $length, $matches ) ) {
 			$length = floatval( $matches[1] );
 			$unit = $matches[2];

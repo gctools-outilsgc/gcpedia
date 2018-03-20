@@ -35,16 +35,14 @@ class ApiWatch extends ApiBase {
 	public function execute() {
 		$user = $this->getUser();
 		if ( !$user->isLoggedIn() ) {
-			$this->dieUsage( 'You must be logged-in to have a watchlist', 'notloggedin' );
+			$this->dieWithError( 'watchlistanontext', 'notloggedin' );
 		}
 
-		if ( !$user->isAllowed( 'editmywatchlist' ) ) {
-			$this->dieUsage( 'You don\'t have permission to edit your watchlist', 'permissiondenied' );
-		}
+		$this->checkUserRightsAny( 'editmywatchlist' );
 
 		$params = $this->extractRequestParams();
 
-		$continuationManager = new ApiContinuationManager( $this, array(), array() );
+		$continuationManager = new ApiContinuationManager( $this, [], [] );
 		$this->setContinuationManager( $continuationManager );
 
 		$pageSet = $this->getPageSet();
@@ -52,17 +50,17 @@ class ApiWatch extends ApiBase {
 		// title is still supported for backward compatibility
 		if ( !isset( $params['title'] ) ) {
 			$pageSet->execute();
-			$res = $pageSet->getInvalidTitlesAndRevisions( array(
+			$res = $pageSet->getInvalidTitlesAndRevisions( [
 				'invalidTitles',
 				'special',
 				'missingIds',
 				'missingRevIds',
 				'interwikiTitles'
-			) );
+			] );
 
 			foreach ( $pageSet->getMissingTitles() as $title ) {
 				$r = $this->watchTitle( $title, $user, $params );
-				$r['missing'] = 1;
+				$r['missing'] = true;
 				$res[] = $r;
 			}
 
@@ -78,17 +76,19 @@ class ApiWatch extends ApiBase {
 			} ) );
 
 			if ( $extraParams ) {
-				$p = $this->getModulePrefix();
-				$this->dieUsage(
-					"The parameter {$p}title can not be used with " . implode( ", ", $extraParams ),
+				$this->dieWithError(
+					[
+						'apierror-invalidparammix-cannotusewith',
+						$this->encodeParamName( 'title' ),
+						$pageSet->encodeParamName( $extraParams[0] )
+					],
 					'invalidparammix'
 				);
 			}
 
-			$this->logFeatureUsage( 'action=watch&title' );
 			$title = Title::newFromText( $params['title'] );
 			if ( !$title || !$title->isWatchable() ) {
-				$this->dieUsageMsg( array( 'invalidtitle', $params['title'] ) );
+				$this->dieWithError( [ 'invalidtitle', $params['title'] ] );
 			}
 			$res = $this->watchTitle( $title, $user, $params, true );
 		}
@@ -102,32 +102,28 @@ class ApiWatch extends ApiBase {
 		$compatibilityMode = false
 	) {
 		if ( !$title->isWatchable() ) {
-			return array( 'title' => $title->getPrefixedText(), 'watchable' => 0 );
+			return [ 'title' => $title->getPrefixedText(), 'watchable' => 0 ];
 		}
 
-		$res = array( 'title' => $title->getPrefixedText() );
+		$res = [ 'title' => $title->getPrefixedText() ];
 
 		if ( $params['unwatch'] ) {
 			$status = UnwatchAction::doUnwatch( $title, $user );
 			$res['unwatched'] = $status->isOK();
-			if ( $status->isOK() ) {
-				$res['message'] = $this->msg( 'removedwatchtext', $title->getPrefixedText() )
-					->title( $title )->parseAsBlock();
-			}
 		} else {
 			$status = WatchAction::doWatch( $title, $user );
 			$res['watched'] = $status->isOK();
-			if ( $status->isOK() ) {
-				$res['message'] = $this->msg( 'addedwatchtext', $title->getPrefixedText() )
-					->title( $title )->parseAsBlock();
-			}
 		}
 
 		if ( !$status->isOK() ) {
 			if ( $compatibilityMode ) {
 				$this->dieStatus( $status );
 			}
-			$res['error'] = $this->getErrorFromStatus( $status );
+			$res['errors'] = $this->getErrorFormatter()->arrayFromStatus( $status, 'error' );
+			$res['warnings'] = $this->getErrorFormatter()->arrayFromStatus( $status, 'warning' );
+			if ( !$res['warnings'] ) {
+				unset( $res['warnings'] );
+			}
 		}
 
 		return $res;
@@ -158,16 +154,16 @@ class ApiWatch extends ApiBase {
 	}
 
 	public function getAllowedParams( $flags = 0 ) {
-		$result = array(
-			'title' => array(
+		$result = [
+			'title' => [
 				ApiBase::PARAM_TYPE => 'string',
 				ApiBase::PARAM_DEPRECATED => true
-			),
+			],
 			'unwatch' => false,
-			'continue' => array(
+			'continue' => [
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-continue',
-			),
-		);
+			],
+		];
 		if ( $flags ) {
 			$result += $this->getPageSet()->getFinalParams( $flags );
 		}
@@ -176,17 +172,17 @@ class ApiWatch extends ApiBase {
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=watch&titles=Main_Page&token=123ABC'
 				=> 'apihelp-watch-example-watch',
 			'action=watch&titles=Main_Page&unwatch=&token=123ABC'
 				=> 'apihelp-watch-example-unwatch',
 			'action=watch&generator=allpages&gapnamespace=0&token=123ABC'
 				=> 'apihelp-watch-example-generator',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Watch';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Watch';
 	}
 }

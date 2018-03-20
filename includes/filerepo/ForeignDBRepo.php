@@ -21,6 +21,9 @@
  * @ingroup FileRepo
  */
 
+use Wikimedia\Rdbms\Database;
+use Wikimedia\Rdbms\IDatabase;
+
 /**
  * A foreign repository with an accessible MediaWiki database
  *
@@ -51,10 +54,13 @@ class ForeignDBRepo extends LocalRepo {
 	/** @var bool */
 	protected $hasSharedCache;
 
-	# Other stuff
+	/** @var IDatabase */
 	protected $dbConn;
-	protected $fileFactory = array( 'ForeignDBFile', 'newFromTitle' );
-	protected $fileFromRowFactory = array( 'ForeignDBFile', 'newFromRow' );
+
+	/** @var callable */
+	protected $fileFactory = [ 'ForeignDBFile', 'newFromTitle' ];
+	/** @var callable */
+	protected $fileFromRowFactory = [ 'ForeignDBFile', 'newFromRow' ];
 
 	/**
 	 * @param array|null $info
@@ -72,7 +78,7 @@ class ForeignDBRepo extends LocalRepo {
 	}
 
 	/**
-	 * @return DatabaseBase
+	 * @return IDatabase
 	 */
 	function getMasterDB() {
 		if ( !isset( $this->dbConn ) ) {
@@ -84,9 +90,9 @@ class ForeignDBRepo extends LocalRepo {
 	}
 
 	/**
-	 * @return DatabaseBase
+	 * @return IDatabase
 	 */
-	function getSlaveDB() {
+	function getReplicaDB() {
 		return $this->getMasterDB();
 	}
 
@@ -94,18 +100,19 @@ class ForeignDBRepo extends LocalRepo {
 	 * @return Closure
 	 */
 	protected function getDBFactory() {
-		return function( $index ) {
-			return DatabaseBase::factory( $this->dbType,
-				array(
-					'host' => $this->dbServer,
-					'user' => $this->dbUser,
-					'password' => $this->dbPassword,
-					'dbname' => $this->dbName,
-					'flags' => $this->dbFlags,
-					'tablePrefix' => $this->tablePrefix,
-					'foreign' => true,
-				)
-			);
+		$type = $this->dbType;
+		$params = [
+			'host' => $this->dbServer,
+			'user' => $this->dbUser,
+			'password' => $this->dbPassword,
+			'dbname' => $this->dbName,
+			'flags' => $this->dbFlags,
+			'tablePrefix' => $this->tablePrefix,
+			'foreign' => true,
+		];
+
+		return function ( $index ) use ( $type, $params ) {
+			return Database::factory( $type, $params );
 		};
 	}
 
@@ -134,7 +141,7 @@ class ForeignDBRepo extends LocalRepo {
 	}
 
 	protected function assertWritableRepo() {
-		throw new MWException( get_class( $this ) . ': write operations are not supported.' );
+		throw new MWException( static::class . ': write operations are not supported.' );
 	}
 
 	/**

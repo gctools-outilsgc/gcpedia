@@ -1,8 +1,0 @@
-{
-	"@metadata": {
-		"authors": [
-			"Toliño"
-		]
-	},
-	"charinsert-desc": "Permite a creación dunha caixa de JavaScript para [[MediaWiki:Edittools|inserir caracteres que non son estándar]]"
-}

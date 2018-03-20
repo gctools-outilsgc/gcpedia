@@ -27,25 +27,43 @@ class ApiManageTags extends ApiBase {
 
 	public function execute() {
 		$params = $this->extractRequestParams();
+		$user = $this->getUser();
 
 		// make sure the user is allowed
-		if ( !$this->getUser()->isAllowed( 'managechangetags' ) ) {
-			$this->dieUsage( "You don't have permission to manage change tags", 'permissiondenied' );
+		if ( $params['operation'] !== 'delete'
+			&& !$this->getUser()->isAllowed( 'managechangetags' )
+		) {
+			$this->dieWithError( 'tags-manage-no-permission', 'permissiondenied' );
+		} elseif ( !$this->getUser()->isAllowed( 'deletechangetags' ) ) {
+			$this->dieWithError( 'tags-delete-no-permission', 'permissiondenied' );
+		}
+
+		// Check if user can add the log entry tags which were requested
+		if ( $params['tags'] ) {
+			$ableToTag = ChangeTags::canAddTagsAccompanyingChange( $params['tags'], $user );
+			if ( !$ableToTag->isOK() ) {
+				$this->dieStatus( $ableToTag );
+			}
 		}
 
 		$result = $this->getResult();
 		$funcName = "{$params['operation']}TagWithChecks";
-		$status = ChangeTags::$funcName( $params['tag'], $params['reason'],
-			$this->getUser(), $params['ignorewarnings'] );
+		$status = ChangeTags::$funcName(
+			$params['tag'],
+			$params['reason'],
+			$user,
+			$params['ignorewarnings'],
+			$params['tags'] ?: []
+		);
 
 		if ( !$status->isOK() ) {
 			$this->dieStatus( $status );
 		}
 
-		$ret = array(
+		$ret = [
 			'operation' => $params['operation'],
 			'tag' => $params['tag'],
-		);
+		];
 		if ( !$status->isGood() ) {
 			$ret['warnings'] = $this->getErrorFormatter()->arrayFromStatus( $status, 'warning' );
 		}
@@ -53,6 +71,7 @@ class ApiManageTags extends ApiBase {
 		if ( $ret['success'] ) {
 			$ret['logid'] = $status->value;
 		}
+
 		$result->addValue( null, $this->getModuleName(), $ret );
 	}
 
@@ -65,23 +84,27 @@ class ApiManageTags extends ApiBase {
 	}
 
 	public function getAllowedParams() {
-		return array(
-			'operation' => array(
-				ApiBase::PARAM_TYPE => array( 'create', 'delete', 'activate', 'deactivate' ),
+		return [
+			'operation' => [
+				ApiBase::PARAM_TYPE => [ 'create', 'delete', 'activate', 'deactivate' ],
 				ApiBase::PARAM_REQUIRED => true,
-			),
-			'tag' => array(
+			],
+			'tag' => [
 				ApiBase::PARAM_TYPE => 'string',
 				ApiBase::PARAM_REQUIRED => true,
-			),
-			'reason' => array(
+			],
+			'reason' => [
 				ApiBase::PARAM_TYPE => 'string',
-			),
-			'ignorewarnings' => array(
+			],
+			'ignorewarnings' => [
 				ApiBase::PARAM_TYPE => 'boolean',
 				ApiBase::PARAM_DFLT => false,
-			),
-		);
+			],
+			'tags' => [
+				ApiBase::PARAM_TYPE => 'tags',
+				ApiBase::PARAM_ISMULTI => true,
+			],
+		];
 	}
 
 	public function needsToken() {
@@ -89,7 +112,7 @@ class ApiManageTags extends ApiBase {
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=managetags&operation=create&tag=spam&reason=For+use+in+edit+patrolling&token=123ABC'
 				=> 'apihelp-managetags-example-create',
 			'action=managetags&operation=delete&tag=vandlaism&reason=Misspelt&token=123ABC'
@@ -98,10 +121,10 @@ class ApiManageTags extends ApiBase {
 				=> 'apihelp-managetags-example-activate',
 			'action=managetags&operation=deactivate&tag=spam&reason=No+longer+required&token=123ABC'
 				=> 'apihelp-managetags-example-deactivate',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Tag_management';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Tag_management';
 	}
 }

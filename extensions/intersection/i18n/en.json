@@ -1,9 +1,0 @@
-{
-    "@metadata": {
-        "authors": []
-    },
-    "intersection-desc": "Outputs a bulleted list of the most recent items residing in a category, or an intersection of several categories",
-    "intersection_toomanycats": "Error: Too many categories!",
-    "intersection_noresults": "No pages meet these criteria.",
-    "intersection_noincludecats": "Error: You need to include at least one category, or specify a namespace!"
-}

@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Vitorvicentevalente",
+			"Hamilton Abreu"
+		]
+	},
+	"pluggableauth-not-authorized": "{{GENDER:$1|Utilizador $1 não autorizado|Utilizadora $1 não autorizada|Utilizador(a) $1 não autorizado(a)}}.",
+	"pluggableauth-authentication-failure": "Não foi possível autenticar o utilizador.",
+	"pluggableauth-loginbutton-label": "Iniciar sessão com PluggableAuth",
+	"pluggableauth-loginbutton-help": "Inicia a sua sessão com PluggableAuth"
+}

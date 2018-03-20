@@ -15,28 +15,35 @@ class ResourceLoaderImageTest extends ResourceLoaderTestCase {
 	protected function getTestImage( $name ) {
 		$options = ResourceLoaderImageModuleTest::$commonImageData[$name];
 		$fileDescriptor = is_string( $options ) ? $options : $options['file'];
-		$allowedVariants = is_array( $options ) && isset( $options['variants'] ) ? $options['variants'] : array();
-		$variants = array_fill_keys( $allowedVariants, array( 'color' => 'red' ) );
-		return new ResourceLoaderImageTestable( $name, 'test', $fileDescriptor, $this->imagesPath, $variants );
+		$allowedVariants = is_array( $options ) &&
+			isset( $options['variants'] ) ? $options['variants'] : [];
+		$variants = array_fill_keys( $allowedVariants, [ 'color' => 'red' ] );
+		return new ResourceLoaderImageTestable(
+			$name,
+			'test',
+			$fileDescriptor,
+			$this->imagesPath,
+			$variants
+		);
 	}
 
 	public static function provideGetPath() {
-		return array(
-			array( 'add', 'en', 'add.gif' ),
-			array( 'add', 'he', 'add.gif' ),
-			array( 'remove', 'en', 'remove.svg' ),
-			array( 'remove', 'he', 'remove.svg' ),
-			array( 'next', 'en', 'next.svg' ),
-			array( 'next', 'he', 'prev.svg' ),
-			array( 'help', 'en', 'help-ltr.svg' ),
-			array( 'help', 'ar', 'help-rtl.svg' ),
-			array( 'help', 'he', 'help-ltr.svg' ),
-			array( 'bold', 'en', 'bold-b.svg' ),
-			array( 'bold', 'de', 'bold-f.svg' ),
-			array( 'bold', 'ar', 'bold-f.svg' ),
-			array( 'bold', 'fr', 'bold-a.svg' ),
-			array( 'bold', 'he', 'bold-a.svg' ),
-		);
+		return [
+			[ 'abc', 'en', 'abc.gif' ],
+			[ 'abc', 'he', 'abc.gif' ],
+			[ 'def', 'en', 'def.svg' ],
+			[ 'def', 'he', 'def.svg' ],
+			[ 'ghi', 'en', 'ghi.svg' ],
+			[ 'ghi', 'he', 'jkl.svg' ],
+			[ 'mno', 'en', 'mno-ltr.svg' ],
+			[ 'mno', 'ar', 'mno-rtl.svg' ],
+			[ 'mno', 'he', 'mno-ltr.svg' ],
+			[ 'pqr', 'en', 'pqr-b.svg' ],
+			[ 'pqr', 'de', 'pqr-f.svg' ],
+			[ 'pqr', 'ar', 'pqr-f.svg' ],
+			[ 'pqr', 'fr', 'pqr-a.svg' ],
+			[ 'pqr', 'he', 'pqr-a.svg' ],
+		];
 	}
 
 	/**
@@ -44,17 +51,20 @@ class ResourceLoaderImageTest extends ResourceLoaderTestCase {
 	 * @dataProvider provideGetPath
 	 */
 	public function testGetPath( $imageName, $languageCode, $path ) {
-		static $dirMap = array(
+		static $dirMap = [
 			'en' => 'ltr',
 			'de' => 'ltr',
 			'fr' => 'ltr',
 			'he' => 'rtl',
 			'ar' => 'rtl',
-		);
-		static $contexts = array();
+		];
+		static $contexts = [];
 
 		$image = $this->getTestImage( $imageName );
-		$context = $this->getResourceLoaderContext( $languageCode, $dirMap[$languageCode] );
+		$context = $this->getResourceLoaderContext( [
+			'lang' => $languageCode,
+			'dir' => $dirMap[$languageCode],
+		] );
 
 		$this->assertEquals( $image->getPath( $context ), $this->imagesPath . '/' . $path );
 	}
@@ -64,11 +74,11 @@ class ResourceLoaderImageTest extends ResourceLoaderTestCase {
 	 * @covers ResourceLoaderImage::getMimeType
 	 */
 	public function testGetExtension() {
-		$image = $this->getTestImage( 'remove' );
+		$image = $this->getTestImage( 'def' );
 		$this->assertEquals( $image->getExtension(), 'svg' );
 		$this->assertEquals( $image->getExtension( 'original' ), 'svg' );
 		$this->assertEquals( $image->getExtension( 'rasterized' ), 'png' );
-		$image = $this->getTestImage( 'add' );
+		$image = $this->getTestImage( 'abc' );
 		$this->assertEquals( $image->getExtension(), 'gif' );
 		$this->assertEquals( $image->getExtension( 'original' ), 'gif' );
 		$this->assertEquals( $image->getExtension( 'rasterized' ), 'gif' );
@@ -80,18 +90,21 @@ class ResourceLoaderImageTest extends ResourceLoaderTestCase {
 	 * @covers ResourceLoaderImage::massageSvgPathdata
 	 */
 	public function testGetImageData() {
-		$context = $this->getResourceLoaderContext( 'en', 'ltr' );
+		$context = $this->getResourceLoaderContext();
 
-		$image = $this->getTestImage( 'remove' );
-		$data = file_get_contents( $this->imagesPath . '/remove.svg' );
-		$dataConstructive = file_get_contents( $this->imagesPath . '/remove_variantize.svg' );
+		$image = $this->getTestImage( 'def' );
+		$data = file_get_contents( $this->imagesPath . '/def.svg' );
+		$dataConstructive = file_get_contents( $this->imagesPath . '/def_variantize.svg' );
 		$this->assertEquals( $image->getImageData( $context, null, 'original' ), $data );
-		$this->assertEquals( $image->getImageData( $context, 'destructive', 'original' ), $dataConstructive );
+		$this->assertEquals(
+			$image->getImageData( $context, 'destructive', 'original' ),
+			$dataConstructive
+		);
 		// Stub, since we don't know if we even have a SVG handler, much less what exactly it'll output
 		$this->assertEquals( $image->getImageData( $context, null, 'rasterized' ), 'RASTERIZESTUB' );
 
-		$image = $this->getTestImage( 'add' );
-		$data = file_get_contents( $this->imagesPath . '/add.gif' );
+		$image = $this->getTestImage( 'abc' );
+		$data = file_get_contents( $this->imagesPath . '/abc.gif' );
 		$this->assertEquals( $image->getImageData( $context, null, 'original' ), $data );
 		$this->assertEquals( $image->getImageData( $context, null, 'rasterized' ), $data );
 	}
@@ -100,9 +113,9 @@ class ResourceLoaderImageTest extends ResourceLoaderTestCase {
 	 * @covers ResourceLoaderImage::massageSvgPathdata
 	 */
 	public function testMassageSvgPathdata() {
-		$image = $this->getTestImage( 'next' );
-		$data = file_get_contents( $this->imagesPath . '/next.svg' );
-		$dataMassaged = file_get_contents( $this->imagesPath . '/next_massage.svg' );
+		$image = $this->getTestImage( 'ghi' );
+		$data = file_get_contents( $this->imagesPath . '/ghi.svg' );
+		$dataMassaged = file_get_contents( $this->imagesPath . '/ghi_massage.svg' );
 		$this->assertEquals( $image->massageSvgPathdata( $data ), $dataMassaged );
 	}
 }

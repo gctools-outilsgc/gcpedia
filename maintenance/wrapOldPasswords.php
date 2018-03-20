@@ -1,4 +1,7 @@
 <?php
+
+use MediaWiki\MediaWikiServices;
+
 /**
  * Maintenance script to wrap all old-style passwords in a layered type
  *
@@ -32,7 +35,7 @@ require_once __DIR__ . '/Maintenance.php';
 class WrapOldPasswords extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Wrap all passwords of a certain type in a new layered type";
+		$this->addDescription( 'Wrap all passwords of a certain type in a new layered type' );
 		$this->addOption( 'type',
 			'Password type to wrap passwords in (must inherit LayeredParameterizedPassword)', true, true );
 		$this->addOption( 'verbose', 'Enables verbose output', false, false, 'v' );
@@ -40,12 +43,6 @@ class WrapOldPasswords extends Maintenance {
 	}
 
 	public function execute() {
-		global $wgAuth;
-
-		if ( !$wgAuth->allowSetLocalPassword() ) {
-			$this->error( '$wgAuth does not allow local passwords. Aborting.', true );
-		}
-
 		$passwordFactory = new PasswordFactory();
 		$passwordFactory->init( RequestContext::getMain()->getConfig() );
 
@@ -71,25 +68,26 @@ class WrapOldPasswords extends Maintenance {
 		$typeCond = 'user_password' . $dbw->buildLike( ":$firstType:", $dbw->anyString() );
 
 		$minUserId = 0;
+		$lbFactory = MediaWikiServices::getInstance()->getDBLoadBalancerFactory();
 		do {
-			$dbw->begin();
+			$this->beginTransaction( $dbw, __METHOD__ );
 
 			$res = $dbw->select( 'user',
-				array( 'user_id', 'user_name', 'user_password' ),
-				array(
+				[ 'user_id', 'user_name', 'user_password' ],
+				[
 					'user_id > ' . $dbw->addQuotes( $minUserId ),
 					$typeCond
-				),
+				],
 				__METHOD__,
-				array(
+				[
 					'ORDER BY' => 'user_id',
 					'LIMIT' => $this->mBatchSize,
 					'LOCK IN SHARE MODE',
-				)
+				]
 			);
 
 			/** @var User[] $updateUsers */
-			$updateUsers = array();
+			$updateUsers = [];
 			foreach ( $res as $row ) {
 				if ( $this->hasOption( 'verbose' ) ) {
 					$this->output( "Updating password for user {$row->user_name} ({$row->user_id}).\n" );
@@ -104,15 +102,16 @@ class WrapOldPasswords extends Maintenance {
 
 				$updateUsers[] = $user;
 				$dbw->update( 'user',
-					array( 'user_password' => $layeredPassword->toString() ),
-					array( 'user_id' => $row->user_id ),
+					[ 'user_password' => $layeredPassword->toString() ],
+					[ 'user_id' => $row->user_id ],
 					__METHOD__
 				);
 
 				$minUserId = $row->user_id;
 			}
 
-			$dbw->commit();
+			$this->commitTransaction( $dbw, __METHOD__ );
+			$lbFactory->waitForReplication();
 
 			// Clear memcached so old passwords are wiped out
 			foreach ( $updateUsers as $user ) {

@@ -1,4 +1,3 @@
-/*global OO*/
 ( function ( mw ) {
 	/**
 	 * This is the abstract base class for MessagePoster implementations.
@@ -16,7 +15,10 @@
 	/**
 	 * Post a message (with subject and body) to a talk page.
 	 *
-	 * @param {string} subject Subject/topic title; plaintext only (no wikitext or HTML)
+	 * @abstract
+	 * @param {string} subject Subject/topic title.  The amount of wikitext supported is
+	 *   implementation-specific. It is recommended to only use basic wikilink syntax for
+	 *   maximum compatibility.
 	 * @param {string} body Body, as wikitext.  Signature code will automatically be added
 	 *   by MessagePosters that require one, unless the message already contains the string
 	 *   ~~~.

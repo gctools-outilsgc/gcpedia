@@ -1,23 +1,29 @@
 <?php
 
+use Wikimedia\Rdbms\TransactionProfiler;
+use Wikimedia\Rdbms\DatabaseDomain;
+
 /**
- * Helper for testing the methods from the DatabaseBase class
+ * Helper for testing the methods from the Database class
  * @since 1.22
  */
-class DatabaseTestHelper extends DatabaseBase {
+class DatabaseTestHelper extends Database {
 
 	/**
 	 * __CLASS__ of the test suite,
 	 * used to determine, if the function name is passed every time to query()
 	 */
-	protected $testName = array();
+	protected $testName = [];
 
 	/**
 	 * Array of lastSqls passed to query(),
-	 * This is an array since some methods in DatabaseBase can do more than one
+	 * This is an array since some methods in Database can do more than one
 	 * query. Cleared when calling getLastSqls().
 	 */
-	protected $lastSqls = array();
+	protected $lastSqls = [];
+
+	/** @var array List of row arrays */
+	protected $nextResult = [];
 
 	/**
 	 * Array of tables to be considered as existing by tableExist()
@@ -25,23 +31,46 @@ class DatabaseTestHelper extends DatabaseBase {
 	 */
 	protected $tablesExists;
 
-	public function __construct( $testName ) {
+	/**
+	 * Value to return from unionSupportsOrderAndLimit()
+	 */
+	protected $unionSupportsOrderAndLimit = true;
+
+	public function __construct( $testName, array $opts = [] ) {
 		$this->testName = $testName;
+
+		$this->profiler = new ProfilerStub( [] );
+		$this->trxProfiler = new TransactionProfiler();
+		$this->cliMode = isset( $opts['cliMode'] ) ? $opts['cliMode'] : true;
+		$this->connLogger = new \Psr\Log\NullLogger();
+		$this->queryLogger = new \Psr\Log\NullLogger();
+		$this->errorLogger = function ( Exception $e ) {
+			wfWarn( get_class( $e ) . ": {$e->getMessage()}" );
+		};
+		$this->currentDomain = DatabaseDomain::newUnspecified();
 	}
 
 	/**
 	 * Returns SQL queries grouped by '; '
 	 * Clear the list of queries that have been done so far.
+	 * @return string
 	 */
 	public function getLastSqls() {
 		$lastSqls = implode( '; ', $this->lastSqls );
-		$this->lastSqls = array();
+		$this->lastSqls = [];
 
 		return $lastSqls;
 	}
 
 	public function setExistingTables( $tablesExists ) {
 		$this->tablesExists = (array)$tablesExists;
+	}
+
+	/**
+	 * @param mixed $res Use an array of row arrays to set row result
+	 */
+	public function forceNextResult( $res ) {
+		$this->nextResult = $res;
 	}
 
 	protected function addSql( $sql ) {
@@ -78,6 +107,11 @@ class DatabaseTestHelper extends DatabaseBase {
 	}
 
 	public function tableExists( $table, $fname = __METHOD__ ) {
+		$tableRaw = $this->tableName( $table, 'raw' );
+		if ( isset( $this->mSessionTempTables[$tableRaw] ) ) {
+			return true; // already known to exist
+		}
+
 		$this->checkFunctionName( $fname );
 
 		return in_array( $table, (array)$this->tablesExists );
@@ -136,7 +170,7 @@ class DatabaseTestHelper extends DatabaseBase {
 		return false;
 	}
 
-	function indexInfo( $table, $index, $fname = 'DatabaseBase::indexInfo' ) {
+	function indexInfo( $table, $index, $fname = 'Database::indexInfo' ) {
 		return false;
 	}
 
@@ -160,11 +194,27 @@ class DatabaseTestHelper extends DatabaseBase {
 		return true;
 	}
 
+	function ping( &$rtt = null ) {
+		$rtt = 0.0;
+		return true;
+	}
+
 	protected function closeConnection() {
 		return false;
 	}
 
 	protected function doQuery( $sql ) {
-		return array();
+		$res = $this->nextResult;
+		$this->nextResult = [];
+
+		return new FakeResultWrapper( $res );
+	}
+
+	public function unionSupportsOrderAndLimit() {
+		return $this->unionSupportsOrderAndLimit;
+	}
+
+	public function setUnionSupportsOrderAndLimit( $v ) {
+		$this->unionSupportsOrderAndLimit = (bool)$v;
 	}
 }

@@ -20,70 +20,83 @@ class ResourceLoaderFileModuleTest extends ResourceLoaderTestCase {
 	}
 
 	private static function getModules() {
-		$base = array(
-			'localBasePath' => realpath( dirname( __FILE__ ) ),
-		);
+		$base = [
+			'localBasePath' => realpath( __DIR__ ),
+		];
 
-		return array(
-			'noTemplateModule' => array(),
+		return [
+			'noTemplateModule' => [],
 
-			'htmlTemplateModule' => $base + array(
-				'templates' => array(
+			'deprecatedModule' => $base + [
+				'deprecated' => true,
+			],
+			'deprecatedTomorrow' => $base + [
+				'deprecated' => 'Will be removed tomorrow.'
+			],
+
+			'htmlTemplateModule' => $base + [
+				'templates' => [
 					'templates/template.html',
 					'templates/template2.html',
-				)
-			),
+				]
+			],
 
-			'aliasedHtmlTemplateModule' => $base + array(
-				'templates' => array(
+			'htmlTemplateUnknown' => $base + [
+				'templates' => [
+					'templates/notfound.html',
+				]
+			],
+
+			'aliasedHtmlTemplateModule' => $base + [
+				'templates' => [
 					'foo.html' => 'templates/template.html',
 					'bar.html' => 'templates/template2.html',
-				)
-			),
+				]
+			],
 
-			'templateModuleHandlebars' => $base + array(
-				'templates' => array(
+			'templateModuleHandlebars' => $base + [
+				'templates' => [
 					'templates/template_awesome.handlebars',
-				),
-			),
+				],
+			],
 
-			'aliasFooFromBar' => $base + array(
-				'templates' => array(
+			'aliasFooFromBar' => $base + [
+				'templates' => [
 					'foo.foo' => 'templates/template.bar',
-				),
-			),
-		);
+				],
+			],
+		];
 	}
 
 	public static function providerTemplateDependencies() {
 		$modules = self::getModules();
 
-		return array(
-			array(
+		return [
+			[
 				$modules['noTemplateModule'],
-				array(),
-			),
-			array(
+				[],
+			],
+			[
 				$modules['htmlTemplateModule'],
-				array(
+				[
 					'mediawiki.template',
-				),
-			),
-			array(
+				],
+			],
+			[
 				$modules['templateModuleHandlebars'],
-				array(
+				[
 					'mediawiki.template',
 					'mediawiki.template.handlebars',
-				),
-			),
-			array(
+				],
+			],
+			[
 				$modules['aliasFooFromBar'],
-				array(
+				[
 					'mediawiki.template',
 					'mediawiki.template.foo',
-				),
-			),
-		);
+				],
+			],
+		];
 	}
 
 	/**
@@ -93,7 +106,56 @@ class ResourceLoaderFileModuleTest extends ResourceLoaderTestCase {
 	 */
 	public function testTemplateDependencies( $module, $expected ) {
 		$rl = new ResourceLoaderFileModule( $module );
+		$rl->setName( 'testing' );
 		$this->assertEquals( $rl->getDependencies(), $expected );
+	}
+
+	public static function providerDeprecatedModules() {
+		return [
+			[
+				'deprecatedModule',
+				'mw.log.warn("This page is using the deprecated ResourceLoader module \"deprecatedModule\".");',
+			],
+			[
+				'deprecatedTomorrow',
+				'mw.log.warn(' .
+					'"This page is using the deprecated ResourceLoader module \"deprecatedTomorrow\".\\n' .
+					"Will be removed tomorrow." .
+					'");'
+			]
+		];
+	}
+
+	/**
+	 * @dataProvider providerDeprecatedModules
+	 * @covers ResourceLoaderFileModule::getScript
+	 */
+	public function testDeprecatedModules( $name, $expected ) {
+		$modules = self::getModules();
+		$module = new ResourceLoaderFileModule( $modules[$name] );
+		$module->setName( $name );
+		$ctx = $this->getResourceLoaderContext();
+		$this->assertEquals( $module->getScript( $ctx ), $expected );
+	}
+
+	/**
+	 * @covers ResourceLoaderFileModule::getScript
+	 */
+	public function testGetScript() {
+		$module = new ResourceLoaderFileModule( [
+			'localBasePath' => __DIR__ . '/../../data/resourceloader',
+			'scripts' => [ 'script-nosemi.js', 'script-comment.js' ],
+		] );
+		$module->setName( 'testing' );
+		$ctx = $this->getResourceLoaderContext();
+		$this->assertEquals(
+			"/* eslint-disable */\nmw.foo()\n" .
+			"\n" .
+			"/* eslint-disable */\nmw.foo()\n// mw.bar();\n" .
+			"\n",
+			$module->getScript( $ctx ),
+			'scripts are concatenated with a new-line'
+		);
 	}
 
 	/**
@@ -102,34 +164,35 @@ class ResourceLoaderFileModuleTest extends ResourceLoaderTestCase {
 	 * @covers ResourceLoaderFileModule::getSkinStyleFiles
 	 */
 	public function testGetAllSkinStyleFiles() {
-		$baseParams = array(
-			'scripts' => array(
+		$baseParams = [
+			'scripts' => [
 				'foo.js',
 				'bar.js',
-			),
-			'styles' => array(
+			],
+			'styles' => [
 				'foo.css',
-				'bar.css' => array( 'media' => 'print' ),
-				'screen.less' => array( 'media' => 'screen' ),
-				'screen-query.css' => array( 'media' => 'screen and (min-width: 400px)' ),
-			),
-			'skinStyles' => array(
+				'bar.css' => [ 'media' => 'print' ],
+				'screen.less' => [ 'media' => 'screen' ],
+				'screen-query.css' => [ 'media' => 'screen and (min-width: 400px)' ],
+			],
+			'skinStyles' => [
 				'default' => 'quux-fallback.less',
-				'fakeskin' => array(
+				'fakeskin' => [
 					'baz-vector.css',
 					'quux-vector.less',
-				),
-			),
-			'messages' => array(
+				],
+			],
+			'messages' => [
 				'hello',
 				'world',
-			),
-		);
+			],
+		];
 
 		$module = new ResourceLoaderFileModule( $baseParams );
+		$module->setName( 'testing' );
 
 		$this->assertEquals(
-			array(
+			[
 				'foo.css',
 				'baz-vector.css',
 				'quux-vector.less',
@@ -137,7 +200,7 @@ class ResourceLoaderFileModuleTest extends ResourceLoaderTestCase {
 				'bar.css',
 				'screen.less',
 				'screen-query.css',
-			),
+			],
 			array_map( 'basename', $module->getAllStyleFiles() )
 		);
 	}
@@ -160,17 +223,25 @@ class ResourceLoaderFileModuleTest extends ResourceLoaderTestCase {
 	 */
 	public function testMixedCssAnnotations() {
 		$basePath = __DIR__ . '/../../data/css';
-		$testModule = new ResourceLoaderFileModule( array(
+		$testModule = new ResourceLoaderFileModule( [
 			'localBasePath' => $basePath,
-			'styles' => array( 'test.css' ),
-		) );
-		$expectedModule = new ResourceLoaderFileModule( array(
+			'styles' => [ 'test.css' ],
+		] );
+		$testModule->setName( 'testing' );
+		$expectedModule = new ResourceLoaderFileModule( [
 			'localBasePath' => $basePath,
-			'styles' => array( 'expected.css' ),
-		) );
+			'styles' => [ 'expected.css' ],
+		] );
+		$expectedModule->setName( 'testing' );
 
-		$contextLtr = $this->getResourceLoaderContext( 'en', 'ltr' );
-		$contextRtl = $this->getResourceLoaderContext( 'he', 'rtl' );
+		$contextLtr = $this->getResourceLoaderContext( [
+			'lang' => 'en',
+			'dir' => 'ltr',
+		] );
+		$contextRtl = $this->getResourceLoaderContext( [
+			'lang' => 'he',
+			'dir' => 'rtl',
+		] );
 
 		// Since we want to compare the effect of @noflip+@embed against the effect of just @embed, and
 		// the @noflip annotations are always preserved, we need to strip them first.
@@ -189,32 +260,36 @@ class ResourceLoaderFileModuleTest extends ResourceLoaderTestCase {
 	public static function providerGetTemplates() {
 		$modules = self::getModules();
 
-		return array(
-			array(
+		return [
+			[
 				$modules['noTemplateModule'],
-				array(),
-			),
-			array(
+				[],
+			],
+			[
 				$modules['templateModuleHandlebars'],
-				array(
+				[
 					'templates/template_awesome.handlebars' => "wow\n",
-				),
-			),
-			array(
+				],
+			],
+			[
 				$modules['htmlTemplateModule'],
-				array(
+				[
 					'templates/template.html' => "<strong>hello</strong>\n",
 					'templates/template2.html' => "<div>goodbye</div>\n",
-				),
-			),
-			array(
+				],
+			],
+			[
 				$modules['aliasedHtmlTemplateModule'],
-				array(
+				[
 					'foo.html' => "<strong>hello</strong>\n",
 					'bar.html' => "<div>goodbye</div>\n",
-				),
-			),
-		);
+				],
+			],
+			[
+				$modules['htmlTemplateUnknown'],
+				false,
+			],
+		];
 	}
 
 	/**
@@ -223,7 +298,56 @@ class ResourceLoaderFileModuleTest extends ResourceLoaderTestCase {
 	 */
 	public function testGetTemplates( $module, $expected ) {
 		$rl = new ResourceLoaderFileModule( $module );
+		$rl->setName( 'testing' );
 
-		$this->assertEquals( $rl->getTemplates(), $expected );
+		if ( $expected === false ) {
+			$this->setExpectedException( MWException::class );
+			$rl->getTemplates();
+		} else {
+			$this->assertEquals( $rl->getTemplates(), $expected );
+		}
+	}
+
+	/**
+	 * @covers ResourceLoaderFileModule::stripBom
+	 */
+	public function testBomConcatenation() {
+		$basePath = __DIR__ . '/../../data/css';
+		$testModule = new ResourceLoaderFileModule( [
+			'localBasePath' => $basePath,
+			'styles' => [ 'bom.css' ],
+			] );
+		$testModule->setName( 'testing' );
+		$this->assertEquals(
+			substr( file_get_contents( "$basePath/bom.css" ), 0, 10 ),
+			"\xef\xbb\xbf.efbbbf",
+			'File has leading BOM'
+		);
+
+		$context = $this->getResourceLoaderContext();
+		$this->assertEquals(
+			$testModule->getStyles( $context ),
+			[ 'all' => ".efbbbf_bom_char_at_start_of_file {}\n" ],
+			'Leading BOM removed when concatenating files'
+		);
+	}
+
+	/**
+	 * @covers ResourceLoaderFileModule::getDefinitionSummary
+	 */
+	public function testGetVersionHash() {
+		$context = $this->getResourceLoaderContext();
+
+		// Less variables
+		$module = new ResourceLoaderFileTestModule();
+		$version = $module->getVersionHash( $context );
+		$module = new ResourceLoaderFileTestModule( [], [
+			'lessVars' => [ 'key' => 'value' ],
+		] );
+		$this->assertNotEquals(
+			$version,
+			$module->getVersionHash( $context ),
+			'Using less variables is significant'
+		);
 	}
 }

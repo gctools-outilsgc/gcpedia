@@ -45,12 +45,12 @@ class SearchMySQL extends SearchDatabase {
 	function parseQuery( $filteredText, $fulltext ) {
 		global $wgContLang;
 
-		$lc = $this->legalSearchChars(); // Minus format chars
+		$lc = $this->legalSearchChars( self::CHARS_NO_SYNTAX ); // Minus syntax chars (" and *)
 		$searchon = '';
-		$this->searchTerms = array();
+		$this->searchTerms = [];
 
 		# @todo FIXME: This doesn't handle parenthetical expressions.
-		$m = array();
+		$m = [];
 		if ( preg_match_all( '/([-+<>~]?)(([' . $lc . ']+)(\*?)|"[^"]*")/',
 				$filteredText, $m, PREG_SET_ORDER ) ) {
 			foreach ( $m as $bits ) {
@@ -80,7 +80,7 @@ class SearchMySQL extends SearchDatabase {
 				if ( is_array( $convertedVariants ) ) {
 					$variants = array_unique( array_values( $convertedVariants ) );
 				} else {
-					$variants = array( $term );
+					$variants = [ $term ];
 				}
 
 				// The low-level search index does some processing on input to work
@@ -88,7 +88,7 @@ class SearchMySQL extends SearchDatabase {
 				// fulltext engine.
 				// For Chinese this also inserts spaces between adjacent Han characters.
 				$strippedVariants = array_map(
-					array( $wgContLang, 'normalizeForSearch' ),
+					[ $wgContLang, 'normalizeForSearch' ],
 					$variants );
 
 				// Some languages such as Chinese force all variants to a canonical
@@ -149,8 +149,13 @@ class SearchMySQL extends SearchDatabase {
 		return $regex;
 	}
 
-	public static function legalSearchChars() {
-		return "\"*" . parent::legalSearchChars();
+	public static function legalSearchChars( $type = self::CHARS_ALL ) {
+		$searchChars = parent::legalSearchChars( $type );
+		if ( $type === self::CHARS_ALL ) {
+			// " for phrase, * for wildcard
+			$searchChars = "\"*" . $searchChars;
+		}
+		return $searchChars;
 	}
 
 	/**
@@ -213,7 +218,7 @@ class SearchMySQL extends SearchDatabase {
 
 	/**
 	 * Add special conditions
-	 * @param array $query
+	 * @param array &$query
 	 * @since 1.18
 	 */
 	protected function queryFeatures( &$query ) {
@@ -226,7 +231,7 @@ class SearchMySQL extends SearchDatabase {
 
 	/**
 	 * Add namespace conditions
-	 * @param array $query
+	 * @param array &$query
 	 * @since 1.18 (changed)
 	 */
 	function queryNamespaces( &$query ) {
@@ -240,7 +245,7 @@ class SearchMySQL extends SearchDatabase {
 
 	/**
 	 * Add limit options
-	 * @param array $query
+	 * @param array &$query
 	 * @since 1.18
 	 */
 	protected function limitResult( &$query ) {
@@ -257,13 +262,13 @@ class SearchMySQL extends SearchDatabase {
 	 * @since 1.18 (changed)
 	 */
 	function getQuery( $filteredTerm, $fulltext ) {
-		$query = array(
-			'tables' => array(),
-			'fields' => array(),
-			'conds' => array(),
-			'options' => array(),
-			'joins' => array(),
-		);
+		$query = [
+			'tables' => [],
+			'fields' => [],
+			'conds' => [],
+			'options' => [],
+			'joins' => [],
+		];
 
 		$this->queryMain( $query, $filteredTerm, $fulltext );
 		$this->queryFeatures( $query );
@@ -310,13 +315,13 @@ class SearchMySQL extends SearchDatabase {
 	function getCountQuery( $filteredTerm, $fulltext ) {
 		$match = $this->parseQuery( $filteredTerm, $fulltext );
 
-		$query = array(
-			'tables' => array( 'page', 'searchindex' ),
-			'fields' => array( 'COUNT(*) as c' ),
-			'conds' => array( 'page_id=si_page', $match ),
-			'options' => array(),
-			'joins' => array(),
-		);
+		$query = [
+			'tables' => [ 'page', 'searchindex' ],
+			'fields' => [ 'COUNT(*) as c' ],
+			'conds' => [ 'page_id=si_page', $match ],
+			'options' => [],
+			'joins' => [],
+		];
 
 		$this->queryFeatures( $query );
 		$this->queryNamespaces( $query );
@@ -335,12 +340,12 @@ class SearchMySQL extends SearchDatabase {
 	function update( $id, $title, $text ) {
 		$dbw = wfGetDB( DB_MASTER );
 		$dbw->replace( 'searchindex',
-			array( 'si_page' ),
-			array(
+			[ 'si_page' ],
+			[
 				'si_page' => $id,
 				'si_title' => $this->normalizeText( $title ),
 				'si_text' => $this->normalizeText( $text )
-			), __METHOD__ );
+			], __METHOD__ );
 	}
 
 	/**
@@ -354,10 +359,10 @@ class SearchMySQL extends SearchDatabase {
 		$dbw = wfGetDB( DB_MASTER );
 
 		$dbw->update( 'searchindex',
-			array( 'si_title' => $this->normalizeText( $title ) ),
-			array( 'si_page' => $id ),
+			[ 'si_title' => $this->normalizeText( $title ) ],
+			[ 'si_page' => $id ],
 			__METHOD__,
-			array( $dbw->lowPriorityOption() ) );
+			[ $dbw->lowPriorityOption() ] );
 	}
 
 	/**
@@ -370,7 +375,7 @@ class SearchMySQL extends SearchDatabase {
 	function delete( $id, $title ) {
 		$dbw = wfGetDB( DB_MASTER );
 
-		$dbw->delete( 'searchindex', array( 'si_page' => $id ), __METHOD__ );
+		$dbw->delete( 'searchindex', [ 'si_page' => $id ], __METHOD__ );
 	}
 
 	/**
@@ -388,7 +393,7 @@ class SearchMySQL extends SearchDatabase {
 		// need to fold cases and convert to hex
 		$out = preg_replace_callback(
 			"/([\\xc0-\\xff][\\x80-\\xbf]*)/",
-			array( $this, 'stripForSearchCallback' ),
+			[ $this, 'stripForSearchCallback' ],
 			$wgContLang->lc( $out ) );
 
 		// And to add insult to injury, the default indexing
@@ -406,7 +411,6 @@ class SearchMySQL extends SearchDatabase {
 		// Periods within things like hostnames and IP addresses
 		// are also important -- we want a search for "example.com"
 		// or "192.168.1.1" to work sanely.
-		//
 		// MySQL's search seems to ignore them, so you'd match on
 		// "example.wikipedia.com" and "192.168.83.1" as well.
 		$out = preg_replace(
@@ -438,7 +442,7 @@ class SearchMySQL extends SearchDatabase {
 		if ( is_null( self::$mMinSearchLength ) ) {
 			$sql = "SHOW GLOBAL VARIABLES LIKE 'ft\\_min\\_word\\_len'";
 
-			$dbr = wfGetDB( DB_SLAVE );
+			$dbr = wfGetDB( DB_REPLICA );
 			$result = $dbr->query( $sql, __METHOD__ );
 			$row = $result->fetchObject();
 			$result->free();

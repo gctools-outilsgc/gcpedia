@@ -2,7 +2,7 @@
 /**
  * Contain classes to list log entries
  *
- * Copyright © 2004 Brion Vibber <brion@pobox.com>, 2008 Aaron Schulz
+ * Copyright © 2004 Brion Vibber <brion@pobox.com>
  * https://www.mediawiki.org/
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@
  */
 class LogPager extends ReverseChronologicalPager {
 	/** @var array Log types */
-	private $types = array();
+	private $types = [];
 
 	/** @var string Events limited to those by performer when set */
 	private $performer = '';
@@ -42,12 +42,13 @@ class LogPager extends ReverseChronologicalPager {
 	/** @var string */
 	private $typeCGI = '';
 
+	/** @var string */
+	private $action = '';
+
 	/** @var LogEventsList */
 	public $mLogEventsList;
 
 	/**
-	 * Constructor
-	 *
 	 * @param LogEventsList $list
 	 * @param string|array $types Log types to show
 	 * @param string $performer The user who made the log entries
@@ -57,9 +58,12 @@ class LogPager extends ReverseChronologicalPager {
 	 * @param int|bool $year The year to start from. Default: false
 	 * @param int|bool $month The month to start from. Default: false
 	 * @param string $tagFilter Tag
+	 * @param string $action Specific action (subtype) requested
 	 */
-	public function __construct( $list, $types = array(), $performer = '', $title = '', $pattern = '',
-		$conds = array(), $year = false, $month = false, $tagFilter = '' ) {
+	public function __construct( $list, $types = [], $performer = '', $title = '',
+		$pattern = '', $conds = [], $year = false, $month = false, $tagFilter = '',
+		$action = ''
+	) {
 		parent::__construct( $list->getContext() );
 		$this->mConds = $conds;
 
@@ -68,10 +72,11 @@ class LogPager extends ReverseChronologicalPager {
 		$this->limitType( $types ); // also excludes hidden types
 		$this->limitPerformer( $performer );
 		$this->limitTitle( $title, $pattern );
+		$this->limitAction( $action );
 		$this->getDateCond( $year, $month );
 		$this->mTagFilter = $tagFilter;
 
-		$this->mDb = wfGetDB( DB_SLAVE, 'logpager' );
+		$this->mDb = wfGetDB( DB_REPLICA, 'logpager' );
 	}
 
 	public function getDefaultQuery() {
@@ -87,7 +92,7 @@ class LogPager extends ReverseChronologicalPager {
 	// Call ONLY after calling $this->limitType() already!
 	public function getFilterParams() {
 		global $wgFilterLogTypes;
-		$filters = array();
+		$filters = [];
 		if ( count( $this->types ) ) {
 			return $filters;
 		}
@@ -117,7 +122,7 @@ class LogPager extends ReverseChronologicalPager {
 
 		$user = $this->getUser();
 		// If $types is not an array, make it an array
-		$types = ( $types === '' ) ? array() : (array)$types;
+		$types = ( $types === '' ) ? [] : (array)$types;
 		// Don't even show header for private logs; don't recognize it...
 		$needReindex = false;
 		foreach ( $types as $type ) {
@@ -125,7 +130,7 @@ class LogPager extends ReverseChronologicalPager {
 				&& !$user->isAllowed( $wgLogRestrictions[$type] )
 			) {
 				$needReindex = true;
-				$types = array_diff( $types, array( $type ) );
+				$types = array_diff( $types, [ $type ] );
 			}
 		}
 		if ( $needReindex ) {
@@ -164,6 +169,9 @@ class LogPager extends ReverseChronologicalPager {
 		if ( is_null( $usertitle ) ) {
 			return;
 		}
+		// Normalize username first so that non-existent users used
+		// in maintenance scripts work
+		$name = $usertitle->getText();
 		/* Fetch userid at first, if known, provides awesome query plan afterwards */
 		$userid = User::idFromName( $name );
 		if ( !$userid ) {
@@ -171,7 +179,7 @@ class LogPager extends ReverseChronologicalPager {
 		} else {
 			$this->mConds['log_user'] = $userid;
 		}
-		// Paranoia: avoid brute force searches (bug 17342)
+		// Paranoia: avoid brute force searches (T19342)
 		$user = $this->getUser();
 		if ( !$user->isAllowed( 'deletedhistory' ) ) {
 			$this->mConds[] = $this->mDb->bitAnd( 'log_deleted', LogPage::DELETED_USER ) . ' = 0';
@@ -180,7 +188,7 @@ class LogPager extends ReverseChronologicalPager {
 				' != ' . LogPage::SUPPRESSED_USER;
 		}
 
-		$this->performer = $usertitle->getText();
+		$this->performer = $name;
 	}
 
 	/**
@@ -208,8 +216,8 @@ class LogPager extends ReverseChronologicalPager {
 		$db = $this->mDb;
 
 		$doUserRightsLogLike = false;
-		if ( $this->types == array( 'rights' ) ) {
-			$parts = explode( $wgUserrightsInterwikiDelimiter, $title->getDBKey() );
+		if ( $this->types == [ 'rights' ] ) {
+			$parts = explode( $wgUserrightsInterwikiDelimiter, $title->getDBkey() );
 			if ( count( $parts ) == 2 ) {
 				list( $name, $database ) = array_map( 'trim', $parts );
 				if ( strstr( $database, '*' ) ) { // Search for wildcard in database name
@@ -218,20 +226,22 @@ class LogPager extends ReverseChronologicalPager {
 			}
 		}
 
-		# Using the (log_namespace, log_title, log_timestamp) index with a
-		# range scan (LIKE) on the first two parts, instead of simple equality,
-		# makes it unusable for sorting.  Sorted retrieval using another index
-		# would be possible, but then we might have to scan arbitrarily many
-		# nodes of that index. Therefore, we need to avoid this if $wgMiserMode
-		# is on.
-		#
-		# This is not a problem with simple title matches, because then we can
-		# use the page_time index.  That should have no more than a few hundred
-		# log entries for even the busiest pages, so it can be safely scanned
-		# in full to satisfy an impossible condition on user or similar.
+		/**
+		 * Using the (log_namespace, log_title, log_timestamp) index with a
+		 * range scan (LIKE) on the first two parts, instead of simple equality,
+		 * makes it unusable for sorting.  Sorted retrieval using another index
+		 * would be possible, but then we might have to scan arbitrarily many
+		 * nodes of that index. Therefore, we need to avoid this if $wgMiserMode
+		 * is on.
+		 *
+		 * This is not a problem with simple title matches, because then we can
+		 * use the page_time index.  That should have no more than a few hundred
+		 * log entries for even the busiest pages, so it can be safely scanned
+		 * in full to satisfy an impossible condition on user or similar.
+		 */
 		$this->mConds['log_namespace'] = $ns;
 		if ( $doUserRightsLogLike ) {
-			$params = array( $name . $wgUserrightsInterwikiDelimiter );
+			$params = [ $name . $wgUserrightsInterwikiDelimiter ];
 			foreach ( explode( '*', $database ) as $databasepart ) {
 				$params[] = $databasepart;
 				$params[] = $db->anyString();
@@ -244,13 +254,38 @@ class LogPager extends ReverseChronologicalPager {
 		} else {
 			$this->mConds['log_title'] = $title->getDBkey();
 		}
-		// Paranoia: avoid brute force searches (bug 17342)
+		// Paranoia: avoid brute force searches (T19342)
 		$user = $this->getUser();
 		if ( !$user->isAllowed( 'deletedhistory' ) ) {
 			$this->mConds[] = $db->bitAnd( 'log_deleted', LogPage::DELETED_ACTION ) . ' = 0';
 		} elseif ( !$user->isAllowedAny( 'suppressrevision', 'viewsuppressed' ) ) {
 			$this->mConds[] = $db->bitAnd( 'log_deleted', LogPage::SUPPRESSED_ACTION ) .
 				' != ' . LogPage::SUPPRESSED_ACTION;
+		}
+	}
+
+	/**
+	 * Set the log_action field to a specified value (or values)
+	 *
+	 * @param string $action
+	 */
+	private function limitAction( $action ) {
+		global $wgActionFilteredLogs;
+		// Allow to filter the log by actions
+		$type = $this->typeCGI;
+		if ( $type === '' ) {
+			// nothing to do
+			return;
+		}
+		$actions = $wgActionFilteredLogs;
+		if ( isset( $actions[$type] ) ) {
+			// log type can be filtered by actions
+			$this->mLogEventsList->setAllowedActions( array_keys( $actions[$type] ) );
+			if ( $action !== '' && isset( $actions[$type][$action] ) ) {
+				// add condition to query
+				$this->mConds['log_action'] = $actions[$type][$action];
+				$this->action = $action;
+			}
 		}
 	}
 
@@ -268,14 +303,13 @@ class LogPager extends ReverseChronologicalPager {
 		$options = $basic['options'];
 		$joins = $basic['join_conds'];
 
-		$index = array();
 		# Add log_search table if there are conditions on it.
 		# This filters the results to only include log rows that have
 		# log_search records with the specified ls_field and ls_value values.
 		if ( array_key_exists( 'ls_field', $this->mConds ) ) {
 			$tables[] = 'log_search';
-			$index['log_search'] = 'ls_field_val';
-			$index['logging'] = 'PRIMARY';
+			$options['IGNORE INDEX'] = [ 'log_search' => 'ls_log_id' ];
+			$options['USE INDEX'] = [ 'logging' => 'PRIMARY' ];
 			if ( !$this->hasEqualsClause( 'ls_field' )
 				|| !$this->hasEqualsClause( 'ls_value' )
 			) {
@@ -285,19 +319,16 @@ class LogPager extends ReverseChronologicalPager {
 				$options[] = 'DISTINCT';
 			}
 		}
-		if ( count( $index ) ) {
-			$options['USE INDEX'] = $index;
-		}
 		# Don't show duplicate rows when using log_search
-		$joins['log_search'] = array( 'INNER JOIN', 'ls_log_id=log_id' );
+		$joins['log_search'] = [ 'INNER JOIN', 'ls_log_id=log_id' ];
 
-		$info = array(
+		$info = [
 			'tables' => $tables,
 			'fields' => $fields,
 			'conds' => array_merge( $conds, $this->mConds ),
 			'options' => $options,
 			'join_conds' => $joins,
-		);
+		];
 		# Add ChangeTags filter query
 		ChangeTags::modifyDisplayQuery( $info['tables'], $info['fields'], $info['conds'],
 			$info['join_conds'], $info['options'], $this->mTagFilter );
@@ -350,6 +381,8 @@ class LogPager extends ReverseChronologicalPager {
 	}
 
 	/**
+	 * Guaranteed to either return a valid title string or a Zero-Length String
+	 *
 	 * @return string
 	 */
 	public function getPerformer() {
@@ -377,6 +410,10 @@ class LogPager extends ReverseChronologicalPager {
 
 	public function getTagFilter() {
 		return $this->mTagFilter;
+	}
+
+	public function getAction() {
+		return $this->action;
 	}
 
 	public function doQuery() {
