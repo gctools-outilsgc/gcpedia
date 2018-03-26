@@ -14,6 +14,7 @@
 cscope.files
 cscope.out
 *.orig
+.vscode
 ## NetBeans
 nbproject*
 project.index
