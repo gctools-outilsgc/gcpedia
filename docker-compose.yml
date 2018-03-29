@@ -11,7 +11,8 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - .:/var/www/html/docker_gcpedia
+      - .:/var/www/html/docker_gcpedia/skins
+      - .:/var/www/html/docker_gcpedia/extensions
       - ./images:/var/www/html/docker_gcpedia/images
       - /var/www/html/docker_gcpedia/vendor
       - /var/www/html/docker_gcpedia/docker
@@ -60,7 +61,7 @@ services:
       - DBHOST=gcpedia-db
       - HOST=wiki.gccollab.dev
       - PORT=
-      - OPENID=true
+      - OPENID=
 #      - OAUTH=true
 #      - USESAML=false
 
