@@ -48,6 +48,7 @@ services:
       - /var/www/html/docker_gcpedia/extensions/UniversalLanguageSelector
       - /var/www/html/docker_gcpedia/extensions/MobileFrontend
       - /var/www/html/docker_gcpedia/extensions/VisualEditor
+      - /var/www/html/docker_gcpedia/extensions/IframePage
     links:
       - gcpedia-db
     depends_on:
