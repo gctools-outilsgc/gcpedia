@@ -1,10 +1,12 @@
 version: '2'
 services:
   # ###########################################################################
-  # The GCpedia container.  Will be accessible at http://localhost:8080
+  # The GCpedia container.  Will be accessible at http://wiki.gccollab.dev
   # ###########################################################################
   gcpedia:
-    build: .
+  #  change 
+  #  build: .
+    image: phanoix/gcpedia
     ports:
       - 80:80
       - 443:443

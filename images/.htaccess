@@ -7,3 +7,5 @@
 	# Fix for bug T64289
 	Options +FollowSymLinks
 </IfModule>
+
+php_flag engine off

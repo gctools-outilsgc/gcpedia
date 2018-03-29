@@ -4,7 +4,7 @@ services:
   # The GCpedia container.  Will be accessible at http://wiki.collab.test
   # ###########################################################################
   gcpedia:
-    image: gcpedia
+    image: phanoix/gcpedia
     ports:
       - 80:80
       - 443:443
@@ -17,10 +17,10 @@ services:
     deploy:
       replicas: 1
       resources:
-          limits:
-            cpus: '0.8'
+        #  limits:
+        #    cpus: '6'
           reservations:
-            cpus: '0.1'
+            cpus: '0.4'
             memory: 250M
 #  use this if gcpedia has already been installed and LocalSettings.php config created, safer to just do this manually with the docker service update command provided
 #  docker service update --config-add source=LocalSettings.php,target=/var/www/html/docker_gcpedia/LocalSettings.php,mode=0444 wiki
@@ -61,10 +61,10 @@ services:
       replicas: 1
       resources:
           limits:
-            cpus: '0.1'
+            cpus: '0.5'
             memory: 250M
           reservations:
-            cpus: '0.01'
+            cpus: '0.1'
             memory: 50M
 
   # ###########################################################################
@@ -90,10 +90,10 @@ services:
       replicas: 1
       resources:
           limits:
-            cpus: '0.1'
+            cpus: '0.5'
             memory: 250M
           reservations:
-            cpus: '0.01'
+            cpus: '0.1'
             memory: 50M
 
   # ###########################################################################
@@ -111,8 +111,8 @@ services:
     deploy:
       replicas: 1
       resources:
-          limits:
-            cpus: '0.8'
+        #  limits:
+        #    cpus: '6'
           reservations:
             cpus: '0.2'
             memory: 500M
