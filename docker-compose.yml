@@ -11,8 +11,8 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - .:/var/www/html/docker_gcpedia/skins
-      - .:/var/www/html/docker_gcpedia/extensions
+      - ./skins:/var/www/html/docker_gcpedia/skins
+      - ./extensions:/var/www/html/docker_gcpedia/extensions
       - ./images:/var/www/html/docker_gcpedia/images
       - /var/www/html/docker_gcpedia/vendor
       - /var/www/html/docker_gcpedia/docker
