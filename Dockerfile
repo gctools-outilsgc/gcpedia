@@ -82,7 +82,7 @@ EXPOSE 80
 EXPOSE 443
 
 # Binary for SyntaxHighlight extension
-RUN chmod a+x /var/www/html/docker_gcpediaextensions/SyntaxHighlight_GeSHi/pygments/pygmentize
+RUN chmod a+x /var/www/html/docker_gcpedia/extensions/SyntaxHighlight_GeSHi/pygments/pygmentize
 
 RUN chmod +x docker/start.sh
 
