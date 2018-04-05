@@ -55,7 +55,6 @@ RUN \
     php7-xmlreader \
     php7-xmlwriter \
     php7-simplexml \
-    php7-tokenizer \
     git \
   && apk update \
   && mkdir -p /data \
