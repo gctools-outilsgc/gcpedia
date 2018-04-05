@@ -155,10 +155,14 @@ $wgGroupPermissions['bureaucrat']['replacetext'] = true;
 wfLoadExtension( "UserMerge" );
 $wgGroupPermissions['sysop']['usermerge'] = true;
 $wgUserMergeUnmergeable = array( 'sysop', 'awesomeusers' );
- 
-#$wgShowSQLErrors = true;
-#$wgShowExceptionDetails = true;
 
 require_once "$IP/extensions/IframePage/IframePage.php";
 $wgIframePageSrc= array( 'GCcollab' => 'https://gccollab.ca/', 'YouTube' => 'https://www.youtube.com/embed/' );
 $wgIframePageAllowPath = true;
+
+wfLoadExtension( 'SyntaxHighlight_GeSHi' );
+
+ 
+
+#$wgShowSQLErrors = true;
+#$wgShowExceptionDetails = true;

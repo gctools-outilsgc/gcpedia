@@ -54,6 +54,7 @@ RUN \
     php7-zlib \
     php7-xmlreader \
     php7-xmlwriter \
+    php7-simplexml \
     git \
   && apk update \
   && mkdir -p /data \
@@ -78,6 +79,9 @@ RUN chown apache:apache /super/secrets.php
 
 EXPOSE 80
 EXPOSE 443
+
+# Binary for SyntaxHighlight extension
+RUN chmod a+x /var/www/html/docker_gcpedia/extensions/SyntaxHighlight_GeSHi/pygments/pygmentize
 
 RUN chmod +x docker/start.sh
 
