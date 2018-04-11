@@ -70,7 +70,6 @@ Thumbs.db
 /favicon.ico
 /static*
 /tags
-/.htaccess
 /.htpasswd
 /data
 /tests/phan/issues
