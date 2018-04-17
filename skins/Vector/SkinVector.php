@@ -89,6 +89,9 @@ $out->addHeadItem( 'gcpcss',
 		$out->addMeta( 'dcterms.type', $namespace );
 		$out->addMeta( 'dcterms.modified', $timestamp );
 		$out->addMeta( 'dcterms.description', strip_tags($out->mBodytext) );
+		
+		if ( $title->inNamespace(NS_USER) )
+			$out->addMeta( 'dcterms.keywords', str_replace( '.', ' ', $title->getRootText() ) );
 	}
 
 	/**
