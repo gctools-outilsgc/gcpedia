@@ -102,7 +102,7 @@ $wgVisualEditorNamespaces =  array( NS_MAIN, NS_USER, NS_PROJECT );
 
 // pdf rendering service
 wfLoadExtension("ElectronPdfService");
-$wgElectronPdfServiceRESTbaseURL = '/api/rest_v1/page/pdf/';
+$wgElectronPdfServiceRESTbaseURL = 'https://pdf.gccollab.ca/pdf?accessKey=secret&url=https://wiki.gccollab.ca/';
 
 
 wfLoadExtension("intersection");
