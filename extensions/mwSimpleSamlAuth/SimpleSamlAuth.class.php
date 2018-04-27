@@ -163,9 +163,9 @@ class SimpleSamlAuth {
 		if ( !self::init() ) {
 			return true;
 		}
-		global $wgSamlRequirement;
+		global $wgSamlRequirement, $wgLang;
 
-		$url = self::$as->getLoginURL( Title::newMainPage()->getFullUrl() );
+		$url = self::$as->getLoginURL( Title::newMainPage()->getFullUrl().'?lang='.$wgLang->getCode() );
 
 		if ( $wgSamlRequirement >= SAML_LOGIN_ONLY ) {
 			self::$as->requireAuth( array(
