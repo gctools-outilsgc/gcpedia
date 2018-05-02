@@ -5,6 +5,8 @@ $wgArticlePath = "/$1";
 wfLoadSkin( 'Vector' );
 $wgLocaltimezone = "America/Montreal";
 $wgLogo = "";
+
+$wgNamespacesWithSubpages[NS_MAIN] = true;
   
 # Disable EDIT for 'everyone'
 $wgGroupPermissions['*']['edit']              = false;
