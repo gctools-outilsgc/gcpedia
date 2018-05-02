@@ -59,7 +59,7 @@ services:
     environment:
       - DOCKER=1
       - DBHOST=gcpedia-db
-      - HOST=wiki.gccollab.dev
+      - HOST=wiki.local
       - PORT=
       - OPENID=
 #      - OAUTH=true
