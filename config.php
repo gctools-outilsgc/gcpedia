@@ -164,3 +164,6 @@ $wgUserMergeUnmergeable = array( 'sysop', 'awesomeusers' );
 require_once "$IP/extensions/IframePage/IframePage.php";
 $wgIframePageSrc= array( 'GCcollab' => 'https://gccollab.ca/', 'YouTube' => 'https://www.youtube.com/embed/' );
 $wgIframePageAllowPath = true;
+
+require_once "$IP/extensions/Nuke/Nuke.php";
+$wgGroupPermissions['sysop']['nuke'] = true;
