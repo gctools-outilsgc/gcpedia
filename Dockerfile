@@ -20,6 +20,7 @@ RUN apk --no-cache add \
   php7-zlib \
   php7-curl \
   git \
+  python \
   curl
 RUN mkdir /app && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 WORKDIR /app
