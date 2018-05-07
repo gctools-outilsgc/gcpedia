@@ -69,11 +69,6 @@ RUN \
   && sed -i '/Options Indexes FollowSymLinks/c\\' /etc/apache2/httpd.conf \
   && sed -i '/<Directory "\/var\/www\/localhost\/htdocs">/c\<Directory "\/var\/www\/html\/docker_gcpedia">\nDirectoryIndex index.php\nOptions FollowSymLinks MultiViews\nAllowOverride All\nOrder allow,deny\nallow from all\n' /etc/apache2/httpd.conf
 
-# Install the default object cache.
-RUN pecl channel-update pecl.php.net \
-	&& pecl install apcu-5.1.8 \
-&& docker-php-ext-enable apcu
-
 RUN { \
 		echo 'opcache.memory_consumption=128'; \
 		echo 'opcache.interned_strings_buffer=8'; \
