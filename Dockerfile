@@ -29,7 +29,7 @@ RUN git submodule init
 RUN git submodule update --recursive --init
 ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG COMPOSER_NO_INTERACTION=1
-RUN composer install
+RUN composer install --no-dev
 
 # Second stage, build usable container
 FROM alpine:3.7

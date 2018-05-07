@@ -11,7 +11,8 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - .:/var/www/html/docker_gcpedia
+      - ./skins:/var/www/html/docker_gcpedia/skins
+      - ./extensions:/var/www/html/docker_gcpedia/extensions
       - ./images:/var/www/html/docker_gcpedia/images
       - /var/www/html/docker_gcpedia/vendor
       - /var/www/html/docker_gcpedia/docker
@@ -50,6 +51,7 @@ services:
       - /var/www/html/docker_gcpedia/extensions/UniversalLanguageSelector
       - /var/www/html/docker_gcpedia/extensions/MobileFrontend
       - /var/www/html/docker_gcpedia/extensions/VisualEditor
+      - /var/www/html/docker_gcpedia/extensions/IframePage
     links:
       - gcpedia-db
     depends_on:
@@ -57,9 +59,9 @@ services:
     environment:
       - DOCKER=1
       - DBHOST=gcpedia-db
-      - HOST=wiki.gccollab.dev
+      - HOST=wiki.local
       - PORT=
-      - OPENID=true
+      - OPENID=
 #      - OAUTH=true
 #      - USESAML=false
 

@@ -20,9 +20,9 @@ docker-compose up
 ```
 add an entry into your hosts file for
 ```
-<host ip> wiki.gccollab.dev
+<host ip> wiki.local
 ```
 
-and you now have a fully installed instance of the wiki (visual editor service extra, needs at bit more work) that you can reach at wiki.gccollab.dev! 
+and you now have a fully installed instance of the wiki (visual editor service extra, needs at bit more work) that you can reach at wiki.local! 
 
 This setup will also reflect any changes that you make to the code you just pulled without needing to do anything extra.

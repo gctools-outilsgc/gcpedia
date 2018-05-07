@@ -5,6 +5,8 @@ $wgArticlePath = "/$1";
 wfLoadSkin( 'Vector' );
 $wgLocaltimezone = "America/Montreal";
 $wgLogo = "";
+
+$wgNamespacesWithSubpages[NS_MAIN] = true;
   
 # Disable EDIT for 'everyone'
 $wgGroupPermissions['*']['edit']              = false;
@@ -87,7 +89,7 @@ $wgHiddenPrefs[] = "visualeditor-enable";
 $wgVirtualRestConfig["modules"]["parsoid"] = array(
   // URL to the Parsoid instance
   // Use port 8142 if you use the Debian package
-  "url" => "parsoid:8000",
+  "url" => "localhost:8000",
   // Parsoid "domain", see below (optional)
   "domain" => "localhost",
   // Parsoid "prefix", see below (optional)
@@ -102,7 +104,7 @@ $wgVisualEditorNamespaces =  array( NS_MAIN, NS_USER, NS_PROJECT );
 
 // pdf rendering service
 wfLoadExtension("ElectronPdfService");
-$wgElectronPdfServiceRESTbaseURL = '/api/rest_v1/page/pdf/';
+$wgElectronPdfServiceRESTbaseURL = 'https://pdf.gccollab.ca/pdf?accessKey=secret&url=https://wiki.gccollab.ca/';
 
 
 wfLoadExtension("intersection");
@@ -162,3 +164,6 @@ $wgUserMergeUnmergeable = array( 'sysop', 'awesomeusers' );
 require_once "$IP/extensions/IframePage/IframePage.php";
 $wgIframePageSrc= array( 'GCcollab' => 'https://gccollab.ca/', 'YouTube' => 'https://www.youtube.com/embed/' );
 $wgIframePageAllowPath = true;
+
+require_once "$IP/extensions/Nuke/Nuke.php";
+$wgGroupPermissions['sysop']['nuke'] = true;
