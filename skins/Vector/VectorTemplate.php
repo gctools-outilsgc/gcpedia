@@ -71,6 +71,7 @@ class VectorTemplate extends BaseTemplate {
 			<ul id="tool-links" class="" style="list-style:none; padding:5px; width:30%; margin: 0 auto; font-weight:bold;">
 				<li style="float:left; margin: 0px 2%;"><a href="https://account.gccollab.ca" style="color:#6b5088;"><span><img style="width:25px; display:inline-block; margin-right:3px;" src="<?php echo $wgScriptPath . '/skins/Vector/images/collab/mini_wiki_icon.png'; ?>" alt="gccollab"></span>Account</a></li>
 				<li style="float:left; margin: 0px 2%;"><a href="https://gccollab.ca/" style="color:#6b5088;"><span><img style="width:25px; display:inline-block; margin-right:3px;" src="<?php echo $wgScriptPath . '/skins/Vector/images/collab/mini_collab_icon.png'; ?>" alt="gccollab"></span>Collab</a></li>
+				<li style="float:left; margin: 0px 2%;"><a href="https://message.gccollab.ca/" style="color:#6b5088;"><span><img style="width:25px; display:inline-block; margin-right:3px;" src="<?php echo $wgScriptPath . '/skins/Vector/images/collab/message_icon.png'; ?>" alt="gccollab"></span>Message</a></li>
 			</ul>
 		</div>
 		<div id="mw-page-base" class="noprint"></div>
