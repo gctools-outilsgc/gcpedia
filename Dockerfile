@@ -18,7 +18,7 @@ RUN apk --no-cache add \
   php7-simplexml \
   php7-xmlwriter \
   php7-zlib \
-  php7-curl \
+  php7-curl \v
   git \
   curl
 RUN mkdir /app && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -53,7 +53,8 @@ RUN \
     php7-fileinfo  \
     php7-zlib \
     php7-xmlreader \
-    php7-xmlwriter \
+    php7-opcache \
+    php7-intl \
     git \
   && apk update \
   && mkdir -p /data \
@@ -67,8 +68,6 @@ RUN \
   && sed -i '/AllowOverride None/c\\' /etc/apache2/httpd.conf \
   && sed -i '/Options Indexes FollowSymLinks/c\\' /etc/apache2/httpd.conf \
   && sed -i '/<Directory "\/var\/www\/localhost\/htdocs">/c\<Directory "\/var\/www\/html\/docker_gcpedia">\nDirectoryIndex index.php\nOptions FollowSymLinks MultiViews\nAllowOverride All\nOrder allow,deny\nallow from all\n' /etc/apache2/httpd.conf
-
-RUN docker-php-ext-install opcache intl
 
 # Install the default object cache.
 RUN pecl channel-update pecl.php.net \
