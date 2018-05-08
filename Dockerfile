@@ -76,7 +76,7 @@ RUN { \
 		echo 'opcache.revalidate_freq=60'; \
 		echo 'opcache.fast_shutdown=1'; \
 		echo 'opcache.enable_cli=1'; \
-} > /usr/local/etc/php/conf.d/opcache-recommended.ini
+} > /etc/php7/conf.d/opcache-recommended.ini
 
 COPY --from=0 /app/ /var/www/html/docker_gcpedia/
 RUN chown apache:apache /var/www/html/docker_gcpedia/
