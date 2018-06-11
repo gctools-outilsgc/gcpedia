@@ -167,3 +167,6 @@ $wgIframePageAllowPath = true;
 
 require_once "$IP/extensions/Nuke/Nuke.php";
 $wgGroupPermissions['sysop']['nuke'] = true;
+
+require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
+$wgGoogleAnalyticsAccount = $GAaccount;
