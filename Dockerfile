@@ -53,7 +53,8 @@ RUN \
     php7-fileinfo  \
     php7-zlib \
     php7-xmlreader \
-    php7-xmlwriter \
+    php7-opcache \
+    php7-intl \
     git \
   && apk update \
   && mkdir -p /data \
@@ -67,6 +68,15 @@ RUN \
   && sed -i '/AllowOverride None/c\\' /etc/apache2/httpd.conf \
   && sed -i '/Options Indexes FollowSymLinks/c\\' /etc/apache2/httpd.conf \
   && sed -i '/<Directory "\/var\/www\/localhost\/htdocs">/c\<Directory "\/var\/www\/html\/docker_gcpedia">\nDirectoryIndex index.php\nOptions FollowSymLinks MultiViews\nAllowOverride All\nOrder allow,deny\nallow from all\n' /etc/apache2/httpd.conf
+
+RUN { \
+		echo 'opcache.memory_consumption=128'; \
+		echo 'opcache.interned_strings_buffer=8'; \
+		echo 'opcache.max_accelerated_files=4000'; \
+		echo 'opcache.revalidate_freq=60'; \
+		echo 'opcache.fast_shutdown=1'; \
+		echo 'opcache.enable_cli=1'; \
+} > /etc/php7/conf.d/opcache-recommended.ini
 
 COPY --from=0 /app/ /var/www/html/docker_gcpedia/
 RUN chown apache:apache /var/www/html/docker_gcpedia/
