@@ -34,6 +34,8 @@ RUN \
     php7-xmlreader \
     php7-opcache \
     php7-intl \
+    php7-apcu \
+    curl \
     git \
     # Required for SyntaxHighlighting
     python3 \
@@ -76,7 +78,8 @@ RUN curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSIO
 
 COPY --from=0 /app/skins /var/www/html/docker_gcpedia/
 COPY --from=0 /app/extensions /var/www/html/docker_gcpedia/
-COPY --from=0 /app/docker /var/www/html/docker_gcpedia/
+COPY --from=0 /app/docker/* /var/www/html/docker_gcpedia/docker/
+
 # for automated install
 RUN chown apache:apache /var/www/html/docker_gcpedia/
 
