@@ -13,7 +13,7 @@ RUN git submodule update --recursive --init
 # Second stage, build usable container
 FROM mediawiki:1.30.0
 LABEL maintainer="Ilia Salem"
-RUN docker-php-ext-install dom gd json ctype iconv xml session curl fileinfozlib xmlreader
+RUN docker-php-ext-install dom gd json ctype iconv xml session curl fileinfo zlib xmlreader
 
 COPY --from=0 /app/skins /var/www/html/docker_gcpedia/
 COPY --from=0 /app/extensions /var/www/html/docker_gcpedia/
