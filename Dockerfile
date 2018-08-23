@@ -76,9 +76,7 @@ RUN curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSIO
 	&& rm mediawiki.tar.gz \
 && chown -R apache:apache extensions skins cache images
 
-COPY --from=0 /app/skins /var/www/html/docker_gcpedia/
-COPY --from=0 /app/extensions /var/www/html/docker_gcpedia/
-COPY --from=0 /app/docker/* /var/www/html/docker_gcpedia/docker/
+COPY --from=0 /app/ /var/www/html/docker_gcpedia/
 
 # for automated install
 RUN chown apache:apache /var/www/html/docker_gcpedia/

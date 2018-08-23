@@ -52,6 +52,7 @@ services:
       - /var/www/html/docker_gcpedia/extensions/MobileFrontend
       - /var/www/html/docker_gcpedia/extensions/VisualEditor
       - /var/www/html/docker_gcpedia/extensions/IframePage
+      - /var/www/html/docker_gcpedia/extensions/googleAnalytics
     links:
       - gcpedia-db
     depends_on:
