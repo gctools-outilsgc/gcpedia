@@ -1,14 +1,35 @@
-# First stage, fetch subdirectories
+# First stage, install composer and its dependencies and fetch vendor files
 FROM alpine:3.7
 RUN apk update
 RUN apk --no-cache add \
+  php7 \
+  php7-dom \
+  php7-phar \
+  php7-gd \
+  php7-json \
+  php7-mysqli \
+  php7-mysqlnd \
+  php7-mbstring \
+  php7-ctype \
+  php7-iconv \
+  php7-tokenizer \
+  php7-openssl \
+  php7-xml \
+  php7-simplexml \
+  php7-xmlwriter \
+  php7-zlib \
+  php7-curl \
   git \
   curl
+RUN mkdir /app && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 WORKDIR /app
 COPY . /app/
 
 RUN git submodule init
 RUN git submodule update --recursive --init
+ARG COMPOSER_ALLOW_SUPERUSER=1
+ARG COMPOSER_NO_INTERACTION=1
+RUN composer install --no-dev
 
 # Second stage, build usable container
 FROM alpine:3.7
@@ -34,11 +55,7 @@ RUN \
     php7-xmlreader \
     php7-opcache \
     php7-intl \
-    php7-apcu \
-    curl \
     git \
-    # Required for SyntaxHighlighting
-    python3 \
   && apk update \
   && mkdir -p /data \
   && mkdir -p /run/apache2 \
@@ -61,31 +78,16 @@ RUN { \
 		echo 'opcache.enable_cli=1'; \
 } > /etc/php7/conf.d/opcache-recommended.ini
 
-WORKDIR /var/www/html/docker_gcpedia
-
-# Version
-ENV MEDIAWIKI_MAJOR_VERSION 1.30
-ENV MEDIAWIKI_BRANCH REL1_30
-ENV MEDIAWIKI_VERSION 1.30.0
-ENV MEDIAWIKI_SHA512 ec4aeb08c18af0e52aaf99124d43cd357328221934d593d87f38da804a2f4a5b172a114659f87f6de58c2140ee05ae14ec6a270574f655e7780a950a51178643
-
-# MediaWiki setup
-RUN curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz" -o mediawiki.tar.gz \
-	&& echo "${MEDIAWIKI_SHA512} *mediawiki.tar.gz" | sha512sum -c - \
-	&& tar -xz --strip-components=1 -f mediawiki.tar.gz \
-	&& rm mediawiki.tar.gz \
-&& chown -R apache:apache extensions skins cache images
-
 COPY --from=0 /app/ /var/www/html/docker_gcpedia/
-
-# for automated install
 RUN chown apache:apache /var/www/html/docker_gcpedia/
 
+WORKDIR /var/www/html/docker_gcpedia
 RUN mkdir /super
 RUN mv /var/www/html/docker_gcpedia/docker/secrets.php /super/secrets.php
 RUN chown apache:apache /super/secrets.php
 
 EXPOSE 80
+EXPOSE 443
 
 RUN chmod +x docker/start.sh
 
@@ -93,3 +95,4 @@ RUN chmod +x docker/start.sh
 RUN rm -f /run/apache2/httpd.pid
 ENTRYPOINT [ "docker/start.sh" ]
 CMD  ["/usr/sbin/httpd -D FOREGROUND"]
+
