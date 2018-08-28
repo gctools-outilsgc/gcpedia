@@ -2,12 +2,11 @@
 
 # GCpedia
 
-Master branch: upgraded to mediawiki 1.30, for GCwiki
+Master branch: Dockerfile and customizations off mediawiki 1.30 for GCwiki.
 
 GCpedia branch: current GCpedia production
 
 Both branches include Dockerfiles to build docker images as well as docker compose files for both docker-compose and docker stack/swarm
-A docker-compose file for setting up a jenkins + docker worker environment is also available.
 
 The main Dockerfile is alpine linux-based, an ubuntu-based one is also available.
 
