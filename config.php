@@ -72,7 +72,7 @@ wfLoadExtension( "Gadgets" );
 wfLoadExtension( "ImageMap" );
 $wgImageMapAllowExternalLinks = true;
 wfLoadExtension( "InputBox" );
-require_once("$IP/extensions/Lingo/Lingo.php");
+wfLoadExtension( "Lingo" );
 
 
 
