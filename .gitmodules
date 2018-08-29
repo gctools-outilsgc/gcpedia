@@ -142,3 +142,7 @@
 	path = extensions/googleAnalytics
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/googleAnalytics
 	branch = REL1_31
+[submodule "extensions/Lingo"]
+	path = extensions/Lingo
+	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/Lingo
+	branch = REL1_31
