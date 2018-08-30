@@ -53,6 +53,7 @@ services:
       - /var/www/html/docker_gcpedia/extensions/VisualEditor
       - /var/www/html/docker_gcpedia/extensions/IframePage
       - /var/www/html/docker_gcpedia/extensions/googleAnalytics
+      - /var/www/html/docker_gcpedia/extensions/DeletePagesForGood
     links:
       - gcpedia-db
     depends_on:

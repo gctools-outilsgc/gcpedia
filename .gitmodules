@@ -146,3 +146,7 @@
 	path = extensions/Lingo
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/Lingo
 	branch = REL1_31
+[submodule "extensions/DeletePagesForGood"]
+	path = extensions/DeletePagesForGood
+	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/DeletePagesForGood
+	branch = REL1_31
