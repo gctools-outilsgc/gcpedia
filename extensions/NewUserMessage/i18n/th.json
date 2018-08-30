@@ -1,9 +1,0 @@
-{
-	"@metadata": {
-		"authors": [
-			"Passawuth"
-		]
-	},
-	"newusermessage-desc": "เพิ่มข้อความไปยังหน้าคุยกับผู้ใช้ที่ถูกสร้างขึ้นใหม่",
-	"newuseredit-summary": "เพิ่ม[[{{int:newusermessage-template}}|ข้อความต้อนรับ]]ไปยังหน้าคุยกับผู้ใช้ใหม่"
-}
