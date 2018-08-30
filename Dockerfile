@@ -1,14 +1,35 @@
-# First stage, fetch subdirectories
+# First stage, install composer and its dependencies and fetch vendor files and submodules
 FROM alpine:3.7
 RUN apk update
 RUN apk --no-cache add \
+  php7 \
+  php7-dom \
+  php7-phar \
+  php7-gd \
+  php7-json \
+  php7-mysqli \
+  php7-mysqlnd \
+  php7-mbstring \
+  php7-ctype \
+  php7-iconv \
+  php7-tokenizer \
+  php7-openssl \
+  php7-xml \
+  php7-simplexml \
+  php7-xmlwriter \
+  php7-zlib \
+  php7-curl \
   git \
   curl
+RUN mkdir /app && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 WORKDIR /app
 COPY . /app/
 
 RUN git submodule init
 RUN git submodule update --recursive --init
+ARG COMPOSER_ALLOW_SUPERUSER=1
+ARG COMPOSER_NO_INTERACTION=1
+RUN composer install --no-dev
 
 # Second stage, build usable container
 FROM alpine:3.7

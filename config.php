@@ -38,8 +38,6 @@ $wgRightsIcon = "https://i.creativecommons.org/l/by/4.0/88x31.png";
 ////  extensions
 wfLoadExtension( "ParserFunctions" );
 
-//require_once "$IP/extensions/AjaxShowEditors/AjaxShowEditors.php";
-//require_once "$IP/extensions/customUserCreateForm/customUserCreateForm.php";
 require_once "$IP/extensions/EmailUpdate/EmailUpdate.php";
 $wgGroupPermissions["sysop"]["emailupdate"] = true;
 require_once "$IP/extensions/MagicNoNumberedHeadings/MagicNoNumberedHeadings.php";
@@ -70,7 +68,7 @@ wfLoadExtension( "TreeAndMenu" );
 wfLoadExtension( "InputBox" );
 wfLoadExtension( "Gadgets" );
 wfLoadExtension( "ImageMap" );
-$wgImageMapAllowExternalLinks = true;
+$wgImageMapAllowExternalLinks = false;    // allowing this seems like a bad idea
 wfLoadExtension( "InputBox" );
 wfLoadExtension( "Lingo" );
 
