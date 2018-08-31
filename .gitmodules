@@ -154,3 +154,11 @@
 	path = extensions/Favorites
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/Favorites
 	branch = REL1_31
+[submodule "extensions/PluggableAuth"]
+	path = extensions/PluggableAuth
+	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/PluggableAuth
+	branch = REL1_31
+[submodule "extensions/OpenIDConnect"]
+	path = extensions/OpenIDConnect
+	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/OpenIDConnect
+	branch = REL1_31
