@@ -1,9 +1,0 @@
-{
-	"@metadata": {
-		"authors": [
-			"Helix84"
-		]
-	},
-	"newusermessage-desc": "Pridáva správu do novo vytvorených používateľských diskusných stránok",
-	"newuseredit-summary": "Pridanie [[{{int:newusermessage-template}}|uvítacej správy]] na diskusnú stránku nových používateľov"
-}

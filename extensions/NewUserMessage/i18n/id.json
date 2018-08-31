@@ -1,9 +1,0 @@
-{
-	"@metadata": {
-		"authors": [
-			"Rex"
-		]
-	},
-	"newusermessage-desc": "Menambahkan sebuah pesan di halaman pembicaraan pengguna baru",
-	"newuseredit-summary": "Menambahkan [[{{int:newusermessage-template}}|pesan selamat datang]] ke halaman pembicaraan seorang pengguna baru"
-}
