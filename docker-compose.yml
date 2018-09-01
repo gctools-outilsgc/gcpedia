@@ -55,6 +55,9 @@ services:
       - /var/www/html/docker_gcpedia/extensions/googleAnalytics
       - /var/www/html/docker_gcpedia/extensions/DeletePagesForGood
       - /var/www/html/docker_gcpedia/extensions/Lingo
+      - /var/www/html/docker_gcpedia/extensions/Favorites
+      - /var/www/html/docker_gcpedia/extensions/PluggableAuth
+      - /var/www/html/docker_gcpedia/extensions/OpenIDConnect
     links:
       - gcpedia-db
     depends_on:
