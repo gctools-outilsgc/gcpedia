@@ -32,6 +32,9 @@ ARG COMPOSER_NO_INTERACTION=1
 RUN cd /app/extensions/OpenIDConnect && composer install --no-dev
 RUN cd /app/extensions/PluggableAuth && composer install --no-dev
 
+# Cleanup before copying over to next stage - version history takes up a lot of space
+RUN rm -rf .git/
+
 # Second stage, build usable container
 FROM alpine:3.7
 LABEL maintainer="Ilia Salem"
@@ -58,7 +61,6 @@ RUN \
     php7-intl \
     php7-apcu \
     curl \
-    git \
     # Required for SyntaxHighlighting
     python3 \
   && apk update \
