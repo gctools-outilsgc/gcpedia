@@ -3,6 +3,7 @@ const { events, Job } = require("brigadier");
 events.on("push", function(e, project) {
   console.log("received push for commit " + e.revision.commit)
   
+  // build the new container and tag with git commit hash
   var build = new Job("build", "docker:dind")
   build.privileged = true;
   build.env.COMMIT = e.revision.commit
@@ -17,17 +18,21 @@ events.on("push", function(e, project) {
     "docker push phanoix/gcpedia:$COMMIT"
   ]
   
-  // TODO: update, push, apply k8s manifest with new tag
+  // update deployment with new tag
+  var update = new Job("update", "lachlanevenson/k8s-kubectl:v1.10.5")
+  update.env.TAG = e.revision.commit
+  update.tasks = [
+    "kubectl patch -n dev deploy wiki-deployment -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"wiki\",\"image\":\"phanoix/gcpedia:$TAG\"}]}}}}'"
+  ]
   
-  var notify Job("notify", "alpine:3.4")
+  // notify via Rocket.Chat webhook
+  var notify = new Job("notify", "alpine:3.4")
   hello.env.CHATKEY = project.secrets.chatKey
   hello.tasks = [
-    "echo Hello",
-    "echo World",
     "apk update",
     "apk add curl",
     "curl -X POST -H 'Content-Type: application/json' --data '{\"username\":\"Brigade\",\"icon_emoji\":\":k8s:\",\"text\":\"Brigade wiki imaged finished.\",\"attachments\":[{\"title\":\"Brigade build finished!\",\"title_link\": \"https://hub.docker.com/r/phanoix/gcconnex/tags/\",\"text\": \"New wiki available at Docker hub.\",\"color\":\"#764FA5\"}]}' https://message.gccollab.ca/hooks/$CHATKEY"      //test rocket chat notification
   ]
   
-  build.run().then(() => { notify.run() })
+  build.run().then(() => { update.run().then(() => { notify.run() }) })
 })
