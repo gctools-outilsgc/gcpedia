@@ -12,7 +12,7 @@ events.on("push", function(e, project) {
   build.tasks = [
     "dockerd-entrypoint.sh &", // Start the docker daemon
     "sleep 20", // Grant it enough time to be up and running
-    "cd gccpedia/",
+    "cd /src/gccpedia/",
     "docker build -t phanoix/gcpedia:$COMMIT .",
     "docker login -u $DOCKER_USER -p $DOCKER_PASS",
     "docker push phanoix/gcpedia:$COMMIT"
