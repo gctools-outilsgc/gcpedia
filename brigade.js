@@ -22,7 +22,7 @@ events.on("push", function(e, project) {
   var update = new Job("update", "lachlanevenson/k8s-kubectl:v1.10.5")
   update.env.TAG = e.revision.commit
   update.tasks = [
-    "kubectl patch -n dev deploy wiki-deployment -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"wiki\",\"image\":\"phanoix/gcpedia:$TAG\"}]}}}}'"
+    "kubectl patch -n dev deploy wiki-deployment -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"wiki\",\"image\":\"phanoix/gcpedia:'$TAG'\"}]}}}}'"
   ]
   
   // notify via Rocket.Chat webhook
