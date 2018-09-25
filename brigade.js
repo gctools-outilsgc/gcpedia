@@ -31,7 +31,7 @@ events.on("push", function(e, project) {
   notify.tasks = [
     "apk update",
     "apk add curl",
-    "curl -X POST -H 'Content-Type: application/json' --data '{\"username\":\"Brigade\",\"icon_emoji\":\":k8s:\",\"text\":\"Brigade wiki imaged finished, updated.\",\"attachments\":[{\"title\":\"Brigade build finished!\",\"title_link\": \"https://hub.docker.com/r/phanoix/gcconnex/tags/\",\"text\": \"New wiki image available at Docker hub, dev updated.\",\"color\":\"#764FA5\"}]}' https://message.gccollab.ca/hooks/$CHATKEY"      //test rocket chat notification
+    "curl -X POST -H 'Content-Type: application/json' --data '{\"username\":\"Brigade\",\"icon_emoji\":\":k8s:\",\"text\":\"Wiki image built, dev updating.\",\"attachments\":[{\"title\":\"Brigade script finished!\",\"title_link\": \"https://hub.docker.com/r/phanoix/gcpedia/tags/\",\"text\": \"The new wiki image is available at Docker hub.\",\"color\":\"#764FA5\"}]}' https://message.gccollab.ca/hooks/$CHATKEY"      //test rocket chat notification
   ]
   
   build.run().then(() => { update.run().then(() => { notify.run() }) })
