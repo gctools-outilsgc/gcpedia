@@ -162,3 +162,7 @@
 	path = extensions/OpenIDConnect
 	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/OpenIDConnect
 	branch = REL1_31
+[submodule "skins/Vector"]
+	path = skins/Vector
+	url = https://github.com/gctools-outilsgc/mediawiki-skins-Vector.git
+	branch = REL1_31
