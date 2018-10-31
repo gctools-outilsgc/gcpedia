@@ -3,6 +3,8 @@ const { events, Job } = require("brigadier");
 events.on("push", function(e, project) {
   console.log("received push for commit " + e.revision.commit)
   
+  pending = ghNotify("pending", `Build started as ${ e.buildID }`, e, project)
+  
   // build the new container and tag with git commit hash
   var build = new Job("build", "docker:dind")
   build.privileged = true;
@@ -34,5 +36,21 @@ events.on("push", function(e, project) {
     "curl -X POST -H 'Content-Type: application/json' --data '{\"username\":\"Brigade\",\"icon_emoji\":\":k8s:\",\"text\":\"Wiki image built, dev updating.\",\"attachments\":[{\"title\":\"Brigade script finished!\",\"title_link\": \"https://hub.docker.com/r/phanoix/gcpedia/tags/\",\"text\": \"The new wiki image is available at Docker hub.\",\"color\":\"#764FA5\"}]}' https://message.gccollab.ca/hooks/$CHATKEY"      //test rocket chat notification
   ]
   
-  build.run().then(() => { update.run().then(() => { notify.run() }) })
+  pending.run().then(() => { build.run().then(() => { update.run().then(() => { notify.run().then(() => { 
+    return ghNotify("success", `Build ${ e.buildID } succeded, test image ready`, e, project).run() }) }) }) })
 })
+
+
+function ghNotify(state, msg, e, project) {
+  const gh = new Job(`notify-${ state }`, "technosophos/github-notify:latest")
+  gh.env = {
+    GH_REPO: project.repo.name,
+    GH_STATE: state,
+    GH_DESCRIPTION: msg,
+    GH_CONTEXT: "brigade",
+    GH_TOKEN: project.secrets.ghToken,
+    GH_COMMIT: e.revision.commit,
+    GH_TARGET_URL: `https://hub.docker.com/r/phanoix/gcpedia/tags`,
+  }
+  return gh
+}
