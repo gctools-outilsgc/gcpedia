@@ -55,6 +55,7 @@ events.on("pull_request", function(e, project) {
     "dockerd-entrypoint.sh &", // Start the docker daemon
     "sleep 20", // Grant it enough time to be up and running
     "cd /src/",
+    "apt-get update && apt-get install -y git".
     "git checkout master",
     "git merge --no-ff $BRANCH",
     "docker build -t phanoix/gcpedia:pr-$TAG .",
