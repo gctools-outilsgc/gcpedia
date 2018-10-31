@@ -48,7 +48,7 @@ events.on("pull_request", function(e, project) {
   var build = new Job("build", "docker:dind")
   build.privileged = true;
   build.env.TAG = `${ JSON.parse(e.payload).number }`
-  build.env.BRANCH = `${ JSON.parse(e.payload).head.ref }`
+  build.env.BRANCH = `${ JSON.parse(e.payload).pull_request.head.ref }`
   build.env.DOCKER_USER = project.secrets.dockerUsr
   build.env.DOCKER_PASS = project.secrets.dockerPass
   build.tasks = [
