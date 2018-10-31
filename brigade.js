@@ -5,7 +5,7 @@ events.on("push", function(e, project) {
   
   // build the new container and tag with git commit hash
   var build = new Job("build", "docker:dind")
-  build.privileged = true;
+  build.privileged = true
   build.env.COMMIT = e.revision.commit
   build.env.DOCKER_USER = project.secrets.dockerUsr
   build.env.DOCKER_PASS = project.secrets.dockerPass
@@ -46,17 +46,17 @@ events.on("pull_request", function(e, project) {
   
   // build the new container and tag with git commit hash
   var build = new Job("build", "docker:dind")
-  build.privileged = true;
-  build.env.TAG = JSON.parse(e.payload).number
+  build.privileged = true
+  build.env.ITAG = JSON.parse(e.payload).number
   build.env.DOCKER_USER = project.secrets.dockerUsr
   build.env.DOCKER_PASS = project.secrets.dockerPass
   build.tasks = [
     "dockerd-entrypoint.sh &", // Start the docker daemon
     "sleep 20", // Grant it enough time to be up and running
     "cd /src/",
-    "docker build -t phanoix/gcpedia:pr-$TAG .",
+    "docker build -t phanoix/gcpedia:pr-$ITAG .",
     "docker login -u $DOCKER_USER -p $DOCKER_PASS",
-    "docker push phanoix/gcpedia:pr-$TAG"
+    "docker push phanoix/gcpedia:pr-$ITAG"
   ]
   
   // update deployment with new tag
