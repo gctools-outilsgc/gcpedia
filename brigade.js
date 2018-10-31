@@ -54,9 +54,9 @@ events.on("pull_request", function(e, project) {
   build.tasks = [
     "dockerd-entrypoint.sh &", // Start the docker daemon
     "sleep 20", // Grant it enough time to be up and running
-    "cd /src/",
     "apk add git",
-    "git fetch",
+    "git clone https://github.com/gctools-outilsgc/gcpedia.git",
+    "cd gcpedia/",
     "git checkout master",
     "git merge --no-ff $BRANCH",
     "docker build -t phanoix/gcpedia:pr-$TAG .",
