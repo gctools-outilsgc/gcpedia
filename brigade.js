@@ -58,7 +58,7 @@ events.on("pull_request", function(e, project) {
     "git clone https://github.com/gctools-outilsgc/gcpedia.git",
     "cd gcpedia/",
     "git checkout master",
-    "git merge --no-ff $BRANCH",
+    "git merge --no-ff origin/$BRANCH",
     "docker build -t phanoix/gcpedia:pr-$TAG .",
     "docker login -u $DOCKER_USER -p $DOCKER_PASS",
     "docker push phanoix/gcpedia:pr-$TAG"
@@ -81,8 +81,9 @@ events.on("pull_request", function(e, project) {
     "curl -X POST -H 'Content-Type: application/json' --data `{\"username\":\"Brigade\",\"icon_emoji\":\":k8s:\",\"text\":\"Wiki image built, PR ready for testing.\",\"attachments\":[{\"title\":\"Brigade script finished!\",\"title_link\": \"https://github.com/gctools-outilsgc/gcpedia/pull/$PRNUM\",\"text\": \"The new wiki image is available at Docker hub.\",\"color\":\"#764FA5\"}]}` https://message.gccollab.ca/hooks/$CHATKEY"      //test rocket chat notification
   ]
   
-  pending.run().then(() => { build.run().then(() => { update.run().then(() => { notify.run().then(() => { 
-    return ghNotify("success", `Build for PR ${ JSON.parse(e.payload).number } succeded, test image ready`, e, project).run() }) }) }) })
+  pending.run()
+  build.run().then(() => { update.run().then(() => { notify.run().then(() => { 
+    return ghNotify("success", `Build for PR ${ JSON.parse(e.payload).number } succeded, test image ready`, e, project).run() }) }) })
 })
 
 
