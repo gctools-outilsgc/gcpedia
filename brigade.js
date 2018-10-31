@@ -58,6 +58,7 @@ events.on("pull_request", function(e, project) {
     "git clone https://github.com/gctools-outilsgc/gcpedia.git",
     "cd gcpedia/",
     "git checkout master",
+    "git config user.email 'you@example.com' && git config user.name 'Your Name'",
     "git merge --no-ff origin/$BRANCH",
     "docker build -t phanoix/gcpedia:pr-$TAG .",
     "docker login -u $DOCKER_USER -p $DOCKER_PASS",
