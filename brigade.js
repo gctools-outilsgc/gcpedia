@@ -47,16 +47,16 @@ events.on("pull_request", function(e, project) {
   // build the new container and tag with git commit hash
   var build = new Job("build", "docker:dind")
   build.privileged = true;
-  build.env.COMMIT = e.revision.commit
+  build.env.TAG = JSON.parse(e.payload).number
   build.env.DOCKER_USER = project.secrets.dockerUsr
   build.env.DOCKER_PASS = project.secrets.dockerPass
   build.tasks = [
     "dockerd-entrypoint.sh &", // Start the docker daemon
     "sleep 20", // Grant it enough time to be up and running
     "cd /src/",
-    "docker build -t phanoix/gcpedia:pr-$COMMIT .",
+    "docker build -t phanoix/gcpedia:pr-$TAG .",
     "docker login -u $DOCKER_USER -p $DOCKER_PASS",
-    "docker push phanoix/gcpedia:pr-$COMMIT"
+    "docker push phanoix/gcpedia:pr-$TAG"
   ]
   
   // update deployment with new tag
@@ -87,7 +87,7 @@ function ghNotify(state, msg, e, project) {
     GH_STATE: state,
     GH_DESCRIPTION: msg,
     GH_CONTEXT: "brigade",
-    GH_TOKEN: project.secrets.ghToken,
+    GH_TOKEN: project.secrets.github.token,
     GH_COMMIT: e.revision.commit,
     GH_TARGET_URL: `https://hub.docker.com/r/phanoix/gcpedia/tags`,
   }
