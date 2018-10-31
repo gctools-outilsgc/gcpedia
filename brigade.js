@@ -47,7 +47,7 @@ events.on("pull_request", function(e, project) {
   // build the new container and tag with git commit hash
   var build = new Job("build", "docker:dind")
   build.privileged = true;
-  build.env.TAG = "${ JSON.parse(e.payload).number }"
+  build.env.TAG = `${ JSON.parse(e.payload).number }`
   build.env.DOCKER_USER = project.secrets.dockerUsr
   build.env.DOCKER_PASS = project.secrets.dockerPass
   build.tasks = [
@@ -61,7 +61,7 @@ events.on("pull_request", function(e, project) {
   
   // update deployment with new tag
   var update = new Job("update", "lachlanevenson/k8s-kubectl:v1.10.5")
-  update.env.TAG = "${ JSON.parse(e.payload).number }"
+  update.env.TAG = `${ JSON.parse(e.payload).number }`
   update.tasks = [
     "kubectl patch -n dev deploy wiki-deployment -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"wiki\",\"image\":\"phanoix/gcpedia:pr-'$TAG'\"}]}}}}'"
   ]
