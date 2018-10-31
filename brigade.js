@@ -56,12 +56,12 @@ events.on("pull_request", function(e, project) {
     "cd /src/",
     "docker build -t phanoix/gcpedia:pr-$TAG .",
     "docker login -u $DOCKER_USER -p $DOCKER_PASS",
-    "docker push phanoix/gcpedia:pr-$ITAG"
+    "docker push phanoix/gcpedia:pr-$TAG"
   ]
   
   // update deployment with new tag
   var update = new Job("update", "lachlanevenson/k8s-kubectl:v1.10.5")
-  update.env.TAG = JSON.parse(e.payload).number
+  update.env.TAG = "${ JSON.parse(e.payload).number }"
   update.tasks = [
     "kubectl patch -n dev deploy wiki-deployment -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"wiki\",\"image\":\"phanoix/gcpedia:pr-'$TAG'\"}]}}}}'"
   ]
