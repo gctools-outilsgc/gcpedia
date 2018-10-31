@@ -87,7 +87,7 @@ function ghNotify(state, msg, e, project) {
     GH_STATE: state,
     GH_DESCRIPTION: msg,
     GH_CONTEXT: "brigade",
-    GH_TOKEN: "$BRIGADE_REPO_AUTH_TOKEN",
+    GH_TOKEN: project.secrets.ghToken,
     GH_COMMIT: e.revision.commit,
     GH_TARGET_URL: `https://hub.docker.com/r/phanoix/gcpedia/tags`,
   }
