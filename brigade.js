@@ -42,7 +42,7 @@ events.on("push", function(e, project) {
 events.on("pull_request", function(e, project) {
   console.log("received push for commit " + e.revision.commit)
   
-  pending = ghNotify("pending", `Build started as ${ e.buildID }`, e, project)
+  pending = ghNotify("pending", `Build started for PR ${ JSON.parse(e.payload).number }`, e, project)
   
   // build the new container and tag with git commit hash
   var build = new Job("build", "docker:dind")
@@ -61,9 +61,9 @@ events.on("pull_request", function(e, project) {
   
   // update deployment with new tag
   var update = new Job("update", "lachlanevenson/k8s-kubectl:v1.10.5")
-  update.env.TAG = e.revision.commit
+  update.env.TAG = JSON.parse(e.payload).number
   update.tasks = [
-    "kubectl patch -n dev deploy wiki-deployment -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"wiki\",\"image\":\"phanoix/gcpedia:'$TAG'\"}]}}}}'"
+    "kubectl patch -n dev deploy wiki-deployment -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"wiki\",\"image\":\"phanoix/gcpedia:pr-'$TAG'\"}]}}}}'"
   ]
   
   // notify via Rocket.Chat webhook
