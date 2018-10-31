@@ -34,7 +34,8 @@ events.on("push", function(e, project) {
     "curl -X POST -H 'Content-Type: application/json' --data '{\"username\":\"Brigade\",\"icon_emoji\":\":k8s:\",\"text\":\"Wiki image built, dev updating.\",\"attachments\":[{\"title\":\"Brigade script finished!\",\"title_link\": \"https://hub.docker.com/r/phanoix/gcpedia/tags/\",\"text\": \"The new wiki image is available at Docker hub.\",\"color\":\"#764FA5\"}]}' https://message.gccollab.ca/hooks/$CHATKEY"      //test rocket chat notification
   ]
   
-  build.run().then(() => { update.run().then(() => { notify.run() }) })
+  if ( e.revision.ref.indexOf('master') > -1 )  // test limiting to master branch
+    build.run().then(() => { update.run().then(() => { notify.run() }) })
 })
 
 
