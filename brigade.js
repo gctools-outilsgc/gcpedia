@@ -56,6 +56,7 @@ events.on("pull_request", function(e, project) {
     "sleep 20", // Grant it enough time to be up and running
     "cd /src/",
     "apk add git",
+    "git fetch",
     "git checkout master",
     "git merge --no-ff $BRANCH",
     "docker build -t phanoix/gcpedia:pr-$TAG .",
