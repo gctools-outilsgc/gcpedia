@@ -47,7 +47,7 @@ events.on("pull_request", function(e, project) {
   // build the new container and tag with git commit hash
   var build = new Job("build", "docker:dind")
   build.privileged = true;
-  build.env.TAG = `${ JSON.parse(e.payload).number }`
+  build.env.TAG = `pr-${ JSON.parse(e.payload).number }-${ e.revision.commit )`
   build.env.BRANCH = `${ JSON.parse(e.payload).pull_request.head.ref }`
   build.env.DOCKER_USER = project.secrets.dockerUsr
   build.env.DOCKER_PASS = project.secrets.dockerPass
@@ -60,16 +60,16 @@ events.on("pull_request", function(e, project) {
     "git checkout master",
     "git config user.email 'you@example.com' && git config user.name 'Your Name'",
     "git merge --no-ff origin/$BRANCH",
-    "docker build -t phanoix/gcpedia:pr-$TAG .",
+    "docker build -t phanoix/gcpedia:$TAG .",
     "docker login -u $DOCKER_USER -p $DOCKER_PASS",
-    "docker push phanoix/gcpedia:pr-$TAG"
+    "docker push phanoix/gcpedia:$TAG"
   ]
   
   // update deployment with new tag
   var update = new Job("update", "lachlanevenson/k8s-kubectl:v1.10.5")
-  update.env.TAG = `${ JSON.parse(e.payload).number }`
+  update.env.TAG = `pr-${ JSON.parse(e.payload).number }-${ e.revision.commit )`
   update.tasks = [
-    "kubectl patch -n dev deploy wiki-deployment -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"wiki\",\"image\":\"phanoix/gcpedia:pr-'$TAG'\"}]}}}}'"
+    "kubectl patch -n dev deploy wiki-deployment -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"wiki\",\"image\":\"phanoix/gcpedia:'$TAG'\"}]}}}}'"
   ]
   
   // notify via Rocket.Chat webhook
@@ -79,7 +79,7 @@ events.on("pull_request", function(e, project) {
   notify.tasks = [
     "apk update",
     "apk add curl",
-    "curl -X POST -H 'Content-Type: application/json' --data `{\"username\":\"Brigade\",\"icon_emoji\":\":k8s:\",\"text\":\"Wiki image built, PR ready for testing.\",\"attachments\":[{\"title\":\"Brigade script finished!\",\"title_link\": \"https://github.com/gctools-outilsgc/gcpedia/pull/$PRNUM\",\"text\": \"The new wiki image is available at Docker hub.\",\"color\":\"#764FA5\"}]}` https://message.gccollab.ca/hooks/$CHATKEY"      //test rocket chat notification
+    "curl -X POST -H 'Content-Type: application/json' --data `{\"username\":\"Brigade\",\"icon_emoji\":\":k8s:\",\"text\":\"Wiki image built, PR ready for testing.\",\"attachments\":[{\"title\":\"Brigade build finished!\",\"title_link\": \"https://github.com/gctools-outilsgc/gcpedia/pull/$PRNUM\",\"text\": \"The test wiki image is available at Docker hub.\",\"color\":\"#764FA5\"}]}` https://message.gccollab.ca/hooks/$CHATKEY"      //test rocket chat notification
   ]
   
   pending.run()
