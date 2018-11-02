@@ -79,7 +79,7 @@ events.on("pull_request", function(e, project) {
   notify.tasks = [
     "apk update",
     "apk add curl",
-    "curl -X POST -H 'Content-Type: application/json' --data '{\"username\":\"Brigade\",\"icon_emoji\":\":k8s:\",\"text\":\"Wiki image built, PR ready for testing.\",\"attachments\":[{\"title\":\"Brigade build finished!\",\"title_link\": \"https://github.com/gctools-outilsgc/gcpedia/pull/'$PRNUM'\",\"text\": \"The test wiki image is available at Docker hub.\",\"color\":\"#764FA5\"}]}' https://message.gccollab.ca/hooks/$CHATKEY"      //test rocket chat notification
+    "curl -X POST -H 'Content-Type: application/json' --data '{\"username\":\"Brigade- PR\",\"icon_emoji\":\":doge:\",\"text\":\"Brigade build finished!\",\"attachments\":[{\"title\":\"PR '$PRNUM' ready for testing.\",\"title_link\": \"https://github.com/gctools-outilsgc/gcpedia/pull/'$PRNUM'\",\"text\": \"The merged image is also available at Docker hub.\",\"color\":\"#764FA5\"}]}' https://message.gccollab.ca/hooks/$CHATKEY"      //test rocket chat notification
   ]
   
   pending.run()
