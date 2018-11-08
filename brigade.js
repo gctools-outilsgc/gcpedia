@@ -15,7 +15,8 @@ events.on("push", function(e, project) {
     "cd /src/",
     "docker build -t phanoix/gcpedia:$COMMIT .",
     "docker login -u $DOCKER_USER -p $DOCKER_PASS",
-    "docker push phanoix/gcpedia:$COMMIT"
+    "docker push phanoix/gcpedia:$COMMIT",
+    "docker logout"
   ]
   
   // update deployment with new tag
@@ -62,7 +63,8 @@ events.on("pull_request", function(e, project) {
     "git merge --no-ff origin/$BRANCH",
     "docker build -t phanoix/gcpedia:$TAG .",
     "docker login -u $DOCKER_USER -p $DOCKER_PASS",
-    "docker push phanoix/gcpedia:$TAG"
+    "docker push phanoix/gcpedia:$TAG",
+    "docker logout"
   ]
   
   // update deployment with new tag
