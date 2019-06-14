@@ -49,6 +49,9 @@ class UsersPager extends AlphabeticPager {
 		if ( $context ) {
 			$this->setContext( $context );
 		}
+		
+		// allow following user page links to simplify crawling them all
+		$context->getOutput()->setRobotPolicy( 'noindex,follow' );
 
 		$request = $this->getRequest();
 		$par = ( $par !== null ) ? $par : '';
