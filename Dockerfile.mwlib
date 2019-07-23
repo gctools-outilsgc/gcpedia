@@ -1,10 +1,10 @@
-FROM ubuntu:14.04
+FROM ubuntu:18.10
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update
 RUN apt install -y gcc g++ make python python-pip python-dev\
- python-virtualenv libjpeg-dev libz-dev libfreetype6-dev liblcms-dev\
- libxml2-dev libxslt-dev ocaml-nox git-core python-imaging python-lxml\
- texlive-latex-recommended ploticus dvipng imagemagick pdftk
+ python-virtualenv libjpeg-dev zlib1g-dev libfreetype6-dev liblcms2-dev\
+ libxml2-dev libxslt1-dev ocaml-nox git python-pil python-lxml\
+ texlive-latex-recommended ploticus dvipng imagemagick pdftk-java
 
 RUN pip install -i http://pypi.pediapress.com/simple/ mwlib
 RUN pip install -i http://pypi.pediapress.com/simple/ mwlib.rl
@@ -14,7 +14,7 @@ RUN mkdir mkdir /data; mkdir /data/mwcache
 RUN useradd mwlib
 RUN chown -R mwlib:mwlib /data/mwcache
 
-RUN apt install -y mediawiki-math
+#RUN apt install -y texvc           # seems to replace mediawiki-math
 
 EXPOSE 8899
 USER mwlib
