@@ -1,0 +1,26 @@
+FROM ubuntu:18.04
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update
+RUN apt install -y gcc g++ make python python-pip python-dev\
+ python-virtualenv libjpeg-dev zlib1g-dev libfreetype6-dev liblcms2-dev\
+ libxml2-dev libxslt1-dev ocaml-nox git python-pil python-lxml\
+ texlive-latex-recommended ploticus dvipng imagemagick 
+
+RUN apt install -y wget libbcprov-java libcommons-lang3-java default-jre-headless
+RUN wget http://mirrors.kernel.org/ubuntu/pool/universe/p/pdftk-java/pdftk-java_3.0.2-2_all.deb
+RUN dpkg -i pdftk-java_3.0.2-2_all.deb
+
+RUN pip install -i https://pypi.pediapress.com/simple/ mwlib
+RUN pip install mwlib.rl
+RUN pip install gevent==1.0.2
+RUN pip install -i https://pypi.pediapress.com/simple/ pyfribidi
+
+RUN mkdir mkdir /data; mkdir /data/mwcache
+RUN useradd mwlib
+RUN chown -R mwlib:mwlib /data/mwcache
+
+RUN apt-get install -y texvc blahtexml
+
+EXPOSE 8899
+USER mwlib
+CMD nserve & mw-qserve & nslave --cachedir /data/mwcache
