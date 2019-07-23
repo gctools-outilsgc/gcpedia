@@ -6,15 +6,15 @@ RUN apt install -y gcc g++ make python python-pip python-dev\
  libxml2-dev libxslt1-dev ocaml-nox git python-pil python-lxml\
  texlive-latex-recommended ploticus dvipng imagemagick pdftk-java
 
-RUN pip install -i http://pypi.pediapress.com/simple/ mwlib
-RUN pip install -i http://pypi.pediapress.com/simple/ mwlib.rl
-RUN pip install gevent==1.0
+RUN pip install -i https://pypi.pediapress.com/simple/ mwlib
+RUN pip install mwlib.rl
+RUN pip install gevent==1.0.2
 
 RUN mkdir mkdir /data; mkdir /data/mwcache
 RUN useradd mwlib
 RUN chown -R mwlib:mwlib /data/mwcache
 
-#RUN apt install -y texvc           # seems to replace mediawiki-math
+RUN apt install -y texvc           # seems to replace mediawiki-math
 
 EXPOSE 8899
 USER mwlib
