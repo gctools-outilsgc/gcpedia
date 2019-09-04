@@ -54,6 +54,22 @@ class ComposerStaticInitefd3458f43a4a7ef9a06652d4877a7cf
             array (
                 0 => __DIR__ . '/..' . '/psr/log',
             ),
+            'PEAR' => 
+            array (
+                0 => __DIR__ . '/..' . '/pear/pear_exception',
+            ),
+        ),
+        'M' => 
+        array (
+            'Mail_mimeDecode' => 
+            array (
+                0 => __DIR__ . '/..' . '/pear/mail_mime-decode',
+            ),
+            'Mail' => 
+            array (
+                0 => __DIR__ . '/..' . '/pear/mail',
+                1 => __DIR__ . '/..' . '/pear/mail_mime',
+            ),
         ),
         'L' => 
         array (
@@ -68,6 +84,10 @@ class ComposerStaticInitefd3458f43a4a7ef9a06652d4877a7cf
         ),
         'C' => 
         array (
+            'Console' => 
+            array (
+                0 => __DIR__ . '/..' . '/pear/console_getopt',
+            ),
             'ComposerHookHandler' => 
             array (
                 0 => __DIR__ . '/../..' . '/includes/composer',
@@ -77,6 +97,7 @@ class ComposerStaticInitefd3458f43a4a7ef9a06652d4877a7cf
 
     public static $fallbackDirsPsr0 = array (
         0 => __DIR__ . '/..' . '/cssjanus/cssjanus/src',
+        1 => __DIR__ . '/..' . '/pear/pear-core-minimal/src',
     );
 
     public static $classMap = array (
@@ -99,6 +120,7 @@ class ComposerStaticInitefd3458f43a4a7ef9a06652d4877a7cf
         'Composer\\Semver\\Constraint\\MultiConstraint' => __DIR__ . '/..' . '/composer/semver/src/Constraint/MultiConstraint.php',
         'Composer\\Semver\\Semver' => __DIR__ . '/..' . '/composer/semver/src/Semver.php',
         'Composer\\Semver\\VersionParser' => __DIR__ . '/..' . '/composer/semver/src/VersionParser.php',
+        'Console_Getopt' => __DIR__ . '/..' . '/pear/console_getopt/Console/Getopt.php',
         'IPSet\\IPSet' => __DIR__ . '/..' . '/wikimedia/ip-set/src/IPSet.php',
         'LCRun3' => __DIR__ . '/..' . '/zordius/lightncandy/src/lightncandy.php',
         'Less_Autoloader' => __DIR__ . '/..' . '/oyejorge/less.php/lib/Less/Autoloader.php',
@@ -175,6 +197,17 @@ class ComposerStaticInitefd3458f43a4a7ef9a06652d4877a7cf
         'Liuggio\\StatsdClient\\Service\\StatsdService' => __DIR__ . '/..' . '/liuggio/statsd-php-client/src/Liuggio/StatsdClient/Service/StatsdService.php',
         'Liuggio\\StatsdClient\\StatsdClient' => __DIR__ . '/..' . '/liuggio/statsd-php-client/src/Liuggio/StatsdClient/StatsdClient.php',
         'Liuggio\\StatsdClient\\StatsdClientInterface' => __DIR__ . '/..' . '/liuggio/statsd-php-client/src/Liuggio/StatsdClient/StatsdClientInterface.php',
+        'Mail' => __DIR__ . '/..' . '/pear/mail/Mail.php',
+        'Mail_RFC822' => __DIR__ . '/..' . '/pear/mail/Mail/RFC822.php',
+        'Mail_mail' => __DIR__ . '/..' . '/pear/mail/Mail/mail.php',
+        'Mail_mime' => __DIR__ . '/..' . '/pear/mail_mime/Mail/mime.php',
+        'Mail_mimeDecode' => __DIR__ . '/..' . '/pear/mail_mime-decode/Mail/mimeDecode.php',
+        'Mail_mimePart' => __DIR__ . '/..' . '/pear/mail_mime/Mail/mimePart.php',
+        'Mail_mock' => __DIR__ . '/..' . '/pear/mail/Mail/mock.php',
+        'Mail_null' => __DIR__ . '/..' . '/pear/mail/Mail/null.php',
+        'Mail_sendmail' => __DIR__ . '/..' . '/pear/mail/Mail/sendmail.php',
+        'Mail_smtp' => __DIR__ . '/..' . '/pear/mail/Mail/smtp.php',
+        'Mail_smtpmx' => __DIR__ . '/..' . '/pear/mail/Mail/smtpmx.php',
         'OOUI\\AccessKeyedElement' => __DIR__ . '/..' . '/oojs/oojs-ui/php/mixins/AccessKeyedElement.php',
         'OOUI\\ActionFieldLayout' => __DIR__ . '/..' . '/oojs/oojs-ui/php/layouts/ActionFieldLayout.php',
         'OOUI\\ApexTheme' => __DIR__ . '/..' . '/oojs/oojs-ui/php/themes/ApexTheme.php',
@@ -212,6 +245,12 @@ class ComposerStaticInitefd3458f43a4a7ef9a06652d4877a7cf
         'OOUI\\Theme' => __DIR__ . '/..' . '/oojs/oojs-ui/php/Theme.php',
         'OOUI\\TitledElement' => __DIR__ . '/..' . '/oojs/oojs-ui/php/mixins/TitledElement.php',
         'OOUI\\Widget' => __DIR__ . '/..' . '/oojs/oojs-ui/php/Widget.php',
+        'OS_Guess' => __DIR__ . '/..' . '/pear/pear-core-minimal/src/OS/Guess.php',
+        'PEAR' => __DIR__ . '/..' . '/pear/pear-core-minimal/src/PEAR.php',
+        'PEAR_Error' => __DIR__ . '/..' . '/pear/pear-core-minimal/src/PEAR.php',
+        'PEAR_ErrorStack' => __DIR__ . '/..' . '/pear/pear-core-minimal/src/PEAR/ErrorStack.php',
+        'PEAR_Exception' => __DIR__ . '/..' . '/pear/pear_exception/PEAR/Exception.php',
+        'PEAR_ExceptionTest' => __DIR__ . '/..' . '/pear/pear_exception/tests/PEAR/ExceptionTest.php',
         'Psr\\Log\\AbstractLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/AbstractLogger.php',
         'Psr\\Log\\InvalidArgumentException' => __DIR__ . '/..' . '/psr/log/Psr/Log/InvalidArgumentException.php',
         'Psr\\Log\\LogLevel' => __DIR__ . '/..' . '/psr/log/Psr/Log/LogLevel.php',
@@ -222,6 +261,7 @@ class ComposerStaticInitefd3458f43a4a7ef9a06652d4877a7cf
         'Psr\\Log\\NullLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/NullLogger.php',
         'Psr\\Log\\Test\\DummyTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/LoggerInterfaceTest.php',
         'Psr\\Log\\Test\\LoggerInterfaceTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/LoggerInterfaceTest.php',
+        'System' => __DIR__ . '/..' . '/pear/pear-core-minimal/src/System.php',
         'UtfNormal\\Constants' => __DIR__ . '/..' . '/wikimedia/utfnormal/src/Constants.php',
         'UtfNormal\\Utils' => __DIR__ . '/..' . '/wikimedia/utfnormal/src/Util.php',
         'UtfNormal\\Validator' => __DIR__ . '/..' . '/wikimedia/utfnormal/src/Validator.php',
