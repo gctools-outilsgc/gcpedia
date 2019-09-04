@@ -19,7 +19,9 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Parsoid HTTP service"
 NAME=parsoid
-SCRIPT_PATH=/usr/lib/parsoid/src/bin/server.js
+SCRIPT_PATH=/sites/parsoid/node_modules/parsoid/bin/server.js
+CONFIG_PATH=/sites/parsoid/node_modules/parsoid
+LOG_PATH=/sites/parsoid/log
 DAEMON="/usr/bin/nodejs $SCRIPT_PATH"
 DAEMON_ARGS=""
 PIDFILE=/var/run/$NAME.pid
@@ -60,13 +62,15 @@ do_start()
 	# 12.04 LTS, see below
 	start-stop-daemon --start --quiet --pidfile $PIDFILE -bm \
 		-c parsoid:parsoid --test \
+		-d $CONFIG_PATH \
 		--exec /bin/sh -- \
-		-c "$DAEMON $DAEMON_ARGS >> /var/log/parsoid/parsoid.log 2>&1" \
+		-c "$DAEMON $DAEMON_ARGS >> $LOG_PATH/parsoid.log 2>&1" \
 		|| return 1
 	start-stop-daemon --start --quiet --pidfile $PIDFILE -bm \
 		-c parsoid:parsoid \
+		-d $CONFIG_PATH \
 		--exec /bin/sh -- \
-		-c "$DAEMON $DAEMON_ARGS >> /var/log/parsoid/parsoid.log 2>&1" \
+		-c "$DAEMON $DAEMON_ARGS >> $LOG_PATH/parsoid.log 2>&1" \
 		|| return 2
 	echo "Started Parsoid server on port $PORT"
 
@@ -74,7 +78,8 @@ do_start()
 	# LTS as the --no-close parameter is not yet supported there
 	#start-stop-daemon --start --quiet --pidfile $PIDFILE -bm --no-close \
 	#	-c parsoid:parsoid \
-	#	--exec $DAEMON -- $DAEMON_ARGS >> /var/log/parsoid/parsoid.log 2>&1 \
+	#	-d $CONFIG_PATH \
+	#	--exec $DAEMON -- $DAEMON_ARGS >> $LOG_PATH/parsoid.log 2>&1 \
 	#	|| return 2
 
 
