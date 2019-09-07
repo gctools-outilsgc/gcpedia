@@ -59,6 +59,14 @@ class ComposerStaticInitefd3458f43a4a7ef9a06652d4877a7cf
                 0 => __DIR__ . '/..' . '/pear/pear_exception',
             ),
         ),
+        'N' => 
+        array (
+            'Net' => 
+            array (
+                0 => __DIR__ . '/..' . '/pear/net_socket',
+                1 => __DIR__ . '/..' . '/pear/net_smtp',
+            ),
+        ),
         'M' => 
         array (
             'Mail_mimeDecode' => 
@@ -208,6 +216,8 @@ class ComposerStaticInitefd3458f43a4a7ef9a06652d4877a7cf
         'Mail_sendmail' => __DIR__ . '/..' . '/pear/mail/Mail/sendmail.php',
         'Mail_smtp' => __DIR__ . '/..' . '/pear/mail/Mail/smtp.php',
         'Mail_smtpmx' => __DIR__ . '/..' . '/pear/mail/Mail/smtpmx.php',
+        'Net_SMTP' => __DIR__ . '/..' . '/pear/net_smtp/Net/SMTP.php',
+        'Net_Socket' => __DIR__ . '/..' . '/pear/net_socket/Net/Socket.php',
         'OOUI\\AccessKeyedElement' => __DIR__ . '/..' . '/oojs/oojs-ui/php/mixins/AccessKeyedElement.php',
         'OOUI\\ActionFieldLayout' => __DIR__ . '/..' . '/oojs/oojs-ui/php/layouts/ActionFieldLayout.php',
         'OOUI\\ApexTheme' => __DIR__ . '/..' . '/oojs/oojs-ui/php/themes/ApexTheme.php',

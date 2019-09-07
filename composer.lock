@@ -4,7 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "a403f218bd37fb93a560caa2e7a853a3",
+    "hash": "42d95614ff8b9b8ed7918b9f610307d8",
+    "content-hash": "7bcd9db1f9bb439ddfc03f8ae0e006fd",
     "packages": [
         {
             "name": "composer/semver",
@@ -65,7 +66,7 @@
                 "validation",
                 "versioning"
             ],
-            "time": "2015-09-21T09:42:36+00:00"
+            "time": "2015-09-21 09:42:36"
         },
         {
             "name": "cssjanus/cssjanus",
@@ -100,7 +101,7 @@
                 "Apache-2.0"
             ],
             "description": "Convert CSS stylesheets between left-to-right and right-to-left.",
-            "time": "2014-11-14T20:00:50+00:00"
+            "time": "2014-11-14 20:00:50"
         },
         {
             "name": "liuggio/statsd-php-client",
@@ -149,7 +150,7 @@
                 "php",
                 "statsd"
             ],
-            "time": "2015-04-27T08:12:26+00:00"
+            "time": "2015-04-27 08:12:26"
         },
         {
             "name": "mediawiki/at-ease",
@@ -197,7 +198,7 @@
             "description": "Safe replacement to @ for suppressing warnings.",
             "homepage": "https://www.mediawiki.org/wiki/at-ease",
             "abandoned": "wikimedia/at-ease",
-            "time": "2015-09-18T07:02:06+00:00"
+            "time": "2015-09-18 07:02:06"
         },
         {
             "name": "oojs/oojs-ui",
@@ -268,7 +269,7 @@
             ],
             "description": "Provides library of common widgets, layouts, and windows.",
             "homepage": "https://www.mediawiki.org/wiki/OOjs_UI",
-            "time": "2015-10-13T20:29:29+00:00"
+            "time": "2015-10-13 20:29:29"
         },
         {
             "name": "oyejorge/less.php",
@@ -327,7 +328,7 @@
                 "php",
                 "stylesheet"
             ],
-            "time": "2015-09-28T01:11:47+00:00"
+            "time": "2015-09-28 01:11:47"
         },
         {
             "name": "pear/console_getopt",
@@ -374,7 +375,7 @@
                 }
             ],
             "description": "More info available on: http://pear.php.net/package/Console_Getopt",
-            "time": "2019-02-06T16:52:33+00:00"
+            "time": "2019-02-06 16:52:33"
         },
         {
             "name": "pear/mail",
@@ -432,7 +433,7 @@
             ],
             "description": "Class that provides multiple interfaces for sending emails.",
             "homepage": "http://pear.php.net/package/Mail",
-            "time": "2017-04-11T17:27:29+00:00"
+            "time": "2017-04-11 17:27:29"
         },
         {
             "name": "pear/mail_mime",
@@ -478,7 +479,7 @@
             ],
             "description": "Mail_Mime provides classes to create MIME messages",
             "homepage": "http://pear.php.net/package/Mail_Mime",
-            "time": "2017-11-17T09:21:45+00:00"
+            "time": "2017-11-17 09:21:45"
         },
         {
             "name": "pear/mail_mime-decode",
@@ -526,7 +527,120 @@
                 }
             ],
             "description": "More info available on: http://pear.php.net/package/Mail_mimeDecode",
-            "time": "2014-04-15T19:29:16+00:00"
+            "time": "2014-04-15 19:29:16"
+        },
+        {
+            "name": "pear/net_smtp",
+            "version": "1.8.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pear/Net_SMTP.git",
+                "reference": "8f93b34878ef16844c754d1a1211c1e3677fa07f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pear/Net_SMTP/zipball/8f93b34878ef16844c754d1a1211c1e3677fa07f",
+                "reference": "8f93b34878ef16844c754d1a1211c1e3677fa07f",
+                "shasum": ""
+            },
+            "require": {
+                "pear/net_socket": "@stable",
+                "pear/pear-core-minimal": "@stable",
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "*"
+            },
+            "suggest": {
+                "pear/auth_sasl": "Install optionally via your project's composer.json"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Net": "./"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "include-path": [
+                "./"
+            ],
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Chuck Hagenbuch",
+                    "role": "Lead",
+                    "email": "chuck@horde.org"
+                },
+                {
+                    "name": "Jon Parise",
+                    "role": "Lead",
+                    "email": "jon@php.net",
+                    "homepage": "https://www.indelible.org"
+                }
+            ],
+            "description": "An implementation of the SMTP protocol",
+            "homepage": "https://pear.github.io/Net_SMTP/",
+            "keywords": [
+                "email",
+                "mail",
+                "smtp"
+            ],
+            "time": "2018-09-25 00:21:03"
+        },
+        {
+            "name": "pear/net_socket",
+            "version": "v1.2.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pear/Net_Socket.git",
+                "reference": "bbe6a12bb4f7059dba161f6ddd43f369c0ec8d09"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pear/Net_Socket/zipball/bbe6a12bb4f7059dba161f6ddd43f369c0ec8d09",
+                "reference": "bbe6a12bb4f7059dba161f6ddd43f369c0ec8d09",
+                "shasum": ""
+            },
+            "require": {
+                "pear/pear_exception": "*"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Net": "./"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "include-path": [
+                "./"
+            ],
+            "license": [
+                "PHP License"
+            ],
+            "authors": [
+                {
+                    "name": "Chuck Hagenbuch",
+                    "email": "chuck@horde.org",
+                    "role": "Lead"
+                },
+                {
+                    "name": "Aleksander Machniak",
+                    "email": "alec@php.net",
+                    "role": "Lead"
+                },
+                {
+                    "name": "Stig Bakken",
+                    "email": "stig@php.net",
+                    "role": "Lead"
+                }
+            ],
+            "description": "More info available on: http://pear.php.net/package/Net_Socket",
+            "time": "2015-03-22 15:48:19"
         },
         {
             "name": "pear/pear-core-minimal",
@@ -570,7 +684,7 @@
                 }
             ],
             "description": "Minimal set of PEAR core files to be used as composer dependency",
-            "time": "2019-03-13T18:15:44+00:00"
+            "time": "2019-03-13 18:15:44"
         },
         {
             "name": "pear/pear_exception",
@@ -625,7 +739,7 @@
             "keywords": [
                 "exception"
             ],
-            "time": "2015-02-10T20:07:52+00:00"
+            "time": "2015-02-10 20:07:52"
         },
         {
             "name": "psr/log",
@@ -663,7 +777,7 @@
                 "psr",
                 "psr-3"
             ],
-            "time": "2012-12-21T11:40:51+00:00"
+            "time": "2012-12-21 11:40:51"
         },
         {
             "name": "wikimedia/assert",
@@ -708,7 +822,7 @@
                 "precondition",
                 "qa"
             ],
-            "time": "2015-04-29T17:23:50+00:00"
+            "time": "2015-04-29 17:23:50"
         },
         {
             "name": "wikimedia/cdb",
@@ -758,7 +872,7 @@
             ],
             "description": "Constant Database (CDB) wrapper library for PHP. Provides pure-PHP fallback when dba_* functions are absent.",
             "homepage": "https://www.mediawiki.org/wiki/CDB",
-            "time": "2015-09-08T19:53:04+00:00"
+            "time": "2015-09-08 19:53:04"
         },
         {
             "name": "wikimedia/composer-merge-plugin",
@@ -807,7 +921,7 @@
                 }
             ],
             "description": "Composer plugin to merge multiple composer.json files",
-            "time": "2015-11-06T20:31:16+00:00"
+            "time": "2015-11-06 20:31:16"
         },
         {
             "name": "wikimedia/ip-set",
@@ -849,7 +963,7 @@
             ],
             "description": "Efficiently match IP addresses against a set of CIDR specifications.",
             "homepage": "https://github.com/wikimedia/IPSet",
-            "time": "2015-06-29T20:21:27+00:00"
+            "time": "2015-06-29 20:21:27"
         },
         {
             "name": "wikimedia/utfnormal",
@@ -893,7 +1007,7 @@
             ],
             "description": "Contains Unicode normalization routines, including both pure PHP implementations and automatic use of the 'intl' PHP extension when present",
             "homepage": "https://www.mediawiki.org/wiki/utfnormal",
-            "time": "2015-08-29T14:13:27+00:00"
+            "time": "2015-08-29 14:13:27"
         },
         {
             "name": "wikimedia/wrappedstring",
@@ -935,7 +1049,7 @@
             ],
             "description": "Automatically compact sequentially-outputted strings that share a common prefix / suffix pair.",
             "homepage": "https://www.mediawiki.org/wiki/WrappedString",
-            "time": "2015-07-31T00:06:22+00:00"
+            "time": "2015-07-31 00:06:22"
         },
         {
             "name": "zordius/lightncandy",
@@ -982,7 +1096,7 @@
                 "php",
                 "template"
             ],
-            "time": "2015-05-08T01:56:46+00:00"
+            "time": "2015-05-08 01:56:46"
         }
     ],
     "packages-dev": [
@@ -1031,7 +1145,7 @@
             ],
             "description": "This tool check syntax of PHP files about 20x faster than serial check.",
             "homepage": "https://github.com/JakubOnderka/PHP-Parallel-Lint",
-            "time": "2015-06-16T10:17:07+00:00"
+            "time": "2015-06-16 10:17:07"
         },
         {
             "name": "justinrainbow/json-schema",
@@ -1097,7 +1211,7 @@
                 "json",
                 "schema"
             ],
-            "time": "2016-01-25T15:43:01+00:00"
+            "time": "2016-01-25 15:43:01"
         },
         {
             "name": "mediawiki/mediawiki-codesniffer",
@@ -1131,7 +1245,7 @@
                 "codesniffer",
                 "mediawiki"
             ],
-            "time": "2015-06-19T16:36:59+00:00"
+            "time": "2015-06-19 16:36:59"
         },
         {
             "name": "monolog/monolog",
@@ -1207,7 +1321,7 @@
                 "logging",
                 "psr-3"
             ],
-            "time": "2015-06-19T13:29:54+00:00"
+            "time": "2015-06-19 13:29:54"
         },
         {
             "name": "nmred/kafka-php",
@@ -1247,7 +1361,7 @@
                 "client",
                 "kafka"
             ],
-            "time": "2015-09-06T01:39:05+00:00"
+            "time": "2015-09-06 01:39:05"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -1308,7 +1422,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2014-09-02T10:13:14+00:00"
+            "time": "2014-09-02 10:13:14"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -1355,7 +1469,7 @@
                 "filesystem",
                 "iterator"
             ],
-            "time": "2017-11-27T13:52:08+00:00"
+            "time": "2017-11-27 13:52:08"
         },
         {
             "name": "phpunit/php-text-template",
@@ -1396,7 +1510,7 @@
             "keywords": [
                 "template"
             ],
-            "time": "2015-06-21T13:50:34+00:00"
+            "time": "2015-06-21 13:50:34"
         },
         {
             "name": "phpunit/php-timer",
@@ -1445,7 +1559,7 @@
             "keywords": [
                 "timer"
             ],
-            "time": "2017-02-26T11:10:40+00:00"
+            "time": "2017-02-26 11:10:40"
         },
         {
             "name": "phpunit/php-token-stream",
@@ -1495,7 +1609,7 @@
             "keywords": [
                 "tokenizer"
             ],
-            "time": "2014-03-03T05:10:30+00:00"
+            "time": "2014-03-03 05:10:30"
         },
         {
             "name": "phpunit/phpunit",
@@ -1568,7 +1682,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2014-04-30T12:24:19+00:00"
+            "time": "2014-04-30 12:24:19"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
@@ -1618,7 +1732,7 @@
                 "xunit"
             ],
             "abandoned": true,
-            "time": "2013-01-13T10:24:48+00:00"
+            "time": "2013-01-13 10:24:48"
         },
         {
             "name": "squizlabs/php_codesniffer",
@@ -1692,7 +1806,7 @@
                 "phpcs",
                 "standards"
             ],
-            "time": "2015-03-04T02:07:03+00:00"
+            "time": "2015-03-04 02:07:03"
         },
         {
             "name": "symfony/polyfill-ctype",
@@ -1750,7 +1864,7 @@
                 "polyfill",
                 "portable"
             ],
-            "time": "2019-02-06T07:57:58+00:00"
+            "time": "2019-02-06 07:57:58"
         },
         {
             "name": "symfony/yaml",
@@ -1800,7 +1914,7 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "time": "2018-11-11T11:18:13+00:00"
+            "time": "2018-11-11 11:18:13"
         },
         {
             "name": "wikimedia/avro",
@@ -1867,7 +1981,7 @@
             "keywords": [
                 "serialization"
             ],
-            "time": "2015-09-05T18:49:27+00:00"
+            "time": "2015-09-05 18:49:27"
         }
     ],
     "aliases": [],

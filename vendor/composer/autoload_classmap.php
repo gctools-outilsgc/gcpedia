@@ -113,6 +113,8 @@ return array(
     'Mail_sendmail' => $vendorDir . '/pear/mail/Mail/sendmail.php',
     'Mail_smtp' => $vendorDir . '/pear/mail/Mail/smtp.php',
     'Mail_smtpmx' => $vendorDir . '/pear/mail/Mail/smtpmx.php',
+    'Net_SMTP' => $vendorDir . '/pear/net_smtp/Net/SMTP.php',
+    'Net_Socket' => $vendorDir . '/pear/net_socket/Net/Socket.php',
     'OOUI\\AccessKeyedElement' => $vendorDir . '/oojs/oojs-ui/php/mixins/AccessKeyedElement.php',
     'OOUI\\ActionFieldLayout' => $vendorDir . '/oojs/oojs-ui/php/layouts/ActionFieldLayout.php',
     'OOUI\\ApexTheme' => $vendorDir . '/oojs/oojs-ui/php/themes/ApexTheme.php',

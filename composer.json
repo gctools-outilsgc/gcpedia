@@ -34,7 +34,8 @@
 		"zordius/lightncandy": "0.21",
 		"pear/mail": "^1.4",
 		"pear/mail_mime": "^1.10",
-		"pear/mail_mime-decode": "1.5.5.2"
+		"pear/mail_mime-decode": "1.5.5.2",
+		"pear/Net_SMTP": "^1.8"
 	},
 	"require-dev": {
 		"jakub-onderka/php-parallel-lint": "0.9",

@@ -21,7 +21,7 @@
             "phpunit/phpunit": "~4.5",
             "phpunit/phpunit-mock-objects": "~2.3"
         },
-        "time": "2015-09-21T09:42:36+00:00",
+        "time": "2015-09-21 09:42:36",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -85,7 +85,7 @@
             "phpunit/phpunit": "3.7.*",
             "squizlabs/php_codesniffer": "1.*"
         },
-        "time": "2014-11-14T20:00:50+00:00",
+        "time": "2014-11-14 20:00:50",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -123,7 +123,7 @@
         "suggest": {
             "monolog/monolog": "Monolog, in order to do generate statistic from log >=1.2.0)"
         },
-        "time": "2015-04-27T08:12:26+00:00",
+        "time": "2015-04-27 08:12:26",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -174,7 +174,7 @@
             "phpunit/phpunit": "~4.5",
             "squizlabs/php_codesniffer": "2.3.0"
         },
-        "time": "2015-09-18T07:02:06+00:00",
+        "time": "2015-09-18 07:02:06",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -224,7 +224,7 @@
             "mediawiki/mediawiki-codesniffer": "0.4.0",
             "phpunit/phpunit": "~4.5"
         },
-        "time": "2015-10-13T20:29:29+00:00",
+        "time": "2015-10-13 20:29:29",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -291,7 +291,7 @@
         "require": {
             "php": ">=5.3"
         },
-        "time": "2015-09-28T01:11:47+00:00",
+        "time": "2015-09-28 01:11:47",
         "bin": [
             "bin/lessc"
         ],
@@ -349,7 +349,7 @@
             "reference": "6c77aeb625b32bd752e89ee17972d103588b90c0",
             "shasum": ""
         },
-        "time": "2019-02-06T16:52:33+00:00",
+        "time": "2019-02-06 16:52:33",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -408,7 +408,7 @@
         "suggest": {
             "pear/net_smtp": "Install optionally via your project's composer.json"
         },
-        "time": "2017-04-11T17:27:29+00:00",
+        "time": "2017-04-11 17:27:29",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -461,7 +461,7 @@
         "require": {
             "pear/pear-core-minimal": "*"
         },
-        "time": "2017-11-17T09:21:45+00:00",
+        "time": "2017-11-17 09:21:45",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -512,7 +512,7 @@
         "require-dev": {
             "phpunit/phpunit": "*"
         },
-        "time": "2014-04-15T19:29:16+00:00",
+        "time": "2014-04-15 19:29:16",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -563,7 +563,7 @@
         "replace": {
             "rsky/pear-core-min": "self.version"
         },
-        "time": "2019-03-13T18:15:44+00:00",
+        "time": "2019-03-13 18:15:44",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -608,7 +608,7 @@
         "require-dev": {
             "phpunit/phpunit": "*"
         },
-        "time": "2015-02-10T20:07:52+00:00",
+        "time": "2015-02-10 20:07:52",
         "type": "class",
         "extra": {
             "branch-alias": {
@@ -659,7 +659,7 @@
             "reference": "fe0936ee26643249e916849d48e3a51d5f5e278b",
             "shasum": ""
         },
-        "time": "2012-12-21T11:40:51+00:00",
+        "time": "2012-12-21 11:40:51",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -702,7 +702,7 @@
         "require-dev": {
             "phpunit/phpunit": "3.7.*"
         },
-        "time": "2015-04-29T17:23:50+00:00",
+        "time": "2015-04-29 17:23:50",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -754,7 +754,7 @@
             "mediawiki/mediawiki-codesniffer": "0.3.0",
             "phpunit/phpunit": "4.6.*"
         },
-        "time": "2015-09-08T19:53:04+00:00",
+        "time": "2015-09-08 19:53:04",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -808,7 +808,7 @@
             "phpunit/phpunit": "~4.8|~5.0",
             "squizlabs/php_codesniffer": "~2.1.0"
         },
-        "time": "2015-11-06T20:31:16+00:00",
+        "time": "2015-11-06 20:31:16",
         "type": "composer-plugin",
         "extra": {
             "branch-alias": {
@@ -857,7 +857,7 @@
             "mediawiki/mediawiki-codesniffer": "0.3.0",
             "phpunit/phpunit": "4.6.*"
         },
-        "time": "2015-06-29T20:21:27+00:00",
+        "time": "2015-06-29 20:21:27",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -903,7 +903,7 @@
             "phpunit/phpunit": "4.6.*",
             "squizlabs/php_codesniffer": "2.2.*"
         },
-        "time": "2015-08-29T14:13:27+00:00",
+        "time": "2015-08-29 14:13:27",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -947,7 +947,7 @@
             "mediawiki/mediawiki-codesniffer": "^0.3.0.0",
             "phpunit/phpunit": "^4.7.7.0"
         },
-        "time": "2015-07-31T00:06:22+00:00",
+        "time": "2015-07-31 00:06:22",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -989,7 +989,7 @@
         "require-dev": {
             "phpunit/phpunit": "4.0.17"
         },
-        "time": "2015-05-08T01:56:46+00:00",
+        "time": "2015-05-08 01:56:46",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -1015,6 +1015,123 @@
             "mustache",
             "php",
             "template"
+        ]
+    },
+    {
+        "name": "pear/net_socket",
+        "version": "v1.2.2",
+        "version_normalized": "1.2.2.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/pear/Net_Socket.git",
+            "reference": "bbe6a12bb4f7059dba161f6ddd43f369c0ec8d09"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/pear/Net_Socket/zipball/bbe6a12bb4f7059dba161f6ddd43f369c0ec8d09",
+            "reference": "bbe6a12bb4f7059dba161f6ddd43f369c0ec8d09",
+            "shasum": ""
+        },
+        "require": {
+            "pear/pear_exception": "*"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "*"
+        },
+        "time": "2015-03-22 15:48:19",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Net": "./"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "include-path": [
+            "./"
+        ],
+        "license": [
+            "PHP License"
+        ],
+        "authors": [
+            {
+                "name": "Chuck Hagenbuch",
+                "email": "chuck@horde.org",
+                "role": "Lead"
+            },
+            {
+                "name": "Aleksander Machniak",
+                "email": "alec@php.net",
+                "role": "Lead"
+            },
+            {
+                "name": "Stig Bakken",
+                "email": "stig@php.net",
+                "role": "Lead"
+            }
+        ],
+        "description": "More info available on: http://pear.php.net/package/Net_Socket"
+    },
+    {
+        "name": "pear/net_smtp",
+        "version": "1.8.1",
+        "version_normalized": "1.8.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/pear/Net_SMTP.git",
+            "reference": "8f93b34878ef16844c754d1a1211c1e3677fa07f"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/pear/Net_SMTP/zipball/8f93b34878ef16844c754d1a1211c1e3677fa07f",
+            "reference": "8f93b34878ef16844c754d1a1211c1e3677fa07f",
+            "shasum": ""
+        },
+        "require": {
+            "pear/net_socket": "@stable",
+            "pear/pear-core-minimal": "@stable",
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "*"
+        },
+        "suggest": {
+            "pear/auth_sasl": "Install optionally via your project's composer.json"
+        },
+        "time": "2018-09-25 00:21:03",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Net": "./"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "include-path": [
+            "./"
+        ],
+        "license": [
+            "BSD-2-Clause"
+        ],
+        "authors": [
+            {
+                "name": "Chuck Hagenbuch",
+                "role": "Lead",
+                "email": "chuck@horde.org"
+            },
+            {
+                "name": "Jon Parise",
+                "role": "Lead",
+                "email": "jon@php.net",
+                "homepage": "https://www.indelible.org"
+            }
+        ],
+        "description": "An implementation of the SMTP protocol",
+        "homepage": "https://pear.github.io/Net_SMTP/",
+        "keywords": [
+            "email",
+            "mail",
+            "smtp"
         ]
     }
 ]
