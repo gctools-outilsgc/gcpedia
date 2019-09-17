@@ -9,37 +9,13 @@
 # Description:       Generates pdf versions of wikitext pages
 ### END INIT INFO
 
-# Do NOT "set -e"
-
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
-PATH=/sbin:/usr/sbin:/bin:/usr/bin
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 DESC="mwlib HTTP service"
 NAME=mwlib
-SCRIPT_PATH1=/usr/bin/nserve
-SCRIPT_PATH2=/usr/bin/mw-qserve
-SCRIPT_PATH3=/usr/bin/nslave
-CACHE_PATH=/sites/data
+CACHE_PATH=/sites/mwlib
 LOG_PATH=/sites/mwlib/log
-DAEMON1="$SCRIPT_PATH1"
-DAEMON2="$SCRIPT_PATH2"
-DAEMON3="$SCRIPT_PATH3"
-DAEMON_ARGS=""
-PIDFILE1=/var/run/$NAME-nserve.pid
-PIDFILE2=/var/run/$NAME-mw-qserve.pid
-PIDFILE3=/var/run/$NAME-nslave.pid
 SCRIPTNAME=/etc/init.d/$NAME
-
-# Exit if the package is not installed
-[ -e "$SCRIPT_PATH1" ] || exit 0
-[ -e "$SCRIPT_PATH2" ] || exit 0
-[ -e "$SCRIPT_PATH3" ] || exit 0
-
-# Read configuration variable file if it is present
-[ -r /etc/default/$NAME ] && . /etc/default/$NAME
-
-# export the port and host env vars, if set
-export PORT
-export INTERFACE
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
@@ -54,80 +30,24 @@ export INTERFACE
 #
 do_start()
 {
-	# up the number of fds [sockets] from 1024
-	ulimit -n 64000
+	start-stop-daemon -c mwlib:mwlib  --name nserve --background --start --exec /bin/sh -- -c "/usr/bin/python /usr/local/bin/nserve   > $LOG_PATH/nserve.log 2>&1"
+	start-stop-daemon -c mwlib:mwlib  --name mw-qserve --background --start --exec /bin/sh -- -c "/usr/bin/python  /usr/local/bin/mw-qserve > $LOG_PATH/mw-qserve.log 2>&1"
+	start-stop-daemon -c mwlib:mwlib  --name nslave --background --start --exec /bin/sh -- -c "/usr/bin/python /usr/local/bin/nslave --cachedir $CACHE_PATH/mwcache > $LOG_PATH/nslave.log 2>&1"
 
-	# Return
-	#   0 if daemon has been started
-	#   1 if daemon was already running
-	#   2 if daemon could not be started
-
-	start-stop-daemon --start --quiet --pidfile $PIDFILE1 -bm --no-close \
-		-c mwlib:mwlib --test \
-		--exec $DAEMON1 -- $DAEMON_ARGS >> $LOG_PATH/mwlib.log 2>&1 \
-		|| return 1
-	start-stop-daemon --start --quiet --pidfile $PIDFILE2 -bm --no-close \
-		-c mwlib:mwlib --test \
-		--exec $DAEMON2 -- $DAEMON_ARGS >> $LOG_PATH/mwlib.log 2>&1 \
-		|| return 1
-	start-stop-daemon --start --quiet --pidfile $PIDFILE3 -bm --no-close \
-		-c mwlib:mwlib --test \
-		--exec $DAEMON3 -- $DAEMON_ARGS >> $LOG_PATH/mwlib.log 2>&1 \
-		|| return 1
-
-	start-stop-daemon --start --quiet --pidfile $PIDFILE1 -bm --no-close \
-		-c mwlib:mwlib \
-		--exec $DAEMON1 -- $DAEMON_ARGS >> $LOG_PATH/mwlib.log 2>&1 \
-		|| return 2
-	start-stop-daemon --start --quiet --pidfile $PIDFILE2 -bm --no-close \
-		-c mwlib:mwlib \
-		--exec $DAEMON2 -- $DAEMON_ARGS >> $LOG_PATH/mwlib.log 2>&1 \
-		|| return 2
-	start-stop-daemon --start --quiet --pidfile $PIDFILE3 -bm --no-close \
-		-c mwlib:mwlib \
-		--exec $DAEMON3 -- $DAEMON_ARGS >> $LOG_PATH/mwlib.log 2>&1 \
-		|| return 2
-	echo "Started mwlib server on port $PORT"
-
-
-
-	# Add code here, if necessary, that waits for the process to be ready
-	# to handle requests from services started subsequently which depend
-	# on this one.  As a last resort, sleep for some time.
-    sleep 5
+	return 0
 }
+
 
 #
 # Function that stops the daemon/service
 #
 do_stop()
 {
-	# Return
-	#   0 if daemon has been stopped
-	#   1 if daemon was already stopped
-	#   2 if daemon could not be stopped
-	#   other if a failure occurred
-	start-stop-daemon --stop --quiet --retry=TERM/60/KILL/5 --user mwlib
-	RETVAL="$?"
-	[ "$RETVAL" = 2 ] && return 2
-	# Wait for children to finish too if this is a daemon that forks
-	# and if the daemon is only ever run from this initscript.
-	# If the above conditions are not satisfied then add some other code
-	# that waits for the process to drop all resources that could be
-	# needed by services started subsequently.  A last resort is to
-	# sleep for some time.
-	start-stop-daemon --stop --quiet --oknodo --retry=0/5/KILL/5 --exec $DAEMON1
-	[ "$?" = 2 ] && return 2
-	start-stop-daemon --stop --quiet --oknodo --retry=0/5/KILL/5 --exec $DAEMON2
-	[ "$?" = 2 ] && return 2
-	start-stop-daemon --stop --quiet --oknodo --retry=0/5/KILL/5 --exec $DAEMON3
-	[ "$?" = 2 ] && return 2
-	# Many daemons don't delete their pidfiles when they exit.
-	rm -f $PIDFILE1
-	rm -f $PIDFILE2
-	rm -f $PIDFILE3
-	return "$RETVAL"
+    start-stop-daemon --user mwlib --stop
+
+	return 0
 }
+
 
 case "$1" in
   start)
@@ -145,12 +65,6 @@ case "$1" in
 		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
 		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
 	esac
-	;;
-  status)
-	status_of_proc -p "$PIDFILE1" "$NAME - nserve"
-	status_of_proc -p "$PIDFILE2" "$NAME - mw-qserve"
-	status_of_proc -p "$PIDFILE3" "$NAME - nslave"
-	exit $?
 	;;
   restart|force-reload)
 	#
@@ -175,8 +89,8 @@ case "$1" in
 	esac
 	;;
   *)
-	#echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
-	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+	#echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >>&2
+	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}"
 	exit 3
 	;;
 esac
