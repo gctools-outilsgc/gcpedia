@@ -38,6 +38,49 @@ class UsersPager extends AlphabeticPager {
 	 * @var array A array with user ids as key and a array of groups as value
 	 */
 	protected $userGroupCache;
+	public $mLimitsShown = array();
+
+	function getPagingLinks( $linkTexts, $disabledTexts = array() ) {
+		$queries = $this->getPagingQueries();
+		$links = array();
+		$disabledTexts = array('prev' => '', 'first' => '', 'last' => ''); 
+		
+		foreach ( $queries as $type => $query ) {
+			if ( isset( $disabledTexts[$type] ) ) {
+				$links[$type] = $disabledTexts[$type];
+			}
+			elseif ( $query !== false ) {
+				$links[$type] = $this->makeLink(
+					$linkTexts[$type],
+					$queries[$type],
+					$type
+				);
+			} elseif ( isset( $disabledTexts[$type] ) ) {
+				$links[$type] = $disabledTexts[$type];
+			} else {
+				$links[$type] = $linkTexts[$type];
+			}
+		}
+
+		return $links;
+	}
+
+	function getLimitLinks() {
+		$links = array();
+		if ( $this->mIsBackwards ) {
+			$offset = $this->mPastTheEndIndex;
+		} else {
+			$offset = $this->mOffset;
+		}
+		foreach ( $this->mLimitsShown as $limit ) {
+			$links[] = $this->makeLink(
+				$this->getLanguage()->formatNum( $limit ),
+				array( 'offset' => $offset, 'limit' => $limit ),
+				'num'
+			);
+		}
+		return $links;
+	}
 
 	/**
 	 * @param IContextSource $context
@@ -173,11 +216,6 @@ class UsersPager extends AlphabeticPager {
 		$userName = $row->user_name;
 
 		$ulinks = Linker::userLink( $row->user_id, $userName );
-		$ulinks .= Linker::userToolLinksRedContribs(
-			$row->user_id,
-			$userName,
-			(int)$row->edits
-		);
 
 		$lang = $this->getLanguage();
 
@@ -192,7 +230,7 @@ class UsersPager extends AlphabeticPager {
 			$groups = $lang->commaList( $list );
 		}
 
-		$item = $lang->specialList( $ulinks, $groups );
+		$item = $ulinks;
 
 		if ( $row->ipb_deleted ) {
 			$item = "<span class=\"deleted\">$item</span>";
@@ -219,7 +257,7 @@ class UsersPager extends AlphabeticPager {
 
 		Hooks::run( 'SpecialListusersFormatRow', array( &$item, $row ) );
 
-		return Html::rawElement( 'li', array(), "{$item}{$edits}{$created}{$blocked}" );
+		return Html::rawElement( 'li', array(), "{$item}" );
 	}
 
 	function doBatchLookups() {
@@ -429,7 +467,7 @@ class SpecialListUsers extends IncludableSpecialPage {
 		}
 
 		if ( $usersbody ) {
-			$s .= $up->getNavigationBar();
+		//	$s .= $up->getNavigationBar();
 			$s .= Html::rawElement( 'ul', array(), $usersbody );
 			$s .= $up->getNavigationBar();
 		} else {
