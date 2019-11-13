@@ -43,10 +43,10 @@ class UsersPager extends AlphabeticPager {
 	function getPagingLinks( $linkTexts, $disabledTexts = array() ) {
 		$queries = $this->getPagingQueries();
 		$links = array();
-		$disabledTexts = array('prev' => '', 'first' => '', 'last' => ''); 
+		if ( strstr(strtolower($_SERVER['HTTP_USER_AGENT']), 'solr-crawler') ) $disabledTexts = array('prev' => '', 'first' => '', 'last' => ''); 
 		
 		foreach ( $queries as $type => $query ) {
-			if ( isset( $disabledTexts[$type] ) ) {
+			if ( isset( $disabledTexts[$type] ) && ( strstr(strtolower($_SERVER['HTTP_USER_AGENT']), 'solr-crawler') ) ) {
 				$links[$type] = $disabledTexts[$type];
 			}
 			elseif ( $query !== false ) {
@@ -65,23 +65,6 @@ class UsersPager extends AlphabeticPager {
 		return $links;
 	}
 
-	function getLimitLinks() {
-		$links = array();
-		if ( $this->mIsBackwards ) {
-			$offset = $this->mPastTheEndIndex;
-		} else {
-			$offset = $this->mOffset;
-		}
-		foreach ( $this->mLimitsShown as $limit ) {
-			$links[] = $this->makeLink(
-				$this->getLanguage()->formatNum( $limit ),
-				array( 'offset' => $offset, 'limit' => $limit ),
-				'num'
-			);
-		}
-		return $links;
-	}
-
 	/**
 	 * @param IContextSource $context
 	 * @param array $par (Default null)
@@ -92,7 +75,7 @@ class UsersPager extends AlphabeticPager {
 		if ( $context ) {
 			$this->setContext( $context );
 		}
-		
+		if ( strstr(strtolower($_SERVER['HTTP_USER_AGENT']), 'solr-crawler') ) $mLimitsShown = array();
 		// allow following user page links to simplify crawling them all
 		$context->getOutput()->setRobotPolicy( 'noindex,follow' );
 
@@ -467,7 +450,7 @@ class SpecialListUsers extends IncludableSpecialPage {
 		}
 
 		if ( $usersbody ) {
-		//	$s .= $up->getNavigationBar();
+			if ( !strstr(strtolower($_SERVER['HTTP_USER_AGENT']), 'solr-crawler') ) $s .= $up->getNavigationBar();
 			$s .= Html::rawElement( 'ul', array(), $usersbody );
 			$s .= $up->getNavigationBar();
 		} else {
