@@ -14,7 +14,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 DESC="mwlib HTTP service"
 NAME=mwlib
 CACHE_PATH=/sites/mwlib
-LOG_PATH=/sites/mwlib/log
+LOG_PATH=/sites/mwlib/logs
 SCRIPTNAME=/etc/init.d/$NAME
 
 # Load the VERBOSE setting and other rcS variables
