@@ -1,0 +1,16 @@
+{
+	"name": "Crawler friendly lists",
+	"version": "1.0",
+	"author": [
+		"Ilia Salem"
+	],
+	"descriptionmsg": "",
+	"type": "specialpage",
+	"SpecialPages": {
+		"SearchListUsers": "SpecialSearchListUsers"
+	},
+	"AutoloadClasses": {
+		"SpecialSearchListUsers": "SpecialSearchListUsers.php"
+	},
+	"manifest_version": 1
+}
