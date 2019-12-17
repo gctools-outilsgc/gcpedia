@@ -32,7 +32,7 @@ class HttpStatus {
 	 * @return string|null Message, or null if $code is not known
 	 */
 	public static function getMessage( $code ) {
-		static $statusMessage = array(
+		static $statusMessage = [
 			100 => 'Continue',
 			101 => 'Switching Protocols',
 			102 => 'Processing',
@@ -83,8 +83,8 @@ class HttpStatus {
 			505 => 'HTTP Version Not Supported',
 			507 => 'Insufficient Storage',
 			511 => 'Network Authentication Required',
-		);
-		return isset( $statusMessage[$code] ) ? $statusMessage[$code] : null;
+		];
+		return $statusMessage[$code] ?? null;
 	}
 
 	/**
@@ -98,11 +98,15 @@ class HttpStatus {
 		$message = self::getMessage( $code );
 		if ( $message === null ) {
 			trigger_error( "Unknown HTTP status code $code", E_USER_WARNING );
-			return false;
+			return;
 		}
 
+		MediaWiki\HeaderCallback::warnIfHeadersSent();
 		if ( $version === null ) {
-			$version = isset( $_SERVER['SERVER_PROTOCOL'] ) && $_SERVER['SERVER_PROTOCOL'] === 'HTTP/1.0' ? '1.0' : '1.1';
+			$version = isset( $_SERVER['SERVER_PROTOCOL'] ) &&
+				$_SERVER['SERVER_PROTOCOL'] === 'HTTP/1.0' ?
+					'1.0' :
+					'1.1';
 		}
 
 		header( "HTTP/$version $code $message" );

@@ -26,7 +26,9 @@
  *
  * @author Jeroen De Dauw < jeroendedauw@gmail.com >
  */
-abstract class GenericArrayObjectTest extends PHPUnit_Framework_TestCase {
+abstract class GenericArrayObjectTest extends PHPUnit\Framework\TestCase {
+
+	use MediaWikiCoversValidator;
 
 	/**
 	 * Returns objects that can serve as elements in the concrete
@@ -55,7 +57,7 @@ abstract class GenericArrayObjectTest extends PHPUnit_Framework_TestCase {
 	 * @return array
 	 */
 	public function instanceProvider() {
-		$instances = array();
+		$instances = [];
 
 		foreach ( $this->elementInstancesProvider() as $elementInstances ) {
 			$instances[] = $this->getNew( $elementInstances[0] );
@@ -71,7 +73,7 @@ abstract class GenericArrayObjectTest extends PHPUnit_Framework_TestCase {
 	 *
 	 * @return GenericArrayObject
 	 */
-	protected function getNew( array $elements = array() ) {
+	protected function getNew( array $elements = [] ) {
 		$class = $this->getInstanceClass();
 
 		return new $class( $elements );
@@ -104,7 +106,7 @@ abstract class GenericArrayObjectTest extends PHPUnit_Framework_TestCase {
 	public function testIsEmpty( array $elements ) {
 		$arrayObject = $this->getNew( $elements );
 
-		$this->assertEquals( $elements === array(), $arrayObject->isEmpty() );
+		$this->assertEquals( $elements === [], $arrayObject->isEmpty() );
 	}
 
 	/**
@@ -171,8 +173,6 @@ abstract class GenericArrayObjectTest extends PHPUnit_Framework_TestCase {
 	 * @since 1.20
 	 *
 	 * @param callable $function
-	 *
-	 * @covers GenericArrayObject::getObjectType
 	 */
 	protected function checkTypeChecks( $function ) {
 		$excption = null;
@@ -180,7 +180,7 @@ abstract class GenericArrayObjectTest extends PHPUnit_Framework_TestCase {
 
 		$elementClass = $list->getObjectType();
 
-		foreach ( array( 42, 'foo', array(), new stdClass(), 4.2 ) as $element ) {
+		foreach ( [ 42, 'foo', [], new stdClass(), 4.2 ] as $element ) {
 			$validValid = $element instanceof $elementClass;
 
 			try {
@@ -204,11 +204,11 @@ abstract class GenericArrayObjectTest extends PHPUnit_Framework_TestCase {
 	 * @since 1.20
 	 *
 	 * @param array $elements
-	 *
+	 * @covers GenericArrayObject::getObjectType
 	 * @covers GenericArrayObject::offsetSet
 	 */
 	public function testOffsetSet( array $elements ) {
-		if ( $elements === array() ) {
+		if ( $elements === [] ) {
 			$this->assertTrue( true );
 
 			return;

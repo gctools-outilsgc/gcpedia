@@ -22,7 +22,7 @@
  * @author "Derk-Jan Hartman <hartman _at_ videolan d0t org>"
  * @author Brion Vibber
  * @copyright Copyright © 2010-2010 Brion Vibber, Derk-Jan Hartman
- * @license http://www.gnu.org/copyleft/gpl.html GNU General Public License
+ * @license GPL-2.0-or-later
  */
 
 /**
@@ -53,13 +53,11 @@ class SVGReader {
 	private $mDebug = false;
 
 	/** @var array */
-	private $metadata = array();
-	private $languages = array();
-	private $languagePrefixes = array();
+	private $metadata = [];
+	private $languages = [];
+	private $languagePrefixes = [];
 
 	/**
-	 * Constructor
-	 *
 	 * Creates an SVGReader drawing from the source provided
 	 * @param string $source URI from which to read
 	 * @throws MWException|Exception
@@ -76,7 +74,7 @@ class SVGReader {
 
 		if ( $size > $wgSVGMetadataCutoff ) {
 			$this->debug( "SVG is $size bytes, which is bigger than $wgSVGMetadataCutoff. Truncating." );
-			$contents = file_get_contents( $source, false, null, -1, $wgSVGMetadataCutoff );
+			$contents = file_get_contents( $source, false, null, 0, $wgSVGMetadataCutoff );
 			if ( $contents === false ) {
 				throw new MWException( 'Error reading SVG file.' );
 			}
@@ -86,13 +84,13 @@ class SVGReader {
 		}
 
 		// Expand entities, since Adobe Illustrator uses them for xmlns
-		// attributes (bug 31719). Note that libxml2 has some protection
+		// attributes (T33719). Note that libxml2 has some protection
 		// against large recursive entity expansions so this is not as
 		// insecure as it might appear to be. However, it is still extremely
 		// insecure. It's necessary to wrap any read() calls with
 		// libxml_disable_entity_loader() to avoid arbitrary local file
 		// inclusion, or even arbitrary code execution if the expect
-		// extension is installed (bug 46859).
+		// extension is installed (T48859).
 		$oldDisable = libxml_disable_entity_loader( true );
 		$this->reader->setParserProperty( XMLReader::SUBST_ENTITIES, true );
 
@@ -108,17 +106,17 @@ class SVGReader {
 		// Because we cut off the end of the svg making an invalid one. Complicated
 		// try catch thing to make sure warnings get restored. Seems like there should
 		// be a better way.
-		MediaWiki\suppressWarnings();
+		Wikimedia\suppressWarnings();
 		try {
 			$this->read();
 		} catch ( Exception $e ) {
 			// Note, if this happens, the width/height will be taken to be 0x0.
 			// Should we consider it the default 512x512 instead?
-			MediaWiki\restoreWarnings();
+			Wikimedia\restoreWarnings();
 			libxml_disable_entity_loader( $oldDisable );
 			throw $e;
 		}
-		MediaWiki\restoreWarnings();
+		Wikimedia\restoreWarnings();
 		libxml_disable_entity_loader( $oldDisable );
 	}
 
@@ -167,7 +165,7 @@ class SVGReader {
 			} elseif ( $isSVG && $tag == 'desc' ) {
 				$this->readField( $tag, 'description' );
 			} elseif ( $isSVG && $tag == 'metadata' && $type == XMLReader::ELEMENT ) {
-				$this->readXml( $tag, 'metadata' );
+				$this->readXml( 'metadata' );
 			} elseif ( $isSVG && $tag == 'script' ) {
 				// We normally do not allow scripted svgs.
 				// However its possible to configure MW to let them
@@ -228,13 +226,8 @@ class SVGReader {
 			return;
 		}
 		// @todo Find and store type of xml snippet. metadata['metadataType'] = "rdf"
-		if ( method_exists( $this->reader, 'readInnerXML' ) ) {
-			$this->metadata[$metafield] = trim( $this->reader->readInnerXML() );
-		} else {
-			throw new MWException( "The PHP XMLReader extension does not come " .
-				"with readInnerXML() method. Your libxml is probably out of " .
-				"date (need 2.6.20 or later)." );
-		}
+		$this->metadata[$metafield] = trim( $this->reader->readInnerXml() );
+
 		$this->reader->next();
 	}
 
@@ -264,7 +257,7 @@ class SVGReader {
 			) {
 				$sysLang = $this->reader->getAttribute( 'systemLanguage' );
 				if ( !is_null( $sysLang ) && $sysLang !== '' ) {
-					// See http://www.w3.org/TR/SVG/struct.html#SystemLanguageAttribute
+					// See https://www.w3.org/TR/SVG/struct.html#SystemLanguageAttribute
 					$langList = explode( ',', $sysLang );
 					foreach ( $langList as $langItem ) {
 						$langItem = trim( $langItem );
@@ -307,12 +300,6 @@ class SVGReader {
 		}
 	}
 
-	// @todo FIXME: Unused, remove?
-	private function throwXmlError( $err ) {
-		$this->debug( "FAILURE: $err" );
-		wfDebug( "SVGReader XML error: $err\n" );
-	}
-
 	private function debug( $data ) {
 		if ( $this->mDebug ) {
 			wfDebug( "SVGReader: $data\n" );
@@ -333,7 +320,7 @@ class SVGReader {
 
 		if ( $this->reader->getAttribute( 'viewBox' ) ) {
 			// min-x min-y width height
-			$viewBox = preg_split( '/\s+/', trim( $this->reader->getAttribute( 'viewBox' ) ) );
+			$viewBox = preg_split( '/\s*[\s,]\s*/', trim( $this->reader->getAttribute( 'viewBox' ) ) );
 			if ( count( $viewBox ) == 4 ) {
 				$viewWidth = $this->scaleSVGUnit( $viewBox[2] );
 				$viewHeight = $this->scaleSVGUnit( $viewBox[3] );
@@ -369,14 +356,14 @@ class SVGReader {
 
 	/**
 	 * Return a rounded pixel equivalent for a labeled CSS/SVG length.
-	 * http://www.w3.org/TR/SVG11/coords.html#UnitIdentifiers
+	 * https://www.w3.org/TR/SVG11/coords.html#Units
 	 *
 	 * @param string $length CSS/SVG length.
 	 * @param float|int $viewportSize Optional scale for percentage units...
 	 * @return float Length in pixels
 	 */
 	static function scaleSVGUnit( $length, $viewportSize = 512 ) {
-		static $unitLength = array(
+		static $unitLength = [
 			'px' => 1.0,
 			'pt' => 1.25,
 			'pc' => 15.0,
@@ -386,9 +373,13 @@ class SVGReader {
 			'em' => 16.0, // fake it?
 			'ex' => 12.0, // fake it?
 			'' => 1.0, // "User units" pixels by default
-		);
-		$matches = array();
-		if ( preg_match( '/^\s*(\d+(?:\.\d+)?)(em|ex|px|pt|pc|cm|mm|in|%|)\s*$/', $length, $matches ) ) {
+		];
+		$matches = [];
+		if ( preg_match(
+			'/^\s*([-+]?\d*(?:\.\d+|\d+)(?:[Ee][-+]?\d+)?)\s*(em|ex|px|pt|pc|cm|mm|in|%|)\s*$/',
+			$length,
+			$matches
+		) ) {
 			$length = floatval( $matches[1] );
 			$unit = $matches[2];
 			if ( $unit == '%' ) {

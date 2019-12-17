@@ -1,0 +1,17 @@
+{
+	"extends": [
+		"wikimedia/client",
+		"wikimedia/jquery"
+	],
+	"globals": {
+		"require": false,
+		"module": false,
+		"mw": false,
+		"OO": false
+	},
+	"rules": {
+		"quote-props": [ "error", "as-needed" ],
+		"max-len": "off",
+		"no-jquery/no-global-selector": "off"
+	}
+}

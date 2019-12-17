@@ -20,6 +20,9 @@
  * @file
  */
 
+use Wikimedia\Rdbms\ResultWrapper;
+use MediaWiki\MediaWikiServices;
+
 /**
  * Feed to Special:RecentChanges and Special:RecentChangesLiked
  *
@@ -29,8 +32,6 @@ class ChangesFeed {
 	public $format, $type, $titleMsg, $descMsg;
 
 	/**
-	 * Constructor
-	 *
 	 * @param string $format Feed's format (either 'rss' or 'atom')
 	 * @param string $type Type of feed (for cache keys)
 	 */
@@ -82,9 +83,11 @@ class ChangesFeed {
 			return null;
 		}
 
+		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
 		$optionsHash = md5( serialize( $opts->getAllValues() ) ) . $wgRenderHashAppend;
-		$timekey = wfMemcKey( $this->type, $this->format, $wgLang->getCode(), $optionsHash, 'timestamp' );
-		$key = wfMemcKey( $this->type, $this->format, $wgLang->getCode(), $optionsHash );
+		$timekey = $cache->makeKey(
+			$this->type, $this->format, $wgLang->getCode(), $optionsHash, 'timestamp' );
+		$key = $cache->makeKey( $this->type, $this->format, $wgLang->getCode(), $optionsHash );
 
 		FeedUtils::checkPurge( $timekey, $key );
 
@@ -110,21 +113,20 @@ class ChangesFeed {
 	}
 
 	/**
-	 * Save to feed result to $messageMemc
+	 * Save to feed result to cache
 	 *
 	 * @param string $feed Feed's content
 	 * @param string $timekey Memcached key of the last modification
 	 * @param string $key Memcached key of the content
 	 */
 	public function saveToCache( $feed, $timekey, $key ) {
-		global $messageMemc;
-		$expire = 3600 * 24; # One day
-		$messageMemc->set( $key, $feed, $expire );
-		$messageMemc->set( $timekey, wfTimestamp( TS_MW ), $expire );
+		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+		$cache->set( $key, $feed, $cache::TTL_DAY );
+		$cache->set( $timekey, wfTimestamp( TS_MW ), $cache::TTL_DAY );
 	}
 
 	/**
-	 * Try to load the feed result from $messageMemc
+	 * Try to load the feed result from cache
 	 *
 	 * @param int $lastmod Timestamp of the last item in the recentchanges table
 	 * @param string $timekey Memcached key of the last modification
@@ -132,9 +134,10 @@ class ChangesFeed {
 	 * @return string|bool Feed's content on cache hit or false on cache miss
 	 */
 	public function loadFromCache( $lastmod, $timekey, $key ) {
-		global $wgFeedCacheTimeout, $wgOut, $messageMemc;
+		global $wgFeedCacheTimeout, $wgOut;
 
-		$feedLastmod = $messageMemc->get( $timekey );
+		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+		$feedLastmod = $cache->get( $timekey );
 
 		if ( ( $wgFeedCacheTimeout > 0 ) && $feedLastmod ) {
 			/**
@@ -151,9 +154,9 @@ class ChangesFeed {
 			if ( $feedAge < $wgFeedCacheTimeout || $feedLastmodUnix > $lastmodUnix ) {
 				wfDebug( "RC: loading feed from cache ($key; $feedLastmod; $lastmod)...\n" );
 				if ( $feedLastmodUnix < $lastmodUnix ) {
-					$wgOut->setLastModified( $feedLastmod ); // bug 21916
+					$wgOut->setLastModified( $feedLastmod ); // T23916
 				}
-				return $messageMemc->get( $key );
+				return $cache->get( $key );
 			} else {
 				wfDebug( "RC: cached feed timestamp check failed ($feedLastmod; $lastmod)\n" );
 			}
@@ -163,8 +166,8 @@ class ChangesFeed {
 
 	/**
 	 * Generate the feed items given a row from the database, printing the feed.
-	 * @param object $rows DatabaseBase resource with recentchanges rows
-	 * @param Feed $feed
+	 * @param object $rows IDatabase resource with recentchanges rows
+	 * @param ChannelFeed &$feed
 	 */
 	public static function generateFeed( $rows, &$feed ) {
 		$items = self::buildItems( $rows );
@@ -177,14 +180,14 @@ class ChangesFeed {
 
 	/**
 	 * Generate the feed items given a row from the database.
-	 * @param object $rows DatabaseBase resource with recentchanges rows
+	 * @param object $rows IDatabase resource with recentchanges rows
 	 * @return array
 	 */
 	public static function buildItems( $rows ) {
-		$items = array();
+		$items = [];
 
 		# Merge adjacent edits by one user
-		$sorted = array();
+		$sorted = [];
 		$n = 0;
 		foreach ( $rows as $obj ) {
 			if ( $obj->rc_type == RC_EXTERNAL ) {
@@ -205,7 +208,7 @@ class ChangesFeed {
 
 		foreach ( $sorted as $obj ) {
 			$title = Title::makeTitle( $obj->rc_namespace, $obj->rc_title );
-			$talkpage = MWNamespace::canTalk( $obj->rc_namespace )
+			$talkpage = MWNamespace::hasTalkNamespace( $obj->rc_namespace )
 				? $title->getTalkPage()->getFullURL()
 				: '';
 
@@ -215,10 +218,10 @@ class ChangesFeed {
 			}
 
 			if ( $obj->rc_this_oldid ) {
-				$url = $title->getFullURL( array(
+				$url = $title->getFullURL( [
 					'diff' => $obj->rc_this_oldid,
 					'oldid' => $obj->rc_last_oldid,
-				) );
+				] );
 			} else {
 				// log entry or something like that.
 				$url = $title->getFullURL();

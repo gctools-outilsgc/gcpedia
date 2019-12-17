@@ -2,15 +2,15 @@
 
 class DummyContentHandlerForTesting extends ContentHandler {
 
-	public function __construct( $dataModel ) {
-		parent::__construct( $dataModel, array( "testing" ) );
+	public function __construct( $dataModel, $formats = [ DummyContentForTesting::MODEL_ID ] ) {
+		parent::__construct( $dataModel, $formats );
 	}
 
 	/**
 	 * @see ContentHandler::serializeContent
 	 *
 	 * @param Content $content
-	 * @param string $format
+	 * @param string|null $format
 	 *
 	 * @return string
 	 */
@@ -22,7 +22,7 @@ class DummyContentHandlerForTesting extends ContentHandler {
 	 * @see ContentHandler::unserializeContent
 	 *
 	 * @param string $blob
-	 * @param string $format Unused.
+	 * @param string|null $format Unused.
 	 *
 	 * @return Content
 	 */
@@ -34,7 +34,7 @@ class DummyContentHandlerForTesting extends ContentHandler {
 
 	/**
 	 * Creates an empty Content object of the type supported by this ContentHandler.
-	 *
+	 * @return DummyContentForTesting
 	 */
 	public function makeEmptyContent() {
 		return new DummyContentForTesting( '' );

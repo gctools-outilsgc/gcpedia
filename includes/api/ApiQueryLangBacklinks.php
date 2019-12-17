@@ -2,8 +2,6 @@
 /**
  * API for MediaWiki 1.17+
  *
- * Created on May 14, 2011
- *
  * Copyright © 2011 Sam Reed
  * Copyright © 2006 Yuri Astrakhan "<Firstname><Lastname>@gmail.com"
  *
@@ -44,14 +42,21 @@ class ApiQueryLangBacklinks extends ApiQueryGeneratorBase {
 	}
 
 	/**
-	 * @param ApiPageSet $resultPageSet
+	 * @param ApiPageSet|null $resultPageSet
 	 * @return void
 	 */
 	public function run( $resultPageSet = null ) {
 		$params = $this->extractRequestParams();
 
 		if ( isset( $params['title'] ) && !isset( $params['lang'] ) ) {
-			$this->dieUsageMsg( array( 'missingparam', 'lang' ) );
+			$this->dieWithError(
+				[
+					'apierror-invalidparammix-mustusewith',
+					$this->encodeParamName( 'title' ),
+					$this->encodeParamName( 'lang' )
+				],
+				'nolang'
+			);
 		}
 
 		if ( !is_null( $params['continue'] ) ) {
@@ -62,7 +67,7 @@ class ApiQueryLangBacklinks extends ApiQueryGeneratorBase {
 			$op = $params['dir'] == 'descending' ? '<' : '>';
 			$prefix = $db->addQuotes( $cont[0] );
 			$title = $db->addQuotes( $cont[1] );
-			$from = intval( $cont[2] );
+			$from = (int)$cont[2];
 			$this->addWhere(
 				"ll_lang $op $prefix OR " .
 				"(ll_lang = $prefix AND " .
@@ -76,11 +81,11 @@ class ApiQueryLangBacklinks extends ApiQueryGeneratorBase {
 		$lllang = isset( $prop['lllang'] );
 		$lltitle = isset( $prop['lltitle'] );
 
-		$this->addTables( array( 'langlinks', 'page' ) );
+		$this->addTables( [ 'langlinks', 'page' ] );
 		$this->addWhere( 'll_from = page_id' );
 
-		$this->addFields( array( 'page_id', 'page_title', 'page_namespace', 'page_is_redirect',
-			'll_from', 'll_lang', 'll_title' ) );
+		$this->addFields( [ 'page_id', 'page_title', 'page_namespace', 'page_is_redirect',
+			'll_from', 'll_lang', 'll_title' ] );
 
 		$sort = ( $params['dir'] == 'descending' ? ' DESC' : '' );
 		if ( isset( $params['lang'] ) ) {
@@ -89,24 +94,24 @@ class ApiQueryLangBacklinks extends ApiQueryGeneratorBase {
 				$this->addWhereFld( 'll_title', $params['title'] );
 				$this->addOption( 'ORDER BY', 'll_from' . $sort );
 			} else {
-				$this->addOption( 'ORDER BY', array(
+				$this->addOption( 'ORDER BY', [
 					'll_title' . $sort,
 					'll_from' . $sort
-				) );
+				] );
 			}
 		} else {
-			$this->addOption( 'ORDER BY', array(
+			$this->addOption( 'ORDER BY', [
 				'll_lang' . $sort,
 				'll_title' . $sort,
 				'll_from' . $sort
-			) );
+			] );
 		}
 
 		$this->addOption( 'LIMIT', $params['limit'] + 1 );
 
 		$res = $this->select( __METHOD__ );
 
-		$pages = array();
+		$pages = [];
 
 		$count = 0;
 		$result = $this->getResult();
@@ -125,7 +130,7 @@ class ApiQueryLangBacklinks extends ApiQueryGeneratorBase {
 			if ( !is_null( $resultPageSet ) ) {
 				$pages[] = Title::newFromRow( $row );
 			} else {
-				$entry = array( 'pageid' => $row->page_id );
+				$entry = [ 'pageid' => (int)$row->page_id ];
 
 				$title = Title::makeTitle( $row->page_namespace, $row->page_title );
 				ApiQueryBase::addTitleInfo( $entry, $title );
@@ -142,7 +147,7 @@ class ApiQueryLangBacklinks extends ApiQueryGeneratorBase {
 					$entry['lltitle'] = $row->ll_title;
 				}
 
-				$fit = $result->addValue( array( 'query', $this->getModuleName() ), null, $entry );
+				$fit = $result->addValue( [ 'query', $this->getModuleName() ], null, $entry );
 				if ( !$fit ) {
 					$this->setContinueEnumParameter(
 						'continue',
@@ -154,7 +159,7 @@ class ApiQueryLangBacklinks extends ApiQueryGeneratorBase {
 		}
 
 		if ( is_null( $resultPageSet ) ) {
-			$result->addIndexedTagName( array( 'query', $this->getModuleName() ), 'll' );
+			$result->addIndexedTagName( [ 'query', $this->getModuleName() ], 'll' );
 		} else {
 			$resultPageSet->populateFromTitles( $pages );
 		}
@@ -165,48 +170,48 @@ class ApiQueryLangBacklinks extends ApiQueryGeneratorBase {
 	}
 
 	public function getAllowedParams() {
-		return array(
+		return [
 			'lang' => null,
 			'title' => null,
-			'continue' => array(
+			'continue' => [
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-continue',
-			),
-			'limit' => array(
+			],
+			'limit' => [
 				ApiBase::PARAM_DFLT => 10,
 				ApiBase::PARAM_TYPE => 'limit',
 				ApiBase::PARAM_MIN => 1,
 				ApiBase::PARAM_MAX => ApiBase::LIMIT_BIG1,
 				ApiBase::PARAM_MAX2 => ApiBase::LIMIT_BIG2
-			),
-			'prop' => array(
+			],
+			'prop' => [
 				ApiBase::PARAM_ISMULTI => true,
 				ApiBase::PARAM_DFLT => '',
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'lllang',
 					'lltitle',
-				),
-				ApiBase::PARAM_HELP_MSG_PER_VALUE => array(),
-			),
-			'dir' => array(
+				],
+				ApiBase::PARAM_HELP_MSG_PER_VALUE => [],
+			],
+			'dir' => [
 				ApiBase::PARAM_DFLT => 'ascending',
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'ascending',
 					'descending'
-				)
-			),
-		);
+				]
+			],
+		];
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=query&list=langbacklinks&lbltitle=Test&lbllang=fr'
 				=> 'apihelp-query+langbacklinks-example-simple',
 			'action=query&generator=langbacklinks&glbltitle=Test&glbllang=fr&prop=info'
 				=> 'apihelp-query+langbacklinks-example-generator',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Langbacklinks';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Langbacklinks';
 	}
 }

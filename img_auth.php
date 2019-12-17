@@ -17,7 +17,8 @@
  *  just that it was. If you want to change this, you can set $wgImgAuthDetails to 'true'
  *  in localsettings.php and it will give the user the reason why access was denied.
  *
- * Your server needs to support PATH_INFO; CGI-based configurations usually don't.
+ * Your server needs to support REQUEST_URI or PATH_INFO; CGI-based
+ * configurations sometimes don't.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +44,7 @@ require __DIR__ . '/includes/WebStart.php';
 # Set action base paths so that WebRequest::getPathInfo()
 # recognizes the "X" as the 'title' in ../img_auth.php/X urls.
 $wgArticlePath = false; # Don't let a "/*" article path clober our action path
-$wgActionPaths = array( "$wgUploadPath/" );
+$wgActionPaths = [ "$wgUploadPath/" ];
 
 wfImageAuthMain();
 
@@ -54,7 +55,7 @@ function wfImageAuthMain() {
 	global $wgImgAuthUrlPathMap;
 
 	$request = RequestContext::getMain()->getRequest();
-	$publicWiki = in_array( 'read', User::getGroupPermissions( array( '*' ) ), true );
+	$publicWiki = in_array( 'read', User::getGroupPermissions( [ '*' ] ), true );
 
 	// Get the requested file path (source file or thumbnail)
 	$matches = WebRequest::getPathInfo();
@@ -68,8 +69,8 @@ function wfImageAuthMain() {
 		$path = "/" . $path;
 	}
 
-	// Check for bug 28235: QUERY_STRING overriding the correct extension
-	$whitelist = array();
+	// Check for T30235: QUERY_STRING overriding the correct extension
+	$whitelist = [];
 	$extension = FileBackend::extensionFromPath( $path, 'rawcase' );
 	if ( $extension != '' ) {
 		$whitelist[] = $extension;
@@ -90,10 +91,10 @@ function wfImageAuthMain() {
 				wfForbidden( 'img-auth-accessdenied', 'img-auth-noread', $path );
 				return;
 			}
-			if ( $be->fileExists( array( 'src' => $filename ) ) ) {
+			if ( $be->fileExists( [ 'src' => $filename ] ) ) {
 				wfDebugLog( 'img_auth', "Streaming `" . $filename . "`." );
-				$be->streamFile( array( 'src' => $filename ),
-					array( 'Cache-Control: private', 'Vary: Cookie' ) );
+				$be->streamFile( [ 'src' => $filename ],
+					[ 'Cache-Control: private', 'Vary: Cookie' ] );
 			} else {
 				wfForbidden( 'img-auth-accessdenied', 'img-auth-nofile', $path );
 			}
@@ -133,14 +134,15 @@ function wfImageAuthMain() {
 		}
 	}
 
-	$headers = array(); // extra HTTP headers to send
+	$headers = []; // extra HTTP headers to send
+
+	$title = Title::makeTitleSafe( NS_FILE, $name );
 
 	if ( !$publicWiki ) {
 		// For private wikis, run extra auth checks and set cache control headers
-		$headers[] = 'Cache-Control: private';
-		$headers[] = 'Vary: Cookie';
+		$headers['Cache-Control'] = 'private';
+		$headers['Vary'] = 'Cookie';
 
-		$title = Title::makeTitleSafe( NS_FILE, $name );
 		if ( !$title instanceof Title ) { // files have valid titles
 			wfForbidden( 'img-auth-accessdenied', 'img-auth-badtitle', $name );
 			return;
@@ -149,7 +151,7 @@ function wfImageAuthMain() {
 		// Run hook for extension authorization plugins
 		/** @var $result array */
 		$result = null;
-		if ( !Hooks::run( 'ImgAuthBeforeStream', array( &$title, &$path, &$name, &$result ) ) ) {
+		if ( !Hooks::run( 'ImgAuthBeforeStream', [ &$title, &$path, &$name, &$result ] ) ) {
 			wfForbidden( $result[0], $result[1], array_slice( $result, 2 ) );
 			return;
 		}
@@ -162,13 +164,24 @@ function wfImageAuthMain() {
 		}
 	}
 
-	if ( $request->getCheck( 'download' ) ) {
-		$headers[] = 'Content-Disposition: attachment';
+	if ( isset( $_SERVER['HTTP_RANGE'] ) ) {
+		$headers['Range'] = $_SERVER['HTTP_RANGE'];
+	}
+	if ( isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ) {
+		$headers['If-Modified-Since'] = $_SERVER['HTTP_IF_MODIFIED_SINCE'];
 	}
 
+	if ( $request->getCheck( 'download' ) ) {
+		$headers['Content-Disposition'] = 'attachment';
+	}
+
+	// Allow modification of headers before streaming a file
+	Hooks::run( 'ImgAuthModifyHeaders', [ $title->getTitleValue(), &$headers ] );
+
 	// Stream the requested file
+	list( $headers, $options ) = HTTPFileStreamer::preprocessHeaders( $headers );
 	wfDebugLog( 'img_auth', "Streaming `" . $filename . "`." );
-	$repo->streamFile( $filename, $headers );
+	$repo->streamFile( $filename, $headers, $options );
 }
 
 /**

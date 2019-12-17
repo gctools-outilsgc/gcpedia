@@ -1,9 +1,5 @@
 <?php
 /**
- *
- *
- * Created on May 13, 2007
- *
  * Copyright © 2006 Yuri Astrakhan "<Firstname><Lastname>@gmail.com"
  *
  * This program is free software; you can redistribute it and/or modify
@@ -53,10 +49,10 @@ class ApiQueryImages extends ApiQueryGeneratorBase {
 		}
 
 		$params = $this->extractRequestParams();
-		$this->addFields( array(
+		$this->addFields( [
 			'il_from',
 			'il_to'
-		) );
+		] );
 
 		$this->addTables( 'imagelinks' );
 		$this->addWhereFld( 'il_from', array_keys( $this->getPageSet()->getGoodTitles() ) );
@@ -64,7 +60,7 @@ class ApiQueryImages extends ApiQueryGeneratorBase {
 			$cont = explode( '|', $params['continue'] );
 			$this->dieContinueUsageIf( count( $cont ) != 2 );
 			$op = $params['dir'] == 'descending' ? '<' : '>';
-			$ilfrom = intval( $cont[0] );
+			$ilfrom = (int)$cont[0];
 			$ilto = $this->getDB()->addQuotes( $cont[1] );
 			$this->addWhere(
 				"il_from $op $ilfrom OR " .
@@ -78,22 +74,26 @@ class ApiQueryImages extends ApiQueryGeneratorBase {
 		if ( count( $this->getPageSet()->getGoodTitles() ) == 1 ) {
 			$this->addOption( 'ORDER BY', 'il_to' . $sort );
 		} else {
-			$this->addOption( 'ORDER BY', array(
+			$this->addOption( 'ORDER BY', [
 				'il_from' . $sort,
 				'il_to' . $sort
-			) );
+			] );
 		}
 		$this->addOption( 'LIMIT', $params['limit'] + 1 );
 
-		if ( !is_null( $params['images'] ) ) {
-			$images = array();
+		if ( $params['images'] ) {
+			$images = [];
 			foreach ( $params['images'] as $img ) {
 				$title = Title::newFromText( $img );
 				if ( !$title || $title->getNamespace() != NS_FILE ) {
-					$this->setWarning( "\"$img\" is not a file" );
+					$this->addWarning( [ 'apiwarn-notfile', wfEscapeWikiText( $img ) ] );
 				} else {
 					$images[] = $title->getDBkey();
 				}
+			}
+			if ( !$images ) {
+				// No titles so no results
+				return;
 			}
 			$this->addWhereFld( 'il_to', $images );
 		}
@@ -109,7 +109,7 @@ class ApiQueryImages extends ApiQueryGeneratorBase {
 					$this->setContinueEnumParameter( 'continue', $row->il_from . '|' . $row->il_to );
 					break;
 				}
-				$vals = array();
+				$vals = [];
 				ApiQueryBase::addTitleInfo( $vals, Title::makeTitle( NS_FILE, $row->il_to ) );
 				$fit = $this->addPageSubItem( $row->il_from, $vals );
 				if ( !$fit ) {
@@ -118,7 +118,7 @@ class ApiQueryImages extends ApiQueryGeneratorBase {
 				}
 			}
 		} else {
-			$titles = array();
+			$titles = [];
 			$count = 0;
 			foreach ( $res as $row ) {
 				if ( ++$count > $params['limit'] ) {
@@ -138,40 +138,40 @@ class ApiQueryImages extends ApiQueryGeneratorBase {
 	}
 
 	public function getAllowedParams() {
-		return array(
-			'limit' => array(
+		return [
+			'limit' => [
 				ApiBase::PARAM_DFLT => 10,
 				ApiBase::PARAM_TYPE => 'limit',
 				ApiBase::PARAM_MIN => 1,
 				ApiBase::PARAM_MAX => ApiBase::LIMIT_BIG1,
 				ApiBase::PARAM_MAX2 => ApiBase::LIMIT_BIG2
-			),
-			'continue' => array(
+			],
+			'continue' => [
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-continue',
-			),
-			'images' => array(
+			],
+			'images' => [
 				ApiBase::PARAM_ISMULTI => true,
-			),
-			'dir' => array(
+			],
+			'dir' => [
 				ApiBase::PARAM_DFLT => 'ascending',
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'ascending',
 					'descending'
-				)
-			),
-		);
+				]
+			],
+		];
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=query&prop=images&titles=Main%20Page'
 				=> 'apihelp-query+images-example-simple',
 			'action=query&generator=images&titles=Main%20Page&prop=info'
 				=> 'apihelp-query+images-example-generator',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Images';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Images';
 	}
 }

@@ -5,6 +5,7 @@
  *
  * @see https://github.com/sebastianbergmann/phpunit/blob/master/src/Extensions/PhptTestCase.php
  * @author Sam Smith <samsmith@wikimedia.org>
+ * @coversNothing
  */
 class LessFileCompilationTest extends ResourceLoaderTestCase {
 
@@ -41,11 +42,9 @@ class LessFileCompilationTest extends ResourceLoaderTestCase {
 		$rlContext = $this->getResourceLoaderContext();
 
 		// Bleh
-		$method = new ReflectionMethod( $this->module, 'getLessCompiler' );
+		$method = new ReflectionMethod( $this->module, 'compileLessFile' );
 		$method->setAccessible( true );
-		$compiler = $method->invoke( $this->module, $rlContext );
-
-		$this->assertNotNull( $compiler->parseFile( $this->file )->getCss() );
+		$this->assertNotNull( $method->invoke( $this->module, $this->file, $rlContext ) );
 	}
 
 	public function toString() {

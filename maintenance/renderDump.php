@@ -43,7 +43,8 @@ class DumpRenderer extends Maintenance {
 
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Take page text out of an XML dump file and render basic HTML out to files";
+		$this->addDescription(
+			'Take page text out of an XML dump file and render basic HTML out to files' );
 		$this->addOption( 'output-dir', 'The directory to output the HTML files to', true, true );
 		$this->addOption( 'prefix', 'Prefix for the rendered files (defaults to wiki)', false, true );
 		$this->addOption( 'parser', 'Use an alternative parser class', false, true );
@@ -64,7 +65,10 @@ class DumpRenderer extends Maintenance {
 		$importer = new WikiImporter( $source, $this->getConfig() );
 
 		$importer->setRevisionCallback(
-			array( &$this, 'handleRevision' ) );
+			[ $this, 'handleRevision' ] );
+		$importer->setNoticeCallback( function ( $msg, $params ) {
+			echo wfMessage( $msg, $params )->text() . "\n";
+		} );
 
 		$importer->doImport();
 
@@ -119,5 +123,5 @@ class DumpRenderer extends Maintenance {
 	}
 }
 
-$maintClass = "DumpRenderer";
+$maintClass = DumpRenderer::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

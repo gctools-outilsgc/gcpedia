@@ -1,8 +1,11 @@
 <?php
 
-// @codingStandardsIgnoreStart Ignore Squiz.Classes.ValidClassName.NotCamelCaps
+// phpcs:disable Squiz.Classes.ValidClassName.NotCamelCaps
+/**
+ * @covers LanguageBe_tarask
+ */
 class LanguageBe_taraskTest extends LanguageClassesTestCase {
-	// @codingStandardsIgnoreEnd
+	// phpcs:enable
 	/**
 	 * Make sure the language code we are given is indeed
 	 * be-tarask. This is to ensure LanguageClassesTestCase
@@ -15,19 +18,19 @@ class LanguageBe_taraskTest extends LanguageClassesTestCase {
 	}
 
 	/**
-	 * @see bug 23156 & r64981
+	 * @see T25156 & r64981
 	 * @covers Language::commafy
 	 */
 	public function testSearchRightSingleQuotationMarkAsApostroph() {
 		$this->assertEquals(
 			"'",
 			$this->getLang()->normalizeForSearch( '’' ),
-			'bug 23156: U+2019 conversion to U+0027'
+			'T25156: U+2019 conversion to U+0027'
 		);
 	}
 
 	/**
-	 * @see bug 23156 & r64981
+	 * @see T25156 & r64981
 	 * @covers Language::commafy
 	 */
 	public function testCommafy() {
@@ -36,7 +39,7 @@ class LanguageBe_taraskTest extends LanguageClassesTestCase {
 	}
 
 	/**
-	 * @see bug 23156 & r64981
+	 * @see T25156 & r64981
 	 * @covers Language::commafy
 	 */
 	public function testDoesNotCommafyFourDigitsNumber() {
@@ -48,7 +51,7 @@ class LanguageBe_taraskTest extends LanguageClassesTestCase {
 	 * @covers Language::convertPlural
 	 */
 	public function testPlural( $result, $value ) {
-		$forms = array( 'one', 'few', 'many', 'other' );
+		$forms = [ 'one', 'few', 'many', 'other' ];
 		$this->assertEquals( $result, $this->getLang()->convertPlural( $value, $forms ) );
 	}
 
@@ -61,19 +64,19 @@ class LanguageBe_taraskTest extends LanguageClassesTestCase {
 	}
 
 	public static function providePlural() {
-		return array(
-			array( 'one', 1 ),
-			array( 'many', 11 ),
-			array( 'one', 91 ),
-			array( 'one', 121 ),
-			array( 'few', 2 ),
-			array( 'few', 3 ),
-			array( 'few', 4 ),
-			array( 'few', 334 ),
-			array( 'many', 5 ),
-			array( 'many', 15 ),
-			array( 'many', 120 ),
-		);
+		return [
+			[ 'one', 1 ],
+			[ 'many', 11 ],
+			[ 'one', 91 ],
+			[ 'one', 121 ],
+			[ 'few', 2 ],
+			[ 'few', 3 ],
+			[ 'few', 4 ],
+			[ 'few', 334 ],
+			[ 'many', 5 ],
+			[ 'many', 15 ],
+			[ 'many', 120 ],
+		];
 	}
 
 	/**
@@ -81,17 +84,17 @@ class LanguageBe_taraskTest extends LanguageClassesTestCase {
 	 * @covers Language::convertPlural
 	 */
 	public function testPluralTwoForms( $result, $value ) {
-		$forms = array( '1=one', 'other' );
+		$forms = [ '1=one', 'other' ];
 		$this->assertEquals( $result, $this->getLang()->convertPlural( $value, $forms ) );
 	}
 
 	public static function providePluralTwoForms() {
-		return array(
-			array( 'other', 0 ),
-			array( 'one', 1 ),
-			array( 'other', 11 ),
-			array( 'other', 91 ),
-			array( 'other', 121 ),
-		);
+		return [
+			[ 'other', 0 ],
+			[ 'one', 1 ],
+			[ 'other', 11 ],
+			[ 'other', 91 ],
+			[ 'other', 121 ],
+		];
 	}
 }

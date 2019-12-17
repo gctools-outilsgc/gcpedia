@@ -32,7 +32,7 @@ require_once __DIR__ . '/../Maintenance.php';
 class AllTrans extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Get all messages as defined by the English language file";
+		$this->addDescription( 'Get all messages as defined by the English language file' );
 	}
 
 	public function execute() {
@@ -43,5 +43,5 @@ class AllTrans extends Maintenance {
 	}
 }
 
-$maintClass = "AllTrans";
+$maintClass = AllTrans::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

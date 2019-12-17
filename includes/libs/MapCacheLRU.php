@@ -25,27 +25,70 @@ use Wikimedia\Assert\Assert;
 /**
  * Handles a simple LRU key/value map with a maximum number of entries
  *
- * Use ProcessCacheLRU if hierarchical purging is needed or objects can become stale
+ * The last-modification timestamp of entries is internally tracked so that callers can
+ * specify the maximum acceptable age of entries in calls to the has() method. As a convenience,
+ * the hasField(), getField(), and setField() methods can be used for entries that are field/value
+ * maps themselves; such fields will have their own internally tracked last-modification timestamp.
  *
  * @see ProcessCacheLRU
  * @ingroup Cache
  * @since 1.23
  */
-class MapCacheLRU {
-	/** @var array */
-	protected $cache = array(); // (key => value)
+class MapCacheLRU implements IExpiringStore, Serializable {
+	/** @var array Map of (key => value) */
+	private $cache = [];
+	/** @var array Map of (key => (UNIX timestamp, (field => UNIX timestamp))) */
+	private $timestamps = [];
+	/** @var float Default entry timestamp if not specified */
+	private $epoch;
 
-	protected $maxCacheKeys; // integer; max entries
+	/** @var int Max number of entries */
+	private $maxCacheKeys;
+
+	/** @var float|null */
+	private $wallClockOverride;
+
+	const RANK_TOP = 1.0;
+
+	/** @var int Array key that holds the entry's main timestamp (flat key use) */
+	const SIMPLE = 0;
+	/** @var int Array key that holds the entry's field timestamps (nested key use) */
+	const FIELDS = 1;
 
 	/**
-	 * @param int $maxKeys Maximum number of entries allowed (min 1).
-	 * @throws Exception When $maxCacheKeys is not an int or =< 0.
+	 * @param int $maxKeys Maximum number of entries allowed (min 1)
+	 * @throws Exception When $maxKeys is not an int or not above zero
 	 */
 	public function __construct( $maxKeys ) {
 		Assert::parameterType( 'integer', $maxKeys, '$maxKeys' );
-		Assert::parameter( $maxKeys >= 1, '$maxKeys', 'must be >= 1' );
+		Assert::parameter( $maxKeys > 0, '$maxKeys', 'must be above zero' );
 
 		$this->maxCacheKeys = $maxKeys;
+		// Use the current time as the default "as of" timestamp of entries
+		$this->epoch = $this->getCurrentTime();
+	}
+
+	/**
+	 * @param array $values Key/value map in order of increasingly recent access
+	 * @param int $maxKeys
+	 * @return MapCacheLRU
+	 * @since 1.30
+	 */
+	public static function newFromArray( array $values, $maxKeys ) {
+		$mapCache = new self( $maxKeys );
+		$mapCache->cache = ( count( $values ) > $maxKeys )
+			? array_slice( $values, -$maxKeys, null, true )
+			: $values;
+
+		return $mapCache;
+	}
+
+	/**
+	 * @return array Key/value map in order of increasingly recent access
+	 * @since 1.30
+	 */
+	public function toArray() {
+		return $this->cache;
 	}
 
 	/**
@@ -53,29 +96,59 @@ class MapCacheLRU {
 	 * This will prune the cache if it gets too large based on LRU.
 	 * If the item is already set, it will be pushed to the top of the cache.
 	 *
+	 * To reduce evictions due to one-off use of many new keys, $rank can be
+	 * set to have keys start at the top of a bottom fraction of the list. A value
+	 * of 3/8 means values start at the top of the bottom 3/8s of the list and are
+	 * moved to the top of the list when accessed a second time.
+	 *
 	 * @param string $key
 	 * @param mixed $value
+	 * @param float $rank Bottom fraction of the list where keys start off [Default: 1.0]
 	 * @return void
 	 */
-	public function set( $key, $value ) {
-		if ( array_key_exists( $key, $this->cache ) ) {
-			$this->ping( $key ); // push to top
+	public function set( $key, $value, $rank = self::RANK_TOP ) {
+		if ( $this->has( $key ) ) {
+			$this->ping( $key );
 		} elseif ( count( $this->cache ) >= $this->maxCacheKeys ) {
 			reset( $this->cache );
 			$evictKey = key( $this->cache );
 			unset( $this->cache[$evictKey] );
+			unset( $this->timestamps[$evictKey] );
 		}
-		$this->cache[$key] = $value;
+
+		if ( $rank < 1.0 && $rank > 0 ) {
+			$offset = intval( $rank * count( $this->cache ) );
+			$this->cache = array_slice( $this->cache, 0, $offset, true )
+				+ [ $key => $value ]
+				+ array_slice( $this->cache, $offset, null, true );
+		} else {
+			$this->cache[$key] = $value;
+		}
+
+		$this->timestamps[$key] = [
+			self::SIMPLE => $this->getCurrentTime(),
+			self::FIELDS => []
+		];
 	}
 
 	/**
 	 * Check if a key exists
 	 *
 	 * @param string $key
+	 * @param float $maxAge Ignore items older than this many seconds [optional] (since 1.32)
 	 * @return bool
 	 */
-	public function has( $key ) {
-		return array_key_exists( $key, $this->cache );
+	public function has( $key, $maxAge = 0.0 ) {
+		if ( !is_int( $key ) && !is_string( $key ) ) {
+			throw new UnexpectedValueException(
+				__METHOD__ . ': invalid key; must be string or integer.' );
+		}
+
+		if ( !array_key_exists( $key, $this->cache ) ) {
+			return false;
+		}
+
+		return ( $maxAge <= 0 || $this->getAge( $key ) <= $maxAge );
 	}
 
 	/**
@@ -84,15 +157,80 @@ class MapCacheLRU {
 	 * If the item is already set, it will be pushed to the top of the cache.
 	 *
 	 * @param string $key
-	 * @return mixed
+	 * @param float $maxAge Ignore items older than this many seconds [optional] (since 1.32)
+	 * @return mixed Returns null if the key was not found or is older than $maxAge
 	 */
-	public function get( $key ) {
-		if ( array_key_exists( $key, $this->cache ) ) {
-			$this->ping( $key ); // push to top
-			return $this->cache[$key];
-		} else {
+	public function get( $key, $maxAge = 0.0 ) {
+		if ( !$this->has( $key, $maxAge ) ) {
 			return null;
 		}
+
+		$this->ping( $key );
+
+		return $this->cache[$key];
+	}
+
+	/**
+	 * @param string|int $key
+	 * @param string|int $field
+	 * @param mixed $value
+	 * @param float $initRank
+	 */
+	public function setField( $key, $field, $value, $initRank = self::RANK_TOP ) {
+		if ( $this->has( $key ) ) {
+			$this->ping( $key );
+		} else {
+			$this->set( $key, [], $initRank );
+		}
+
+		if ( !is_int( $field ) && !is_string( $field ) ) {
+			throw new UnexpectedValueException(
+				__METHOD__ . ": invalid field for '$key'; must be string or integer." );
+		}
+
+		if ( !is_array( $this->cache[$key] ) ) {
+			$type = gettype( $this->cache[$key] );
+
+			throw new UnexpectedValueException( "The value of '$key' ($type) is not an array." );
+		}
+
+		$this->cache[$key][$field] = $value;
+		$this->timestamps[$key][self::FIELDS][$field] = $this->getCurrentTime();
+	}
+
+	/**
+	 * @param string|int $key
+	 * @param string|int $field
+	 * @param float $maxAge Ignore items older than this many seconds [optional] (since 1.32)
+	 * @return bool
+	 */
+	public function hasField( $key, $field, $maxAge = 0.0 ) {
+		$value = $this->get( $key );
+
+		if ( !is_int( $field ) && !is_string( $field ) ) {
+			throw new UnexpectedValueException(
+				__METHOD__ . ": invalid field for '$key'; must be string or integer." );
+		}
+
+		if ( !is_array( $value ) || !array_key_exists( $field, $value ) ) {
+			return false;
+		}
+
+		return ( $maxAge <= 0 || $this->getAge( $key, $field ) <= $maxAge );
+	}
+
+	/**
+	 * @param string|int $key
+	 * @param string|int $field
+	 * @param float $maxAge Ignore items older than this many seconds [optional] (since 1.32)
+	 * @return mixed Returns null if the key was not found or is older than $maxAge
+	 */
+	public function getField( $key, $field, $maxAge = 0.0 ) {
+		if ( !$this->hasField( $key, $field, $maxAge ) ) {
+			return null;
+		}
+
+		return $this->cache[$key][$field];
 	}
 
 	/**
@@ -104,18 +242,78 @@ class MapCacheLRU {
 	}
 
 	/**
+	 * Get an item with the given key, producing and setting it if not found.
+	 *
+	 * If the callback returns false, then nothing is stored.
+	 *
+	 * @since 1.28
+	 * @param string $key
+	 * @param callable $callback Callback that will produce the value
+	 * @param float $rank Bottom fraction of the list where keys start off [Default: 1.0]
+	 * @param float $maxAge Ignore items older than this many seconds [Default: 0.0] (since 1.32)
+	 * @return mixed The cached value if found or the result of $callback otherwise
+	 */
+	public function getWithSetCallback(
+		$key, callable $callback, $rank = self::RANK_TOP, $maxAge = 0.0
+	) {
+		if ( $this->has( $key, $maxAge ) ) {
+			$value = $this->get( $key );
+		} else {
+			$value = call_user_func( $callback );
+			if ( $value !== false ) {
+				$this->set( $key, $value, $rank );
+			}
+		}
+
+		return $value;
+	}
+
+	/**
 	 * Clear one or several cache entries, or all cache entries
 	 *
-	 * @param string|array $keys
+	 * @param string|array|null $keys
 	 * @return void
 	 */
 	public function clear( $keys = null ) {
-		if ( $keys === null ) {
-			$this->cache = array();
+		if ( func_num_args() == 0 ) {
+			$this->cache = [];
+			$this->timestamps = [];
 		} else {
 			foreach ( (array)$keys as $key ) {
 				unset( $this->cache[$key] );
+				unset( $this->timestamps[$key] );
 			}
+		}
+	}
+
+	/**
+	 * Get the maximum number of keys allowed
+	 *
+	 * @return int
+	 * @since 1.32
+	 */
+	public function getMaxSize() {
+		return $this->maxCacheKeys;
+	}
+
+	/**
+	 * Resize the maximum number of cache entries, removing older entries as needed
+	 *
+	 * @param int $maxKeys Maximum number of entries allowed (min 1)
+	 * @return void
+	 * @throws Exception When $maxKeys is not an int or not above zero
+	 * @since 1.32
+	 */
+	public function setMaxSize( $maxKeys ) {
+		Assert::parameterType( 'integer', $maxKeys, '$maxKeys' );
+		Assert::parameter( $maxKeys > 0, '$maxKeys', 'must be above zero' );
+
+		$this->maxCacheKeys = $maxKeys;
+		while ( count( $this->cache ) > $this->maxCacheKeys ) {
+			reset( $this->cache );
+			$evictKey = key( $this->cache );
+			unset( $this->cache[$evictKey] );
+			unset( $this->timestamps[$evictKey] );
 		}
 	}
 
@@ -124,9 +322,54 @@ class MapCacheLRU {
 	 *
 	 * @param string $key
 	 */
-	protected function ping( $key ) {
+	private function ping( $key ) {
 		$item = $this->cache[$key];
 		unset( $this->cache[$key] );
 		$this->cache[$key] = $item;
+	}
+
+	/**
+	 * @param string|int $key
+	 * @param string|int|null $field [optional]
+	 * @return float UNIX timestamp; the age of the given entry or entry field
+	 */
+	private function getAge( $key, $field = null ) {
+		if ( $field !== null ) {
+			$mtime = $this->timestamps[$key][self::FIELDS][$field] ?? $this->epoch;
+		} else {
+			$mtime = $this->timestamps[$key][self::SIMPLE] ?? $this->epoch;
+		}
+
+		return ( $this->getCurrentTime() - $mtime );
+	}
+
+	public function serialize() {
+		return serialize( [
+			'entries' => $this->cache,
+			'timestamps' => $this->timestamps
+		] );
+	}
+
+	public function unserialize( $serialized ) {
+		$data = unserialize( $serialized );
+		$this->cache = $data['entries'] ?? [];
+		$this->timestamps = $data['timestamps'] ?? [];
+		$this->epoch = $this->getCurrentTime();
+	}
+
+	/**
+	 * @return float UNIX timestamp
+	 * @codeCoverageIgnore
+	 */
+	protected function getCurrentTime() {
+		return $this->wallClockOverride ?: microtime( true );
+	}
+
+	/**
+	 * @param float|null &$time Mock UNIX timestamp for testing
+	 * @codeCoverageIgnore
+	 */
+	public function setMockTime( &$time ) {
+		$this->wallClockOverride =& $time;
 	}
 }

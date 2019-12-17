@@ -27,16 +27,15 @@ require_once __DIR__ . '/Maintenance.php';
 class PageExists extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Report whether a specific page exists";
+		$this->addDescription( 'Report whether a specific page exists' );
 		$this->addArg( 'title', 'Page title to check whether it exists' );
 	}
 
 	public function execute() {
-		$titleArg = $this->getArg();
+		$titleArg = $this->getArg( 0 );
 		$title = Title::newFromText( $titleArg );
 		$pageExists = $title && $title->exists();
 
-		$text = '';
 		$code = 0;
 		if ( $pageExists ) {
 			$text = "{$title} exists.";
@@ -45,10 +44,9 @@ class PageExists extends Maintenance {
 			$code = 1;
 		}
 		$this->output( $text );
-		$this->error( '', $code );
+		exit( $code );
 	}
 }
 
-$maintClass = "PageExists";
+$maintClass = PageExists::class;
 require_once RUN_MAINTENANCE_IF_MAIN;
-

@@ -1,8 +1,12 @@
 <?php
+
+/**
+ * @covers RepoGroup
+ */
 class RepoGroupTest extends MediaWikiTestCase {
 
 	function testHasForeignRepoNegative() {
-		$this->setMwGlobals( 'wgForeignFileRepos', array() );
+		$this->setMwGlobals( 'wgForeignFileRepos', [] );
 		RepoGroup::destroySingleton();
 		FileBackendGroup::destroySingleton();
 		$this->assertFalse( RepoGroup::singleton()->hasForeignRepos() );
@@ -15,26 +19,26 @@ class RepoGroupTest extends MediaWikiTestCase {
 
 	function testForEachForeignRepo() {
 		$this->setUpForeignRepo();
-		$fakeCallback = $this->getMock( 'RepoGroupTestHelper' );
+		$fakeCallback = $this->createMock( RepoGroupTestHelper::class );
 		$fakeCallback->expects( $this->once() )->method( 'callback' );
 		RepoGroup::singleton()->forEachForeignRepo(
-			array( $fakeCallback, 'callback' ), array( array() ) );
+			[ $fakeCallback, 'callback' ], [ [] ] );
 	}
 
 	function testForEachForeignRepoNone() {
-		$this->setMwGlobals( 'wgForeignFileRepos', array() );
+		$this->setMwGlobals( 'wgForeignFileRepos', [] );
 		RepoGroup::destroySingleton();
 		FileBackendGroup::destroySingleton();
-		$fakeCallback = $this->getMock( 'RepoGroupTestHelper' );
+		$fakeCallback = $this->createMock( RepoGroupTestHelper::class );
 		$fakeCallback->expects( $this->never() )->method( 'callback' );
 		RepoGroup::singleton()->forEachForeignRepo(
-			array( $fakeCallback, 'callback' ), array( array() ) );
+			[ $fakeCallback, 'callback' ], [ [] ] );
 	}
 
 	private function setUpForeignRepo() {
 		global $wgUploadDirectory;
-		$this->setMwGlobals( 'wgForeignFileRepos', array( array(
-			'class' => 'ForeignAPIRepo',
+		$this->setMwGlobals( 'wgForeignFileRepos', [ [
+			'class' => ForeignAPIRepo::class,
 			'name' => 'wikimediacommons',
 			'backend' => 'wikimediacommons-backend',
 			'apibase' => 'https://commons.wikimedia.org/w/api.php',
@@ -43,7 +47,7 @@ class RepoGroupTest extends MediaWikiTestCase {
 			'descriptionCacheExpiry' => 43200,
 			'apiThumbCacheExpiry' => 86400,
 			'directory' => $wgUploadDirectory
-		) ) );
+		] ] );
 		RepoGroup::destroySingleton();
 		FileBackendGroup::destroySingleton();
 	}

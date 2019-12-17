@@ -6,7 +6,7 @@
 // * This installation of tipsy includes several local modifications to both Javascript and CSS.
 //   Please be careful when upgrading.
 
-( function ( mw, $ ) {
+( function () {
 
     function maybeCall(thing, ctx) {
         return (typeof thing == 'function') ? (thing.call(ctx)) : thing;
@@ -109,7 +109,6 @@
             }
         },
 
-
         fixTitle: function() {
             var $e = this.$element;
             if ($e.attr('title') || typeof($e.attr('original-title')) != 'string') {
@@ -198,24 +197,18 @@
             }
         };
 
-        if (!options.live) this.each(function() { get(this); });
+        this.each(function() { get(this); });
 
         if ( options.trigger != 'manual' ) {
             var eventIn  = options.trigger == 'hover' ? 'mouseenter focus' : 'focus',
                 eventOut = options.trigger == 'hover' ? 'mouseleave blur' : 'blur';
             if ( options.live ) {
                 mw.track( 'mw.deprecate', 'tipsy-live' );
-                mw.log.warn( 'Use of the "live" option of jquery.tipsy is deprecated.' );
-                // XXX: The official status of 'context' is deprecated, and the official status of
-                // 'selector' is removed, so this really needs to go.
-                $( this.context )
-                    .on( eventIn, this.selector, enter )
-                    .on( eventOut, this.selector, leave );
-            } else {
-                this
-                    .on( eventIn, enter )
-                    .on( eventOut, leave );
+                mw.log.warn( 'Use of the "live" option of jquery.tipsy is no longer supported.' );
             }
+            this
+                .on( eventIn, enter )
+                .on( eventOut, leave );
         }
 
         return this;
@@ -285,4 +278,4 @@
         }
     };
 
-}( mediaWiki, jQuery ) );
+}() );

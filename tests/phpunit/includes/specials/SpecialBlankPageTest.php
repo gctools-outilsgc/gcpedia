@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @licence GNU GPL v2+
- * @author Adam Shorland
+ * @license GPL-2.0-or-later
+ * @author Addshore
  *
  * @covers SpecialBlankpage
  */

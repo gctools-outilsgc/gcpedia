@@ -1,14 +1,12 @@
 <?php
-/**
- * MediaWiki Widgets – NamespaceInputWidget class.
- *
- * @copyright 2011-2015 MediaWiki Widgets Team and others; see AUTHORS.txt
- * @license The MIT License (MIT); see LICENSE.txt
- */
+
 namespace MediaWiki\Widget;
 
 /**
  * Namespace input widget. Displays a dropdown box with the choice of available namespaces.
+ *
+ * @copyright 2011-2015 MediaWiki Widgets Team and others; see AUTHORS.txt
+ * @license MIT
  */
 class NamespaceInputWidget extends \OOUI\DropdownInputWidget {
 
@@ -16,38 +14,37 @@ class NamespaceInputWidget extends \OOUI\DropdownInputWidget {
 
 	/**
 	 * @param array $config Configuration options
-	 * @param string $config['includeAllValue'] If specified, add a "all namespaces" option to the
+	 *   - string $config['includeAllValue'] If specified, add a "all namespaces" option to the
 	 *     namespace dropdown, and use this as the input value for it
-	 * @param number[] $config['exclude'] List of namespace numbers to exclude from the selector
+	 *   - int[] $config['exclude'] List of namespace numbers to exclude from the selector
 	 */
-	public function __construct( array $config = array() ) {
+	public function __construct( array $config = [] ) {
 		// Configuration initialization
 		$config['options'] = $this->getNamespaceDropdownOptions( $config );
 
-		// Parent constructor
 		parent::__construct( $config );
 
 		// Properties
-		$this->includeAllValue = isset( $config['includeAllValue'] ) ? $config['includeAllValue'] : null;
-		$this->exclude = isset( $config['exclude'] ) ? $config['exclude'] : array();
+		$this->includeAllValue = $config['includeAllValue'] ?? null;
+		$this->exclude = $config['exclude'] ?? [];
 
 		// Initialization
-		$this->addClasses( array( 'mw-widget-namespaceInputWidget' ) );
+		$this->addClasses( [ 'mw-widget-namespaceInputWidget' ] );
 	}
 
 	protected function getNamespaceDropdownOptions( array $config ) {
-		$namespaceOptionsParams = array(
-			'all' => isset( $config['includeAllValue'] ) ? $config['includeAllValue'] : null,
-			'exclude' => isset( $config['exclude'] ) ? $config['exclude'] : null
-		);
+		$namespaceOptionsParams = [
+			'all' => $config['includeAllValue'] ?? null,
+			'exclude' => $config['exclude'] ?? null
+		];
 		$namespaceOptions = \Html::namespaceSelectorOptions( $namespaceOptionsParams );
 
-		$options = array();
+		$options = [];
 		foreach ( $namespaceOptions as $id => $name ) {
-			$options[] = array(
+			$options[] = [
 				'data' => (string)$id,
 				'label' => $name,
-			);
+			];
 		}
 
 		return $options;
@@ -61,6 +58,7 @@ class NamespaceInputWidget extends \OOUI\DropdownInputWidget {
 		$config['includeAllValue'] = $this->includeAllValue;
 		$config['exclude'] = $this->exclude;
 		// Skip DropdownInputWidget's getConfig(), we don't need 'options' config
+		$config['dropdown']['$overlay'] = true;
 		return \OOUI\InputWidget::getConfig( $config );
 	}
 }

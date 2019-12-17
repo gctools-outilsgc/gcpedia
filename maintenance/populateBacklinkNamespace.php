@@ -31,7 +31,7 @@ require_once __DIR__ . '/Maintenance.php';
 class PopulateBacklinkNamespace extends LoggedUpdateMaintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Populate the *_from_namespace fields";
+		$this->addDescription( 'Populate the *_from_namespace fields' );
 		$this->addOption( 'lastUpdatedId', "Highest page_id with updated links", false, true );
 	}
 
@@ -44,54 +44,53 @@ class PopulateBacklinkNamespace extends LoggedUpdateMaintenance {
 	}
 
 	public function doDBUpdates() {
-		$force = $this->getOption( 'force' );
-
 		$db = $this->getDB( DB_MASTER );
 
 		$this->output( "Updating *_from_namespace fields in links tables.\n" );
 
 		$start = $this->getOption( 'lastUpdatedId' );
 		if ( !$start ) {
-			$start = $db->selectField( 'page', 'MIN(page_id)', false, __METHOD__ );
+			$start = $db->selectField( 'page', 'MIN(page_id)', '', __METHOD__ );
 		}
 		if ( !$start ) {
 			$this->output( "Nothing to do." );
 			return false;
 		}
-		$end = $db->selectField( 'page', 'MAX(page_id)', false, __METHOD__ );
+		$end = $db->selectField( 'page', 'MAX(page_id)', '', __METHOD__ );
+		$batchSize = $this->getBatchSize();
 
 		# Do remaining chunk
-		$end += $this->mBatchSize - 1;
+		$end += $batchSize - 1;
 		$blockStart = $start;
-		$blockEnd = $start + $this->mBatchSize - 1;
+		$blockEnd = $start + $batchSize - 1;
 		while ( $blockEnd <= $end ) {
 			$this->output( "...doing page_id from $blockStart to $blockEnd\n" );
-			$cond = "page_id BETWEEN $blockStart AND $blockEnd";
-			$res = $db->select( 'page', array( 'page_id', 'page_namespace' ), $cond, __METHOD__ );
+			$cond = "page_id BETWEEN " . (int)$blockStart . " AND " . (int)$blockEnd;
+			$res = $db->select( 'page', [ 'page_id', 'page_namespace' ], $cond, __METHOD__ );
 			foreach ( $res as $row ) {
 				$db->update( 'pagelinks',
-					array( 'pl_from_namespace' => $row->page_namespace ),
-					array( 'pl_from' => $row->page_id ),
+					[ 'pl_from_namespace' => $row->page_namespace ],
+					[ 'pl_from' => $row->page_id ],
 					__METHOD__
 				);
 				$db->update( 'templatelinks',
-					array( 'tl_from_namespace' => $row->page_namespace ),
-					array( 'tl_from' => $row->page_id ),
+					[ 'tl_from_namespace' => $row->page_namespace ],
+					[ 'tl_from' => $row->page_id ],
 					__METHOD__
 				);
 				$db->update( 'imagelinks',
-					array( 'il_from_namespace' => $row->page_namespace ),
-					array( 'il_from' => $row->page_id ),
+					[ 'il_from_namespace' => $row->page_namespace ],
+					[ 'il_from' => $row->page_id ],
 					__METHOD__
 				);
 			}
-			$blockStart += $this->mBatchSize - 1;
-			$blockEnd += $this->mBatchSize - 1;
+			$blockStart += $batchSize - 1;
+			$blockEnd += $batchSize - 1;
 			wfWaitForSlaves();
 		}
 		return true;
 	}
 }
 
-$maintClass = "PopulateBacklinkNamespace";
+$maintClass = PopulateBacklinkNamespace::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

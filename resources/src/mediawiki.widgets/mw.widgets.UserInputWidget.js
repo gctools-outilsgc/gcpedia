@@ -4,7 +4,7 @@
  * @copyright 2011-2015 MediaWiki Widgets Team and others; see AUTHORS.txt
  * @license The MIT License (MIT); see LICENSE.txt
  */
-( function ( $, mw ) {
+( function () {
 
 	/**
 	 * Creates a mw.widgets.UserInputWidget object.
@@ -90,6 +90,7 @@
 	 *
 	 * @method
 	 * @param {Mixed} response Response from server
+	 * @return {Object}
 	 */
 	mw.widgets.UserInputWidget.prototype.getLookupCacheDataFromResponse = function ( response ) {
 		return response.query.allusers || {};
@@ -99,7 +100,7 @@
 	 * Get list of menu items from a server response.
 	 *
 	 * @param {Object} data Query result
-	 * @returns {OO.ui.MenuOptionWidget[]} Menu items
+	 * @return {OO.ui.MenuOptionWidget[]} Menu items
 	 */
 	mw.widgets.UserInputWidget.prototype.getLookupMenuOptionsFromData = function ( data ) {
 		var len, i, user,
@@ -116,4 +117,4 @@
 		return items;
 	};
 
-}( jQuery, mediaWiki ) );
+}() );

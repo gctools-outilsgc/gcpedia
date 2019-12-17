@@ -43,7 +43,7 @@ class CompareParsers extends DumpIterator {
 	public function __construct() {
 		parent::__construct();
 		$this->saveFailed = false;
-		$this->mDescription = "Run a file or dump with several parsers";
+		$this->addDescription( 'Run a file or dump with several parsers' );
 		$this->addOption( 'parser1', 'The first parser to compare.', true, true );
 		$this->addOption( 'parser2', 'The second parser to compare.', true, true );
 		$this->addOption( 'tidy', 'Run tidy on the articles.', false, false );
@@ -95,9 +95,8 @@ class CompareParsers extends DumpIterator {
 		$this->options = ParserOptions::newFromUser( $user );
 
 		if ( $this->hasOption( 'tidy' ) ) {
-			global $wgUseTidy;
-			if ( !$wgUseTidy ) {
-				$this->error( 'Tidy was requested but $wgUseTidy is not set in LocalSettings.php', true );
+			if ( !MWTidy::isEnabled() ) {
+				$this->fatalError( 'Tidy was requested but $wgTidyConfig is not set in LocalSettings.php' );
 			}
 			$this->options->setTidy( true );
 		}
@@ -145,7 +144,7 @@ class CompareParsers extends DumpIterator {
 			return;
 		}
 
-		$text = strval( $content->getNativeData() );
+		$text = strval( $content->getText() );
 
 		$output1 = $parser1->parse( $text, $title, $this->options );
 		$output2 = $parser2->parse( $text, $title, $this->options );
@@ -185,5 +184,5 @@ class CompareParsers extends DumpIterator {
 	}
 }
 
-$maintClass = "CompareParsers";
+$maintClass = CompareParsers::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

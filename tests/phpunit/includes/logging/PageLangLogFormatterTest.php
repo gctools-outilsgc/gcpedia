@@ -1,16 +1,19 @@
 <?php
 
+/**
+ * @covers PageLangLogFormatter
+ */
 class PageLangLogFormatterTest extends LogFormatterTestCase {
 
 	protected function setUp() {
 		parent::setUp();
 
 		// Disable cldr extension
-		$this->setMwGlobals( 'wgHooks', array() );
+		$this->setMwGlobals( 'wgHooks', [] );
 		// Register LogHandler, see $wgPageLanguageUseDB in Setup.php
-		$this->mergeMwGlobalArrayValue( 'wgLogActionsHandlers', array(
-			'pagelang/pagelang' => 'PageLangLogFormatter',
-		) );
+		$this->mergeMwGlobalArrayValue( 'wgLogActionsHandlers', [
+			'pagelang/pagelang' => PageLangLogFormatter::class,
+		] );
 	}
 
 	/**
@@ -19,29 +22,29 @@ class PageLangLogFormatterTest extends LogFormatterTestCase {
 	 * Do not change the existing data, just add a new database row
 	 */
 	public static function providePageLangLogDatabaseRows() {
-		return array(
+		return [
 			// Current format
-			array(
-				array(
+			[
+				[
 					'type' => 'pagelang',
 					'action' => 'pagelang',
 					'comment' => 'page lang comment',
 					'namespace' => NS_MAIN,
 					'title' => 'Page',
-					'params' => array(
+					'params' => [
 						'4::oldlanguage' => 'en',
 						'5::newlanguage' => 'de[def]',
-					),
-				),
-				array(
-					'text' => 'User changed page language for Page from English (en) to Deutsch (de) [default].',
-					'api' => array(
+					],
+				],
+				[
+					'text' => 'User changed the language of Page from English (en) to Deutsch (de) [default]',
+					'api' => [
 						'oldlanguage' => 'en',
 						'newlanguage' => 'de[def]'
-					),
-				),
-			),
-		);
+					],
+				],
+			],
+		];
 	}
 
 	/**

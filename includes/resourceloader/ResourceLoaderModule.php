@@ -1,6 +1,6 @@
 <?php
 /**
- * Abstraction for resource loader modules.
+ * Abstraction for ResourceLoader modules.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,14 +22,27 @@
  * @author Roan Kattouw
  */
 
+use MediaWiki\MediaWikiServices;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use Wikimedia\RelPath;
+use Wikimedia\ScopedCallback;
+
 /**
- * Abstraction for resource loader modules, with name registration and maxage functionality.
+ * Abstraction for ResourceLoader modules, with name registration and maxage functionality.
  */
-abstract class ResourceLoaderModule {
+abstract class ResourceLoaderModule implements LoggerAwareInterface {
 	# Type of resource
 	const TYPE_SCRIPTS = 'scripts';
 	const TYPE_STYLES = 'styles';
 	const TYPE_COMBINED = 'combined';
+
+	# Desired load type
+	// Module only has styles (loaded via <style> or <link rel=stylesheet>)
+	const LOAD_STYLES = 'styles';
+	// Module may have other resources (loaded via mw.loader from a script)
+	const LOAD_GENERAL = 'general';
 
 	# sitewide core module like a skin file or jQuery component
 	const ORIGIN_CORE_SITEWIDE = 1;
@@ -53,30 +66,32 @@ abstract class ResourceLoaderModule {
 	# pages like Special:UserLogin and Special:Preferences
 	protected $origin = self::ORIGIN_CORE_SITEWIDE;
 
-	/* Protected Members */
-
 	protected $name = null;
-	protected $targets = array( 'desktop' );
+	protected $targets = [ 'desktop' ];
 
 	// In-object cache for file dependencies
-	protected $fileDeps = array();
-	// In-object cache for message blob mtime
-	protected $msgBlobMtime = array();
+	protected $fileDeps = [];
+	// In-object cache for message blob (keyed by language)
+	protected $msgBlobs = [];
 	// In-object cache for version hash
-	protected $versionHash = array();
+	protected $versionHash = [];
 	// In-object cache for module content
-	protected $contents = array();
-
-	// Whether the position returned by getPosition() is defined in the module configuration
-	// and not a default value
-	protected $isPositionDefined = false;
+	protected $contents = [];
 
 	/**
 	 * @var Config
 	 */
 	protected $config;
 
-	/* Methods */
+	/**
+	 * @var array|bool
+	 */
+	protected $deprecated = false;
+
+	/**
+	 * @var LoggerInterface
+	 */
+	protected $logger;
 
 	/**
 	 * Get this module's name. This is set when the module is registered
@@ -92,7 +107,7 @@ abstract class ResourceLoaderModule {
 	 * Set this module's name. This is called by ResourceLoader::register()
 	 * when registering the module. Other code should not call this.
 	 *
-	 * @param string $name Name
+	 * @param string $name
 	 */
 	public function setName( $name ) {
 		$this->name = $name;
@@ -110,31 +125,54 @@ abstract class ResourceLoaderModule {
 	}
 
 	/**
-	 * Set this module's origin. This is called by ResourceLoader::register()
-	 * when registering the module. Other code should not call this.
-	 *
-	 * @param int $origin Origin
-	 */
-	public function setOrigin( $origin ) {
-		$this->origin = $origin;
-	}
-
-	/**
 	 * @param ResourceLoaderContext $context
 	 * @return bool
 	 */
 	public function getFlip( $context ) {
-		global $wgContLang;
+		return MediaWikiServices::getInstance()->getContentLanguage()->getDir() !==
+			$context->getDirection();
+	}
 
-		return $wgContLang->getDir() !== $context->getDirection();
+	/**
+	 * Get JS representing deprecation information for the current module if available
+	 *
+	 * @return string JavaScript code
+	 */
+	public function getDeprecationInformation() {
+		$deprecationInfo = $this->deprecated;
+		if ( $deprecationInfo ) {
+			$name = $this->getName();
+			$warning = 'This page is using the deprecated ResourceLoader module "' . $name . '".';
+			if ( is_string( $deprecationInfo ) ) {
+				$warning .= "\n" . $deprecationInfo;
+			}
+			return Xml::encodeJsCall(
+				'mw.log.warn',
+				[ $warning ]
+			);
+		} else {
+			return '';
+		}
 	}
 
 	/**
 	 * Get all JS for this module for a given language and skin.
 	 * Includes all relevant JS except loader scripts.
 	 *
+	 * For "plain" script modules, this should return a string with JS code. For multi-file modules
+	 * where require() is used to load one file from another file, this should return an array
+	 * structured as follows:
+	 * [
+	 *     'files' => [
+	 *         'file1.js' => [ 'type' => 'script', 'content' => 'JS code' ],
+	 *         'file2.js' => [ 'type' => 'script', 'content' => 'JS code' ],
+	 *         'data.json' => [ 'type' => 'data', 'content' => array ]
+	 *     ],
+	 *     'main' => 'file1.js'
+	 * ]
+	 *
 	 * @param ResourceLoaderContext $context
-	 * @return string JavaScript code
+	 * @return string|array JavaScript code (string), or multi-file structure described above (array)
 	 */
 	public function getScript( ResourceLoaderContext $context ) {
 		// Stub, override expected
@@ -148,7 +186,7 @@ abstract class ResourceLoaderModule {
 	 */
 	public function getTemplates() {
 		// Stub, override expected.
-		return array();
+		return [];
 	}
 
 	/**
@@ -158,7 +196,7 @@ abstract class ResourceLoaderModule {
 	public function getConfig() {
 		if ( $this->config === null ) {
 			// Ugh, fall back to default
-			$this->config = ConfigFactory::getDefaultInstance()->makeConfig( 'main' );
+			$this->config = MediaWikiServices::getInstance()->getMainConfig();
 		}
 
 		return $this->config;
@@ -170,6 +208,26 @@ abstract class ResourceLoaderModule {
 	 */
 	public function setConfig( Config $config ) {
 		$this->config = $config;
+	}
+
+	/**
+	 * @since 1.27
+	 * @param LoggerInterface $logger
+	 * @return null
+	 */
+	public function setLogger( LoggerInterface $logger ) {
+		$this->logger = $logger;
+	}
+
+	/**
+	 * @since 1.27
+	 * @return LoggerInterface
+	 */
+	protected function getLogger() {
+		if ( !$this->logger ) {
+			$this->logger = new NullLogger();
+		}
+		return $this->logger;
 	}
 
 	/**
@@ -189,7 +247,7 @@ abstract class ResourceLoaderModule {
 	public function getScriptURLsForDebug( ResourceLoaderContext $context ) {
 		$resourceLoader = $context->getResourceLoader();
 		$derivative = new DerivativeResourceLoaderContext( $context );
-		$derivative->setModules( array( $this->getName() ) );
+		$derivative->setModules( [ $this->getName() ] );
 		$derivative->setOnly( 'scripts' );
 		$derivative->setDebug( true );
 
@@ -198,7 +256,7 @@ abstract class ResourceLoaderModule {
 			$derivative
 		);
 
-		return array( $url );
+		return [ $url ];
 	}
 
 	/**
@@ -216,12 +274,12 @@ abstract class ResourceLoaderModule {
 	 *
 	 * @param ResourceLoaderContext $context
 	 * @return array List of CSS strings or array of CSS strings keyed by media type.
-	 *  like array( 'screen' => '.foo { width: 0 }' );
-	 *  or array( 'screen' => array( '.foo { width: 0 }' ) );
+	 *  like [ 'screen' => '.foo { width: 0 }' ];
+	 *  or [ 'screen' => [ '.foo { width: 0 }' ] ];
 	 */
 	public function getStyles( ResourceLoaderContext $context ) {
 		// Stub, override expected
-		return array();
+		return [];
 	}
 
 	/**
@@ -231,12 +289,12 @@ abstract class ResourceLoaderModule {
 	 * load the files directly. See also getScriptURLsForDebug()
 	 *
 	 * @param ResourceLoaderContext $context
-	 * @return array Array( mediaType => array( URL1, URL2, ... ), ... )
+	 * @return array [ mediaType => [ URL1, URL2, ... ], ... ]
 	 */
 	public function getStyleURLsForDebug( ResourceLoaderContext $context ) {
 		$resourceLoader = $context->getResourceLoader();
 		$derivative = new DerivativeResourceLoaderContext( $context );
-		$derivative->setModules( array( $this->getName() ) );
+		$derivative->setModules( [ $this->getName() ] );
 		$derivative->setOnly( 'styles' );
 		$derivative->setDebug( true );
 
@@ -245,7 +303,7 @@ abstract class ResourceLoaderModule {
 			$derivative
 		);
 
-		return array( 'all' => array( $url ) );
+		return [ 'all' => [ $url ] ];
 	}
 
 	/**
@@ -257,7 +315,7 @@ abstract class ResourceLoaderModule {
 	 */
 	public function getMessages() {
 		// Stub, override expected
-		return array();
+		return [];
 	}
 
 	/**
@@ -271,37 +329,13 @@ abstract class ResourceLoaderModule {
 	}
 
 	/**
-	 * Get the origin of this module. Should only be overridden for foreign modules.
+	 * Get the source of this module. Should only be overridden for foreign modules.
 	 *
-	 * @return string Origin name, 'local' for local modules
+	 * @return string Source name, 'local' for local modules
 	 */
 	public function getSource() {
 		// Stub, override expected
 		return 'local';
-	}
-
-	/**
-	 * Where on the HTML page should this module's JS be loaded?
-	 *  - 'top': in the "<head>"
-	 *  - 'bottom': at the bottom of the "<body>"
-	 *
-	 * @return string
-	 */
-	public function getPosition() {
-		return 'bottom';
-	}
-
-	/**
-	 * Whether the position returned by getPosition() is a default value or comes from the module
-	 * definition. This method is meant to be short-lived, and is only useful until classes added
-	 * via addModuleStyles with a default value define an explicit position. See getModuleStyles()
-	 * in OutputPage for the related migration warning.
-	 *
-	 * @return bool
-	 * @since  1.26
-	 */
-	public function isPositionDefault() {
-		return !$this->isPositionDefined;
 	}
 
 	/**
@@ -316,33 +350,20 @@ abstract class ResourceLoaderModule {
 	}
 
 	/**
-	 * Get the loader JS for this module, if set.
-	 *
-	 * @return mixed JavaScript loader code as a string or boolean false if no custom loader set
-	 */
-	public function getLoaderScript() {
-		// Stub, override expected
-		return false;
-	}
-
-	/**
 	 * Get a list of modules this module depends on.
 	 *
 	 * Dependency information is taken into account when loading a module
 	 * on the client side.
 	 *
-	 * To add dependencies dynamically on the client side, use a custom
-	 * loader script, see getLoaderScript()
-	 *
 	 * Note: It is expected that $context will be made non-optional in the near
 	 * future.
 	 *
-	 * @param ResourceLoaderContext $context
+	 * @param ResourceLoaderContext|null $context
 	 * @return array List of module names as strings
 	 */
 	public function getDependencies( ResourceLoaderContext $context = null ) {
 		// Stub, override expected
-		return array();
+		return [];
 	}
 
 	/**
@@ -352,6 +373,16 @@ abstract class ResourceLoaderModule {
 	 */
 	public function getTargets() {
 		return $this->targets;
+	}
+
+	/**
+	 * Get the module's load type.
+	 *
+	 * @since 1.28
+	 * @return string ResourceLoaderModule LOAD_* constant
+	 */
+	public function getType() {
+		return self::LOAD_GENERAL;
 	}
 
 	/**
@@ -374,84 +405,278 @@ abstract class ResourceLoaderModule {
 
 	/**
 	 * Get the files this module depends on indirectly for a given skin.
-	 * Currently these are only image files referenced by the module's CSS.
 	 *
-	 * @param string $skin Skin name
+	 * These are only image files referenced by the module's stylesheet.
+	 *
+	 * @param ResourceLoaderContext $context
 	 * @return array List of files
 	 */
-	public function getFileDependencies( $skin ) {
+	protected function getFileDependencies( ResourceLoaderContext $context ) {
+		$vary = $context->getSkin() . '|' . $context->getLanguage();
+
 		// Try in-object cache first
-		if ( isset( $this->fileDeps[$skin] ) ) {
-			return $this->fileDeps[$skin];
-		}
-
-		$dbr = wfGetDB( DB_SLAVE );
-		$deps = $dbr->selectField( 'module_deps',
-			'md_deps',
-			array(
-				'md_module' => $this->getName(),
-				'md_skin' => $skin,
-			),
-			__METHOD__
-		);
-
-		if ( !is_null( $deps ) ) {
-			$this->fileDeps[$skin] = (array)FormatJson::decode( $deps, true );
-		} else {
-			$this->fileDeps[$skin] = array();
-		}
-
-		return $this->fileDeps[$skin];
-	}
-
-	/**
-	 * Set preloaded file dependency information. Used so we can load this
-	 * information for all modules at once.
-	 * @param string $skin Skin name
-	 * @param array $deps Array of file names
-	 */
-	public function setFileDependencies( $skin, $deps ) {
-		$this->fileDeps[$skin] = $deps;
-	}
-
-	/**
-	 * Get the last modification timestamp of the messages in this module for a given language.
-	 * @param string $lang Language code
-	 * @return int UNIX timestamp
-	 */
-	public function getMsgBlobMtime( $lang ) {
-		if ( !isset( $this->msgBlobMtime[$lang] ) ) {
-			if ( !count( $this->getMessages() ) ) {
-				return 1;
-			}
-
-			$dbr = wfGetDB( DB_SLAVE );
-			$msgBlobMtime = $dbr->selectField( 'msg_resource',
-				'mr_timestamp',
-				array(
-					'mr_resource' => $this->getName(),
-					'mr_lang' => $lang
-				),
+		if ( !isset( $this->fileDeps[$vary] ) ) {
+			$dbr = wfGetDB( DB_REPLICA );
+			$deps = $dbr->selectField( 'module_deps',
+				'md_deps',
+				[
+					'md_module' => $this->getName(),
+					'md_skin' => $vary,
+				],
 				__METHOD__
 			);
-			// If no blob was found, but the module does have messages, that means we need
-			// to regenerate it. Return NOW
-			if ( $msgBlobMtime === false ) {
-				$msgBlobMtime = wfTimestampNow();
+
+			if ( !is_null( $deps ) ) {
+				$this->fileDeps[$vary] = self::expandRelativePaths(
+					(array)json_decode( $deps, true )
+				);
+			} else {
+				$this->fileDeps[$vary] = [];
 			}
-			$this->msgBlobMtime[$lang] = wfTimestamp( TS_UNIX, $msgBlobMtime );
 		}
-		return $this->msgBlobMtime[$lang];
+		return $this->fileDeps[$vary];
 	}
 
 	/**
-	 * Set a preloaded message blob last modification timestamp. Used so we
-	 * can load this information for all modules at once.
-	 * @param string $lang Language code
-	 * @param int $mtime UNIX timestamp
+	 * Set in-object cache for file dependencies.
+	 *
+	 * This is used to retrieve data in batches. See ResourceLoader::preloadModuleInfo().
+	 * To save the data, use saveFileDependencies().
+	 *
+	 * @param ResourceLoaderContext $context
+	 * @param string[] $files Array of file names
 	 */
-	public function setMsgBlobMtime( $lang, $mtime ) {
-		$this->msgBlobMtime[$lang] = $mtime;
+	public function setFileDependencies( ResourceLoaderContext $context, $files ) {
+		$vary = $context->getSkin() . '|' . $context->getLanguage();
+		$this->fileDeps[$vary] = $files;
+	}
+
+	/**
+	 * Set the files this module depends on indirectly for a given skin.
+	 *
+	 * @since 1.27
+	 * @param ResourceLoaderContext $context
+	 * @param array $localFileRefs List of files
+	 */
+	protected function saveFileDependencies( ResourceLoaderContext $context, $localFileRefs ) {
+		try {
+			// Related bugs and performance considerations:
+			// 1. Don't needlessly change the database value with the same list in a
+			//    different order or with duplicates.
+			// 2. Use relative paths to avoid ghost entries when $IP changes. (T111481)
+			// 3. Don't needlessly replace the database with the same value
+			//    just because $IP changed (e.g. when upgrading a wiki).
+			// 4. Don't create an endless replace loop on every request for this
+			//    module when '../' is used anywhere. Even though both are expanded
+			//    (one expanded by getFileDependencies from the DB, the other is
+			//    still raw as originally read by RL), the latter has not
+			//    been normalized yet.
+
+			// Normalise
+			$localFileRefs = array_values( array_unique( $localFileRefs ) );
+			sort( $localFileRefs );
+			$localPaths = self::getRelativePaths( $localFileRefs );
+			$storedPaths = self::getRelativePaths( $this->getFileDependencies( $context ) );
+
+			if ( $localPaths === $storedPaths ) {
+				// Unchanged. Avoid needless database query (especially master conn!).
+				return;
+			}
+
+			// The file deps list has changed, we want to update it.
+			$vary = $context->getSkin() . '|' . $context->getLanguage();
+			$cache = ObjectCache::getLocalClusterInstance();
+			$key = $cache->makeKey( __METHOD__, $this->getName(), $vary );
+			$scopeLock = $cache->getScopedLock( $key, 0 );
+			if ( !$scopeLock ) {
+				// Another request appears to be doing this update already.
+				// Avoid write slams (T124649).
+				return;
+			}
+
+			// No needless escaping as this isn't HTML output.
+			// Only stored in the database and parsed in PHP.
+			$deps = json_encode( $localPaths, JSON_UNESCAPED_SLASHES );
+			$dbw = wfGetDB( DB_MASTER );
+			$dbw->upsert( 'module_deps',
+				[
+					'md_module' => $this->getName(),
+					'md_skin' => $vary,
+					'md_deps' => $deps,
+				],
+				[ [ 'md_module', 'md_skin' ] ],
+				[
+					'md_deps' => $deps,
+				]
+			);
+
+			if ( $dbw->trxLevel() ) {
+				$dbw->onTransactionResolution(
+					function () use ( &$scopeLock ) {
+						ScopedCallback::consume( $scopeLock ); // release after commit
+					},
+					__METHOD__
+				);
+			}
+		} catch ( Exception $e ) {
+			// Probably a DB failure. Either the read query from getFileDependencies(),
+			// or the write query above.
+			wfDebugLog( 'resourceloader', __METHOD__ . ": failed to update DB: $e" );
+		}
+	}
+
+	/**
+	 * Make file paths relative to MediaWiki directory.
+	 *
+	 * This is used to make file paths safe for storing in a database without the paths
+	 * becoming stale or incorrect when MediaWiki is moved or upgraded (T111481).
+	 *
+	 * @since 1.27
+	 * @param array $filePaths
+	 * @return array
+	 */
+	public static function getRelativePaths( array $filePaths ) {
+		global $IP;
+		return array_map( function ( $path ) use ( $IP ) {
+			return RelPath::getRelativePath( $path, $IP );
+		}, $filePaths );
+	}
+
+	/**
+	 * Expand directories relative to $IP.
+	 *
+	 * @since 1.27
+	 * @param array $filePaths
+	 * @return array
+	 */
+	public static function expandRelativePaths( array $filePaths ) {
+		global $IP;
+		return array_map( function ( $path ) use ( $IP ) {
+			return RelPath::joinPath( $IP, $path );
+		}, $filePaths );
+	}
+
+	/**
+	 * Get the hash of the message blob.
+	 *
+	 * @since 1.27
+	 * @param ResourceLoaderContext $context
+	 * @return string|null JSON blob or null if module has no messages
+	 */
+	protected function getMessageBlob( ResourceLoaderContext $context ) {
+		if ( !$this->getMessages() ) {
+			// Don't bother consulting MessageBlobStore
+			return null;
+		}
+		// Message blobs may only vary language, not by context keys
+		$lang = $context->getLanguage();
+		if ( !isset( $this->msgBlobs[$lang] ) ) {
+			$this->getLogger()->warning( 'Message blob for {module} should have been preloaded', [
+				'module' => $this->getName(),
+			] );
+			$store = $context->getResourceLoader()->getMessageBlobStore();
+			$this->msgBlobs[$lang] = $store->getBlob( $this, $lang );
+		}
+		return $this->msgBlobs[$lang];
+	}
+
+	/**
+	 * Set in-object cache for message blobs.
+	 *
+	 * Used to allow fetching of message blobs in batches. See ResourceLoader::preloadModuleInfo().
+	 *
+	 * @since 1.27
+	 * @param string|null $blob JSON blob or null
+	 * @param string $lang Language code
+	 */
+	public function setMessageBlob( $blob, $lang ) {
+		$this->msgBlobs[$lang] = $blob;
+	}
+
+	/**
+	 * Get headers to send as part of a module web response.
+	 *
+	 * It is not supported to send headers through this method that are
+	 * required to be unique or otherwise sent once in an HTTP response
+	 * because clients may make batch requests for multiple modules (as
+	 * is the default behaviour for ResourceLoader clients).
+	 *
+	 * For exclusive or aggregated headers, see ResourceLoader::sendResponseHeaders().
+	 *
+	 * @since 1.30
+	 * @param ResourceLoaderContext $context
+	 * @return string[] Array of HTTP response headers
+	 */
+	final public function getHeaders( ResourceLoaderContext $context ) {
+		$headers = [];
+
+		$formattedLinks = [];
+		foreach ( $this->getPreloadLinks( $context ) as $url => $attribs ) {
+			$link = "<{$url}>;rel=preload";
+			foreach ( $attribs as $key => $val ) {
+				$link .= ";{$key}={$val}";
+			}
+			$formattedLinks[] = $link;
+		}
+		if ( $formattedLinks ) {
+			$headers[] = 'Link: ' . implode( ',', $formattedLinks );
+		}
+
+		return $headers;
+	}
+
+	/**
+	 * Get a list of resources that web browsers may preload.
+	 *
+	 * Behaviour of rel=preload link is specified at <https://www.w3.org/TR/preload/>.
+	 *
+	 * Use case for ResourceLoader originally part of T164299.
+	 *
+	 * @par Example
+	 * @code
+	 *     protected function getPreloadLinks() {
+	 *         return [
+	 *             'https://example.org/script.js' => [ 'as' => 'script' ],
+	 *             'https://example.org/image.png' => [ 'as' => 'image' ],
+	 *         ];
+	 *     }
+	 * @endcode
+	 *
+	 * @par Example using HiDPI image variants
+	 * @code
+	 *     protected function getPreloadLinks() {
+	 *         return [
+	 *             'https://example.org/logo.png' => [
+	 *                 'as' => 'image',
+	 *                 'media' => 'not all and (min-resolution: 2dppx)',
+	 *             ],
+	 *             'https://example.org/logo@2x.png' => [
+	 *                 'as' => 'image',
+	 *                 'media' => '(min-resolution: 2dppx)',
+	 *             ],
+	 *         ];
+	 *     }
+	 * @endcode
+	 *
+	 * @see ResourceLoaderModule::getHeaders
+	 * @since 1.30
+	 * @param ResourceLoaderContext $context
+	 * @return array Keyed by url, values must be an array containing
+	 *  at least an 'as' key. Optionally a 'media' key as well.
+	 */
+	protected function getPreloadLinks( ResourceLoaderContext $context ) {
+		return [];
+	}
+
+	/**
+	 * Get module-specific LESS variables, if any.
+	 *
+	 * @since 1.27
+	 * @param ResourceLoaderContext $context
+	 * @return array Module-specific LESS variables.
+	 */
+	protected function getLessVars( ResourceLoaderContext $context ) {
+		return [];
 	}
 
 	/**
@@ -480,94 +705,94 @@ abstract class ResourceLoaderModule {
 	 */
 	final protected function buildContent( ResourceLoaderContext $context ) {
 		$rl = $context->getResourceLoader();
-		$stats = RequestContext::getMain()->getStats();
+		$stats = MediaWikiServices::getInstance()->getStatsdDataFactory();
 		$statStart = microtime( true );
 
-		// Only include properties that are relevant to this context (e.g. only=scripts)
-		// and that are non-empty (e.g. don't include "templates" for modules without
-		// templates). This helps prevent invalidating cache for all modules when new
-		// optional properties are introduced.
-		$content = array();
+		// This MUST build both scripts and styles, regardless of whether $context->getOnly()
+		// is 'scripts' or 'styles' because the result is used by getVersionHash which
+		// must be consistent regardless of the 'only' filter on the current request.
+		// Also, when introducing new module content resources (e.g. templates, headers),
+		// these should only be included in the array when they are non-empty so that
+		// existing modules not using them do not get their cache invalidated.
+		$content = [];
 
 		// Scripts
-		if ( $context->shouldIncludeScripts() ) {
-			// If we are in debug mode, we'll want to return an array of URLs if possible
-			// However, we can't do this if the module doesn't support it
-			// We also can't do this if there is an only= parameter, because we have to give
-			// the module a way to return a load.php URL without causing an infinite loop
-			if ( $context->getDebug() && !$context->getOnly() && $this->supportsURLLoading() ) {
-				$scripts = $this->getScriptURLsForDebug( $context );
-			} else {
-				$scripts = $this->getScript( $context );
-				// rtrim() because there are usually a few line breaks
-				// after the last ';'. A new line at EOF, a new line
-				// added by ResourceLoaderFileModule::readScriptFiles, etc.
-				if ( is_string( $scripts )
-					&& strlen( $scripts )
-					&& substr( rtrim( $scripts ), -1 ) !== ';'
-				) {
-					// Append semicolon to prevent weird bugs caused by files not
-					// terminating their statements right (bug 27054)
-					$scripts .= ";\n";
-				}
+		// If we are in debug mode, we'll want to return an array of URLs if possible
+		// However, we can't do this if the module doesn't support it.
+		// We also can't do this if there is an only= parameter, because we have to give
+		// the module a way to return a load.php URL without causing an infinite loop
+		if ( $context->getDebug() && !$context->getOnly() && $this->supportsURLLoading() ) {
+			$scripts = $this->getScriptURLsForDebug( $context );
+		} else {
+			$scripts = $this->getScript( $context );
+			// Make the script safe to concatenate by making sure there is at least one
+			// trailing new line at the end of the content. Previously, this looked for
+			// a semi-colon instead, but that breaks concatenation if the semicolon
+			// is inside a comment like "// foo();". Instead, simply use a
+			// line break as separator which matches JavaScript native logic for implicitly
+			// ending statements even if a semi-colon is missing.
+			// Bugs: T29054, T162719.
+			if ( is_string( $scripts )
+				&& strlen( $scripts )
+				&& substr( $scripts, -1 ) !== "\n"
+			) {
+				$scripts .= "\n";
 			}
-			$content['scripts'] = $scripts;
 		}
+		$content['scripts'] = $scripts;
 
-		// Styles
-		if ( $context->shouldIncludeStyles() ) {
-			$styles = array();
-			// Don't create empty stylesheets like array( '' => '' ) for modules
-			// that don't *have* any stylesheets (bug 38024).
-			$stylePairs = $this->getStyles( $context );
-			if ( count( $stylePairs ) ) {
-				// If we are in debug mode without &only= set, we'll want to return an array of URLs
-				// See comment near shouldIncludeScripts() for more details
-				if ( $context->getDebug() && !$context->getOnly() && $this->supportsURLLoading() ) {
-					$styles = array(
-						'url' => $this->getStyleURLsForDebug( $context )
-					);
-				} else {
-					// Minify CSS before embedding in mw.loader.implement call
-					// (unless in debug mode)
-					if ( !$context->getDebug() ) {
-						foreach ( $stylePairs as $media => $style ) {
-							// Can be either a string or an array of strings.
-							if ( is_array( $style ) ) {
-								$stylePairs[$media] = array();
-								foreach ( $style as $cssText ) {
-									if ( is_string( $cssText ) ) {
-										$stylePairs[$media][] =
-											$rl->filter( 'minify-css', $cssText );
-									}
+		$styles = [];
+		// Don't create empty stylesheets like [ '' => '' ] for modules
+		// that don't *have* any stylesheets (T40024).
+		$stylePairs = $this->getStyles( $context );
+		if ( count( $stylePairs ) ) {
+			// If we are in debug mode without &only= set, we'll want to return an array of URLs
+			// See comment near shouldIncludeScripts() for more details
+			if ( $context->getDebug() && !$context->getOnly() && $this->supportsURLLoading() ) {
+				$styles = [
+					'url' => $this->getStyleURLsForDebug( $context )
+				];
+			} else {
+				// Minify CSS before embedding in mw.loader.implement call
+				// (unless in debug mode)
+				if ( !$context->getDebug() ) {
+					foreach ( $stylePairs as $media => $style ) {
+						// Can be either a string or an array of strings.
+						if ( is_array( $style ) ) {
+							$stylePairs[$media] = [];
+							foreach ( $style as $cssText ) {
+								if ( is_string( $cssText ) ) {
+									$stylePairs[$media][] =
+										ResourceLoader::filter( 'minify-css', $cssText );
 								}
-							} elseif ( is_string( $style ) ) {
-								$stylePairs[$media] = $rl->filter( 'minify-css', $style );
 							}
+						} elseif ( is_string( $style ) ) {
+							$stylePairs[$media] = ResourceLoader::filter( 'minify-css', $style );
 						}
 					}
-					// Wrap styles into @media groups as needed and flatten into a numerical array
-					$styles = array(
-						'css' => $rl->makeCombinedStyles( $stylePairs )
-					);
 				}
+				// Wrap styles into @media groups as needed and flatten into a numerical array
+				$styles = [
+					'css' => $rl->makeCombinedStyles( $stylePairs )
+				];
 			}
-			$content['styles'] = $styles;
 		}
+		$content['styles'] = $styles;
 
 		// Messages
-		$blobs = $rl->getMessageBlobStore()->get(
-			$rl,
-			array( $this->getName() => $this ),
-			$context->getLanguage()
-		);
-		if ( isset( $blobs[$this->getName()] ) ) {
-			$content['messagesBlob'] = $blobs[$this->getName()];
+		$blob = $this->getMessageBlob( $context );
+		if ( $blob ) {
+			$content['messagesBlob'] = $blob;
 		}
 
 		$templates = $this->getTemplates();
 		if ( $templates ) {
 			$content['templates'] = $templates;
+		}
+
+		$headers = $this->getHeaders( $context );
+		if ( $headers ) {
+			$content['headers'] = $headers;
 		}
 
 		$statTiming = microtime( true ) - $statStart;
@@ -591,53 +816,25 @@ abstract class ResourceLoaderModule {
 	 * This method should be quick because it is frequently run by ResourceLoaderStartUpModule to
 	 * propagate changes to the client and effectively invalidate cache.
 	 *
-	 * For backward-compatibility, the following optional data providers are automatically included:
-	 *
-	 * - getModifiedTime()
-	 * - getModifiedHash()
-	 *
 	 * @since 1.26
 	 * @param ResourceLoaderContext $context
 	 * @return string Hash (should use ResourceLoader::makeHash)
 	 */
 	public function getVersionHash( ResourceLoaderContext $context ) {
-		// The startup module produces a manifest with versions representing the entire module.
-		// Typically, the request for the startup module itself has only=scripts. That must apply
-		// only to the startup module content, and not to the module version computed here.
-		$context = new DerivativeResourceLoaderContext( $context );
-		$context->setModules( array() );
-		// Version hash must cover all resources, regardless of startup request itself.
-		$context->setOnly( null );
-		// Compute version hash based on content, not debug urls.
-		$context->setDebug( false );
-
 		// Cache this somewhat expensive operation. Especially because some classes
 		// (e.g. startup module) iterate more than once over all modules to get versions.
 		$contextHash = $context->getHash();
 		if ( !array_key_exists( $contextHash, $this->versionHash ) ) {
-
 			if ( $this->enableModuleContentVersion() ) {
-				// Detect changes directly
+				// Detect changes directly by hashing the module contents.
 				$str = json_encode( $this->getModuleContent( $context ) );
 			} else {
 				// Infer changes based on definition and other metrics
 				$summary = $this->getDefinitionSummary( $context );
-				if ( !isset( $summary['_cacheEpoch'] ) ) {
+				if ( !isset( $summary['_class'] ) ) {
 					throw new LogicException( 'getDefinitionSummary must call parent method' );
 				}
 				$str = json_encode( $summary );
-
-				$mtime = $this->getModifiedTime( $context );
-				if ( $mtime !== null ) {
-					// Support: MediaWiki 1.25 and earlier
-					$str .= strval( $mtime );
-				}
-
-				$mhash = $this->getModifiedHash( $context );
-				if ( $mhash !== null ) {
-					// Support: MediaWiki 1.25 and earlier
-					$str .= strval( $mhash );
-				}
 			}
 
 			$this->versionHash[$contextHash] = ResourceLoader::makeHash( $str );
@@ -671,10 +868,10 @@ abstract class ResourceLoaderModule {
 	 *
 	 * @code
 	 *     $summary = parent::getDefinitionSummary( $context );
-	 *     $summary[] = array(
+	 *     $summary[] = [
 	 *         'foo' => 123,
 	 *         'bar' => 'quux',
-	 *     );
+	 *     ];
 	 *     return $summary;
 	 * @endcode
 	 *
@@ -695,74 +892,19 @@ abstract class ResourceLoaderModule {
 	 * A number of utility methods are available to help you gather data. These are not
 	 * called by default and must be included by the subclass' getDefinitionSummary().
 	 *
-	 * - getMsgBlobMtime()
+	 * - getMessageBlob()
 	 *
 	 * @since 1.23
 	 * @param ResourceLoaderContext $context
 	 * @return array|null
 	 */
 	public function getDefinitionSummary( ResourceLoaderContext $context ) {
-		return array(
-			'_class' => get_class( $this ),
-			'_cacheEpoch' => $this->getConfig()->get( 'CacheEpoch' ),
-		);
-	}
-
-	/**
-	 * Get this module's last modification timestamp for a given context.
-	 *
-	 * @deprecated since 1.26 Use getDefinitionSummary() instead
-	 * @param ResourceLoaderContext $context Context object
-	 * @return int|null UNIX timestamp
-	 */
-	public function getModifiedTime( ResourceLoaderContext $context ) {
-		return null;
-	}
-
-	/**
-	 * Helper method for providing a version hash to getVersionHash().
-	 *
-	 * @deprecated since 1.26 Use getDefinitionSummary() instead
-	 * @param ResourceLoaderContext $context
-	 * @return string|null Hash
-	 */
-	public function getModifiedHash( ResourceLoaderContext $context ) {
-		return null;
-	}
-
-	/**
-	 * Back-compat dummy for old subclass implementations of getModifiedTime().
-	 *
-	 * This method used to use ObjectCache to track when a hash was first seen. That principle
-	 * stems from a time that ResourceLoader could only identify module versions by timestamp.
-	 * That is no longer the case. Use getDefinitionSummary() directly.
-	 *
-	 * @deprecated since 1.26 Superseded by getVersionHash()
-	 * @param ResourceLoaderContext $context
-	 * @return int UNIX timestamp
-	 */
-	public function getHashMtime( ResourceLoaderContext $context ) {
-		if ( !is_string( $this->getModifiedHash( $context ) ) ) {
-			return 1;
-		}
-		// Dummy that is > 1
-		return 2;
-	}
-
-	/**
-	 * Back-compat dummy for old subclass implementations of getModifiedTime().
-	 *
-	 * @since 1.23
-	 * @deprecated since 1.26 Superseded by getVersionHash()
-	 * @param ResourceLoaderContext $context
-	 * @return int UNIX timestamp
-	 */
-	public function getDefinitionMtime( ResourceLoaderContext $context ) {
-		if ( $this->getDefinitionSummary( $context ) === null ) {
-			return 1;
-		}
-		// Dummy that is > 1
-		return 2;
+		return [
+			'_class' => static::class,
+			// Make sure that when filter cache for minification is invalidated,
+			// we also change the HTTP urls and mw.loader.store keys (T176884).
+			'_cacheVersion' => ResourceLoader::CACHE_VERSION,
+		];
 	}
 
 	/**
@@ -778,6 +920,20 @@ abstract class ResourceLoaderModule {
 		return false;
 	}
 
+	/**
+	 * Check whether this module should be embeded rather than linked
+	 *
+	 * Modules returning true here will be embedded rather than loaded by
+	 * ResourceLoaderClientHtml.
+	 *
+	 * @since 1.30
+	 * @param ResourceLoaderContext $context
+	 * @return bool
+	 */
+	public function shouldEmbedModule( ResourceLoaderContext $context ) {
+		return $this->getGroup() === 'private';
+	}
+
 	/** @var JSParser Lazy-initialized; use self::javaScriptParser() */
 	private static $jsParser;
 	private static $parseCacheVersion = 1;
@@ -791,37 +947,42 @@ abstract class ResourceLoaderModule {
 	 * @return string JS with the original, or a replacement error
 	 */
 	protected function validateScriptFile( $fileName, $contents ) {
-		if ( $this->getConfig()->get( 'ResourceLoaderValidateJS' ) ) {
-			// Try for cache hit
-			// Use CACHE_ANYTHING since parsing JS is much slower than a DB query
-			$key = wfMemcKey(
+		if ( !$this->getConfig()->get( 'ResourceLoaderValidateJS' ) ) {
+			return $contents;
+		}
+		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+		return $cache->getWithSetCallback(
+			$cache->makeGlobalKey(
 				'resourceloader',
 				'jsparse',
 				self::$parseCacheVersion,
-				md5( $contents )
-			);
-			$cache = wfGetCache( CACHE_ANYTHING );
-			$cacheEntry = $cache->get( $key );
-			if ( is_string( $cacheEntry ) ) {
-				return $cacheEntry;
+				md5( $contents ),
+				$fileName
+			),
+			$cache::TTL_WEEK,
+			function () use ( $contents, $fileName ) {
+				$parser = self::javaScriptParser();
+				$err = null;
+				try {
+					Wikimedia\suppressWarnings();
+					$parser->parse( $contents, $fileName, 1 );
+				} catch ( Exception $e ) {
+					$err = $e;
+				} finally {
+					Wikimedia\restoreWarnings();
+				}
+				if ( $err ) {
+					// Send the error to the browser console client-side.
+					// By returning this as replacement for the actual script,
+					// we ensure modules are safe to load in a batch request,
+					// without causing other unrelated modules to break.
+					return 'mw.log.error(' .
+						Xml::encodeJsVar( 'JavaScript parse error: ' . $err->getMessage() ) .
+						');';
+				}
+				return $contents;
 			}
-
-			$parser = self::javaScriptParser();
-			try {
-				$parser->parse( $contents, $fileName, 1 );
-				$result = $contents;
-			} catch ( Exception $e ) {
-				// We'll save this to cache to avoid having to validate broken JS over and over...
-				$err = $e->getMessage();
-				$result = "mw.log.error(" .
-					Xml::encodeJsVar( "JavaScript parse error: $err" ) . ");";
-			}
-
-			$cache->set( $key, $result );
-			return $result;
-		} else {
-			return $contents;
-		}
+		);
 	}
 
 	/**
@@ -842,9 +1003,9 @@ abstract class ResourceLoaderModule {
 	 * @return int UNIX timestamp
 	 */
 	protected static function safeFilemtime( $filePath ) {
-		MediaWiki\suppressWarnings();
+		Wikimedia\suppressWarnings();
 		$mtime = filemtime( $filePath ) ?: 1;
-		MediaWiki\restoreWarnings();
+		Wikimedia\restoreWarnings();
 		return $mtime;
 	}
 
@@ -857,35 +1018,6 @@ abstract class ResourceLoaderModule {
 	 * @return string Hash
 	 */
 	protected static function safeFileHash( $filePath ) {
-		static $cache;
-
-		if ( !$cache ) {
-			$cache = ObjectCache::newAccelerator( CACHE_NONE );
-		}
-
-		MediaWiki\suppressWarnings();
-		$mtime = filemtime( $filePath );
-		MediaWiki\restoreWarnings();
-		if ( !$mtime ) {
-			return '';
-		}
-
-		$cacheKey = wfGlobalCacheKey( 'resourceloader', __METHOD__, $filePath );
-		$cachedHash = $cache->get( $cacheKey );
-		if ( isset( $cachedHash['mtime'] ) && $cachedHash['mtime'] === $mtime ) {
-			return $cachedHash['hash'];
-		}
-
-		MediaWiki\suppressWarnings();
-		$contents = file_get_contents( $filePath );
-		MediaWiki\restoreWarnings();
-		if ( !$contents ) {
-			return '';
-		}
-
-		$hash = hash( 'md4', $contents );
-		$cache->set( $cacheKey, array( 'mtime' => $mtime, 'hash' => $hash ), 60 * 60 * 24 );
-
-		return $hash;
+		return FileContentsHasher::getFileContentsHash( $filePath );
 	}
 }

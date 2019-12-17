@@ -21,6 +21,9 @@
  * @ingroup SpecialPage
  */
 
+use MediaWiki\Auth\AuthManager;
+use MediaWiki\Logger\LoggerFactory;
+
 /**
  * Let users change their email address.
  *
@@ -36,13 +39,15 @@ class SpecialChangeEmail extends FormSpecialPage {
 		parent::__construct( 'ChangeEmail', 'editmyprivateinfo' );
 	}
 
+	public function doesWrites() {
+		return true;
+	}
+
 	/**
 	 * @return bool
 	 */
 	public function isListed() {
-		global $wgAuth;
-
-		return $wgAuth->allowPropChange( 'emailaddress' );
+		return AuthManager::singleton()->allowsPropertyChange( 'emailaddress' );
 	}
 
 	/**
@@ -52,15 +57,16 @@ class SpecialChangeEmail extends FormSpecialPage {
 	function execute( $par ) {
 		$out = $this->getOutput();
 		$out->disallowUserJs();
-		$out->addModules( 'mediawiki.special.changeemail' );
 
 		parent::execute( $par );
 	}
 
-	protected function checkExecutePermissions( User $user ) {
-		global $wgAuth;
+	protected function getLoginSecurityLevel() {
+		return $this->getName();
+	}
 
-		if ( !$wgAuth->allowPropChange( 'emailaddress' ) ) {
+	protected function checkExecutePermissions( User $user ) {
+		if ( !AuthManager::singleton()->allowsPropertyChange( 'emailaddress' ) ) {
 			throw new ErrorPageError( 'changeemail', 'cannotchangeemail' );
 		}
 
@@ -72,36 +78,34 @@ class SpecialChangeEmail extends FormSpecialPage {
 			throw new PermissionsError( 'viewmyprivateinfo' );
 		}
 
+		if ( $user->isBlockedFromEmailuser() ) {
+			throw new UserBlockedError( $user->getBlock() );
+		}
+
 		parent::checkExecutePermissions( $user );
 	}
 
 	protected function getFormFields() {
 		$user = $this->getUser();
 
-		$fields = array(
-			'Name' => array(
+		$fields = [
+			'Name' => [
 				'type' => 'info',
 				'label-message' => 'username',
 				'default' => $user->getName(),
-			),
-			'OldEmail' => array(
+			],
+			'OldEmail' => [
 				'type' => 'info',
 				'label-message' => 'changeemail-oldemail',
 				'default' => $user->getEmail() ?: $this->msg( 'changeemail-none' )->text(),
-			),
-			'NewEmail' => array(
+			],
+			'NewEmail' => [
 				'type' => 'email',
 				'label-message' => 'changeemail-newemail',
-				'autofocus' => true
-			),
-		);
-
-		if ( $this->getConfig()->get( 'RequirePasswordforEmailChange' ) ) {
-			$fields['Password'] = array(
-				'type' => 'password',
-				'label-message' => 'changeemail-password'
-			);
-		}
+				'autofocus' => true,
+				'help-message' => 'changeemail-newemail-help',
+			],
+		];
 
 		return $fields;
 	}
@@ -115,11 +119,12 @@ class SpecialChangeEmail extends FormSpecialPage {
 		$form->setTableId( 'mw-changeemail-table' );
 		$form->setSubmitTextMsg( 'changeemail-submit' );
 		$form->addHiddenFields( $this->getRequest()->getValues( 'returnto', 'returntoquery' ) );
+
+		$form->addHeaderText( $this->msg( 'changeemail-header' )->parseAsBlock() );
 	}
 
 	public function onSubmit( array $data ) {
-		$password = isset( $data['Password'] ) ? $data['Password'] : null;
-		$status = $this->attemptChange( $this->getUser(), $password, $data['NewEmail'] );
+		$status = $this->attemptChange( $this->getUser(), $data['NewEmail'] );
 
 		$this->status = $status;
 
@@ -137,7 +142,7 @@ class SpecialChangeEmail extends FormSpecialPage {
 		$query = $request->getVal( 'returntoquery' );
 
 		if ( $this->status->value === true ) {
-			$this->getOutput()->redirect( $titleObj->getFullURL( $query ) );
+			$this->getOutput()->redirect( $titleObj->getFullUrlForRedirect( $query ) );
 		} elseif ( $this->status->value === 'eauth' ) {
 			# Notify user that a confirmation email has been sent...
 			$this->getOutput()->wrapWikiMsg( "<div class='error' style='clear: both;'>\n$1\n</div>",
@@ -149,13 +154,10 @@ class SpecialChangeEmail extends FormSpecialPage {
 
 	/**
 	 * @param User $user
-	 * @param string $pass
 	 * @param string $newaddr
 	 * @return Status
 	 */
-	private function attemptChange( User $user, $pass, $newaddr ) {
-		global $wgAuth;
-
+	private function attemptChange( User $user, $newaddr ) {
 		if ( $newaddr != '' && !Sanitizer::validateEmail( $newaddr ) ) {
 			return Status::newFatal( 'invalidemailaddress' );
 		}
@@ -164,25 +166,10 @@ class SpecialChangeEmail extends FormSpecialPage {
 			return Status::newFatal( 'changeemail-nochange' );
 		}
 
-		$throttleCount = LoginForm::incLoginThrottle( $user->getName() );
-		if ( $throttleCount === true ) {
-			$lang = $this->getLanguage();
-			$throttleInfo = $this->getConfig()->get( 'PasswordAttemptThrottle' );
-			return Status::newFatal(
-				'changeemail-throttled',
-				$lang->formatDuration( $throttleInfo['seconds'] )
-			);
-		}
-
-		if ( $this->getConfig()->get( 'RequirePasswordforEmailChange' )
-			&& !$user->checkTemporaryPassword( $pass )
-			&& !$user->checkPassword( $pass )
-		) {
-			return Status::newFatal( 'wrongpassword' );
-		}
-
-		if ( $throttleCount ) {
-			LoginForm::clearLoginThrottle( $user->getName() );
+		// To prevent spam, rate limit adding a new address, but do
+		// not rate limit removing an address.
+		if ( $newaddr !== '' && $user->pingLimiter( 'changeemail' ) ) {
+			return Status::newFatal( 'actionthrottledtext' );
 		}
 
 		$oldaddr = $user->getEmail();
@@ -191,11 +178,17 @@ class SpecialChangeEmail extends FormSpecialPage {
 			return $status;
 		}
 
-		Hooks::run( 'PrefsEmailAudit', array( $user, $oldaddr, $newaddr ) );
+		LoggerFactory::getInstance( 'authentication' )->info(
+			'Changing email address for {user} from {oldemail} to {newemail}', [
+				'user' => $user->getName(),
+				'oldemail' => $oldaddr,
+				'newemail' => $newaddr,
+			]
+		);
+
+		Hooks::run( 'PrefsEmailAudit', [ $user, $oldaddr, $newaddr ] );
 
 		$user->saveSettings();
-
-		$wgAuth->updateExternalDB( $user );
 
 		return $status;
 	}

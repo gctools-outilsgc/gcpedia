@@ -5,11 +5,14 @@
  * @covers SpecialMyLanguage
  */
 class SpecialMyLanguageTest extends MediaWikiTestCase {
-	public function addDBData() {
-		$titles = array(
+	public function addDBDataOnce() {
+		$titles = [
 			'Page/Another',
+			'Page/Another/ar',
+			'Page/Another/en',
 			'Page/Another/ru',
-		);
+			'Page/Another/zh-hans',
+		];
 		foreach ( $titles as $title ) {
 			$page = WikiPage::factory( Title::newFromText( $title ) );
 			if ( $page->getId() == 0 ) {
@@ -32,13 +35,13 @@ class SpecialMyLanguageTest extends MediaWikiTestCase {
 	 * @param string $userLang
 	 */
 	public function testFindTitle( $expected, $subpage, $langCode, $userLang ) {
-		$this->setMwGlobals( 'wgLanguageCode', $langCode );
+		$this->setContentLang( $langCode );
 		$special = new SpecialMyLanguage();
 		$special->getContext()->setLanguage( $userLang );
 		// Test with subpages both enabled and disabled
-		$this->mergeMwGlobalArrayValue( 'wgNamespacesWithSubpages', array( NS_MAIN => true ) );
+		$this->mergeMwGlobalArrayValue( 'wgNamespacesWithSubpages', [ NS_MAIN => true ] );
 		$this->assertTitle( $expected, $special->findTitle( $subpage ) );
-		$this->mergeMwGlobalArrayValue( 'wgNamespacesWithSubpages', array( NS_MAIN => false ) );
+		$this->mergeMwGlobalArrayValue( 'wgNamespacesWithSubpages', [ NS_MAIN => false ] );
 		$this->assertTitle( $expected, $special->findTitle( $subpage ) );
 	}
 
@@ -54,12 +57,22 @@ class SpecialMyLanguageTest extends MediaWikiTestCase {
 	}
 
 	public static function provideFindTitle() {
-		return array(
-			array( null, '::Fail', 'en', 'en' ),
-			array( 'Page/Another', 'Page/Another/en', 'en', 'en' ),
-			array( 'Page/Another', 'Page/Another', 'en', 'en' ),
-			array( 'Page/Another/ru', 'Page/Another', 'en', 'ru' ),
-			array( 'Page/Another', 'Page/Another', 'en', 'es' ),
-		);
+		// See addDBDataOnce() for page declarations
+		return [
+			// [ $expected, $subpage, $langCode, $userLang ]
+			[ null, '::Fail', 'en', 'en' ],
+			[ 'Page/Another', 'Page/Another/en', 'en', 'en' ],
+			[ 'Page/Another', 'Page/Another', 'en', 'en' ],
+			[ 'Page/Another/ru', 'Page/Another', 'en', 'ru' ],
+			[ 'Page/Another', 'Page/Another', 'en', 'es' ],
+			[ 'Page/Another/zh-hans', 'Page/Another', 'en', 'zh-hans' ],
+			[ 'Page/Another/zh-hans', 'Page/Another', 'en', 'zh-mo' ],
+			[ 'Page/Another/en', 'Page/Another', 'de', 'es' ],
+			[ 'Page/Another/ar', 'Page/Another', 'en', 'ar' ],
+			[ 'Page/Another/ar', 'Page/Another', 'en', 'arz' ],
+			[ 'Page/Another/ar', 'Page/Another/de', 'en', 'arz' ],
+			[ 'Page/Another/ru', 'Page/Another/ru', 'en', 'arz' ],
+			[ 'Page/Another/ar', 'Page/Another/ru', 'en', 'ar' ],
+		];
 	}
 }

@@ -4,20 +4,20 @@ class MWDebugTest extends MediaWikiTestCase {
 
 	protected function setUp() {
 		parent::setUp();
-		// Make sure MWDebug class is enabled
-		static $MWDebugEnabled = false;
-		if ( !$MWDebugEnabled ) {
-			MWDebug::init();
-			$MWDebugEnabled = true;
-		}
 		/** Clear log before each test */
 		MWDebug::clearLog();
-		MediaWiki\suppressWarnings();
 	}
 
-	protected function tearDown() {
-		MediaWiki\restoreWarnings();
-		parent::tearDown();
+	public static function setUpBeforeClass() {
+		parent::setUpBeforeClass();
+		MWDebug::init();
+		Wikimedia\suppressWarnings();
+	}
+
+	public static function tearDownAfterClass() {
+		parent::tearDownAfterClass();
+		MWDebug::deinit();
+		Wikimedia\restoreWarnings();
 	}
 
 	/**
@@ -26,11 +26,11 @@ class MWDebugTest extends MediaWikiTestCase {
 	public function testAddLog() {
 		MWDebug::log( 'logging a string' );
 		$this->assertEquals(
-			array( array(
+			[ [
 				'msg' => 'logging a string',
 				'type' => 'log',
-				'caller' => __METHOD__,
-			) ),
+				'caller' => 'MWDebugTest->testAddLog',
+			] ],
 			MWDebug::getLog()
 		);
 	}
@@ -41,11 +41,11 @@ class MWDebugTest extends MediaWikiTestCase {
 	public function testAddWarning() {
 		MWDebug::warning( 'Warning message' );
 		$this->assertEquals(
-			array( array(
+			[ [
 				'msg' => 'Warning message',
 				'type' => 'warn',
 				'caller' => 'MWDebugTest::testAddWarning',
-			) ),
+			] ],
 			MWDebug::getLog()
 		);
 	}
@@ -86,7 +86,7 @@ class MWDebugTest extends MediaWikiTestCase {
 	 */
 	public function testAppendDebugInfoToApiResultXmlFormat() {
 		$request = $this->newApiRequest(
-			array( 'action' => 'help', 'format' => 'xml' ),
+			[ 'action' => 'help', 'format' => 'xml' ],
 			'/api.php?action=help&format=xml'
 		);
 
@@ -99,18 +99,18 @@ class MWDebugTest extends MediaWikiTestCase {
 
 		MWDebug::appendDebugInfoToApiResult( $context, $result );
 
-		$this->assertInstanceOf( 'ApiResult', $result );
+		$this->assertInstanceOf( ApiResult::class, $result );
 		$data = $result->getResultData();
 
-		$expectedKeys = array( 'mwVersion', 'phpEngine', 'phpVersion', 'gitRevision', 'gitBranch',
+		$expectedKeys = [ 'mwVersion', 'phpEngine', 'phpVersion', 'gitRevision', 'gitBranch',
 			'gitViewUrl', 'time', 'log', 'debugLog', 'queries', 'request', 'memory',
-			'memoryPeak', 'includes', '_element' );
+			'memoryPeak', 'includes', '_element' ];
 
 		foreach ( $expectedKeys as $expectedKey ) {
 			$this->assertArrayHasKey( $expectedKey, $data['debuginfo'], "debuginfo has $expectedKey" );
 		}
 
-		$xml = ApiFormatXml::recXmlPrint( 'help', $data );
+		$xml = ApiFormatXml::recXmlPrint( 'help', $data, null );
 
 		// exception not thrown
 		$this->assertInternalType( 'string', $xml );
@@ -123,11 +123,11 @@ class MWDebugTest extends MediaWikiTestCase {
 	 * @return FauxRequest
 	 */
 	private function newApiRequest( array $params, $requestUrl ) {
-		$request = $this->getMockBuilder( 'FauxRequest' )
-			->setMethods( array( 'getRequestURL' ) )
-			->setConstructorArgs( array(
+		$request = $this->getMockBuilder( FauxRequest::class )
+			->setMethods( [ 'getRequestURL' ] )
+			->setConstructorArgs( [
 				$params
-			) )
+			] )
 			->getMock();
 
 		$request->expects( $this->any() )

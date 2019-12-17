@@ -35,7 +35,7 @@ class TraditionalImageGallery extends ImageGalleryBase {
 	function toHTML() {
 		if ( $this->mPerRow > 0 ) {
 			$maxwidth = $this->mPerRow * ( $this->mWidths + $this->getAllPadding() );
-			$oldStyle = isset( $this->mAttribs['style'] ) ? $this->mAttribs['style'] : '';
+			$oldStyle = $this->mAttribs['style'] ?? '';
 			# _width is ignored by any sane browser. IE6 doesn't know max-width
 			# so it uses _width instead
 			$this->mAttribs['style'] = "max-width: {$maxwidth}px;_width: {$maxwidth}px;" .
@@ -43,7 +43,7 @@ class TraditionalImageGallery extends ImageGalleryBase {
 		}
 
 		$attribs = Sanitizer::mergeAttributes(
-			array( 'class' => 'gallery mw-gallery-' . $this->mMode ), $this->mAttribs );
+			[ 'class' => 'gallery mw-gallery-' . $this->mMode ], $this->mAttribs );
 
 		$modules = $this->getModules();
 
@@ -59,23 +59,31 @@ class TraditionalImageGallery extends ImageGalleryBase {
 			$output .= "\n\t<li class='gallerycaption'>{$this->mCaption}</li>";
 		}
 
+		if ( $this->mShowFilename ) {
+			// Preload LinkCache info for when generating links
+			// of the filename below
+			$lb = new LinkBatch();
+			foreach ( $this->mImages as $img ) {
+				$lb->addObj( $img[0] );
+			}
+			$lb->execute();
+		}
+
 		$lang = $this->getRenderLang();
 		# Output each image...
 		foreach ( $this->mImages as $pair ) {
+			// "text" means "caption" here
 			/** @var Title $nt */
-			$nt = $pair[0];
-			$text = $pair[1]; # "text" means "caption" here
-			$alt = $pair[2];
-			$link = $pair[3];
+			list( $nt, $text, $alt, $link ) = $pair;
 
 			$descQuery = false;
 			if ( $nt->getNamespace() === NS_FILE ) {
 				# Get the file...
 				if ( $this->mParser instanceof Parser ) {
 					# Give extensions a chance to select the file revision for us
-					$options = array();
+					$options = [];
 					Hooks::run( 'BeforeParserFetchFileAndTitle',
-						array( $this->mParser, $nt, &$options, &$descQuery ) );
+						[ $this->mParser, $nt, &$options, &$descQuery ] );
 					# Fetch and register the file (file title may be different via hooks)
 					list( $img, $nt ) = $this->mParser->fetchFileAndTitle( $nt, $options );
 				} else {
@@ -111,82 +119,91 @@ class TraditionalImageGallery extends ImageGalleryBase {
 						htmlspecialchars( $nt->getText() )
 					) .
 					'</div>';
-			} elseif ( !( $thumb = $img->transform( $transformOptions ) ) ) {
-				# Error generating thumbnail.
-				$thumbhtml = "\n\t\t\t" . '<div class="thumb" style="height: '
-					. ( $this->getThumbPadding() + $this->mHeights ) . 'px;">'
-					. htmlspecialchars( $img->getLastError() ) . '</div>';
 			} else {
-				/** @var MediaTransformOutput $thumb */
-				$vpad = $this->getVPad( $this->mHeights, $thumb->getHeight() );
+				$thumb = $img->transform( $transformOptions );
+				if ( !$thumb ) {
+					# Error generating thumbnail.
+					$thumbhtml = "\n\t\t\t" . '<div class="thumb" style="height: '
+						. ( $this->getThumbPadding() + $this->mHeights ) . 'px;">'
+						. htmlspecialchars( $img->getLastError() ) . '</div>';
+				} else {
+					/** @var MediaTransformOutput $thumb */
+					$vpad = $this->getVPad( $this->mHeights, $thumb->getHeight() );
 
-				$imageParameters = array(
-					'desc-link' => true,
-					'desc-query' => $descQuery,
-					'alt' => $alt,
-					'custom-url-link' => $link
-				);
+					$imageParameters = [
+						'desc-link' => true,
+						'desc-query' => $descQuery,
+						'alt' => $alt,
+						'custom-url-link' => $link
+					];
 
-				// In the absence of both alt text and caption, fall back on
-				// providing screen readers with the filename as alt text
-				if ( $alt == '' && $text == '' ) {
-					$imageParameters['alt'] = $nt->getText();
-				}
+					// In the absence of both alt text and caption, fall back on
+					// providing screen readers with the filename as alt text
+					if ( $alt == '' && $text == '' ) {
+						$imageParameters['alt'] = $nt->getText();
+					}
 
-				$this->adjustImageParameters( $thumb, $imageParameters );
+					$this->adjustImageParameters( $thumb, $imageParameters );
 
-				Linker::processResponsiveImages( $img, $thumb, $transformOptions );
+					Linker::processResponsiveImages( $img, $thumb, $transformOptions );
 
-				# Set both fixed width and min-height.
-				$thumbhtml = "\n\t\t\t"
-					. '<div class="thumb" style="width: '
-					. $this->getThumbDivWidth( $thumb->getWidth() ) . 'px;">'
-					# Auto-margin centering for block-level elements. Needed
-					# now that we have video handlers since they may emit block-
-					# level elements as opposed to simple <img> tags. ref
-					# http://css-discuss.incutio.com/?page=CenteringBlockElement
-					. '<div style="margin:' . $vpad . 'px auto;">'
-					. $thumb->toHtml( $imageParameters ) . '</div></div>';
+					# Set both fixed width and min-height.
+					$thumbhtml = "\n\t\t\t"
+						. '<div class="thumb" style="width: '
+						. $this->getThumbDivWidth( $thumb->getWidth() ) . 'px;">'
+						# Auto-margin centering for block-level elements. Needed
+						# now that we have video handlers since they may emit block-
+						# level elements as opposed to simple <img> tags. ref
+						# http://css-discuss.incutio.com/?page=CenteringBlockElement
+						. '<div style="margin:' . $vpad . 'px auto;">'
+						. $thumb->toHtml( $imageParameters ) . '</div></div>';
 
-				// Call parser transform hook
-				/** @var MediaHandler $handler */
-				$handler = $img->getHandler();
-				if ( $this->mParser && $handler ) {
-					$handler->parserTransformHook( $this->mParser, $img );
+					// Call parser transform hook
+					/** @var MediaHandler $handler */
+					$handler = $img->getHandler();
+					if ( $this->mParser && $handler ) {
+						$handler->parserTransformHook( $this->mParser, $img );
+					}
 				}
 			}
 
 			// @todo Code is incomplete.
-			// $linkTarget = Title::newFromText( $wgContLang->getNsText( MWNamespace::getUser() ) .
-			// ":{$ut}" );
+			// $linkTarget = Title::newFromText( MediaWikiServices::getInstance()->
+			// getContentLanguage()->getNsText( MWNamespace::getUser() ) . ":{$ut}" );
 			// $ul = Linker::link( $linkTarget, $ut );
 
-			if ( $this->mShowBytes ) {
-				if ( $img ) {
-					$fileSize = htmlspecialchars( $lang->formatSize( $img->getSize() ) );
-				} else {
-					$fileSize = $this->msg( 'filemissing' )->escaped();
+			$meta = [];
+			if ( $img ) {
+				if ( $this->mShowDimensions ) {
+					$meta[] = $img->getDimensionsString();
 				}
-				$fileSize = "$fileSize<br />\n";
-			} else {
-				$fileSize = '';
+				if ( $this->mShowBytes ) {
+					$meta[] = htmlspecialchars( $lang->formatSize( $img->getSize() ) );
+				}
+			} elseif ( $this->mShowDimensions || $this->mShowBytes ) {
+				$meta[] = $this->msg( 'filemissing' )->escaped();
+			}
+			$meta = $lang->semicolonList( $meta );
+			if ( $meta ) {
+				$meta .= "<br />\n";
 			}
 
 			$textlink = $this->mShowFilename ?
-				Linker::linkKnown(
-					$nt,
-					htmlspecialchars( $lang->truncate( $nt->getText(), $this->mCaptionLength ) )
-				) . "<br />\n" :
+				$this->getCaptionHtml( $nt, $lang ) :
 				'';
 
-			$galleryText = $textlink . $text . $fileSize;
+			$galleryText = $textlink . $text . $meta;
 			$galleryText = $this->wrapGalleryText( $galleryText, $thumb );
 
+			$gbWidth = $this->getGBWidth( $thumb ) . 'px';
+			if ( $this->getGBWidthOverwrite( $thumb ) ) {
+				$gbWidth = $this->getGBWidthOverwrite( $thumb );
+			}
 			# Weird double wrapping (the extra div inside the li) needed due to FF2 bug
 			# Can be safely removed if FF2 falls completely out of existence
 			$output .= "\n\t\t" . '<li class="gallerybox" style="width: '
-				. $this->getGBWidth( $thumb ) . 'px">'
-				. '<div style="width: ' . $this->getGBWidth( $thumb ) . 'px">'
+				. $gbWidth . '">'
+				. '<div style="width: ' . $gbWidth . '">'
 				. $thumbhtml
 				. $galleryText
 				. "\n\t\t</div></li>";
@@ -194,6 +211,27 @@ class TraditionalImageGallery extends ImageGalleryBase {
 		$output .= "\n</ul>";
 
 		return $output;
+	}
+
+	/**
+	 * @param Title $nt
+	 * @param Language $lang
+	 * @return string HTML
+	 */
+	protected function getCaptionHtml( Title $nt, Language $lang ) {
+		// Preloaded into LinkCache in toHTML
+		return Linker::linkKnown(
+			$nt,
+			htmlspecialchars(
+				is_int( $this->getCaptionLength() ) ?
+					$lang->truncateForVisual( $nt->getText(), $this->getCaptionLength() ) :
+					$nt->getText()
+			),
+			[
+				'class' => 'galleryfilename' .
+					( $this->getCaptionLength() === true ? ' galleryfilename-truncate' : '' )
+			]
+		) . "\n";
 	}
 
 	/**
@@ -216,8 +254,8 @@ class TraditionalImageGallery extends ImageGalleryBase {
 	}
 
 	/**
-	 * How much padding such the thumb have between image and inner div that
-	 * that contains the border. This is both for verical and horizontal
+	 * How much padding the thumb has between the image and the inner div
+	 * that contains the border. This is for both vertical and horizontal
 	 * padding. (However, it is cut in half in the vertical direction).
 	 * @return int
 	 */
@@ -243,6 +281,17 @@ class TraditionalImageGallery extends ImageGalleryBase {
 	 */
 	protected function getGBBorders() {
 		return 8;
+	}
+
+	/**
+	 * Length (in characters) to truncate filename to in caption when using "showfilename" (if int).
+	 * A value of 'true' will truncate the filename to one line using CSS, while
+	 * 'false' will disable truncating.
+	 *
+	 * @return int|bool
+	 */
+	protected function getCaptionLength() {
+		return $this->mCaptionLength;
 	}
 
 	/**
@@ -274,10 +323,10 @@ class TraditionalImageGallery extends ImageGalleryBase {
 	 * @return array
 	 */
 	protected function getThumbParams( $img ) {
-		return array(
+		return [
 			'width' => $this->mWidths,
 			'height' => $this->mHeights
-		);
+		];
 	}
 
 	/**
@@ -292,7 +341,7 @@ class TraditionalImageGallery extends ImageGalleryBase {
 	}
 
 	/**
-	 * Width of gallerybox <li>.
+	 * Computed width of gallerybox <li>.
 	 *
 	 * Generally is the width of the image, plus padding on image
 	 * plus padding on gallerybox.
@@ -306,6 +355,21 @@ class TraditionalImageGallery extends ImageGalleryBase {
 	}
 
 	/**
+	 * Allows overwriting the computed width of the gallerybox <li> with a string,
+	 * like '100%'.
+	 *
+	 * Generally is the width of the image, plus padding on image
+	 * plus padding on gallerybox.
+	 *
+	 * @note Important: parameter will be false if no thumb used.
+	 * @param MediaTransformOutput|bool $thumb MediaTransformObject object or false.
+	 * @return bool|string Ignored if false.
+	 */
+	protected function getGBWidthOverwrite( $thumb ) {
+		return false;
+	}
+
+	/**
 	 * Get a list of modules to include in the page.
 	 *
 	 * Primarily intended for subclasses.
@@ -313,7 +377,7 @@ class TraditionalImageGallery extends ImageGalleryBase {
 	 * @return array Modules to include
 	 */
 	protected function getModules() {
-		return array();
+		return [];
 	}
 
 	/**
@@ -321,22 +385,8 @@ class TraditionalImageGallery extends ImageGalleryBase {
 	 *
 	 * Used by a subclass to insert extra high resolution images.
 	 * @param MediaTransformOutput $thumb The thumbnail
-	 * @param array $imageParameters Array of options
+	 * @param array &$imageParameters Array of options
 	 */
 	protected function adjustImageParameters( $thumb, &$imageParameters ) {
-	}
-}
-
-/**
- * Backwards compatibility. This always uses traditional mode
- * if called the old way, for extensions that may expect traditional
- * mode.
- *
- * @deprecated since 1.22 Use ImageGalleryBase::factory instead.
- */
-class ImageGallery extends TraditionalImageGallery {
-	function __construct( $mode = 'traditional' ) {
-		wfDeprecated( __METHOD__, '1.22' );
-		parent::__construct( $mode );
 	}
 }

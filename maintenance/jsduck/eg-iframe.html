@@ -34,16 +34,31 @@
 		};
 	</script>
 	<script>
-		function startUp() {
-			mw.config = new mw.Map();
-		}
+		// Mock ResourceLoaderStartUpModule substitutions
+		window.$VARS = {
+			baseModules: [],
+			maxQueryLength: 2000
+		};
+		// Mock startup.js
+		window.RLQ = [];
 	</script>
+	<script src="modules/src/startup/mediawiki.js"></script>
+	<script src="modules/src/startup/mediawiki.requestIdleCallback.js"></script>
 	<script src="modules/lib/jquery/jquery.js"></script>
-	<script src="modules/lib/phpjs-sha1/sha1.js"></script>
-	<script src="modules/src/mediawiki/mediawiki.js"></script>
-	<script src="modules/src/mediawiki/mediawiki.errorLogger.js"></script>
-	<script src="modules/src/mediawiki/mediawiki.startUp.js"></script>
+	<script src="modules/src/mediawiki.base/mediawiki.base.js"></script>
+	<script src="modules/src/mediawiki.base/mediawiki.errorLogger.js"></script>
+	<script src="modules/lib/oojs/oojs.jquery.js"></script>
+	<script src="modules/lib/ooui/oojs-ui-core.js"></script>
+	<script src="modules/lib/ooui/oojs-ui-widgets.js"></script>
+	<script src="modules/lib/ooui/oojs-ui-toolbars.js"></script>
+	<script src="modules/lib/ooui/oojs-ui-windows.js"></script>
+	<script src="modules/lib/ooui/oojs-ui-wikimediaui.js"></script>
 	<style>
+		body {
+			font-size: 0.8em;
+			font-family: sans-serif;
+		}
+
 		.mw-jsduck-log {
 			position: relative;
 			min-height: 3em;
@@ -74,16 +89,16 @@
 			background: #fff;
 		}
 	</style>
+	<link rel="stylesheet" href="modules/lib/ooui/oojs-ui-core-wikimediaui.css">
+	<link rel="stylesheet" href="modules/lib/ooui/oojs-ui-widgets-wikimediaui.css">
+	<link rel="stylesheet" href="modules/lib/ooui/oojs-ui-toolbars-wikimediaui.css">
+	<link rel="stylesheet" href="modules/lib/ooui/oojs-ui-windows-wikimediaui.css">
 </head>
 <body>
 <script>
 	if ( window.mw ) {
 		mw.log = log;
 	}
-
-	window.onerror = function ( error, filePath, linerNr ) {
-		log( filePath + ':' + linerNr  );
-	};
 
 	/**
 	 * Method called by jsduck to execute the example code.

@@ -50,17 +50,14 @@
  * belong here either. Session state changes should only be propagated on
  * shutdown by separate persistence handler objects, for example.
  */
-interface IContextSource {
+interface IContextSource extends MessageLocalizer {
+
 	/**
-	 * Get the WebRequest object
-	 *
 	 * @return WebRequest
 	 */
 	public function getRequest();
 
 	/**
-	 * Get the Title object
-	 *
 	 * @return Title|null
 	 */
 	public function getTitle();
@@ -87,30 +84,22 @@ interface IContextSource {
 	public function getWikiPage();
 
 	/**
-	 * Get the OutputPage object
-	 *
 	 * @return OutputPage
 	 */
 	public function getOutput();
 
 	/**
-	 * Get the User object
-	 *
 	 * @return User
 	 */
 	public function getUser();
 
 	/**
-	 * Get the Language object
-	 *
 	 * @return Language
 	 * @since 1.19
 	 */
 	public function getLanguage();
 
 	/**
-	 * Get the Skin object
-	 *
 	 * @return Skin
 	 */
 	public function getSkin();
@@ -124,20 +113,18 @@ interface IContextSource {
 	public function getConfig();
 
 	/**
-	 * Get the stats object
+	 * @deprecated since 1.27 use a StatsdDataFactory from MediaWikiServices (preferably injected)
 	 *
 	 * @since 1.25
-	 * @return BufferingStatsdDataFactory
+	 * @return IBufferingStatsdDataFactory
 	 */
 	public function getStats();
 
 	/**
-	 * Get a Message object with context set.  See wfMessage for parameters.
-	 *
-	 * @param mixed ...
-	 * @return Message
+	 * @since 1.27
+	 * @return Timing
 	 */
-	public function msg();
+	public function getTiming();
 
 	/**
 	 * Export the resolved user IP, HTTP headers, user ID, and session ID.

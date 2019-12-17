@@ -30,11 +30,11 @@
  */
 class Pbkdf2Password extends ParameterizedPassword {
 	protected function getDefaultParams() {
-		return array(
+		return [
 			'algo' => $this->config['algo'],
 			'rounds' => $this->config['cost'],
 			'length' => $this->config['length']
-		);
+		];
 	}
 
 	protected function getDelimiter() {
@@ -43,41 +43,19 @@ class Pbkdf2Password extends ParameterizedPassword {
 
 	public function crypt( $password ) {
 		if ( count( $this->args ) == 0 ) {
-			$this->args[] = base64_encode( MWCryptRand::generate( 16, true ) );
+			$this->args[] = base64_encode( random_bytes( 16 ) );
 		}
 
-		if ( function_exists( 'hash_pbkdf2' ) ) {
-			$hash = hash_pbkdf2(
-				$this->params['algo'],
-				$password,
-				base64_decode( $this->args[0] ),
-				(int)$this->params['rounds'],
-				(int)$this->params['length'],
-				true
-			);
-		} else {
-			$hashLen = strlen( hash( $this->params['algo'], '', true ) );
-			$blockCount = ceil( $this->params['length'] / $hashLen );
-
-			$hash = '';
-			$salt = base64_decode( $this->args[0] );
-			for ( $i = 1; $i <= $blockCount; ++$i ) {
-				$roundTotal = $lastRound = hash_hmac(
-					$this->params['algo'],
-					$salt . pack( 'N', $i ),
-					$password,
-					true
-				);
-
-				for ( $j = 1; $j < $this->params['rounds']; ++$j ) {
-					$lastRound = hash_hmac( $this->params['algo'], $lastRound, $password, true );
-					$roundTotal ^= $lastRound;
-				}
-
-				$hash .= $roundTotal;
-			}
-
-			$hash = substr( $hash, 0, $this->params['length'] );
+		$hash = hash_pbkdf2(
+			$this->params['algo'],
+			$password,
+			base64_decode( $this->args[0] ),
+			(int)$this->params['rounds'],
+			(int)$this->params['length'],
+			true
+		);
+		if ( !is_string( $hash ) ) {
+			throw new PasswordError( 'Error when hashing password.' );
 		}
 
 		$this->hash = base64_encode( $hash );

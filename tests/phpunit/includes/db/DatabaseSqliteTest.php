@@ -1,28 +1,9 @@
 <?php
 
-class DatabaseSqliteMock extends DatabaseSqlite {
-	private $lastQuery;
-
-	public static function newInstance( array $p = array() ) {
-		$p['dbFilePath'] = ':memory:';
-		$p['schema'] = false;
-
-		return DatabaseBase::factory( 'SqliteMock', $p );
-	}
-
-	function query( $sql, $fname = '', $tempIgnore = false ) {
-		$this->lastQuery = $sql;
-
-		return true;
-	}
-
-	/**
-	 * Override parent visibility to public
-	 */
-	public function replaceVars( $s ) {
-		return parent::replaceVars( $s );
-	}
-}
+use Wikimedia\Rdbms\Blob;
+use Wikimedia\Rdbms\Database;
+use Wikimedia\Rdbms\DatabaseSqlite;
+use Wikimedia\Rdbms\ResultWrapper;
 
 /**
  * @group sqlite
@@ -64,26 +45,30 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 	}
 
 	public static function provideAddQuotes() {
-		return array(
-			array( // #0: empty
+		return [
+			[ // #0: empty
 				'', "''"
-			),
-			array( // #1: simple
+			],
+			[ // #1: simple
 				'foo bar', "'foo bar'"
-			),
-			array( // #2: including quote
+			],
+			[ // #2: including quote
 				'foo\'bar', "'foo''bar'"
-			),
+			],
 			// #3: including \0 (must be represented as hex, per https://bugs.php.net/bug.php?id=63419)
-			array(
+			[
 				"x\0y",
 				"x'780079'",
-			),
-			array( // #4: blob object (must be represented as hex)
+			],
+			[ // #4: blob object (must be represented as hex)
 				new Blob( "hello" ),
 				"x'68656c6c6f'",
-			),
-		);
+			],
+			[ // #5: null
+				null,
+				"''",
+			],
+		];
 	}
 
 	/**
@@ -100,7 +85,8 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 
 		$this->assertTrue( $re !== false, 'query failed' );
 
-		if ( $row = $re->fetchRow() ) {
+		$row = $re->fetchRow();
+		if ( $row ) {
 			if ( $value instanceof Blob ) {
 				$value = $value->fetch();
 			}
@@ -178,9 +164,9 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 		$db = DatabaseSqlite::newStandaloneInstance( ':memory:' );
 		$this->assertEquals( 'foo', $db->tableName( 'foo' ) );
 		$this->assertEquals( 'sqlite_master', $db->tableName( 'sqlite_master' ) );
-		$db->tablePrefix( 'foo' );
+		$db->tablePrefix( 'foo_' );
 		$this->assertEquals( 'sqlite_master', $db->tableName( 'sqlite_master' ) );
-		$this->assertEquals( 'foobar', $db->tableName( 'bar' ) );
+		$this->assertEquals( 'foo_bar', $db->tableName( 'bar' ) );
 	}
 
 	/**
@@ -194,7 +180,7 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 
 		$db->duplicateTableStructure( 'foo', 'bar' );
 		$this->assertEquals( 'CREATE TABLE "bar"(foo, barfoo)',
-			$db->selectField( 'sqlite_master', 'sql', array( 'name' => 'bar' ) ),
+			$db->selectField( 'sqlite_master', 'sql', [ 'name' => 'bar' ] ),
 			'Normal table duplication'
 		);
 		$indexList = $db->query( 'PRAGMA INDEX_LIST("bar")' );
@@ -207,7 +193,7 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 
 		$db->duplicateTableStructure( 'foo', 'baz', true );
 		$this->assertEquals( 'CREATE TABLE "baz"(foo, barfoo)',
-			$db->selectField( 'sqlite_temp_master', 'sql', array( 'name' => 'baz' ) ),
+			$db->selectField( 'sqlite_temp_master', 'sql', [ 'name' => 'baz' ] ),
 			'Creation of temporary duplicate'
 		);
 		$indexList = $db->query( 'PRAGMA INDEX_LIST("baz")' );
@@ -218,7 +204,7 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 		$this->assertEquals( 'baz_index2', $index->name );
 		$this->assertEquals( '1', $index->unique );
 		$this->assertEquals( 0,
-			$db->selectField( 'sqlite_master', 'COUNT(*)', array( 'name' => 'baz' ) ),
+			$db->selectField( 'sqlite_master', 'COUNT(*)', [ 'name' => 'baz' ] ),
 			'Create a temporary duplicate only'
 		);
 	}
@@ -235,13 +221,13 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 
 		$db->duplicateTableStructure( 'foo', 'bar' );
 		$this->assertEquals( 'CREATE VIRTUAL TABLE "bar" USING FTS3(foobar)',
-			$db->selectField( 'sqlite_master', 'sql', array( 'name' => 'bar' ) ),
+			$db->selectField( 'sqlite_master', 'sql', [ 'name' => 'bar' ] ),
 			'Duplication of virtual tables'
 		);
 
 		$db->duplicateTableStructure( 'foo', 'baz', true );
 		$this->assertEquals( 'CREATE VIRTUAL TABLE "baz" USING FTS3(foobar)',
-			$db->selectField( 'sqlite_master', 'sql', array( 'name' => 'baz' ) ),
+			$db->selectField( 'sqlite_master', 'sql', [ 'name' => 'baz' ] ),
 			"Can't create temporary virtual tables, should fall back to non-temporary duplication"
 		);
 	}
@@ -253,29 +239,32 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 		$db = DatabaseSqlite::newStandaloneInstance( ':memory:' );
 		$db->query( 'CREATE TABLE a (a_1)', __METHOD__ );
 		$db->query( 'CREATE TABLE b (b_1, b_2)', __METHOD__ );
-		$db->insert( 'a', array(
-				array( 'a_1' => 1 ),
-				array( 'a_1' => 2 ),
-				array( 'a_1' => 3 ),
-			),
+		$db->insert( 'a', [
+				[ 'a_1' => 1 ],
+				[ 'a_1' => 2 ],
+				[ 'a_1' => 3 ],
+			],
 			__METHOD__
 		);
-		$db->insert( 'b', array(
-				array( 'b_1' => 2, 'b_2' => 'a' ),
-				array( 'b_1' => 3, 'b_2' => 'b' ),
-			),
+		$db->insert( 'b', [
+				[ 'b_1' => 2, 'b_2' => 'a' ],
+				[ 'b_1' => 3, 'b_2' => 'b' ],
+			],
 			__METHOD__
 		);
-		$db->deleteJoin( 'a', 'b', 'a_1', 'b_1', array( 'b_2' => 'a' ), __METHOD__ );
+		$db->deleteJoin( 'a', 'b', 'a_1', 'b_1', [ 'b_2' => 'a' ], __METHOD__ );
 		$res = $db->query( "SELECT * FROM a", __METHOD__ );
-		$this->assertResultIs( array(
-				array( 'a_1' => 1 ),
-				array( 'a_1' => 3 ),
-			),
+		$this->assertResultIs( [
+				[ 'a_1' => 1 ],
+				[ 'a_1' => 3 ],
+			],
 			$res
 		);
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function testEntireSchema() {
 		global $IP;
 
@@ -289,24 +278,30 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 	/**
 	 * Runs upgrades of older databases and compares results with current schema
 	 * @todo Currently only checks list of tables
+	 * @coversNothing
 	 */
 	public function testUpgrades() {
 		global $IP, $wgVersion, $wgProfiler;
 
 		// Versions tested
-		$versions = array(
-			//'1.13', disabled for now, was totally screwed up
+		$versions = [
+			// '1.13', disabled for now, was totally screwed up
 			// SQLite wasn't included in 1.14
 			'1.15',
 			'1.16',
 			'1.17',
 			'1.18',
-		);
+			'1.19',
+			'1.20',
+			'1.21',
+			'1.22',
+			'1.23',
+		];
 
 		// Mismatches for these columns we can safely ignore
-		$ignoredColumns = array(
+		$ignoredColumns = [
 			'user_newtalk.user_last_timestamp', // r84185
-		);
+		];
 
 		$currentDB = DatabaseSqlite::newStandaloneInstance( ':memory:' );
 		$currentDB->sourceFile( "$IP/maintenance/tables.sql" );
@@ -329,7 +324,7 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 
 		foreach ( $versions as $version ) {
 			$versions = "upgrading from $version to $wgVersion";
-			$db = $this->prepareDB( $version );
+			$db = $this->prepareTestDB( $version );
 			$tables = $this->getTables( $db );
 			$this->assertEquals( $currentTables, $tables, "Different tables $versions" );
 			foreach ( $tables as $table ) {
@@ -379,34 +374,56 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 		$db = DatabaseSqlite::newStandaloneInstance( ':memory:' );
 
 		$databaseCreation = $db->query( 'CREATE TABLE a ( a_1 )', __METHOD__ );
-		$this->assertInstanceOf( 'ResultWrapper', $databaseCreation, "Database creation" );
+		$this->assertInstanceOf( ResultWrapper::class, $databaseCreation, "Database creation" );
 
-		$insertion = $db->insert( 'a', array( 'a_1' => 10 ), __METHOD__ );
+		$insertion = $db->insert( 'a', [ 'a_1' => 10 ], __METHOD__ );
 		$this->assertTrue( $insertion, "Insertion worked" );
 
 		$this->assertInternalType( 'integer', $db->insertId(), "Actual typecheck" );
 		$this->assertTrue( $db->close(), "closing database" );
 	}
 
-	private function prepareDB( $version ) {
+	/**
+	 * @covers DatabaseSqlite::insert
+	 */
+	public function testInsertAffectedRows() {
+		$db = DatabaseSqlite::newStandaloneInstance( ':memory:' );
+		$db->query( 'CREATE TABLE testInsertAffectedRows ( foo )', __METHOD__ );
+
+		$insertion = $db->insert(
+			'testInsertAffectedRows',
+			[
+				[ 'foo' => 10 ],
+				[ 'foo' => 12 ],
+				[ 'foo' => 1555 ],
+			],
+			__METHOD__
+		);
+		$this->assertTrue( $insertion, "Insertion worked" );
+
+		$this->assertSame( 3, $db->affectedRows() );
+		$this->assertTrue( $db->close(), "closing database" );
+	}
+
+	private function prepareTestDB( $version ) {
 		static $maint = null;
 		if ( $maint === null ) {
 			$maint = new FakeMaintenance();
-			$maint->loadParamsAndArgs( null, array( 'quiet' => 1 ) );
+			$maint->loadParamsAndArgs( null, [ 'quiet' => 1 ] );
 		}
 
 		global $IP;
 		$db = DatabaseSqlite::newStandaloneInstance( ':memory:' );
 		$db->sourceFile( "$IP/tests/phpunit/data/db/sqlite/tables-$version.sql" );
 		$updater = DatabaseUpdater::newForDB( $db, false, $maint );
-		$updater->doUpdates( array( 'core' ) );
+		$updater->doUpdates( [ 'core' ] );
 
 		return $db;
 	}
 
 	private function getTables( $db ) {
 		$list = array_flip( $db->listTables() );
-		$excluded = array(
+		$excluded = [
 			'external_user', // removed from core in 1.22
 			'math', // moved out of core in 1.18
 			'trackbacks', // removed from core in 1.19
@@ -417,7 +434,7 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 			// FTS4 ready!!1
 			'searchindex_docsize',
 			'searchindex_stat',
-		);
+		];
 		foreach ( $excluded as $t ) {
 			unset( $list[$t] );
 		}
@@ -428,7 +445,7 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 	}
 
 	private function getColumns( $db, $table ) {
-		$cols = array();
+		$cols = [];
 		$res = $db->query( "PRAGMA table_info($table)" );
 		$this->assertNotNull( $res );
 		foreach ( $res as $col ) {
@@ -440,13 +457,13 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 	}
 
 	private function getIndexes( $db, $table ) {
-		$indexes = array();
+		$indexes = [];
 		$res = $db->query( "PRAGMA index_list($table)" );
 		$this->assertNotNull( $res );
 		foreach ( $res as $index ) {
 			$res2 = $db->query( "PRAGMA index_info({$index->name})" );
 			$this->assertNotNull( $res2 );
-			$index->columns = array();
+			$index->columns = [];
 			foreach ( $res2 as $col ) {
 				$index->columns[] = $col;
 			}
@@ -457,6 +474,9 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 		return $indexes;
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	public function testCaseInsensitiveLike() {
 		// TODO: Test this for all databases
 		$db = DatabaseSqlite::newStandaloneInstance( ':memory:' );
@@ -472,14 +492,53 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 		$db = DatabaseSqlite::newStandaloneInstance( ':memory:' );
 
 		$databaseCreation = $db->query( 'CREATE TABLE a ( a_1 )', __METHOD__ );
-		$this->assertInstanceOf( 'ResultWrapper', $databaseCreation, "Failed to create table a" );
+		$this->assertInstanceOf( ResultWrapper::class, $databaseCreation, "Failed to create table a" );
 		$res = $db->select( 'a', '*' );
 		$this->assertEquals( 0, $db->numFields( $res ), "expects to get 0 fields for an empty table" );
-		$insertion = $db->insert( 'a', array( 'a_1' => 10 ), __METHOD__ );
+		$insertion = $db->insert( 'a', [ 'a_1' => 10 ], __METHOD__ );
 		$this->assertTrue( $insertion, "Insertion failed" );
 		$res = $db->select( 'a', '*' );
 		$this->assertEquals( 1, $db->numFields( $res ), "wrong number of fields" );
 
 		$this->assertTrue( $db->close(), "closing database" );
+	}
+
+	/**
+	 * @covers \Wikimedia\Rdbms\DatabaseSqlite::__toString
+	 */
+	public function testToString() {
+		$db = DatabaseSqlite::newStandaloneInstance( ':memory:' );
+
+		$toString = (string)$db;
+
+		$this->assertContains( 'SQLite ', $toString );
+	}
+
+	/**
+	 * @covers \Wikimedia\Rdbms\DatabaseSqlite::getAttributes()
+	 */
+	public function testsAttributes() {
+		$attributes = Database::attributesFromType( 'sqlite' );
+		$this->assertTrue( $attributes[Database::ATTR_DB_LEVEL_LOCKING] );
+	}
+}
+
+class DatabaseSqliteMock extends DatabaseSqlite {
+	public static function newInstance( array $p = [] ) {
+		$p['dbFilePath'] = ':memory:';
+		$p['schema'] = false;
+
+		return Database::factory( 'SqliteMock', $p );
+	}
+
+	function query( $sql, $fname = '', $flags = 0 ) {
+		return true;
+	}
+
+	/**
+	 * Override parent visibility to public
+	 */
+	public function replaceVars( $s ) {
+		return parent::replaceVars( $s );
 	}
 }

@@ -20,10 +20,12 @@
  * @ingroup Media
  * @author Ævar Arnfjörð Bjarmason <avarab@gmail.com>
  * @copyright Copyright © 2005, Ævar Arnfjörð Bjarmason, 2009 Brent Garber, 2010 Brian Wolff
- * @license http://www.gnu.org/copyleft/gpl.html GNU General Public License
+ * @license GPL-2.0-or-later
  * @see http://exif.org/Exif2-2.PDF The Exif 2.2 specification
  * @file
  */
+use MediaWiki\MediaWikiServices;
+use Wikimedia\Timestamp\TimestampException;
 
 /**
  * Format Image metadata values into a human readable form.
@@ -102,11 +104,10 @@ class FormatMetadata extends ContextSource {
 		unset( $tags['ResolutionUnit'] );
 
 		foreach ( $tags as $tag => &$vals ) {
-
 			// This seems ugly to wrap non-array's in an array just to unwrap again,
 			// especially when most of the time it is not an array
 			if ( !is_array( $tags[$tag] ) ) {
-				$vals = array( $vals );
+				$vals = [ $vals ];
 			}
 
 			// _type is a special value to say what array type
@@ -117,9 +118,9 @@ class FormatMetadata extends ContextSource {
 				$type = 'ul'; // default unordered list.
 			}
 
-			//This is done differently as the tag is an array.
+			// This is done differently as the tag is an array.
 			if ( $tag == 'GPSTimeStamp' && count( $vals ) === 3 ) {
-				//hour min sec array
+				// hour min sec array
 
 				$h = explode( '/', $vals[0] );
 				$m = explode( '/', $vals[1] );
@@ -165,7 +166,6 @@ class FormatMetadata extends ContextSource {
 			}
 
 			foreach ( $vals as &$val ) {
-
 				switch ( $tag ) {
 					case 'Compression':
 						switch ( $val ) {
@@ -190,8 +190,18 @@ class FormatMetadata extends ContextSource {
 
 					case 'PhotometricInterpretation':
 						switch ( $val ) {
+							case 0:
+							case 1:
 							case 2:
+							case 3:
+							case 4:
+							case 5:
 							case 6:
+							case 8:
+							case 9:
+							case 10:
+							case 32803:
+							case 34892:
 								$val = $this->exifMsg( $tag, $val );
 								break;
 							default:
@@ -261,7 +271,7 @@ class FormatMetadata extends ContextSource {
 					// TODO: YCbCrCoefficients  #p27 (see annex E)
 					case 'ExifVersion':
 					case 'FlashpixVersion':
-						$val = "$val" / 100;
+						$val = (int)$val / 100;
 						break;
 
 					case 'ColorSpace':
@@ -407,15 +417,15 @@ class FormatMetadata extends ContextSource {
 						break;
 
 					case 'Flash':
-						$flashDecode = array(
-							'fired' => $val & bindec( '00000001' ),
-							'return' => ( $val & bindec( '00000110' ) ) >> 1,
-							'mode' => ( $val & bindec( '00011000' ) ) >> 3,
-							'function' => ( $val & bindec( '00100000' ) ) >> 5,
-							'redeye' => ( $val & bindec( '01000000' ) ) >> 6,
-//						'reserved' => ($val & bindec( '10000000' )) >> 7,
-						);
-						$flashMsgs = array();
+						$flashDecode = [
+							'fired' => $val & 0b00000001,
+							'return' => ( $val & 0b00000110 ) >> 1,
+							'mode' => ( $val & 0b00011000 ) >> 3,
+							'function' => ( $val & 0b00100000 ) >> 5,
+							'redeye' => ( $val & 0b01000000 ) >> 6,
+							// 'reserved' => ( $val & 0b10000000 ) >> 7,
+						];
+						$flashMsgs = [];
 						# We do not need to handle unknown values since all are used.
 						foreach ( $flashDecode as $subTag => $subValue ) {
 							# We do not need any message for zeroed values.
@@ -597,7 +607,7 @@ class FormatMetadata extends ContextSource {
 						}
 						break;
 
-					//The GPS...Ref values are kept for compatibility, probably won't be reached.
+					// The GPS...Ref values are kept for compatibility, probably won't be reached.
 					case 'GPSLatitudeRef':
 					case 'GPSDestLatitudeRef':
 						switch ( $val ) {
@@ -730,8 +740,13 @@ class FormatMetadata extends ContextSource {
 
 					case 'Software':
 						if ( is_array( $val ) ) {
-							//if its a software, version array.
-							$val = $this->msg( 'exif-software-version-value', $val[0], $val[1] )->text();
+							if ( count( $val ) > 1 ) {
+								// if its a software, version array.
+								$val = $this->msg( 'exif-software-version-value', $val[0], $val[1] )->text();
+							} else {
+								// https://phabricator.wikimedia.org/T178130
+								$val = $this->exifMsg( $tag, '', $val[0] );
+							}
 						} else {
 							$val = $this->exifMsg( $tag, '', $val );
 						}
@@ -772,7 +787,7 @@ class FormatMetadata extends ContextSource {
 							}
 						}
 						if ( is_numeric( $val ) ) {
-							$fNumber = pow( 2, $val / 2 );
+							$fNumber = 2 ** ( $val / 2 );
 							if ( $fNumber !== false ) {
 								$val = $this->msg( 'exif-maxaperturevalue-value',
 									$this->formatNum( $val ),
@@ -856,6 +871,7 @@ class FormatMetadata extends ContextSource {
 					// are included here as we really don't want
 					// commas inserted.
 					case 'ImageDescription':
+					case 'UserComment':
 					case 'Artist':
 					case 'Copyright':
 					case 'RelatedSoundFile':
@@ -955,11 +971,7 @@ class FormatMetadata extends ContextSource {
 
 					case 'LanguageCode':
 						$lang = Language::fetchLanguageName( strtolower( $val ), $this->getLanguage()->getCode() );
-						if ( $lang ) {
-							$val = htmlspecialchars( $lang );
-						} else {
-							$val = htmlspecialchars( $val );
-						}
+						$val = htmlspecialchars( $lang ?: $val );
 						break;
 
 					default:
@@ -991,13 +1003,12 @@ class FormatMetadata extends ContextSource {
 	public static function flattenArrayContentLang( $vals, $type = 'ul',
 		$noHtml = false, $context = false
 	) {
-		global $wgContLang;
 		$obj = new FormatMetadata;
 		if ( $context ) {
 			$obj->setContext( $context );
 		}
 		$context = new DerivativeContext( $obj->getContext() );
-		$context->setLanguage( $wgContLang );
+		$context->setLanguage( MediaWikiServices::getInstance()->getContentLanguage() );
 		$obj->setContext( $context );
 
 		return $obj->flattenArrayReal( $vals, $type, $noHtml );
@@ -1031,7 +1042,7 @@ class FormatMetadata extends ContextSource {
 
 		if ( !is_array( $vals ) ) {
 			return $vals; // do nothing if not an array;
-		} elseif ( count( $vals ) === 1 && $type !== 'lang' ) {
+		} elseif ( count( $vals ) === 1 && $type !== 'lang' && isset( $vals[0] ) ) {
 			return $vals[0];
 		} elseif ( count( $vals ) === 0 ) {
 			wfDebug( __METHOD__ . " metadata array with 0 elements!\n" );
@@ -1044,7 +1055,7 @@ class FormatMetadata extends ContextSource {
 			 */
 			switch ( $type ) {
 				case 'lang':
-					// Display default, followed by ContLang,
+					// Display default, followed by ContentLanguage,
 					// followed by the rest in no particular
 					// order.
 
@@ -1082,7 +1093,7 @@ class FormatMetadata extends ContextSource {
 
 							if ( $this->singleLang ) {
 								return Html::rawElement( 'span',
-									array( 'lang' => $pLang ), $vals[$pLang] );
+									[ 'lang' => $pLang ], $vals[$pLang] );
 							}
 						}
 					}
@@ -1097,7 +1108,7 @@ class FormatMetadata extends ContextSource {
 							$lang, false, $noHtml );
 						if ( $this->singleLang ) {
 							return Html::rawElement( 'span',
-								array( 'lang' => $lang ), $item );
+								[ 'lang' => $lang ], $item );
 						}
 					}
 					if ( $defaultItem !== false ) {
@@ -1169,7 +1180,7 @@ class FormatMetadata extends ContextSource {
 		$lowLang = strtolower( $lang );
 		$langName = Language::fetchLanguageName( $lowLang );
 		if ( $langName === '' ) {
-			//try just the base language name. (aka en-US -> en ).
+			// try just the base language name. (aka en-US -> en ).
 			list( $langPrefix ) = explode( '-', $lowLang, 2 );
 			$langName = Language::fetchLanguageName( $langPrefix );
 			if ( $langName === '' ) {
@@ -1206,13 +1217,15 @@ class FormatMetadata extends ContextSource {
 	 * @return string The text content of "exif-$tag-$val" message in lower case
 	 */
 	private function exifMsg( $tag, $val, $arg = null, $arg2 = null ) {
-		global $wgContLang;
-
 		if ( $val === '' ) {
 			$val = 'value';
 		}
 
-		return $this->msg( $wgContLang->lc( "exif-$tag-$val" ), $arg, $arg2 )->text();
+		return $this->msg(
+			MediaWikiServices::getInstance()->getContentLanguage()->lc( "exif-$tag-$val" ),
+			$arg,
+			$arg2
+		)->text();
 	}
 
 	/**
@@ -1224,9 +1237,9 @@ class FormatMetadata extends ContextSource {
 	 * @return mixed A floating point number or whatever we were fed
 	 */
 	private function formatNum( $num, $round = false ) {
-		$m = array();
+		$m = [];
 		if ( is_array( $num ) ) {
-			$out = array();
+			$out = [];
 			foreach ( $num as $number ) {
 				$out[] = $this->formatNum( $number );
 			}
@@ -1260,7 +1273,7 @@ class FormatMetadata extends ContextSource {
 	 * @return mixed A floating point number or whatever we were fed
 	 */
 	private function formatFraction( $num ) {
-		$m = array();
+		$m = [];
 		if ( preg_match( '/^(-?\d+)\/(\d+)$/', $num, $m ) ) {
 			$numerator = intval( $m[1] );
 			$denominator = intval( $m[2] );
@@ -1488,7 +1501,7 @@ class FormatMetadata extends ContextSource {
 					. '</span>';
 			}
 			if ( isset( $vals['CiEmailWork'] ) ) {
-				$emails = array();
+				$emails = [];
 				// Have to split multiple emails at commas/new lines.
 				$splitEmails = explode( "\n", $vals['CiEmailWork'] );
 				foreach ( $splitEmails as $e1 ) {
@@ -1550,10 +1563,10 @@ class FormatMetadata extends ContextSource {
 	 * @since 1.23
 	 */
 	public static function getVisibleFields() {
-		$fields = array();
+		$fields = [];
 		$lines = explode( "\n", wfMessage( 'metadata-fields' )->inContentLanguage()->text() );
 		foreach ( $lines as $line ) {
-			$matches = array();
+			$matches = [];
 			if ( preg_match( '/^\\*\s*(.*?)\s*$/', $line, $matches ) ) {
 				$fields[] = $matches[1];
 			}
@@ -1571,24 +1584,24 @@ class FormatMetadata extends ContextSource {
 	 * @since 1.23
 	 */
 	public function fetchExtendedMetadata( File $file ) {
-		global $wgMemc;
+		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
 
 		// If revision deleted, exit immediately
 		if ( $file->isDeleted( File::DELETED_FILE ) ) {
-			return array();
+			return [];
 		}
 
-		$cacheKey = wfMemcKey(
+		$cacheKey = $cache->makeKey(
 			'getExtendedMetadata',
 			$this->getLanguage()->getCode(),
 			(int)$this->singleLang,
 			$file->getSha1()
 		);
 
-		$cachedValue = $wgMemc->get( $cacheKey );
+		$cachedValue = $cache->get( $cacheKey );
 		if (
 			$cachedValue
-			&& Hooks::run( 'ValidateExtendedMetadataCache', array( $cachedValue['timestamp'], $file ) )
+			&& Hooks::run( 'ValidateExtendedMetadataCache', [ $cachedValue['timestamp'], $file ] )
 		) {
 			$extendedMetadata = $cachedValue['data'];
 		} else {
@@ -1604,8 +1617,8 @@ class FormatMetadata extends ContextSource {
 			// outside fetchExtendedMetadata, but this way we don't need to redo the
 			// computation on a cache hit.
 			$this->sanitizeArrayForAPI( $extendedMetadata );
-			$valueToCache = array( 'data' => $extendedMetadata, 'timestamp' => wfTimestampNow() );
-			$wgMemc->set( $cacheKey, $valueToCache, $maxCacheTime );
+			$valueToCache = [ 'data' => $extendedMetadata, 'timestamp' => wfTimestampNow() ];
+			$cache->set( $cacheKey, $valueToCache, $maxCacheTime );
 		}
 
 		return $extendedMetadata;
@@ -1626,18 +1639,18 @@ class FormatMetadata extends ContextSource {
 		if ( $file instanceof ForeignAPIFile ) {
 			// In case of error we pretend no metadata - this will get cached.
 			// Might or might not be a good idea.
-			return $file->getExtendedMetadata() ?: array();
+			return $file->getExtendedMetadata() ?: [];
 		}
 
 		$uploadDate = wfTimestamp( TS_ISO_8601, $file->getTimestamp() );
 
-		$fileMetadata = array(
+		$fileMetadata = [
 			// This is modification time, which is close to "upload" time.
-			'DateTime' => array(
+			'DateTime' => [
 				'value' => $uploadDate,
 				'source' => 'mediawiki-metadata',
-			),
-		);
+			],
+		];
 
 		$title = $file->getTitle();
 		if ( $title ) {
@@ -1650,10 +1663,10 @@ class FormatMetadata extends ContextSource {
 				$name = $text;
 			}
 
-			$fileMetadata['ObjectName'] = array(
+			$fileMetadata['ObjectName'] = [
 				'value' => $name,
 				'source' => 'mediawiki-metadata',
-			);
+			];
 		}
 
 		return $fileMetadata;
@@ -1664,7 +1677,7 @@ class FormatMetadata extends ContextSource {
 	 *
 	 * @param File $file File to use
 	 * @param array $extendedMetadata
-	 * @param int $maxCacheTime Hook handlers might use this parameter to override cache time
+	 * @param int &$maxCacheTime Hook handlers might use this parameter to override cache time
 	 *
 	 * @return array [<property name> => ['value' => <value>]], or [] on error
 	 * @since 1.23
@@ -1672,14 +1685,13 @@ class FormatMetadata extends ContextSource {
 	protected function getExtendedMetadataFromHook( File $file, array $extendedMetadata,
 		&$maxCacheTime
 	) {
-
-		Hooks::run( 'GetExtendedMetadata', array(
+		Hooks::run( 'GetExtendedMetadata', [
 			&$extendedMetadata,
 			$file,
 			$this->getContext(),
 			$this->singleLang,
 			&$maxCacheTime
-		) );
+		] );
 
 		$visible = array_flip( self::getVisibleFields() );
 		foreach ( $extendedMetadata as $key => $value ) {
@@ -1745,15 +1757,15 @@ class FormatMetadata extends ContextSource {
 			return $value;
 		} elseif ( isset( $value['_type'] ) && $value['_type'] === 'lang' ) {
 			// if this is a multilang array, process fields separately
-			$newValue = array();
+			$newValue = [];
 			foreach ( $value as $k => $v ) {
 				$newValue[$k] = $this->resolveMultivalueValue( $v );
 			}
 			return $newValue;
 		} else { // _type is 'ul' or 'ol' or missing in which case it defaults to 'ul'
-			list( $k, $v ) = each( $value );
-			if ( $k === '_type' ) {
-				$v = current( $value );
+			$v = reset( $value );
+			if ( key( $value ) === '_type' ) {
+				$v = next( $value );
 			}
 			return $v;
 		}
@@ -1762,7 +1774,7 @@ class FormatMetadata extends ContextSource {
 	/**
 	 * Takes an array returned by the getExtendedMetadata* functions,
 	 * and resolves multi-language values in it.
-	 * @param array $metadata
+	 * @param array &$metadata
 	 * @since 1.23
 	 */
 	protected function resolveMultilangMetadata( &$metadata ) {
@@ -1779,7 +1791,7 @@ class FormatMetadata extends ContextSource {
 	/**
 	 * Takes an array returned by the getExtendedMetadata* functions,
 	 * and turns all fields into single-valued ones by dropping extra values.
-	 * @param array $metadata
+	 * @param array &$metadata
 	 * @since 1.25
 	 */
 	protected function discardMultipleValues( &$metadata ) {
@@ -1796,12 +1808,11 @@ class FormatMetadata extends ContextSource {
 				$field['value'] = $this->resolveMultivalueValue( $field['value'] );
 			}
 		}
-
 	}
 
 	/**
 	 * Makes sure the given array is a valid API response fragment
-	 * @param array $arr
+	 * @param array &$arr
 	 */
 	protected function sanitizeArrayForAPI( &$arr ) {
 		if ( !is_array( $arr ) ) {
@@ -1845,9 +1856,9 @@ class FormatMetadata extends ContextSource {
 		// drop all characters which are not valid in an XML tag name
 		// a bunch of non-ASCII letters would be valid but probably won't
 		// be used so we take the easy way
-		$key = preg_replace( '/[^a-zA-z0-9_:.-]/', '', $key );
+		$key = preg_replace( '/[^a-zA-z0-9_:.\-]/', '', $key );
 		// drop characters which are invalid at the first position
-		$key = preg_replace( '/^[\d-.]+/', '', $key );
+		$key = preg_replace( '/^[\d\-.]+/', '', $key );
 
 		if ( $key == '' ) {
 			$key = '_';

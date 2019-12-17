@@ -21,12 +21,13 @@
  */
 
 /**
- * Class for generating HTML <select> elements.
+ * Class for generating HTML <select> or <datalist> elements.
  */
 class XmlSelect {
-	protected $options = array();
+	protected $options = [];
 	protected $default = false;
-	protected $attributes = array();
+	protected $tagName = 'select';
+	protected $attributes = [];
 
 	public function __construct( $name = false, $id = false, $default = false ) {
 		if ( $name ) {
@@ -50,6 +51,13 @@ class XmlSelect {
 	}
 
 	/**
+	 * @param string|array $tagName
+	 */
+	public function setTagName( $tagName ) {
+		$this->tagName = $tagName;
+	}
+
+	/**
 	 * @param string $name
 	 * @param string $value
 	 */
@@ -62,20 +70,16 @@ class XmlSelect {
 	 * @return string|null
 	 */
 	public function getAttribute( $name ) {
-		if ( isset( $this->attributes[$name] ) ) {
-			return $this->attributes[$name];
-		} else {
-			return null;
-		}
+		return $this->attributes[$name] ?? null;
 	}
 
 	/**
 	 * @param string $label
-	 * @param string $value If not given, assumed equal to $label
+	 * @param string|false $value If not given, assumed equal to $label
 	 */
 	public function addOption( $label, $value = false ) {
 		$value = $value !== false ? $value : $label;
-		$this->options[] = array( $label => $value );
+		$this->options[] = [ $label => $value ];
 	}
 
 	/**
@@ -95,7 +99,7 @@ class XmlSelect {
 	 * label => ( label => value, label => value )
 	 *
 	 * @param array $options
-	 * @param string|array $default
+	 * @param string|array|false $default
 	 * @return string
 	 */
 	static function formatOptions( $options, $default = false ) {
@@ -104,7 +108,7 @@ class XmlSelect {
 		foreach ( $options as $label => $value ) {
 			if ( is_array( $value ) ) {
 				$contents = self::formatOptions( $value, $default );
-				$data .= Html::rawElement( 'optgroup', array( 'label' => $label ), $contents ) . "\n";
+				$data .= Html::rawElement( 'optgroup', [ 'label' => $label ], $contents ) . "\n";
 			} else {
 				// If $default is an array, then the <select> probably has the multiple attribute,
 				// so we should check if each $value is in $default, rather than checking if
@@ -127,6 +131,6 @@ class XmlSelect {
 			$contents .= self::formatOptions( $options, $this->default );
 		}
 
-		return Html::rawElement( 'select', $this->attributes, rtrim( $contents ) );
+		return Html::rawElement( $this->tagName, $this->attributes, rtrim( $contents ) );
 	}
 }

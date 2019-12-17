@@ -32,12 +32,12 @@ require_once __DIR__ . '/Maintenance.php';
 class FixUserRegistration extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Fix the user_registration field";
+		$this->addDescription( 'Fix the user_registration field' );
 		$this->setBatchSize( 1000 );
 	}
 
 	public function execute() {
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = $this->getDB( DB_MASTER );
 
 		$lastId = 0;
 		do {
@@ -45,32 +45,36 @@ class FixUserRegistration extends Maintenance {
 			$res = $dbw->select(
 				'user',
 				'user_id',
-				array(
+				[
 					'user_id > ' . $dbw->addQuotes( $lastId ),
 					'user_registration IS NULL'
-				),
+				],
 				__METHOD__,
-				array(
-					'LIMIT' => $this->mBatchSize,
+				[
+					'LIMIT' => $this->getBatchSize(),
 					'ORDER BY' => 'user_id',
-				)
+				]
 			);
 			foreach ( $res as $row ) {
 				$id = $row->user_id;
 				$lastId = $id;
 				// Get first edit time
+				$actorQuery = ActorMigration::newMigration()
+					->getWhere( $dbw, 'rev_user', User::newFromId( $id ) );
 				$timestamp = $dbw->selectField(
-					'revision',
+					[ 'revision' ] + $actorQuery['tables'],
 					'MIN(rev_timestamp)',
-					array( 'rev_user' => $id ),
-					__METHOD__
+					$actorQuery['conds'],
+					__METHOD__,
+					[],
+					$actorQuery['joins']
 				);
 				// Update
 				if ( $timestamp !== null ) {
 					$dbw->update(
 						'user',
-						array( 'user_registration' => $timestamp ),
-						array( 'user_id' => $id ),
+						[ 'user_registration' => $timestamp ],
+						[ 'user_id' => $id ],
 						__METHOD__
 					);
 					$user = User::newFromId( $id );
@@ -80,12 +84,12 @@ class FixUserRegistration extends Maintenance {
 					$this->output( "Could not find registration for #$id NULL\n" );
 				}
 			}
-			$this->output( "Waiting for slaves..." );
+			$this->output( "Waiting for replica DBs..." );
 			wfWaitForSlaves();
 			$this->output( " done.\n" );
-		} while ( $res->numRows() >= $this->mBatchSize );
+		} while ( $res->numRows() >= $this->getBatchSize() );
 	}
 }
 
-$maintClass = "FixUserRegistration";
+$maintClass = FixUserRegistration::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * @group ContentHandler
  * @group Database
@@ -11,6 +13,10 @@ class TextContentTest extends MediaWikiLangTestCase {
 	protected function setUp() {
 		parent::setUp();
 
+		// trigger purging of all page related tables
+		$this->tablesUsed[] = 'page';
+		$this->tablesUsed[] = 'revision';
+
 		// Anon user
 		$user = new User();
 		$user->setName( '127.0.0.1' );
@@ -19,17 +25,17 @@ class TextContentTest extends MediaWikiLangTestCase {
 		$this->context->setTitle( Title::newFromText( 'Test' ) );
 		$this->context->setUser( $user );
 
-		$this->setMwGlobals( array(
+		$this->setMwGlobals( [
 			'wgUser' => $user,
-			'wgTextModelsToParse' => array(
+			'wgTextModelsToParse' => [
 				CONTENT_MODEL_WIKITEXT,
 				CONTENT_MODEL_CSS,
 				CONTENT_MODEL_JAVASCRIPT,
-			),
-			'wgUseTidy' => false,
+			],
+			'wgTidyConfig' => [ 'driver' => 'RemexHtml' ],
 			'wgCapitalLinks' => true,
-			'wgHooks' => array(), // bypass hook ContentGetParserOutput that force custom rendering
-		) );
+			'wgHooks' => [], // bypass hook ContentGetParserOutput that force custom rendering
+		] );
 
 		MWTidy::destroySingleton();
 	}
@@ -39,22 +45,26 @@ class TextContentTest extends MediaWikiLangTestCase {
 		parent::tearDown();
 	}
 
+	/**
+	 * @param string $text
+	 * @return TextContent
+	 */
 	public function newContent( $text ) {
 		return new TextContent( $text );
 	}
 
 	public static function dataGetParserOutput() {
-		return array(
-			array(
+		return [
+			[
 				'TextContentTest_testGetParserOutput',
 				CONTENT_MODEL_TEXT,
 				"hello ''world'' & [[stuff]]\n", "hello ''world'' &amp; [[stuff]]",
-				array(
-					'Links' => array()
-				)
-			),
+				[
+					'Links' => []
+				]
+			],
 			// TODO: more...?
-		);
+		];
 	}
 
 	/**
@@ -77,7 +87,7 @@ class TextContentTest extends MediaWikiLangTestCase {
 		if ( $expectedFields ) {
 			foreach ( $expectedFields as $field => $exp ) {
 				$f = 'get' . ucfirst( $field );
-				$v = call_user_func( array( $po, $f ) );
+				$v = call_user_func( [ $po, $f ] );
 
 				if ( is_array( $exp ) ) {
 					$this->assertArrayEquals( $exp, $v );
@@ -91,18 +101,23 @@ class TextContentTest extends MediaWikiLangTestCase {
 	}
 
 	public static function dataPreSaveTransform() {
-		return array(
-			array(
-				#0: no signature resolution
+		return [
+			[
+				# 0: no signature resolution
 				'hello this is ~~~',
 				'hello this is ~~~',
-			),
-			array(
-				#1: rtrim
+			],
+			[
+				# 1: rtrim
 				" Foo \n ",
 				' Foo',
-			),
-		);
+			],
+			[
+				# 2: newline normalization
+				"LF\n\nCRLF\r\n\r\nCR\r\rEND",
+				"LF\n\nCRLF\n\nCR\n\nEND",
+			],
+		];
 	}
 
 	/**
@@ -110,9 +125,8 @@ class TextContentTest extends MediaWikiLangTestCase {
 	 * @covers TextContent::preSaveTransform
 	 */
 	public function testPreSaveTransform( $text, $expected ) {
-		global $wgContLang;
-
-		$options = ParserOptions::newFromUserAndLang( $this->context->getUser(), $wgContLang );
+		$options = ParserOptions::newFromUserAndLang( $this->context->getUser(),
+			MediaWikiServices::getInstance()->getContentLanguage() );
 
 		$content = $this->newContent( $text );
 		$content = $content->preSaveTransform(
@@ -121,16 +135,16 @@ class TextContentTest extends MediaWikiLangTestCase {
 			$options
 		);
 
-		$this->assertEquals( $expected, $content->getNativeData() );
+		$this->assertEquals( $expected, $content->getText() );
 	}
 
 	public static function dataPreloadTransform() {
-		return array(
-			array(
+		return [
+			[
 				'hello this is ~~~',
 				'hello this is ~~~',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -138,21 +152,21 @@ class TextContentTest extends MediaWikiLangTestCase {
 	 * @covers TextContent::preloadTransform
 	 */
 	public function testPreloadTransform( $text, $expected ) {
-		global $wgContLang;
-		$options = ParserOptions::newFromUserAndLang( $this->context->getUser(), $wgContLang );
+		$options = ParserOptions::newFromUserAndLang( $this->context->getUser(),
+			MediaWikiServices::getInstance()->getContentLanguage() );
 
 		$content = $this->newContent( $text );
 		$content = $content->preloadTransform( $this->context->getTitle(), $options );
 
-		$this->assertEquals( $expected, $content->getNativeData() );
+		$this->assertEquals( $expected, $content->getText() );
 	}
 
 	public static function dataGetRedirectTarget() {
-		return array(
-			array( '#REDIRECT [[Test]]',
+		return [
+			[ '#REDIRECT [[Test]]',
 				null,
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -180,54 +194,23 @@ class TextContentTest extends MediaWikiLangTestCase {
 		$this->assertEquals( !is_null( $expected ), $content->isRedirect() );
 	}
 
-	/**
-	 * @todo Test needs database! Should be done by a test class in the Database group.
-	 */
-	/*
-	public function getRedirectChain() {
-		$text = $this->getNativeData();
-		return Title::newFromRedirectArray( $text );
-	}
-	*/
-
-	/**
-	 * @todo Test needs database! Should be done by a test class in the Database group.
-	 */
-	/*
-	public function getUltimateRedirectTarget() {
-		$text = $this->getNativeData();
-		return Title::newFromRedirectRecurse( $text );
-	}
-	*/
-
 	public static function dataIsCountable() {
-		return array(
-			array( '',
+		return [
+			[ '',
 				null,
 				'any',
 				true
-			),
-			array( 'Foo',
+			],
+			[ 'Foo',
 				null,
 				'any',
 				true
-			),
-			array( 'Foo',
-				null,
-				'comma',
-				false
-			),
-			array( 'Foo, bar',
-				null,
-				'comma',
-				false
-			),
-		);
+			],
+		];
 	}
 
 	/**
 	 * @dataProvider dataIsCountable
-	 * @group Database
 	 * @covers TextContent::isCountable
 	 */
 	public function testIsCountable( $text, $hasLinks, $mode, $expected ) {
@@ -247,20 +230,20 @@ class TextContentTest extends MediaWikiLangTestCase {
 	}
 
 	public static function dataGetTextForSummary() {
-		return array(
-			array( "hello\nworld.",
+		return [
+			[ "hello\nworld.",
 				16,
 				'hello world.',
-			),
-			array( 'hello world.',
+			],
+			[ 'hello world.',
 				8,
 				'hello...',
-			),
-			array( '[[hello world]].',
+			],
+			[ '[[hello world]].',
 				8,
 				'[[hel...',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -290,7 +273,7 @@ class TextContentTest extends MediaWikiLangTestCase {
 		$copy = $content->copy();
 
 		$this->assertTrue( $content->equals( $copy ), 'copy must be equal to original' );
-		$this->assertEquals( 'hello world.', $copy->getNativeData() );
+		$this->assertEquals( 'hello world.', $copy->getText() );
 	}
 
 	/**
@@ -303,12 +286,21 @@ class TextContentTest extends MediaWikiLangTestCase {
 	}
 
 	/**
+	 * @covers TextContent::getText
+	 */
+	public function testGetText() {
+		$content = $this->newContent( 'hello world.' );
+
+		$this->assertEquals( 'hello world.', $content->getText() );
+	}
+
+	/**
 	 * @covers TextContent::getNativeData
 	 */
 	public function testGetNativeData() {
 		$content = $this->newContent( 'hello world.' );
 
-		$this->assertEquals( 'hello world.', $content->getNativeData() );
+		$this->assertEquals( 'hello world.', $content->getText() );
 	}
 
 	/**
@@ -339,12 +331,12 @@ class TextContentTest extends MediaWikiLangTestCase {
 	}
 
 	public static function dataIsEmpty() {
-		return array(
-			array( '', true ),
-			array( '  ', false ),
-			array( '0', false ),
-			array( 'hallo welt.', false ),
-		);
+		return [
+			[ '', true ],
+			[ '  ', false ],
+			[ '0', false ],
+			[ 'hallo welt.', false ],
+		];
 	}
 
 	/**
@@ -358,13 +350,13 @@ class TextContentTest extends MediaWikiLangTestCase {
 	}
 
 	public static function dataEquals() {
-		return array(
-			array( new TextContent( "hallo" ), null, false ),
-			array( new TextContent( "hallo" ), new TextContent( "hallo" ), true ),
-			array( new TextContent( "hallo" ), new JavaScriptContent( "hallo" ), false ),
-			array( new TextContent( "hallo" ), new WikitextContent( "hallo" ), false ),
-			array( new TextContent( "hallo" ), new TextContent( "HALLO" ), false ),
-		);
+		return [
+			[ new TextContent( "hallo" ), null, false ],
+			[ new TextContent( "hallo" ), new TextContent( "hallo" ), true ],
+			[ new TextContent( "hallo" ), new JavaScriptContent( "hallo" ), false ],
+			[ new TextContent( "hallo" ), new WikitextContent( "hallo" ), false ],
+			[ new TextContent( "hallo" ), new TextContent( "HALLO" ), false ],
+		];
 	}
 
 	/**
@@ -376,30 +368,28 @@ class TextContentTest extends MediaWikiLangTestCase {
 	}
 
 	public static function dataGetDeletionUpdates() {
-		return array(
-			array( "TextContentTest_testGetSecondaryDataUpdates_1",
+		return [
+			[
 				CONTENT_MODEL_TEXT, "hello ''world''\n",
-				array()
-			),
-			array( "TextContentTest_testGetSecondaryDataUpdates_2",
+				[]
+			],
+			[
 				CONTENT_MODEL_TEXT, "hello [[world test 21344]]\n",
-				array()
-			),
+				[]
+			],
 			// TODO: more...?
-		);
+		];
 	}
 
 	/**
 	 * @dataProvider dataGetDeletionUpdates
 	 * @covers TextContent::getDeletionUpdates
 	 */
-	public function testDeletionUpdates( $title, $model, $text, $expectedStuff ) {
-		$ns = $this->getDefaultWikitextNS();
-		$title = Title::newFromText( $title, $ns );
+	public function testDeletionUpdates( $model, $text, $expectedStuff ) {
+		$page = $this->getNonexistingTestPage( get_class( $this ) . '-' . $this->getName() );
+		$title = $page->getTitle();
 
 		$content = ContentHandler::makeContent( $text, $title, $model );
-
-		$page = WikiPage::factory( $title );
 		$page->doEditContent( $content, '' );
 
 		$updates = $content->getDeletionUpdates( $page );
@@ -410,52 +400,48 @@ class TextContentTest extends MediaWikiLangTestCase {
 			$updates[$class] = $update;
 		}
 
-		if ( !$expectedStuff ) {
-			$this->assertTrue( true ); // make phpunit happy
-			return;
-		}
-
 		foreach ( $expectedStuff as $class => $fieldValues ) {
 			$this->assertArrayHasKey( $class, $updates, "missing an update of type $class" );
 
 			$update = $updates[$class];
 
 			foreach ( $fieldValues as $field => $value ) {
-				$v = $update->$field; #if the field doesn't exist, just crash and burn
+				$v = $update->$field; # if the field doesn't exist, just crash and burn
 				$this->assertEquals( $value, $v, "unexpected value for field $field in instance of $class" );
 			}
 		}
 
-		$page->doDeleteArticle( '' );
+		// make phpunit happy even if $expectedStuff was empty
+		$this->assertTrue( true );
 	}
 
 	public static function provideConvert() {
-		return array(
-			array( // #0
+		return [
+			[ // #0
 				'Hallo Welt',
 				CONTENT_MODEL_WIKITEXT,
 				'lossless',
 				'Hallo Welt'
-			),
-			array( // #1
+			],
+			[ // #1
 				'Hallo Welt',
 				CONTENT_MODEL_WIKITEXT,
 				'lossless',
 				'Hallo Welt'
-			),
-			array( // #1
+			],
+			[ // #1
 				'Hallo Welt',
 				CONTENT_MODEL_CSS,
 				'lossless',
 				'Hallo Welt'
-			),
-			array( // #1
+			],
+			[ // #1
 				'Hallo Welt',
 				CONTENT_MODEL_JAVASCRIPT,
 				'lossless',
 				'Hallo Welt'
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -465,13 +451,50 @@ class TextContentTest extends MediaWikiLangTestCase {
 	public function testConvert( $text, $model, $lossy, $expectedNative ) {
 		$content = $this->newContent( $text );
 
+		/** @var TextContent $converted */
 		$converted = $content->convert( $model, $lossy );
 
 		if ( $expectedNative === false ) {
 			$this->assertFalse( $converted, "conversion to $model was expected to fail!" );
 		} else {
-			$this->assertInstanceOf( 'Content', $converted );
-			$this->assertEquals( $expectedNative, $converted->getNativeData() );
+			$this->assertInstanceOf( Content::class, $converted );
+			$this->assertEquals( $expectedNative, $converted->getText() );
 		}
 	}
+
+	/**
+	 * @covers TextContent::normalizeLineEndings
+	 * @dataProvider provideNormalizeLineEndings
+	 */
+	public function testNormalizeLineEndings( $input, $expected ) {
+		$this->assertEquals( $expected, TextContent::normalizeLineEndings( $input ) );
+	}
+
+	public static function provideNormalizeLineEndings() {
+		return [
+			[
+				"Foo\r\nbar",
+				"Foo\nbar"
+			],
+			[
+				"Foo\rbar",
+				"Foo\nbar"
+			],
+			[
+				"Foobar\n  ",
+				"Foobar"
+			]
+		];
+	}
+
+	/**
+	 * @covers TextContent::__construct
+	 * @covers TextContentHandler::serializeContent
+	 */
+	public function testSerialize() {
+		$cnt = $this->newContent( 'testing text' );
+
+		$this->assertSame( 'testing text', $cnt->serialize() );
+	}
+
 }

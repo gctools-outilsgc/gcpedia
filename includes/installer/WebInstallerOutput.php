@@ -21,6 +21,8 @@
  * @ingroup Deployment
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * Output class modelled on OutputPage.
  *
@@ -31,6 +33,7 @@
  *
  * @ingroup Deployment
  * @since 1.17
+ * @private
  */
 class WebInstallerOutput {
 
@@ -89,8 +92,18 @@ class WebInstallerOutput {
 
 	/**
 	 * @param string $text
+	 * @deprecated since 1.32; use addWikiTextAsInterface instead
 	 */
 	public function addWikiText( $text ) {
+		wfDeprecated( __METHOD__, '1.32' );
+		$this->addWikiTextAsInterface( $text );
+	}
+
+	/**
+	 * @param string $text
+	 * @since 1.32
+	 */
+	public function addWikiTextAsInterface( $text ) {
 		$this->addHTML( $this->parent->parse( $text ) );
 	}
 
@@ -115,7 +128,10 @@ class WebInstallerOutput {
 
 	public function output() {
 		$this->flush();
-		$this->outputFooter();
+
+		if ( !$this->redirectTarget ) {
+			$this->outputFooter();
+		}
 	}
 
 	/**
@@ -126,22 +142,22 @@ class WebInstallerOutput {
 	public function getCSS() {
 		global $wgStyleDirectory;
 
-		$moduleNames = array(
-			// See SkinTemplate::setupSkinUserCss
+		$moduleNames = [
+			// Based on Skin::getDefaultModules
 			'mediawiki.legacy.shared',
-			// See Vector::setupSkinUserCss
+			// Based on Vector::setupSkinUserCss
 			'mediawiki.skinning.interface',
-		);
+		];
 
-		$resourceLoader = new ResourceLoader();
+		$resourceLoader = MediaWikiServices::getInstance()->getResourceLoader();
 
 		if ( file_exists( "$wgStyleDirectory/Vector/skin.json" ) ) {
 			// Force loading Vector skin if available as a fallback skin
 			// for whatever ResourceLoader wants to have as the default.
 			$registry = new ExtensionRegistry();
-			$data = $registry->readFromQueue( array(
+			$data = $registry->readFromQueue( [
 				"$wgStyleDirectory/Vector/skin.json" => 1,
-			) );
+			] );
 			if ( isset( $data['globals']['wgResourceModules'] ) ) {
 				$resourceLoader->register( $data['globals']['wgResourceModules'] );
 			}
@@ -151,13 +167,13 @@ class WebInstallerOutput {
 
 		$moduleNames[] = 'mediawiki.legacy.config';
 
-		$rlContext = new ResourceLoaderContext( $resourceLoader, new FauxRequest( array(
+		$rlContext = new ResourceLoaderContext( $resourceLoader, new FauxRequest( [
 				'debug' => 'true',
-				'lang' => $this->getLanguageCode(),
+				'lang' => $this->getLanguage()->getCode(),
 				'only' => 'styles',
-		) ) );
+		] ) );
 
-		$styles = array();
+		$styles = [];
 		foreach ( $moduleNames as $moduleName ) {
 			/** @var ResourceLoaderFileModule $module */
 			$module = $resourceLoader->getModule( $moduleName );
@@ -170,7 +186,8 @@ class WebInstallerOutput {
 			$styles = array_merge( $styles, ResourceLoader::makeCombinedStyles(
 				$module->readStyleFiles(
 					$module->getStyleFiles( $rlContext ),
-					$module->getFlip( $rlContext )
+					$module->getFlip( $rlContext ),
+					$rlContext
 			) ) );
 		}
 
@@ -183,7 +200,7 @@ class WebInstallerOutput {
 	 * @return string
 	 */
 	private function getCssUrl() {
-		return Html::linkedStyle( $_SERVER['PHP_SELF'] . '?css=1' );
+		return Html::linkedStyle( $this->parent->getUrl( [ 'css' => 1 ] ) );
 	}
 
 	public function useShortHeader( $use = true ) {
@@ -206,31 +223,23 @@ class WebInstallerOutput {
 	}
 
 	/**
-	 * @return string
+	 * @since 1.33
+	 * @return Language
 	 */
-	public function getDir() {
+	private function getLanguage() {
 		global $wgLang;
 
-		return is_object( $wgLang ) ? $wgLang->getDir() : 'ltr';
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getLanguageCode() {
-		global $wgLang;
-
-		return is_object( $wgLang ) ? $wgLang->getCode() : 'en';
+		return is_object( $wgLang ) ? $wgLang : Language::factory( 'en' );
 	}
 
 	/**
 	 * @return string[]
 	 */
 	public function getHeadAttribs() {
-		return array(
-			'dir' => $this->getDir(),
-			'lang' => wfBCP47( $this->getLanguageCode() ),
-		);
+		return [
+			'dir' => $this->getLanguage()->getDir(),
+			'lang' => $this->getLanguage()->getHtmlCode(),
+		];
 	}
 
 	/**
@@ -263,6 +272,7 @@ class WebInstallerOutput {
 		}
 ?>
 <?php echo Html::htmlHeader( $this->getHeadAttribs() ); ?>
+
 <head>
 	<meta name="robots" content="noindex, nofollow" />
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
@@ -272,7 +282,7 @@ class WebInstallerOutput {
 	<?php echo Html::linkedScript( 'config.js' ) . "\n"; ?>
 </head>
 
-<?php echo Html::openElement( 'body', array( 'class' => $this->getDir() ) ) . "\n"; ?>
+<?php echo Html::openElement( 'body', [ 'class' => $this->getLanguage()->getDir() ] ) . "\n"; ?>
 <div id="mw-page-base"></div>
 <div id="mw-head-base"></div>
 <div id="content" class="mw-body">
@@ -294,9 +304,9 @@ class WebInstallerOutput {
 
 <div id="mw-panel">
 	<div class="portal" id="p-logo">
-	  <a style="background-image: url(images/installer-logo.png);"
-		href="https://www.mediawiki.org/"
-		title="Main Page"></a>
+		<a style="background-image: url(images/installer-logo.png);"
+			href="https://www.mediawiki.org/"
+			title="Main Page"></a>
 	</div>
 <?php
 	$message = wfMessage( 'config-sidebar' )->plain();

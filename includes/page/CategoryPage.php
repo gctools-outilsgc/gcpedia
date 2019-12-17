@@ -27,7 +27,12 @@
  */
 class CategoryPage extends Article {
 	# Subclasses can change this to override the viewer class.
-	protected $mCategoryViewerClass = 'CategoryViewer';
+	protected $mCategoryViewerClass = CategoryViewer::class;
+
+	/**
+	 * @var WikiCategoryPage
+	 */
+	protected $mPage;
 
 	/**
 	 * @param Title $title
@@ -36,18 +41,6 @@ class CategoryPage extends Article {
 	protected function newPage( Title $title ) {
 		// Overload mPage with a category-specific page
 		return new WikiCategoryPage( $title );
-	}
-
-	/**
-	 * Constructor from a page id
-	 * @param int $id Article ID to load
-	 * @return CategoryPage|null
-	 */
-	public static function newFromID( $id ) {
-		$t = Title::newFromID( $id );
-		# @todo FIXME: Doesn't inherit right
-		return $t == null ? null : new self( $t );
-		# return $t == null ? null : new static( $t ); // PHP 5.3
 	}
 
 	function view() {
@@ -61,20 +54,27 @@ class CategoryPage extends Article {
 			return;
 		}
 
-		if ( !Hooks::run( 'CategoryPageView', array( &$this ) ) ) {
+		// Avoid PHP 7.1 warning of passing $this by reference
+		$categoryPage = $this;
+
+		if ( !Hooks::run( 'CategoryPageView', [ &$categoryPage ] ) ) {
 			return;
 		}
 
 		$title = $this->getTitle();
-		if ( NS_CATEGORY == $title->getNamespace() ) {
+		if ( $title->inNamespace( NS_CATEGORY ) ) {
 			$this->openShowCategory();
 		}
 
 		parent::view();
 
-		if ( NS_CATEGORY == $title->getNamespace() ) {
+		if ( $title->inNamespace( NS_CATEGORY ) ) {
 			$this->closeShowCategory();
 		}
+
+		# Use adaptive TTLs for CDN so delayed/failed purges are noticed less often
+		$outputPage = $this->getContext()->getOutput();
+		$outputPage->adaptCdnTTL( $this->mPage->getTouched(), IExpiringStore::TTL_MINUTE );
 	}
 
 	function openShowCategory() {
@@ -89,8 +89,8 @@ class CategoryPage extends Article {
 
 		$reqArray = $request->getValues();
 
-		$from = $until = array();
-		foreach ( array( 'page', 'subcat', 'file' ) as $type ) {
+		$from = $until = [];
+		foreach ( [ 'page', 'subcat', 'file' ] as $type ) {
 			$from[$type] = $request->getVal( "{$type}from", $oldFrom );
 			$until[$type] = $request->getVal( "{$type}until", $oldUntil );
 
@@ -116,5 +116,13 @@ class CategoryPage extends Article {
 		$out = $this->getContext()->getOutput();
 		$out->addHTML( $viewer->getHTML() );
 		$this->addHelpLink( 'Help:Categories' );
+	}
+
+	function getCategoryViewerClass() {
+		return $this->mCategoryViewerClass;
+	}
+
+	function setCategoryViewerClass( $class ) {
+		$this->mCategoryViewerClass = $class;
 	}
 }

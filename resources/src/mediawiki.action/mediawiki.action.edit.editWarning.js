@@ -1,7 +1,7 @@
 /*
  * Javascript for module editWarning
  */
-( function ( mw, $ ) {
+( function () {
 	'use strict';
 
 	$( function () {
@@ -34,9 +34,9 @@
 		} );
 
 		// Add form submission handler
-		$( '#editform' ).submit( function () {
+		$( '#editform' ).on( 'submit', function () {
 			allowCloseWindow.release();
 		} );
 	} );
 
-}( mediaWiki, jQuery ) );
+}() );

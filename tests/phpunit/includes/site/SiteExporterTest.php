@@ -1,8 +1,6 @@
 <?php
 
 /**
- * Tests for the SiteExporter class.
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -29,10 +27,13 @@
  *
  * @author Daniel Kinzler
  */
-class SiteExporterTest extends PHPUnit_Framework_TestCase {
+class SiteExporterTest extends PHPUnit\Framework\TestCase {
+
+	use MediaWikiCoversValidator;
+	use PHPUnit4And6Compat;
 
 	public function testConstructor_InvalidArgument() {
-		$this->setExpectedException( 'InvalidArgumentException' );
+		$this->setExpectedException( InvalidArgumentException::class );
 
 		new SiteExporter( 'Foo' );
 	}
@@ -50,7 +51,7 @@ class SiteExporterTest extends PHPUnit_Framework_TestCase {
 		$tmp = tmpfile();
 		$exporter = new SiteExporter( $tmp );
 
-		$exporter->exportSites( array( $foo, $acme ) );
+		$exporter->exportSites( [ $foo, $acme ] );
 
 		fseek( $tmp, 0 );
 		$xml = fread( $tmp, 16 * 1024 );
@@ -75,7 +76,7 @@ class SiteExporterTest extends PHPUnit_Framework_TestCase {
 	}
 
 	private function newSiteStore( SiteList $sites ) {
-		$store = $this->getMock( 'SiteStore' );
+		$store = $this->getMockBuilder( SiteStore::class )->getMock();
 
 		$store->expects( $this->once() )
 			->method( 'saveSites' )
@@ -112,15 +113,15 @@ class SiteExporterTest extends PHPUnit_Framework_TestCase {
 		$dewiki->setPath( MediaWikiSite::PATH_PAGE, 'http://de.wikipedia.org/wiki/' );
 		$dewiki->setSource( 'meta.wikimedia.org' );
 
-		return array(
-			'empty' => array(
+		return [
+			'empty' => [
 				new SiteList()
-			),
+			],
 
-			'some' => array(
-				new SiteList( array( $foo, $acme, $dewiki ) ),
-			),
-		);
+			'some' => [
+				new SiteList( [ $foo, $acme, $dewiki ] ),
+			],
+		];
 	}
 
 	/**

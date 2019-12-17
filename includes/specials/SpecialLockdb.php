@@ -21,6 +21,8 @@
  * @ingroup SpecialPage
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * A form to make the database readonly (eg for maintenance purposes).
  *
@@ -33,6 +35,10 @@ class SpecialLockdb extends FormSpecialPage {
 		parent::__construct( 'Lockdb', 'siteadmin' );
 	}
 
+	public function doesWrites() {
+		return false;
+	}
+
 	public function requiresWrite() {
 		return false;
 	}
@@ -43,41 +49,42 @@ class SpecialLockdb extends FormSpecialPage {
 		if ( !is_writable( dirname( $this->getConfig()->get( 'ReadOnlyFile' ) ) ) ) {
 			throw new ErrorPageError( 'lockdb', 'lockfilenotwritable' );
 		}
+		if ( file_exists( $this->getConfig()->get( 'ReadOnlyFile' ) ) ) {
+			throw new ErrorPageError( 'lockdb', 'databaselocked' );
+		}
 	}
 
 	protected function getFormFields() {
-		return array(
-			'Reason' => array(
+		return [
+			'Reason' => [
 				'type' => 'textarea',
 				'rows' => 4,
 				'vertical-label' => true,
 				'label-message' => 'enterlockreason',
-			),
-			'Confirm' => array(
+			],
+			'Confirm' => [
 				'type' => 'toggle',
 				'label-message' => 'lockconfirm',
-			),
-		);
+			],
+		];
 	}
 
 	protected function alterForm( HTMLForm $form ) {
-		$form->setWrapperLegend( false );
-		$form->setHeaderText( $this->msg( 'lockdbtext' )->parseAsBlock() );
-		$form->setSubmitTextMsg( 'lockbtn' );
+		$form->setWrapperLegend( false )
+			->setHeaderText( $this->msg( 'lockdbtext' )->parseAsBlock() )
+			->setSubmitTextMsg( 'lockbtn' );
 	}
 
 	public function onSubmit( array $data ) {
-		global $wgContLang;
-
 		if ( !$data['Confirm'] ) {
 			return Status::newFatal( 'locknoconfirm' );
 		}
 
-		MediaWiki\suppressWarnings();
+		Wikimedia\suppressWarnings();
 		$fp = fopen( $this->getConfig()->get( 'ReadOnlyFile' ), 'w' );
-		MediaWiki\restoreWarnings();
+		Wikimedia\restoreWarnings();
 
-		if ( false === $fp ) {
+		if ( $fp === false ) {
 			# This used to show a file not found error, but the likeliest reason for fopen()
 			# to fail at this point is insufficient permission to write to the file...good old
 			# is_writable() is plain wrong in some cases, it seems...
@@ -85,10 +92,11 @@ class SpecialLockdb extends FormSpecialPage {
 		}
 		fwrite( $fp, $data['Reason'] );
 		$timestamp = wfTimestampNow();
+		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 		fwrite( $fp, "\n<p>" . $this->msg( 'lockedbyandtime',
 			$this->getUser()->getName(),
-			$wgContLang->date( $timestamp, false, false ),
-			$wgContLang->time( $timestamp, false, false )
+			$contLang->date( $timestamp, false, false ),
+			$contLang->time( $timestamp, false, false )
 		)->inContentLanguage()->text() . "</p>\n" );
 		fclose( $fp );
 
@@ -99,6 +107,10 @@ class SpecialLockdb extends FormSpecialPage {
 		$out = $this->getOutput();
 		$out->addSubtitle( $this->msg( 'lockdbsuccesssub' ) );
 		$out->addWikiMsg( 'lockdbsuccesstext' );
+	}
+
+	protected function getDisplayFormat() {
+		return 'ooui';
 	}
 
 	protected function getGroupName() {

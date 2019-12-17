@@ -1,9 +1,5 @@
 <?php
 /**
- *
- *
- * Created on July 7, 2007
- *
  * Copyright © 2006 Yuri Astrakhan "<Firstname><Lastname>@gmail.com"
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,7 +32,7 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 	private $dfltNamespace = NS_MAIN;
 	private $hasNamespace = true;
 	private $useIndex = null;
-	private $props = array();
+	private $props = [];
 
 	public function __construct( ApiQuery $query, $moduleName ) {
 		switch ( $moduleName ) {
@@ -69,10 +65,10 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 				$this->table = 'redirect';
 				$this->tablePrefix = 'rd_';
 				$this->indexTag = 'r';
-				$this->props = array(
+				$this->props = [
 					'fragment' => 'rd_fragment',
 					'interwiki' => 'rd_interwiki',
-				);
+				];
 				break;
 			default:
 				ApiBase::dieDebug( __METHOD__, 'Unknown module name' );
@@ -113,12 +109,16 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 		}
 
 		if ( $params['unique'] ) {
-			$matches = array_intersect_key( $prop, $this->props + array( 'ids' => 1 ) );
+			$matches = array_intersect_key( $prop, $this->props + [ 'ids' => 1 ] );
 			if ( $matches ) {
 				$p = $this->getModulePrefix();
-				$this->dieUsage(
-					"Cannot use {$p}prop=" . join( '|', array_keys( $matches ) ) . " with {$p}unique",
-					'params'
+				$this->dieWithError(
+					[
+						'apierror-invalidparammix-cannotusewith',
+						"{$p}prop=" . implode( '|', array_keys( $matches ) ),
+						"{$p}unique"
+					],
+					'invalidparammix'
 				);
 			}
 			$this->addOption( 'DISTINCT' );
@@ -140,7 +140,7 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 			} else {
 				$this->dieContinueUsageIf( count( $continueArr ) != 2 );
 				$continueTitle = $db->addQuotes( $continueArr[0] );
-				$continueFrom = intval( $continueArr[1] );
+				$continueFrom = (int)$continueArr[1];
 				$this->addWhere(
 					"{$pfx}{$fieldTitle} $op $continueTitle OR " .
 					"({$pfx}{$fieldTitle} = $continueTitle AND " .
@@ -150,10 +150,10 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 		}
 
 		// 'continue' always overrides 'from'
-		$from = ( $continue || $params['from'] === null ? null :
-			$this->titlePartToKey( $params['from'], $namespace ) );
-		$to = ( $params['to'] === null ? null :
-			$this->titlePartToKey( $params['to'], $namespace ) );
+		$from = $continue || $params['from'] === null ? null :
+			$this->titlePartToKey( $params['from'], $namespace );
+		$to = $params['to'] === null ? null :
+			$this->titlePartToKey( $params['to'], $namespace );
 		$this->addWhereRange( $pfx . $fieldTitle, 'newer', $from, $to );
 
 		if ( isset( $params['prefix'] ) ) {
@@ -161,8 +161,8 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 				$params['prefix'], $namespace ), $db->anyString() ) );
 		}
 
-		$this->addFields( array( 'pl_title' => $pfx . $fieldTitle ) );
-		$this->addFieldsIf( array( 'pl_from' => $pfx . 'from' ), !$params['unique'] );
+		$this->addFields( [ 'pl_title' => $pfx . $fieldTitle ] );
+		$this->addFieldsIf( [ 'pl_from' => $pfx . 'from' ], !$params['unique'] );
 		foreach ( $this->props as $name => $field ) {
 			$this->addFieldsIf( $field, isset( $prop[$name] ) );
 		}
@@ -174,7 +174,7 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 		$this->addOption( 'LIMIT', $limit + 1 );
 
 		$sort = ( $params['dir'] == 'descending' ? ' DESC' : '' );
-		$orderBy = array();
+		$orderBy = [];
 		$orderBy[] = $pfx . $fieldTitle . $sort;
 		if ( !$params['unique'] ) {
 			$orderBy[] = $pfx . 'from' . $sort;
@@ -183,8 +183,8 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 
 		$res = $this->select( __METHOD__ );
 
-		$pageids = array();
-		$titles = array();
+		$pageids = [];
+		$titles = [];
 		$count = 0;
 		$result = $this->getResult();
 		foreach ( $res as $row ) {
@@ -200,11 +200,11 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 			}
 
 			if ( is_null( $resultPageSet ) ) {
-				$vals = array(
+				$vals = [
 					ApiResult::META_TYPE => 'assoc',
-				);
+				];
 				if ( $fld_ids ) {
-					$vals['fromid'] = intval( $row->pl_from );
+					$vals['fromid'] = (int)$row->pl_from;
 				}
 				if ( $fld_title ) {
 					$title = Title::makeTitle( $namespace, $row->pl_title );
@@ -215,7 +215,7 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 						$vals[$name] = $row->$field;
 					}
 				}
-				$fit = $result->addValue( array( 'query', $this->getModuleName() ), null, $vals );
+				$fit = $result->addValue( [ 'query', $this->getModuleName() ], null, $vals );
 				if ( !$fit ) {
 					if ( $params['unique'] ) {
 						$this->setContinueEnumParameter( 'continue', $row->pl_title );
@@ -232,7 +232,7 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 		}
 
 		if ( is_null( $resultPageSet ) ) {
-			$result->addIndexedTagName( array( 'query', $this->getModuleName() ), $this->indexTag );
+			$result->addIndexedTagName( [ 'query', $this->getModuleName() ], $this->indexTag );
 		} elseif ( $params['unique'] ) {
 			$resultPageSet->populateFromTitles( $titles );
 		} else {
@@ -241,41 +241,42 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 	}
 
 	public function getAllowedParams() {
-		$allowedParams = array(
-			'continue' => array(
+		$allowedParams = [
+			'continue' => [
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-continue',
-			),
+			],
 			'from' => null,
 			'to' => null,
 			'prefix' => null,
 			'unique' => false,
-			'prop' => array(
+			'prop' => [
 				ApiBase::PARAM_ISMULTI => true,
 				ApiBase::PARAM_DFLT => 'title',
 				ApiBase::PARAM_TYPE => array_merge(
-					array( 'ids', 'title' ), array_keys( $this->props )
+					[ 'ids', 'title' ], array_keys( $this->props )
 				),
-				ApiBase::PARAM_HELP_MSG_PER_VALUE => array(),
-			),
-			'namespace' => array(
+				ApiBase::PARAM_HELP_MSG_PER_VALUE => [],
+			],
+			'namespace' => [
 				ApiBase::PARAM_DFLT => $this->dfltNamespace,
-				ApiBase::PARAM_TYPE => 'namespace'
-			),
-			'limit' => array(
+				ApiBase::PARAM_TYPE => 'namespace',
+				ApiBase::PARAM_EXTRA_NAMESPACES => [ NS_MEDIA, NS_SPECIAL ],
+			],
+			'limit' => [
 				ApiBase::PARAM_DFLT => 10,
 				ApiBase::PARAM_TYPE => 'limit',
 				ApiBase::PARAM_MIN => 1,
 				ApiBase::PARAM_MAX => ApiBase::LIMIT_BIG1,
 				ApiBase::PARAM_MAX2 => ApiBase::LIMIT_BIG2
-			),
-			'dir' => array(
+			],
+			'dir' => [
 				ApiBase::PARAM_DFLT => 'ascending',
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'ascending',
 					'descending'
-				)
-			),
-		);
+				]
+			],
+		];
 		if ( !$this->hasNamespace ) {
 			unset( $allowedParams['namespace'] );
 		}
@@ -288,7 +289,7 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 		$name = $this->getModuleName();
 		$path = $this->getModulePath();
 
-		return array(
+		return [
 			"action=query&list={$name}&{$p}from=B&{$p}prop=ids|title"
 				=> "apihelp-$path-example-B",
 			"action=query&list={$name}&{$p}unique=&{$p}from=B"
@@ -297,12 +298,12 @@ class ApiQueryAllLinks extends ApiQueryGeneratorBase {
 				=> "apihelp-$path-example-unique-generator",
 			"action=query&generator={$name}&g{$p}from=B"
 				=> "apihelp-$path-example-generator",
-		);
+		];
 	}
 
 	public function getHelpUrls() {
 		$name = ucfirst( $this->getModuleName() );
 
-		return "https://www.mediawiki.org/wiki/API:{$name}";
+		return "https://www.mediawiki.org/wiki/Special:MyLanguage/API:{$name}";
 	}
 }

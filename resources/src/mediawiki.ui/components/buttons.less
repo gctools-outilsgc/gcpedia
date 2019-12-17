@@ -1,10 +1,49 @@
-@import "mediawiki.mixins";
-@import "mediawiki.ui/variables";
-@import "mediawiki.ui/mixins";
+@import 'mediawiki.mixins';
+@import 'mediawiki.ui/variables';
 
 // Buttons
-//
-// All buttons start with mw-ui-button class, modified by other classes.
+// Helper mixins
+// Primary buttons mixin
+.button-colors-primary( @bgColor, @highlightColor, @activeColor ) {
+	background-color: @bgColor;
+	color: #fff;
+	// border of the same color as background so that light background and
+	// dark background buttons are the same height and width
+	border: 1px solid @bgColor;
+
+	&:hover {
+		background-color: @highlightColor;
+		border-color: @highlightColor;
+	}
+
+	&:focus {
+		box-shadow: inset 0 0 0 1px @bgColor, inset 0 0 0 2px #fff;
+	}
+
+	&:active,
+	&.is-on {
+		background-color: @activeColor;
+		border-color: @activeColor;
+		box-shadow: none;
+	}
+
+	&:disabled {
+		background-color: @colorGray12;
+		color: #fff;
+		border-color: @colorGray12;
+
+		// Make sure disabled buttons don't have hover and active states
+		&:hover,
+		&:active {
+			background-color: @colorGray12;
+			color: #fff;
+			border-color: @colorGray12;
+			box-shadow: none;
+		}
+	}
+}
+
+// All buttons start with `.mw-ui-button` class, modified by other classes.
 // It can be any element.  Due to a lack of a CSS reset, the exact styling of
 // the button depends on what type of element is used.
 // There are two kinds of buttons, the default is a "Call to Action" with an obvious border
@@ -12,12 +51,9 @@
 //
 // Styleguide 2.
 
-@transitionDuration: .1s;
-@transitionFunction: ease-in-out;
-
 // Neutral button styling
 //
-// These are the main actions on the page/workflow. The page should have only one of progressive, constructive and desctructive buttons, the rest being quiet.
+// These are the main actions on the page/workflow. The page should have only one of progressive and destructive buttons, the rest being quiet.
 //
 // Markup:
 // <div>
@@ -29,100 +65,156 @@
 //
 // Styleguide 2.1.
 .mw-ui-button {
-	// Inherit the font rather than apply user agent stylesheet (bug 70072)
-	font-family: inherit;
-	font-size: 1em;
+	background-color: @colorGray15;
+	color: @colorButtonText;
 	// Container layout
 	display: inline-block;
-	padding: .5em 1em;
+	.box-sizing( border-box );
+	min-width: 4em;
+	max-width: 28.75em; // equivalent to 460px, @see T95367
 	margin: 0;
-	.box-sizing(border-box);
-
+	padding: 0.57142857em 0.9375em; // equivalent to `8px 12px`
+	border: @border-width-base @border-style-base @border-color-base;
+	border-radius: @borderRadius;
+	// Inherit the font rather than apply user agent stylesheet (T72072)
+	font-family: inherit;
+	font-size: 1em;
+	font-weight: bold;
+	line-height: 1;
+	text-align: center;
 	// Disable weird iOS styling
 	-webkit-appearance: none;
-
-	// IE6/IE7 hack
-	// http://stackoverflow.com/a/5838575/365238
-	*display: inline;
+	// IE 6 & 7 hack
+	// https://stackoverflow.com/a/5838575/365238
+	*display: inline; /* stylelint-disable-line declaration-block-no-duplicate-properties */
 	zoom: 1;
-
-	// Container styling
-	.button-colors(#FFF, #CCC, #777);
-	border-radius: @borderRadius;
-	min-width: 4em;
-
 	// Ensure that buttons and inputs are nicely aligned when they have differing heights
 	vertical-align: middle;
-
-	// Content styling
-	text-align: center;
-	font-weight: bold;
-
 	// Interaction styling
 	cursor: pointer;
 
-	&:disabled {
-		text-shadow: none;
-		cursor: default;
+	// Make sure that `color` isn't inheriting from user-agent styles
+	&:visited {
+		color: @colorButtonText;
 	}
 
-	.transition(background @transitionDuration @transitionFunction, color @transitionDuration @transitionFunction, box-shadow @transitionDuration @transitionFunction;);
+	&:hover {
+		background-color: @background-color-base;
+		color: @colorGray4;
+		border-color: @colorGray10;
+	}
+
+	&:focus {
+		background-color: @background-color-base;
+		// Make sure that `color` isn't inheriting from user-agent styles
+		color: @colorButtonText;
+		border-color: @colorProgressive;
+		box-shadow: inset 0 0 0 1px @colorProgressive, inset 0 0 0 2px @background-color-base;
+		outline-width: 0;
+
+		// Remove the inner border and padding in Firefox.
+		&::-moz-focus-inner {
+			border-color: transparent;
+			padding: 0;
+		}
+	}
+
+	&:active,
+	&.is-on {
+		background-color: @colorGray12;
+		color: @colorGray1;
+		border-color: @colorGray7;
+		box-shadow: none;
+	}
+
+	&:disabled {
+		background-color: @colorGray12;
+		color: @colorBaseInverted;
+		border-color: @colorGray12;
+		cursor: default;
+
+		// Make sure disabled buttons don't have hover and active states
+		&:hover,
+		&:active {
+			background-color: @colorGray12;
+			color: @colorBaseInverted;
+			box-shadow: none;
+			border-color: @colorGray12;
+		}
+	}
+
+	// `:not()` is used exclusively for `transition`s as both are not supported by IE < 9
+	&:not( :disabled ) {
+		.transition( ~'background-color 100ms, color 100ms, border-color 100ms, box-shadow 100ms' );
+	}
 
 	// Styling for specific button types
 	// -----------------------------------------
 
-	// Big buttons
+	// Quiet buttons
 	//
-	// Not all buttons are equal. You can emphasise certain actions over others
-	// using the mw-ui-big class.
+	// Use quiet buttons when they are less important and alongside other progressive or destructive buttons. It should be used for an action that exits the user from the current view/workflow.
+	// Its use is  not recommended on mobile/tablet due to lack of hover state.
 	//
 	// Markup:
 	// <div>
-	//   <button class="mw-ui-button mw-ui-big">.mw-ui-button</button>
+	//   <button class="mw-ui-button mw-ui-quiet">.mw-ui-button</button>
 	// </div>
 	// <div>
-	//   <button class="mw-ui-button mw-ui-progressive mw-ui-big">.mw-ui-progressive</button>
+	//   <button class="mw-ui-button mw-ui-destructive mw-ui-quiet">.mw-ui-destructive</button>
 	// </div>
 	// <div>
-	//   <button class="mw-ui-button mw-ui-constructive mw-ui-big">.mw-ui-constructive</button>
+	//   <button class="mw-ui-button mw-ui-destructive mw-ui-quiet" disabled>.mw-ui-destructive</button>
 	// </div>
 	// <div>
-	//   <button class="mw-ui-button mw-ui-destructive mw-ui-big">.mw-ui-destructive</button>
+	//   <button class="mw-ui-button mw-ui-progressive mw-ui-quiet">.mw-ui-progressive</button>
+	// </div>
+	// <div>
+	//   <button class="mw-ui-button mw-ui-progressive mw-ui-quiet" disabled>.mw-ui-progressive</button>
 	// </div>
 	//
-	// Styleguide 2.1.6.
-	&.mw-ui-big {
-		font-size: 1.3em;
-	}
+	// Styleguide 2.1.1.
+	&.mw-ui-quiet,
+	&.mw-ui-quiet.mw-ui-progressive,
+	&.mw-ui-quiet.mw-ui-destructive {
+		background-color: transparent;
+		// Quiet buttons all start gray, and reveal
+		// progressive/destructive color on hover and active.
+		color: @colorButtonText;
+		border-color: transparent;
 
-	// Block buttons
-	//
-	// Some buttons might need to be stacked.
-	//
-	// Markup:
-	// <div>
-	//   <button class="mw-ui-button mw-ui-block">.mw-ui-button</button>
-	// </div>
-	// <div>
-	//   <button class="mw-ui-button mw-ui-progressive mw-ui-block">.mw-ui-progressive</button>
-	// </div>
-	// <div>
-	//   <button class="mw-ui-button mw-ui-constructive mw-ui-block">.mw-ui-constructive</button>
-	// </div>
-	// <div>
-	//   <button class="mw-ui-button mw-ui-destructive mw-ui-block">.mw-ui-destructive</button>
-	// </div>
-	//
-	// Styleguide 2.1.5.
-	&.mw-ui-block {
-		display: block;
-		width: 100%;
+		&:hover {
+			background-color: transparent;
+			color: @colorButtonTextHighlight;
+			border-color: transparent;
+			box-shadow: none;
+		}
+
+		&:active {
+			background-color: transparent;
+			color: @colorButtonTextActive;
+			border-color: transparent;
+		}
+
+		&:focus {
+			background-color: transparent;
+			color: @colorButtonText;
+			border-color: transparent;
+			box-shadow: none;
+		}
+
+		&:disabled,
+		&:disabled:hover,
+		&:disabled:active {
+			background-color: transparent;
+			color: @colorDisabledText;
+			border-color: transparent;
+		}
 	}
 
 	// Progressive buttons
 	//
 	// Use progressive buttons for actions which lead to a next step in the process.
-	// .mw-ui-primary is deprecated, kept for compatibility.
 	//
 	// Markup:
 	// <div>
@@ -132,36 +224,26 @@
 	//   <button class="mw-ui-button mw-ui-progressive" disabled>.mw-ui-progressive</button>
 	// </div>
 	//
-	// Styleguide 2.1.1.
-	&.mw-ui-progressive,
-	&.mw-ui-primary {
-		.button-colors(@colorProgressive, @colorProgressiveHighlight, @colorProgressiveActive);
-
-		&.mw-ui-quiet {
-			.button-colors-quiet(@colorProgressive, @colorProgressiveHighlight, @colorProgressiveActive);
-		}
-	}
-
-	// Constructive buttons
-	//
-	// Use constructive buttons for actions which result in a final action in the process that results
-	// in a change of state.
-	// e.g. save changes button
-	//
-	// Markup:
-	// <div>
-	//   <button class="mw-ui-button mw-ui-constructive">.mw-ui-constructive</button>
-	// </div>
-	// <div>
-	//   <button class="mw-ui-button mw-ui-constructive" disabled>.mw-ui-constructive</button>
-	// </div>
-	//
 	// Styleguide 2.1.2.
-	&.mw-ui-constructive {
-		.button-colors(@colorConstructive, @colorConstructiveHighlight, @colorConstructiveActive);
+	&.mw-ui-progressive {
+		.button-colors-primary( @colorProgressive, @colorProgressiveHighlight, @colorProgressiveActive );
 
 		&.mw-ui-quiet {
-			.button-colors-quiet(@colorConstructive, @colorConstructiveHighlight, @colorConstructiveActive);
+			color: @colorProgressive;
+
+			&:hover {
+				background-color: transparent;
+				color: @colorProgressiveHighlight;
+			}
+
+			&:active {
+				color: @colorProgressiveActive;
+			}
+
+			&:focus {
+				background-color: transparent;
+				color: @colorProgressive;
+			}
 		}
 	}
 
@@ -180,57 +262,78 @@
 	//
 	// Styleguide 2.1.3.
 	&.mw-ui-destructive {
-		.button-colors(@colorDestructive, @colorDestructiveHighlight, @colorDestructiveActive);
+		.button-colors-primary( @colorDestructive, @colorDestructiveHighlight, @colorDestructiveActive );
 
 		&.mw-ui-quiet {
-			.button-colors-quiet(@colorDestructive, @colorDestructiveHighlight, @colorDestructiveActive);
+			color: @colorDestructive;
+
+			&:hover {
+				background-color: transparent;
+				color: @colorDestructiveHighlight;
+			}
+
+			&:active {
+				color: @colorDestructiveActive;
+			}
+
+			&:focus {
+				background-color: transparent;
+				color: @colorDestructive;
+			}
 		}
 	}
 
-	// Quiet buttons
+	// Big buttons
 	//
-	// Use quiet buttons when they are less important and alongside other constructive, progressive or destructive buttons. It should be used for an action that exits the user from the current view/workflow.
-	// Its use is  not recommended on mobile/tablet due to lack of hover state.
+	// Not all buttons are equal. You can emphasise certain actions over others
+	// using the mw-ui-big class.
 	//
 	// Markup:
 	// <div>
-	//   <button class="mw-ui-button mw-ui-quiet">.mw-ui-button</button>
+	//   <button class="mw-ui-button mw-ui-big">.mw-ui-button</button>
 	// </div>
 	// <div>
-	//   <button class="mw-ui-button mw-ui-constructive mw-ui-quiet">.mw-ui-constructive</button>
+	//   <button class="mw-ui-button mw-ui-progressive mw-ui-big">.mw-ui-progressive</button>
 	// </div>
 	// <div>
-	//   <button class="mw-ui-button mw-ui-constructive mw-ui-quiet" disabled>.mw-ui-constructive</button>
-	// </div>
-	// <div>
-	//   <button class="mw-ui-button mw-ui-destructive mw-ui-quiet">.mw-ui-destructive</button>
-	// </div>
-	// <div>
-	//   <button class="mw-ui-button mw-ui-destructive mw-ui-quiet" disabled>.mw-ui-destructive</button>
-	// </div>
-	// <div>
-	//   <button class="mw-ui-button mw-ui-progressive mw-ui-quiet">.mw-ui-progressive</button>
-	// </div>
-	// <div>
-	//   <button class="mw-ui-button mw-ui-progressive mw-ui-quiet" disabled>.mw-ui-progressive</button>
+	//   <button class="mw-ui-button mw-ui-destructive mw-ui-big">.mw-ui-destructive</button>
 	// </div>
 	//
 	// Styleguide 2.1.4.
-	&.mw-ui-quiet {
-		background: transparent;
-		border: none;
-		text-shadow: none;
-		.button-colors-quiet(@colorButtonText, @colorButtonTextHighlight, @colorButtonTextActive);
+	&.mw-ui-big {
+		font-size: 1.3em;
+	}
 
-		&:hover,
-		&:focus {
-			box-shadow: none;
-		}
+	// Block buttons
+	//
+	// Some buttons might need to be stacked.
+	//
+	// Markup:
+	// <div>
+	//   <button class="mw-ui-button mw-ui-block">.mw-ui-button</button>
+	// </div>
+	// <div>
+	//   <button class="mw-ui-button mw-ui-progressive mw-ui-block">.mw-ui-progressive</button>
+	// </div>
+	// <div>
+	//   <button class="mw-ui-button mw-ui-destructive mw-ui-block">.mw-ui-destructive</button>
+	// </div>
+	//
+	// Styleguide 2.1.5.
+	&.mw-ui-block {
+		display: block;
+		width: 100%;
+		margin-left: auto;
+		margin-right: auto;
+	}
+}
 
-		&:active,
-		&:disabled {
-			background: transparent;
-		}
+input.mw-ui-button,
+button.mw-ui-button {
+	// Buttons in Firefox have extra height
+	&::-moz-focus-inner {
+		margin-top: -1px;
+		margin-bottom: -1px;
 	}
 }
 
@@ -251,29 +354,35 @@ a.mw-ui-button {
 //
 // Markup:
 // <div class="mw-ui-button-group">
-//   <div class="mw-ui-button">A</div>
+//   <div class="mw-ui-button is-on">A</div>
 //   <div class="mw-ui-button">B</div>
 //   <div class="mw-ui-button">C</div>
 //   <div class="mw-ui-button">D</div>
 // </div><div style="clear:both"></div>
 //
 // Styleguide 2.2.
-.mw-ui-button-group > * {
-	min-width: 48px;
-	border-radius: 0;
-	float: left;
+.mw-ui-button-group {
+	& > * {
+		min-width: 48px;
+		border-radius: 0;
+		float: left;
 
-	&:first-child {
-		border-top-left-radius: @borderRadius;
-		border-bottom-left-radius: @borderRadius;
+		&:first-child {
+			border-top-left-radius: @borderRadius;
+			border-bottom-left-radius: @borderRadius;
+		}
+
+		&:not( :first-child ) {
+			border-left: 0;
+		}
+
+		&:last-child {
+			border-top-right-radius: @borderRadius;
+			border-bottom-right-radius: @borderRadius;
+		}
 	}
 
-	&:not(:first-child) {
-		border-left: none;
-	}
-
-	&:last-child{
-		border-top-right-radius: @borderRadius;
-		border-bottom-right-radius: @borderRadius;
+	& .is-on .button {
+		cursor: default;
 	}
 }

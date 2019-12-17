@@ -18,7 +18,7 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @file
- * @license http://www.gnu.org/copyleft/gpl.html GNU General Public License 2.0 or later
+ * @license GPL-2.0-or-later
  * @since 1.25
  */
 
@@ -33,9 +33,9 @@ class UploadLogFormatter extends LogFormatter {
 		$entry = $this->entry;
 		$params = $entry->getParameters();
 
-		static $map = array(
+		static $map = [
 			'img_timestamp' => ':timestamp:img_timestamp',
-		);
+		];
 		foreach ( $map as $index => $key ) {
 			if ( isset( $params[$index] ) ) {
 				$params[$key] = $params[$index];

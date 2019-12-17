@@ -21,28 +21,61 @@
  * @ingroup Search
  */
 
+use Wikimedia\Rdbms\IDatabase;
+
 /**
  * Base search engine base class for database-backed searches
  * @ingroup Search
  * @since 1.23
  */
-class SearchDatabase extends SearchEngine {
+abstract class SearchDatabase extends SearchEngine {
 	/**
-	 * @var DatabaseBase Slave database for reading from for results
+	 * @var IDatabase Replica database from which to read results
 	 */
 	protected $db;
 
 	/**
-	 * Constructor
-	 * @param DatabaseBase $db The database to search from
+	 * @param IDatabase|null $db The database to search from
 	 */
-	public function __construct( DatabaseBase $db = null ) {
+	public function __construct( IDatabase $db = null ) {
 		if ( $db ) {
 			$this->db = $db;
 		} else {
-			$this->db = wfGetDB( DB_SLAVE );
+			$this->db = wfGetDB( DB_REPLICA );
 		}
 	}
+
+	/**
+	 * @param string $term
+	 * @return SearchResultSet|Status|null
+	 */
+	final public function doSearchText( $term ) {
+		return $this->doSearchTextInDB( $this->extractNamespacePrefix( $term ) );
+	}
+
+	/**
+	 * Perform a full text search query and return a result set.
+	 *
+	 * @param string $term Raw search term
+	 * @return SqlSearchResultSet
+	 */
+	abstract protected function doSearchTextInDB( $term );
+
+	/**
+	 * @param string $term
+	 * @return SearchResultSet|null
+	 */
+	final public function doSearchTitle( $term ) {
+		return $this->doSearchTitleInDB( $this->extractNamespacePrefix( $term ) );
+	}
+
+	/**
+	 * Perform a title-only search query and return a result set.
+	 *
+	 * @param string $term Raw search term
+	 * @return SqlSearchResultSet
+	 */
+	abstract protected function doSearchTitleInDB( $term );
 
 	/**
 	 * Return a 'cleaned up' search string
@@ -51,7 +84,25 @@ class SearchDatabase extends SearchEngine {
 	 * @return string
 	 */
 	protected function filter( $text ) {
-		$lc = $this->legalSearchChars();
+		// List of chars allowed in the search query.
+		// This must include chars used in the search syntax.
+		// Usually " (phrase) or * (wildcards) if supported by the engine
+		$lc = $this->legalSearchChars( self::CHARS_ALL );
 		return trim( preg_replace( "/[^{$lc}]/", " ", $text ) );
+	}
+
+	/**
+	 * Extract the optional namespace prefix and set self::namespaces
+	 * accordingly and return the query string
+	 * @param string $term
+	 * @return string the query string without any namespace prefix
+	 */
+	final protected function extractNamespacePrefix( $term ) {
+		$queryAndNs = self::parseNamespacePrefixes( $term );
+		if ( $queryAndNs === false ) {
+			return $term;
+		}
+		$this->namespaces = $queryAndNs[1];
+		return $queryAndNs[0];
 	}
 }

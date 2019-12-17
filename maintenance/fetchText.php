@@ -24,16 +24,32 @@
 
 require_once __DIR__ . '/Maintenance.php';
 
+use MediaWiki\MediaWikiServices;
+use MediaWiki\Storage\BlobAccessException;
+use MediaWiki\Storage\SqlBlobStore;
+
 /**
  * Maintenance script used to fetch page text in a subprocess.
  *
  * @ingroup Maintenance
  */
 class FetchText extends Maintenance {
+
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Fetch the raw revision blob from an old_id.";
-		$this->mDescription .= "\nNOTE: Export transformations are NOT applied. This is left to backupTextPass.php";
+
+		$this->addDescription( "Fetch the raw revision blob from a blob address.\n" .
+			"Integer IDs are interpreted as referring to text.old_id for backwards compatibility.\n" .
+			"NOTE: Export transformations are NOT applied. " .
+			"This is left to dumpTextPass.php"
+		);
+	}
+
+	/**
+	 * @return SqlBlobStore
+	 */
+	private function getBlobStore() {
+		return MediaWikiServices::getInstance()->getBlobStore();
 	}
 
 	/**
@@ -47,7 +63,6 @@ class FetchText extends Maintenance {
 	 * note that the text string itself is *not* followed by newline
 	 */
 	public function execute() {
-		$db = wfGetDB( DB_SLAVE );
 		$stdin = $this->getStdin();
 		while ( !feof( $stdin ) ) {
 			$line = fgets( $stdin );
@@ -55,38 +70,31 @@ class FetchText extends Maintenance {
 				// We appear to have lost contact...
 				break;
 			}
-			$textId = intval( $line );
-			$text = $this->doGetText( $db, $textId );
-			if ( $text === false ) {
-				# actual error, not zero-length text
-				$textLen = "-1";
-			} else {
-				$textLen = strlen( $text );
+			$blobAddress = trim( $line );
+
+			// Plain integers are supported for backwards compatibility with pre-MCR dumps.
+			if ( strpos( $blobAddress, ':' ) === false && is_numeric( $blobAddress ) ) {
+				$blobAddress = SqlBlobStore::makeAddressFromTextId( intval( $blobAddress ) );
 			}
-			$this->output( $textId . "\n" . $textLen . "\n" . $text );
+
+			try {
+				$text = $this->getBlobStore()->getBlob( $blobAddress );
+				$textLen = strlen( $text );
+			} catch ( BlobAccessException $ex ) {
+				// XXX: log $ex to stderr?
+				$textLen = '-1';
+				$text = '';
+			} catch ( InvalidArgumentException $ex ) {
+				// XXX: log $ex to stderr?
+				$textLen = '-1';
+				$text = '';
+			}
+
+			$this->output( $blobAddress . "\n" . $textLen . "\n" . $text );
 		}
 	}
 
-	/**
-	 * May throw a database error if, say, the server dies during query.
-	 * @param DatabaseBase $db
-	 * @param int $id The old_id
-	 * @return string
-	 */
-	private function doGetText( $db, $id ) {
-		$id = intval( $id );
-		$row = $db->selectRow( 'text',
-			array( 'old_text', 'old_flags' ),
-			array( 'old_id' => $id ),
-			__METHOD__ );
-		$text = Revision::getRevisionText( $row );
-		if ( $text === false ) {
-			return false;
-		}
-
-		return $text;
-	}
 }
 
-$maintClass = "FetchText";
+$maintClass = FetchText::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

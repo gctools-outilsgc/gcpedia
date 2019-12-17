@@ -24,8 +24,7 @@
 /**
  * @ingroup Parser
  */
-class ParserDiffTest
-{
+class ParserDiffTest {
 	public $parsers;
 	public $conf;
 	public $shortOutput = false;
@@ -49,7 +48,7 @@ class ParserDiffTest
 		foreach ( $this->conf['parsers'] as $i => $parserConf ) {
 			if ( !is_array( $parserConf ) ) {
 				$class = $parserConf;
-				$parserConf = array( 'class' => $parserConf );
+				$parserConf = [ 'class' => $parserConf ];
 			} else {
 				$class = $parserConf['class'];
 			}
@@ -59,15 +58,12 @@ class ParserDiffTest
 
 	public function __call( $name, $args ) {
 		$this->init();
-		$results = array();
+		$results = [];
 		$mismatch = false;
 		$lastResult = null;
-		$first = true;
-		foreach ( $this->parsers as $i => $parser ) {
-			$currentResult = call_user_func_array( array( &$this->parsers[$i], $name ), $args );
-			if ( $first ) {
-				$first = false;
-			} else {
+		foreach ( $this->parsers as $parser ) {
+			$currentResult = $parser->$name( ...$args );
+			if ( count( $results ) > 0 ) {
 				if ( is_object( $lastResult ) ) {
 					if ( $lastResult != $currentResult ) {
 						$mismatch = true;
@@ -78,12 +74,12 @@ class ParserDiffTest
 					}
 				}
 			}
-			$results[$i] = $currentResult;
+			$results[] = $currentResult;
 			$lastResult = $currentResult;
 		}
 		if ( $mismatch ) {
 			if ( count( $results ) == 2 ) {
-				$resultsList = array();
+				$resultsList = [];
 				foreach ( $this->parsers as $i => $parser ) {
 					$resultsList[] = var_export( $results[$i], true );
 				}

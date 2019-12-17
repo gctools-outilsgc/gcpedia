@@ -39,13 +39,13 @@ class SpecialApiHelp extends UnlistedSpecialPage {
 
 		// These come from transclusions
 		$request = $this->getRequest();
-		$options = array(
+		$options = [
 			'action' => 'help',
 			'nolead' => true,
 			'submodules' => $request->getCheck( 'submodules' ),
 			'recursivesubmodules' => $request->getCheck( 'recursivesubmodules' ),
 			'title' => $request->getVal( 'title', $this->getPageTitle( '$1' )->getPrefixedText() ),
-		);
+		];
 
 		// These are for linking from wikitext, since url parameters are a pain
 		// to do.
@@ -77,8 +77,8 @@ class SpecialApiHelp extends UnlistedSpecialPage {
 		$main = new ApiMain( $this->getContext(), false );
 		try {
 			$module = $main->getModuleFromPath( $moduleName );
-		} catch ( UsageException $ex ) {
-			$this->getOutput()->addHTML( Html::rawElement( 'span', array( 'class' => 'error' ),
+		} catch ( ApiUsageException $ex ) {
+			$this->getOutput()->addHTML( Html::rawElement( 'span', [ 'class' => 'error' ],
 				$this->msg( 'apihelp-no-such-module', $moduleName )->inContentLanguage()->parse()
 			) );
 			return;

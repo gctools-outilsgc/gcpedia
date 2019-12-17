@@ -21,6 +21,10 @@
  * @ingroup SpecialPage
  */
 
+use MediaWiki\MediaWikiServices;
+use Wikimedia\Rdbms\IResultWrapper;
+use Wikimedia\Rdbms\IDatabase;
+
 /**
  * Variant of QueryPage which formats the result as a simple link to the page
  *
@@ -33,20 +37,10 @@ abstract class PageQueryPage extends QueryPage {
 	 * This should be done for live data and cached data.
 	 *
 	 * @param IDatabase $db
-	 * @param ResultWrapper $res
+	 * @param IResultWrapper $res
 	 */
 	public function preprocessResults( $db, $res ) {
-		if ( !$res->numRows() ) {
-			return;
-		}
-
-		$batch = new LinkBatch();
-		foreach ( $res as $row ) {
-			$batch->add( $row->namespace, $row->title );
-		}
-		$batch->execute();
-
-		$res->seek( 0 );
+		$this->executeLBFromResultWrapper( $res );
 	}
 
 	/**
@@ -57,15 +51,14 @@ abstract class PageQueryPage extends QueryPage {
 	 * @return string
 	 */
 	public function formatResult( $skin, $row ) {
-		global $wgContLang;
-
 		$title = Title::makeTitleSafe( $row->namespace, $row->title );
 
 		if ( $title instanceof Title ) {
-			$text = $wgContLang->convert( $title->getPrefixedText() );
-			return Linker::link( $title, htmlspecialchars( $text ) );
+			$text = MediaWikiServices::getInstance()->getContentLanguage()->
+				convert( htmlspecialchars( $title->getPrefixedText() ) );
+			return $this->getLinkRenderer()->makeLink( $title, new HtmlArmor( $text ) );
 		} else {
-			return Html::element( 'span', array( 'class' => 'mw-invalidtitle' ),
+			return Html::element( 'span', [ 'class' => 'mw-invalidtitle' ],
 				Linker::getInvalidTitleDescription( $this->getContext(), $row->namespace, $row->title ) );
 		}
 	}

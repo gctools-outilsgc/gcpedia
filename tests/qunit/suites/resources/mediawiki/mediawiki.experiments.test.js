@@ -1,4 +1,4 @@
-( function ( mw ) {
+( function () {
 
 	var getBucket = mw.experiments.getBucket;
 
@@ -17,11 +17,11 @@
 
 	QUnit.module( 'mediawiki.experiments' );
 
-	QUnit.test( 'getBucket( experiment, token )', 4, function ( assert ) {
+	QUnit.test( 'getBucket( experiment, token )', function ( assert ) {
 		var experiment = createExperiment(),
 			token = '123457890';
 
-		assert.equal(
+		assert.strictEqual(
 			getBucket( experiment, token ),
 			getBucket( experiment, token ),
 			'It returns the same bucket for the same experiment-token pair.'
@@ -33,9 +33,9 @@
 			A: 0.314159265359
 		};
 
-		assert.equal(
-			'A',
+		assert.strictEqual(
 			getBucket( experiment, token ),
+			'A',
 			'It returns the bucket if only one is defined.'
 		);
 
@@ -43,9 +43,9 @@
 		experiment = createExperiment();
 		experiment.enabled = false;
 
-		assert.equal(
-			'control',
+		assert.strictEqual(
 			getBucket( experiment, token ),
+			'control',
 			'It returns "control" if the experiment is disabled.'
 		);
 
@@ -53,11 +53,11 @@
 		experiment = createExperiment();
 		experiment.buckets = {};
 
-		assert.equal(
-			'control',
+		assert.strictEqual(
 			getBucket( experiment, token ),
+			'control',
 			'It returns "control" if the experiment doesn\'t have any buckets.'
 		);
 	} );
 
-}( mediaWiki ) );
+}() );

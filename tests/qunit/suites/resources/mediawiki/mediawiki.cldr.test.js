@@ -1,6 +1,4 @@
-( function ( mw, $ ) {
-	QUnit.module( 'mediawiki.cldr', QUnit.newMwEnvironment() );
-
+( function () {
 	var pluralTestcases = {
 		/*
 		 * Sample:
@@ -61,10 +59,13 @@
 		]
 	};
 
+	QUnit.module( 'mediawiki.cldr', QUnit.newMwEnvironment() );
+
 	function pluralTest( langCode, tests ) {
-		QUnit.test( 'Plural Test for ' + langCode, tests.length, function ( assert ) {
-			for ( var i = 0; i < tests.length; i++ ) {
-				assert.equal(
+		QUnit.test( 'Plural Test for ' + langCode, function ( assert ) {
+			var i;
+			for ( i = 0; i < tests.length; i++ ) {
+				assert.strictEqual(
 					mw.language.convertPlural( tests[ i ][ 0 ], tests[ i ][ 1 ] ),
 					tests[ i ][ 2 ],
 					tests[ i ][ 3 ]
@@ -73,9 +74,10 @@
 		} );
 	}
 
+	// eslint-disable-next-line no-jquery/no-each-util
 	$.each( pluralTestcases, function ( langCode, tests ) {
 		if ( langCode === mw.config.get( 'wgUserLanguage' ) ) {
 			pluralTest( langCode, tests );
 		}
 	} );
-}( mediaWiki, jQuery ) );
+}() );

@@ -22,12 +22,11 @@
  * Profiler that only tracks explicit profiling sections
  *
  * @code
- * $wgProfiler['class'] = 'ProfilerSectionOnly';
+ * $wgProfiler['class'] = ProfilerSectionOnly::class;
  * $wgProfiler['output'] = 'text';
  * $wgProfiler['visible'] = true;
  * @endcode
  *
- * @author Aaron Schulz
  * @ingroup Profiler
  * @since 1.25
  */
@@ -35,7 +34,7 @@ class ProfilerSectionOnly extends Profiler {
 	/** @var SectionProfiler */
 	protected $sprofiler;
 
-	public function __construct( array $params = array() ) {
+	public function __construct( array $params = [] ) {
 		parent::__construct( $params );
 		$this->sprofiler = new SectionProfiler();
 	}
@@ -73,17 +72,14 @@ class ProfilerSectionOnly extends Profiler {
 	 */
 	protected function getFunctionReport() {
 		$data = $this->getFunctionStats();
-		usort( $data, function( $a, $b ) {
-			if ( $a['real'] === $b['real'] ) {
-				return 0;
-			}
-			return ( $a['real'] > $b['real'] ) ? -1 : 1; // descending
+		usort( $data, function ( $a, $b ) {
+			return $b['real'] <=> $a['real']; // descending
 		} );
 
 		$width = 140;
 		$nameWidth = $width - 65;
 		$format = "%-{$nameWidth}s %6d %9d %9d %9d %9d %7.3f%% %9d";
-		$out = array();
+		$out = [];
 		$out[] = sprintf( "%-{$nameWidth}s %6s %9s %9s %9s %9s %7s %9s",
 			'Name', 'Calls', 'Total', 'Min', 'Each', 'Max', '%', 'Mem'
 		);

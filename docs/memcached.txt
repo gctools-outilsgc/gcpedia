@@ -80,18 +80,15 @@ usage evenly), make its entry a subarray:
 MediaWiki uses a fork of Ryan T. Dean's pure-PHP memcached client.
 It also supports the PECL PHP extension for memcached.
 
-MediaWiki uses three object for object caching:
-* $wgMemc, controlled by $wgMainCacheType
-* $parserMemc, controlled by $wgParserCacheType
-* $messageMemc, controlled by $wgMessageCacheType
-If you set CACHE_NONE to one of the three control variable, (default
-value for $wgMainCacheType), MediaWiki still create a MemCacheClient,
-but requests to it are no-ops and we always fall through to the
-database. If the cache daemon can't be contacted, it should also
-disable itself fairly smoothly.
+MediaWiki uses the ObjectCache class to retrieve instances of
+BagOStuff by purpose, controlled by the following variables:
+* $wgMainCacheType
+* $wgParserCacheType
+* $wgMessageCacheType
 
-By default, $wgMemc is used but when it is $parserMemc or $messageMemc
-this is mentioned below.
+If you set one of these to CACHE_NONE, MediaWiki still creates a
+BagOStuff object, but calls it to it are no-ops. If the cache daemon
+can't be contacted, it should also disable itself fairly smoothly.
 
 == Keys used ==
 
@@ -122,7 +119,7 @@ Lag time of the databases:
 	key: $wgDBname:lag_times
 	ex: wikidb:lag_times
 	stores: array mapping the database id to its lag time
-	expriy: 5 secondes
+	expiry: 5 secondes
 	cleared by: nothing
 
 Localisation:
@@ -134,12 +131,12 @@ Localisation:
 	cleared by: Language::loadLocalisation()
 
 Message Cache:
-	stored in: $messageMemc
+	backend: $wgMessageCacheType
 	key: $wgDBname:messages, $wgDBname:messages-hash, $wgDBname:messages-status
 	ex: wikidb:messages, wikidb:messages-hash, wikidb:messages-status
 	stores: an array where the keys are DB keys and the values are messages
 	set in: wfMessage(), Article::editUpdates() and Title::moveTo()
-	expriy: $wgMsgCacheExpiry
+	expiry: $wgMsgCacheExpiry
 	cleared by: nothing
 
 Newtalk:
@@ -151,7 +148,8 @@ Newtalk:
 	expiry: 30 minutes
 
 Parser Cache:
-	stored in: $parserMemc
+	access: ParserCache
+	backend: $wgParserCacheType
 	key: $wgDBname:pcache:idhash:$pageid-$renderkey!$hash
 		$pageid: id of the page
 		$renderkey: 1 if action=render, 0 otherwise
@@ -194,23 +192,23 @@ Revision text:
 	ex: wikidb:revisiontext:textid:1012
 	stores: text of a revision
 	cleared by: nothing
-	expriry: $wgRevisionCacheExpiry
+	expiry: $wgRevisionCacheExpiry
 
 Sessions:
 	controlled by: $wgSessionsInObjectCache
 	key: $wgBDname:session:$id
 	ex: wikidb:session:38d7c5b8d3bfc51egf40c69bc40f8be3
 	stores: $SESSION, useful when using a multi-sever wiki
-	expriy: one hour
+	expiry: one hour
 	cleared by: session_destroy()
 
 Sidebar:
-	stored in: $parserMemc
+	access: WANObjectCache
 	controlled by: $wgEnableSidebarCache
 	key: $wgDBname:sidebar
 	ex: wikidb:sidebar
 	stores: the html output of the sidebar
-	expriy: $wgSidebarCacheExpiry
+	expiry: $wgSidebarCacheExpiry
 	cleared by: MessageCache::replace()
 
 Special:Allpages:
@@ -221,7 +219,7 @@ Special:Allpages:
 	cleared by: nothing
 
 Special:Recentchanges (feed):
-	stored in: $messageMemc
+	backend: $wgMessageCacheType
 	key: $wgDBname:rcfeed:$format:$limit:$hideminor:$target and
 		rcfeed:$format:timestamp
 	ex: wikidb:rcfeed:rss:50:: and rcfeed:rss:timestamp
@@ -231,20 +229,5 @@ Special:Recentchanges (feed):
 	calling Special:Recentchanges?action=purge&feed=rss,
 	Special:Recentchanges?action=purge&feed=atom,
 	but note need $wgGroupPermissions[...]['purge'] permission.
-
-Statistics:
-	controlled by: $wgStatsMethod
-	key: $wgDBname:stats:$key
-	ex: wikibd:stats:request_with_session
-	stores: counter for statistics (see maintenance/showCacheStats.php script)
-	expiry: none (?)
-	cleared by: maintenance/clearCacheStats.php script
-
-User:
-	key: $wgDBname:user:id:$sId
-	ex: wikidb:user:id:51
-	stores: instance of class User
-	set in: User::saveToCache()
-	cleared by: User::saveSettings(), User::clearSharedCache()
 
 ... more to come ...

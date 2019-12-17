@@ -1,31 +1,26 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * Base class that store and restore the Language objects
  */
 abstract class MediaWikiLangTestCase extends MediaWikiTestCase {
 	protected function setUp() {
-		global $wgLanguageCode, $wgContLang;
-		parent::setUp();
+		global $wgLanguageCode;
 
-		if ( $wgLanguageCode != $wgContLang->getCode() ) {
+		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
+		if ( $wgLanguageCode != $contLang->getCode() ) {
 			throw new MWException( "Error in MediaWikiLangTestCase::setUp(): " .
-				"\$wgLanguageCode ('$wgLanguageCode') is different from " .
-				"\$wgContLang->getCode() (" . $wgContLang->getCode() . ")" );
+				"\$wgLanguageCode ('$wgLanguageCode') is different from content language code (" .
+				$contLang->getCode() . ")" );
 		}
 
-		// HACK: Call getLanguage() so the real $wgContLang is cached as the user language
-		// rather than our fake one. This is to avoid breaking other, unrelated tests.
-		RequestContext::getMain()->getLanguage();
+		parent::setUp();
 
-		$langCode = 'en'; # For mainpage to be 'Main Page'
-		$langObj = Language::factory( $langCode );
-
-		$this->setMwGlobals( array(
-			'wgLanguageCode' => $langCode,
-			'wgLang' => $langObj,
-			'wgContLang' => $langObj,
-		) );
+		$this->setUserLang( 'en' );
+		// For mainpage to be 'Main Page'
+		$this->setContentLang( 'en' );
 
 		MessageCache::singleton()->disable();
 	}

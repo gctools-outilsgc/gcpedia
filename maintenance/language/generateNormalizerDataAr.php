@@ -23,19 +23,26 @@
 
 require_once __DIR__ . '/../Maintenance.php';
 
+use Wikimedia\StaticArrayWriter;
+
 /**
  * Generates the normalizer data file for Arabic.
  *
  * This data file is used after normalizing to NFC.
+ *
+ * Example usage:
+ *
+ *    curl 'https://unicode.org/Public/6.0.0/ucd/UnicodeData.txt' > /tmp/UnicodeData.txt
+ *    php generateNormalizerDataAr.php --unicode-data-file /tmp/UnicodeData.txt
  *
  * @ingroup MaintenanceLanguage
  */
 class GenerateNormalizerDataAr extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = 'Generate the normalizer data file for Arabic';
+		$this->addDescription( 'Generate the normalizer data file for Arabic' );
 		$this->addOption( 'unicode-data-file', 'The local location of the data file ' .
-			'from http://unicode.org/Public/UNIDATA/UnicodeData.txt', false, true );
+			'from https://unicode.org/Public/6.0.0/ucd/UnicodeData.txt', false, true );
 	}
 
 	public function getDbType() {
@@ -46,26 +53,23 @@ class GenerateNormalizerDataAr extends Maintenance {
 		if ( !$this->hasOption( 'unicode-data-file' ) ) {
 			$dataFile = 'UnicodeData.txt';
 			if ( !file_exists( $dataFile ) ) {
-				$this->error( "Unable to find UnicodeData.txt. Please specify " .
+				$this->fatalError( "Unable to find UnicodeData.txt. Please specify " .
 					"its location with --unicode-data-file=<FILE>" );
-				exit( 1 );
 			}
 		} else {
 			$dataFile = $this->getOption( 'unicode-data-file' );
 			if ( !file_exists( $dataFile ) ) {
-				$this->error( 'Unable to find the specified data file.' );
-				exit( 1 );
+				$this->fatalError( 'Unable to find the specified data file.' );
 			}
 		}
 
 		$file = fopen( $dataFile, 'r' );
 		if ( !$file ) {
-			$this->error( 'Unable to open the data file.' );
-			exit( 1 );
+			$this->fatalError( 'Unable to open the data file.' );
 		}
 
-		// For the file format, see http://www.unicode.org/reports/tr44/
-		$fieldNames = array(
+		// For the file format, see https://www.unicode.org/reports/tr44/
+		$fieldNames = [
 			'Code',
 			'Name',
 			'General_Category',
@@ -81,12 +85,12 @@ class GenerateNormalizerDataAr extends Maintenance {
 			'Simple_Uppercase_Mapping',
 			'Simple_Lowercase_Mapping',
 			'Simple_Titlecase_Mapping'
-		);
+		];
 
-		$pairs = array();
+		$pairs = [];
 
 		$lineNum = 0;
-		while ( false !== ( $line = fgets( $file ) ) ) {
+		while ( ( $line = fgets( $file ) ) !== false ) {
 			++$lineNum;
 
 			# Strip comments
@@ -97,7 +101,7 @@ class GenerateNormalizerDataAr extends Maintenance {
 
 			# Split fields
 			$numberedData = explode( ';', $line );
-			$data = array();
+			$data = [];
 			foreach ( $fieldNames as $number => $name ) {
 				$data[$name] = $numberedData[$number];
 			}
@@ -125,10 +129,15 @@ class GenerateNormalizerDataAr extends Maintenance {
 		}
 
 		global $IP;
-		file_put_contents( "$IP/serialized/normalize-ar.ser", serialize( $pairs ) );
+		$writer = new StaticArrayWriter();
+		file_put_contents( "$IP/languages/data/normalize-ar.php", $writer->create(
+			$pairs,
+			'File created by generateNormalizerDataAr.php'
+		) );
+
 		echo "ar: " . count( $pairs ) . " pairs written.\n";
 	}
 }
 
-$maintClass = 'GenerateNormalizerDataAr';
+$maintClass = GenerateNormalizerDataAr::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

@@ -1,9 +1,5 @@
 <?php
 /**
- *
- *
- * Created on Jun 20, 2007
- *
  * Copyright © 2007 Roan Kattouw "<Firstname>.<Lastname>@gmail.com"
  *
  * This program is free software; you can redistribute it and/or modify
@@ -45,50 +41,58 @@ class ApiRollback extends ApiBase {
 		$user = $this->getUser();
 		$params = $this->extractRequestParams();
 
-		// WikiPage::doRollback needs a Web UI token, so get one of those if we
-		// validated based on an API rollback token.
-		$token = $params['token'];
-		if ( $user->matchEditToken( $token, 'rollback', $this->getRequest() ) ) {
-			$token = $this->getUser()->getEditToken(
-				$this->getWebUITokenSalt( $params ),
-				$this->getRequest()
-			);
-		}
-
 		$titleObj = $this->getRbTitle( $params );
 		$pageObj = WikiPage::factory( $titleObj );
 		$summary = $params['summary'];
-		$details = array();
+		$details = [];
+
+		// If change tagging was requested, check that the user is allowed to tag,
+		// and the tags are valid
+		if ( $params['tags'] ) {
+			$tagStatus = ChangeTags::canAddTagsAccompanyingChange( $params['tags'], $user );
+			if ( !$tagStatus->isOK() ) {
+				$this->dieStatus( $tagStatus );
+			}
+		}
+
+		// @TODO: remove this hack once rollback uses POST (T88044)
+		$fname = __METHOD__;
+		$trxLimits = $this->getConfig()->get( 'TrxProfilerLimits' );
+		$trxProfiler = Profiler::instance()->getTransactionProfiler();
+		$trxProfiler->redefineExpectations( $trxLimits['POST'], $fname );
+		DeferredUpdates::addCallableUpdate( function () use ( $trxProfiler, $trxLimits, $fname ) {
+			$trxProfiler->redefineExpectations( $trxLimits['PostSend-POST'], $fname );
+		} );
+
 		$retval = $pageObj->doRollback(
 			$this->getRbUser( $params ),
 			$summary,
-			$token,
+			$params['token'],
 			$params['markbot'],
 			$details,
-			$user
+			$user,
+			$params['tags']
 		);
 
 		if ( $retval ) {
-			// We don't care about multiple errors, just report one of them
-			$this->dieUsageMsg( reset( $retval ) );
+			$this->dieStatus( $this->errorArrayToStatus( $retval, $user ) );
 		}
 
-		$watch = 'preferences';
-		if ( isset( $params['watchlist'] ) ) {
-			$watch = $params['watchlist'];
-		}
+		$watch = $params['watchlist'] ?? 'preferences';
 
 		// Watch pages
 		$this->setWatch( $watch, $titleObj, 'watchrollback' );
 
-		$info = array(
+		$info = [
 			'title' => $titleObj->getPrefixedText(),
-			'pageid' => intval( $details['current']->getPage() ),
+			'pageid' => (int)$details['current']->getPage(),
 			'summary' => $details['summary'],
-			'revid' => intval( $details['newid'] ),
-			'old_revid' => intval( $details['current']->getID() ),
-			'last_revid' => intval( $details['target']->getID() )
-		);
+			'revid' => (int)$details['newid'],
+			// The revision being reverted (previously the current revision of the page)
+			'old_revid' => (int)$details['current']->getID(),
+			// The revision being restored (the last revision before revision(s) by the reverted user)
+			'last_revid' => (int)$details['target']->getID()
+		];
 
 		$this->getResult()->addValue( null, $this->getModuleName(), $info );
 	}
@@ -102,42 +106,39 @@ class ApiRollback extends ApiBase {
 	}
 
 	public function getAllowedParams() {
-		return array(
+		return [
 			'title' => null,
-			'pageid' => array(
+			'pageid' => [
 				ApiBase::PARAM_TYPE => 'integer'
-			),
-			'user' => array(
-				ApiBase::PARAM_TYPE => 'string',
+			],
+			'tags' => [
+				ApiBase::PARAM_TYPE => 'tags',
+				ApiBase::PARAM_ISMULTI => true,
+			],
+			'user' => [
+				ApiBase::PARAM_TYPE => 'user',
 				ApiBase::PARAM_REQUIRED => true
-			),
+			],
 			'summary' => '',
 			'markbot' => false,
-			'watchlist' => array(
+			'watchlist' => [
 				ApiBase::PARAM_DFLT => 'preferences',
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'watch',
 					'unwatch',
 					'preferences',
 					'nochange'
-				),
-			),
-			'token' => array(
+				],
+			],
+			'token' => [
 				// Standard definition automatically inserted
-				ApiBase::PARAM_HELP_MSG_APPEND => array( 'api-help-param-token-webui' ),
-			),
-		);
+				ApiBase::PARAM_HELP_MSG_APPEND => [ 'api-help-param-token-webui' ],
+			],
+		];
 	}
 
 	public function needsToken() {
 		return 'rollback';
-	}
-
-	protected function getWebUITokenSalt( array $params ) {
-		return array(
-			$this->getRbTitle( $params )->getPrefixedText(),
-			$this->getRbUser( $params )
-		);
 	}
 
 	/**
@@ -155,7 +156,7 @@ class ApiRollback extends ApiBase {
 			? $params['user']
 			: User::getCanonicalName( $params['user'] );
 		if ( !$this->mUser ) {
-			$this->dieUsageMsg( array( 'invaliduser', $params['user'] ) );
+			$this->dieWithError( [ 'apierror-invaliduser', wfEscapeWikiText( $params['user'] ) ] );
 		}
 
 		return $this->mUser;
@@ -176,33 +177,33 @@ class ApiRollback extends ApiBase {
 		if ( isset( $params['title'] ) ) {
 			$this->mTitleObj = Title::newFromText( $params['title'] );
 			if ( !$this->mTitleObj || $this->mTitleObj->isExternal() ) {
-				$this->dieUsageMsg( array( 'invalidtitle', $params['title'] ) );
+				$this->dieWithError( [ 'apierror-invalidtitle', wfEscapeWikiText( $params['title'] ) ] );
 			}
 		} elseif ( isset( $params['pageid'] ) ) {
 			$this->mTitleObj = Title::newFromID( $params['pageid'] );
 			if ( !$this->mTitleObj ) {
-				$this->dieUsageMsg( array( 'nosuchpageid', $params['pageid'] ) );
+				$this->dieWithError( [ 'apierror-nosuchpageid', $params['pageid'] ] );
 			}
 		}
 
 		if ( !$this->mTitleObj->exists() ) {
-			$this->dieUsageMsg( 'notanarticle' );
+			$this->dieWithError( 'apierror-missingtitle' );
 		}
 
 		return $this->mTitleObj;
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=rollback&title=Main%20Page&user=Example&token=123ABC' =>
 				'apihelp-rollback-example-simple',
 			'action=rollback&title=Main%20Page&user=192.0.2.5&' .
 				'token=123ABC&summary=Reverting%20vandalism&markbot=1' =>
 				'apihelp-rollback-example-summary',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Rollback';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Rollback';
 	}
 }

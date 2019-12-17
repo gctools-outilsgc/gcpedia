@@ -21,6 +21,8 @@
  * @ingroup SpecialPage
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * Implements Special:Ancientpages
  *
@@ -41,19 +43,32 @@ class AncientPagesPage extends QueryPage {
 	}
 
 	public function getQueryInfo() {
-		return array(
-			'tables' => array( 'page', 'revision' ),
-			'fields' => array(
+		$tables = [ 'page', 'revision' ];
+		$conds = [
+			'page_namespace' => MWNamespace::getContentNamespaces(),
+			'page_is_redirect' => 0
+		];
+		$joinConds = [
+			'revision' => [
+				'JOIN', [
+					'page_latest = rev_id'
+				]
+			],
+		];
+
+		// Allow extensions to modify the query
+		Hooks::run( 'AncientPagesQuery', [ &$tables, &$conds, &$joinConds ] );
+
+		return [
+			'tables' => $tables,
+			'fields' => [
 				'namespace' => 'page_namespace',
 				'title' => 'page_title',
 				'value' => 'rev_timestamp'
-			),
-			'conds' => array(
-				'page_namespace' => MWNamespace::getContentNamespaces(),
-				'page_is_redirect' => 0,
-				'page_latest=rev_id'
-			)
-		);
+			],
+			'conds' => $conds,
+			'join_conds' => $joinConds
+		];
 	}
 
 	public function usesTimestamps() {
@@ -64,19 +79,23 @@ class AncientPagesPage extends QueryPage {
 		return false;
 	}
 
+	public function preprocessResults( $db, $res ) {
+		$this->executeLBFromResultWrapper( $res );
+	}
+
 	/**
 	 * @param Skin $skin
 	 * @param object $result Result row
 	 * @return string
 	 */
 	function formatResult( $skin, $result ) {
-		global $wgContLang;
-
 		$d = $this->getLanguage()->userTimeAndDate( $result->value, $this->getUser() );
 		$title = Title::makeTitle( $result->namespace, $result->title );
-		$link = Linker::linkKnown(
+		$linkRenderer = $this->getLinkRenderer();
+		$link = $linkRenderer->makeKnownLink(
 			$title,
-			htmlspecialchars( $wgContLang->convert( $title->getPrefixedText() ) )
+			new HtmlArmor( MediaWikiServices::getInstance()->getContentLanguage()->
+				convert( htmlspecialchars( $title->getPrefixedText() ) ) )
 		);
 
 		return $this->getLanguage()->specialList( $link, htmlspecialchars( $d ) );

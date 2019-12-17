@@ -1,5 +1,9 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\SlotRecord;
+use MediaWiki\Revision\SlotRenderingProvider;
+
 /**
  * @group ContentHandler
  */
@@ -40,10 +44,10 @@ class WikitextContentHandlerTest extends MediaWikiLangTestCase {
 	 */
 	public function testUnserializeContent() {
 		$content = $this->handler->unserializeContent( 'hello world' );
-		$this->assertEquals( 'hello world', $content->getNativeData() );
+		$this->assertEquals( 'hello world', $content->getText() );
 
 		$content = $this->handler->unserializeContent( 'hello world', CONTENT_FORMAT_WIKITEXT );
-		$this->assertEquals( 'hello world', $content->getNativeData() );
+		$this->assertEquals( 'hello world', $content->getText() );
 
 		try {
 			$this->handler->unserializeContent( 'hello world', 'dummy/foo' );
@@ -60,15 +64,15 @@ class WikitextContentHandlerTest extends MediaWikiLangTestCase {
 		$content = $this->handler->makeEmptyContent();
 
 		$this->assertTrue( $content->isEmpty() );
-		$this->assertEquals( '', $content->getNativeData() );
+		$this->assertEquals( '', $content->getText() );
 	}
 
 	public static function dataIsSupportedFormat() {
-		return array(
-			array( null, true ),
-			array( CONTENT_FORMAT_WIKITEXT, true ),
-			array( 99887766, false ),
-		);
+		return [
+			[ null, true ],
+			[ CONTENT_FORMAT_WIKITEXT, true ],
+			[ 99887766, false ],
+		];
 	}
 
 	/**
@@ -78,10 +82,9 @@ class WikitextContentHandlerTest extends MediaWikiLangTestCase {
 	 * @covers WikitextContentHandler::makeRedirectContent
 	 */
 	public function testMakeRedirectContent( $title, $expected ) {
-		global $wgContLang;
-		$wgContLang->resetNamespaces();
+		MediaWikiServices::getInstance()->getContentLanguage()->resetNamespaces();
 
-		MagicWord::clearCache();
+		MediaWikiServices::getInstance()->resetServiceForTesting( 'MagicWordFactory' );
 
 		if ( is_string( $title ) ) {
 			$title = Title::newFromText( $title );
@@ -91,20 +94,20 @@ class WikitextContentHandlerTest extends MediaWikiLangTestCase {
 	}
 
 	public static function provideMakeRedirectContent() {
-		return array(
-			array( 'Hello', '#REDIRECT [[Hello]]' ),
-			array( 'Template:Hello', '#REDIRECT [[Template:Hello]]' ),
-			array( 'Hello#section', '#REDIRECT [[Hello#section]]' ),
-			array( 'user:john_doe#section', '#REDIRECT [[User:John doe#section]]' ),
-			array( 'MEDIAWIKI:FOOBAR', '#REDIRECT [[MediaWiki:FOOBAR]]' ),
-			array( 'Category:Foo', '#REDIRECT [[:Category:Foo]]' ),
-			array( Title::makeTitle( NS_MAIN, 'en:Foo' ), '#REDIRECT [[en:Foo]]' ),
-			array( Title::makeTitle( NS_MAIN, 'Foo', '', 'en' ), '#REDIRECT [[:en:Foo]]' ),
-			array(
+		return [
+			[ 'Hello', '#REDIRECT [[Hello]]' ],
+			[ 'Template:Hello', '#REDIRECT [[Template:Hello]]' ],
+			[ 'Hello#section', '#REDIRECT [[Hello#section]]' ],
+			[ 'user:john_doe#section', '#REDIRECT [[User:John doe#section]]' ],
+			[ 'MEDIAWIKI:FOOBAR', '#REDIRECT [[MediaWiki:FOOBAR]]' ],
+			[ 'Category:Foo', '#REDIRECT [[:Category:Foo]]' ],
+			[ Title::makeTitle( NS_MAIN, 'en:Foo' ), '#REDIRECT [[en:Foo]]' ],
+			[ Title::makeTitle( NS_MAIN, 'Foo', '', 'en' ), '#REDIRECT [[:en:Foo]]' ],
+			[
 				Title::makeTitle( NS_MAIN, 'Bar', 'fragment', 'google' ),
 				'#REDIRECT [[google:Bar#fragment]]'
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -115,14 +118,17 @@ class WikitextContentHandlerTest extends MediaWikiLangTestCase {
 		$this->assertEquals( $supported, $this->handler->isSupportedFormat( $format ) );
 	}
 
+	/**
+	 * @covers WikitextContentHandler::supportsDirectEditing
+	 */
 	public function testSupportsDirectEditing() {
 		$handler = new WikiTextContentHandler();
 		$this->assertTrue( $handler->supportsDirectEditing(), 'direct editing is supported' );
 	}
 
 	public static function dataMerge3() {
-		return array(
-			array(
+		return [
+			[
 				"first paragraph
 
 					second paragraph\n",
@@ -138,9 +144,9 @@ class WikitextContentHandlerTest extends MediaWikiLangTestCase {
 				"FIRST paragraph
 
 					SECOND paragraph\n",
-			),
+			],
 
-			array( "first paragraph
+			[ "first paragraph
 					second paragraph\n",
 
 				"Bla bla\n",
@@ -148,8 +154,8 @@ class WikitextContentHandlerTest extends MediaWikiLangTestCase {
 				"Blubberdibla\n",
 
 				false,
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -157,7 +163,7 @@ class WikitextContentHandlerTest extends MediaWikiLangTestCase {
 	 * @covers WikitextContentHandler::merge3
 	 */
 	public function testMerge3( $old, $mine, $yours, $expected ) {
-		$this->checkHasDiff3();
+		$this->markTestSkippedIfNoDiff3();
 
 		// test merge
 		$oldContent = new WikitextContent( $old );
@@ -166,33 +172,40 @@ class WikitextContentHandlerTest extends MediaWikiLangTestCase {
 
 		$merged = $this->handler->merge3( $oldContent, $myContent, $yourContent );
 
-		$this->assertEquals( $expected, $merged ? $merged->getNativeData() : $merged );
+		$this->assertEquals( $expected, $merged ? $merged->getText() : $merged );
 	}
 
 	public static function dataGetAutosummary() {
-		return array(
-			array(
+		return [
+			[
 				'Hello there, world!',
 				'#REDIRECT [[Foo]]',
 				0,
 				'/^Redirected page .*Foo/'
-			),
+			],
 
-			array(
+			[
 				null,
 				'Hello world!',
 				EDIT_NEW,
 				'/^Created page .*Hello/'
-			),
+			],
 
-			array(
+			[
+				null,
+				'',
+				EDIT_NEW,
+				'/^Created blank page$/'
+			],
+
+			[
 				'Hello there, world!',
 				'',
 				0,
 				'/^Blanked/'
-			),
+			],
 
-			array(
+			[
 				'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
 				eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam
 				voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
@@ -200,15 +213,15 @@ class WikitextContentHandlerTest extends MediaWikiLangTestCase {
 				'Hello world!',
 				0,
 				'/^Replaced .*Hello/'
-			),
+			],
 
-			array(
+			[
 				'foo',
 				'bar',
 				0,
 				'/^$/'
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -227,20 +240,161 @@ class WikitextContentHandlerTest extends MediaWikiLangTestCase {
 		);
 	}
 
-	/**
-	 * @todo Text case requires database, should be done by a test class in the Database group
-	 */
-	/*
-	public function testGetAutoDeleteReason( Title $title, &$hasHistory ) {}
-	*/
+	public static function dataGetChangeTag() {
+		return [
+			[
+				null,
+				'#REDIRECT [[Foo]]',
+				0,
+				'mw-new-redirect'
+			],
+
+			[
+				'Lorem ipsum dolor',
+				'#REDIRECT [[Foo]]',
+				0,
+				'mw-new-redirect'
+			],
+
+			[
+				'#REDIRECT [[Foo]]',
+				'Lorem ipsum dolor',
+				0,
+				'mw-removed-redirect'
+			],
+
+			[
+				'#REDIRECT [[Foo]]',
+				'#REDIRECT [[Bar]]',
+				0,
+				'mw-changed-redirect-target'
+			],
+
+			[
+				null,
+				'Lorem ipsum dolor',
+				EDIT_NEW,
+				null // mw-newpage is not defined as a tag
+			],
+
+			[
+				null,
+				'',
+				EDIT_NEW,
+				null // mw-newblank is not defined as a tag
+			],
+
+			[
+				'Lorem ipsum dolor',
+				'',
+				0,
+				'mw-blank'
+			],
+
+			[
+				'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
+				eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam
+				voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
+				clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.',
+				'Ipsum',
+				0,
+				'mw-replace'
+			],
+
+			[
+				'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
+				eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam
+				voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
+				clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.',
+				'Duis purus odio, rhoncus et finibus dapibus, facilisis ac urna. Pellentesque
+				arcu, tristique nec tempus nec, suscipit vel arcu. Sed non dolor nec ligula
+				congue tempor. Quisque pellentesque finibus orci a molestie. Nam maximus, purus
+				euismod finibus mollis, dui ante malesuada felis, dignissim rutrum diam sapien.',
+				0,
+				null
+			],
+		];
+	}
 
 	/**
-	 * @todo Text case requires database, should be done by a test class in the Database group
+	 * @dataProvider dataGetChangeTag
+	 * @covers WikitextContentHandler::getChangeTag
 	 */
-	/*
-	public function testGetUndoContent( Revision $current, Revision $undo,
-		Revision $undoafter = null
-	) {
+	public function testGetChangeTag( $old, $new, $flags, $expected ) {
+		$this->setMwGlobals( 'wgSoftwareTags', [
+			'mw-new-redirect' => true,
+			'mw-removed-redirect' => true,
+			'mw-changed-redirect-target' => true,
+			'mw-newpage' => true,
+			'mw-newblank' => true,
+			'mw-blank' => true,
+			'mw-replace' => true,
+		] );
+		$oldContent = is_null( $old ) ? null : new WikitextContent( $old );
+		$newContent = is_null( $new ) ? null : new WikitextContent( $new );
+
+		$tag = $this->handler->getChangeTag( $oldContent, $newContent, $flags );
+
+		$this->assertSame( $expected, $tag );
 	}
-	*/
+
+	/**
+	 * @covers WikitextContentHandler::getDataForSearchIndex
+	 */
+	public function testDataIndexFieldsFile() {
+		$mockEngine = $this->createMock( SearchEngine::class );
+		$title = Title::newFromText( 'Somefile.jpg', NS_FILE );
+		$page = new WikiPage( $title );
+
+		$fileHandler = $this->getMockBuilder( FileContentHandler::class )
+			->disableOriginalConstructor()
+			->setMethods( [ 'getDataForSearchIndex' ] )
+			->getMock();
+
+		$handler = $this->getMockBuilder( WikitextContentHandler::class )
+			->disableOriginalConstructor()
+			->setMethods( [ 'getFileHandler' ] )
+			->getMock();
+
+		$handler->method( 'getFileHandler' )->will( $this->returnValue( $fileHandler ) );
+		$fileHandler->expects( $this->once() )
+			->method( 'getDataForSearchIndex' )
+			->will( $this->returnValue( [ 'file_text' => 'This is file content' ] ) );
+
+		$data = $handler->getDataForSearchIndex( $page, new ParserOutput(), $mockEngine );
+		$this->assertArrayHasKey( 'file_text', $data );
+		$this->assertEquals( 'This is file content', $data['file_text'] );
+	}
+
+	/**
+	 * @covers ContentHandler::getSecondaryDataUpdates
+	 */
+	public function testGetSecondaryDataUpdates() {
+		$title = Title::newFromText( 'Somefile.jpg', NS_FILE );
+		$content = new WikitextContent( '' );
+
+		/** @var SlotRenderingProvider $srp */
+		$srp = $this->getMock( SlotRenderingProvider::class );
+
+		$handler = new WikitextContentHandler();
+		$updates = $handler->getSecondaryDataUpdates( $title, $content, SlotRecord::MAIN, $srp );
+
+		$this->assertEquals( [], $updates );
+	}
+
+	/**
+	 * @covers ContentHandler::getDeletionUpdates
+	 */
+	public function testGetDeletionUpdates() {
+		$title = Title::newFromText( 'Somefile.jpg', NS_FILE );
+		$content = new WikitextContent( '' );
+
+		$srp = $this->getMock( SlotRenderingProvider::class );
+
+		$handler = new WikitextContentHandler();
+		$updates = $handler->getDeletionUpdates( $title, SlotRecord::MAIN );
+
+		$this->assertEquals( [], $updates );
+	}
+
 }

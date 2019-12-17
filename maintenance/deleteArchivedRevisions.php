@@ -21,7 +21,6 @@
  *
  * @file
  * @ingroup Maintenance
- * @author Aaron Schulz
  */
 
 require_once __DIR__ . '/Maintenance.php';
@@ -35,8 +34,8 @@ require_once __DIR__ . '/Maintenance.php';
 class DeleteArchivedRevisions extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription =
-			"Deletes all archived revisions\nThese revisions will no longer be restorable";
+		$this->addDescription(
+			"Deletes all archived revisions\nThese revisions will no longer be restorable" );
 		$this->addOption( 'delete', 'Performs the deletion' );
 	}
 
@@ -62,5 +61,5 @@ class DeleteArchivedRevisions extends Maintenance {
 	}
 }
 
-$maintClass = "DeleteArchivedRevisions";
+$maintClass = DeleteArchivedRevisions::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

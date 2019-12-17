@@ -43,7 +43,7 @@ abstract class AbstractContent implements Content {
 	protected $model_id;
 
 	/**
-	 * @param string $modelId
+	 * @param string|null $modelId
 	 *
 	 * @since 1.21
 	 */
@@ -55,6 +55,7 @@ abstract class AbstractContent implements Content {
 	 * @since 1.21
 	 *
 	 * @see Content::getModel
+	 * @return string
 	 */
 	public function getModel() {
 		return $this->model_id;
@@ -82,6 +83,7 @@ abstract class AbstractContent implements Content {
 	 * @since 1.21
 	 *
 	 * @see Content::getContentHandler
+	 * @return ContentHandler
 	 */
 	public function getContentHandler() {
 		return ContentHandler::getForContent( $this );
@@ -91,6 +93,7 @@ abstract class AbstractContent implements Content {
 	 * @since 1.21
 	 *
 	 * @see Content::getDefaultFormat
+	 * @return string
 	 */
 	public function getDefaultFormat() {
 		return $this->getContentHandler()->getDefaultFormat();
@@ -100,6 +103,7 @@ abstract class AbstractContent implements Content {
 	 * @since 1.21
 	 *
 	 * @see Content::getSupportedFormats
+	 * @return string[]
 	 */
 	public function getSupportedFormats() {
 		return $this->getContentHandler()->getSupportedFormats();
@@ -141,7 +145,7 @@ abstract class AbstractContent implements Content {
 	/**
 	 * @since 1.21
 	 *
-	 * @param string $format
+	 * @param string|null $format
 	 *
 	 * @return string
 	 *
@@ -176,9 +180,20 @@ abstract class AbstractContent implements Content {
 	}
 
 	/**
+	 * Decides whether two Content objects are equal.
+	 * Two Content objects MUST not be considered equal if they do not share the same content model.
+	 * Two Content objects that are equal SHOULD have the same serialization.
+	 *
+	 * This default implementation relies on equalsInternal() to determin whether the
+	 * Content objects are logically equivalent. Subclasses that need to implement a custom
+	 * equality check should consider overriding equalsInternal(). Subclasses that override
+	 * equals() itself MUST make sure that the implementation returns false for $that === null,
+	 * and true for $that === this. It MUST also return false if $that does not have the same
+	 * content model.
+	 *
 	 * @since 1.21
 	 *
-	 * @param Content $that
+	 * @param Content|null $that
 	 *
 	 * @return bool
 	 *
@@ -197,7 +212,34 @@ abstract class AbstractContent implements Content {
 			return false;
 		}
 
-		return $this->getNativeData() === $that->getNativeData();
+		// For type safety. Needed for odd cases like MessageContent using CONTENT_MODEL_WIKITEXT
+		if ( get_class( $that ) !== get_class( $this ) ) {
+			return false;
+		}
+
+		return $this->equalsInternal( $that );
+	}
+
+	/**
+	 * Checks whether $that is logically equal to this Content object.
+	 *
+	 * This method can be overwritten by subclasses that need to implement custom
+	 * equality checks.
+	 *
+	 * This default implementation checks whether the serializations
+	 * of $this and $that are the same: $this->serialize() === $that->serialize()
+	 *
+	 * Implementors can assume that $that is an instance of the same class
+	 * as the present Content object, as long as equalsInternal() is only called
+	 * by the standard implementation of equals().
+	 *
+	 * @note Do not call this method directly, call equals() instead.
+	 *
+	 * @param Content $that
+	 * @return bool
+	 */
+	protected function equalsInternal( Content $that ) {
+		return $this->serialize() === $that->serialize();
 	}
 
 	/**
@@ -215,9 +257,9 @@ abstract class AbstractContent implements Content {
 	 * @since 1.21
 	 *
 	 * @param Title $title
-	 * @param Content $old
+	 * @param Content|null $old
 	 * @param bool $recursive
-	 * @param ParserOutput $parserOutput
+	 * @param ParserOutput|null $parserOutput
 	 *
 	 * @return DataUpdate[]
 	 *
@@ -230,11 +272,11 @@ abstract class AbstractContent implements Content {
 			$parserOutput = $this->getParserOutput( $title, null, null, false );
 		}
 
-		$updates = array(
+		$updates = [
 			new LinksUpdate( $title, $parserOutput, $recursive )
-		);
+		];
 
-		Hooks::run( 'SecondaryDataUpdates', array( $title, $old, $recursive, $parserOutput, &$updates ) );
+		Hooks::run( 'SecondaryDataUpdates', [ $title, $old, $recursive, $parserOutput, &$updates ] );
 
 		return $updates;
 	}
@@ -254,7 +296,7 @@ abstract class AbstractContent implements Content {
 		}
 		// recursive check to follow double redirects
 		$recurse = $wgMaxRedirects;
-		$titles = array( $title );
+		$titles = [ $title ];
 		while ( --$recurse > 0 ) {
 			if ( $title->isRedirect() ) {
 				$page = WikiPage::factory( $title );
@@ -281,7 +323,7 @@ abstract class AbstractContent implements Content {
 	 *
 	 * @since 1.21
 	 *
-	 * @return null
+	 * @return Title|null
 	 *
 	 * @see Content::getRedirectTarget
 	 */
@@ -334,6 +376,7 @@ abstract class AbstractContent implements Content {
 	/**
 	 * @since 1.21
 	 *
+	 * @param string|int $sectionId
 	 * @return null
 	 *
 	 * @see Content::getSection
@@ -345,6 +388,9 @@ abstract class AbstractContent implements Content {
 	/**
 	 * @since 1.21
 	 *
+	 * @param string|int|null|bool $sectionId
+	 * @param Content $with
+	 * @param string $sectionTitle
 	 * @return null
 	 *
 	 * @see Content::replaceSection
@@ -356,6 +402,9 @@ abstract class AbstractContent implements Content {
 	/**
 	 * @since 1.21
 	 *
+	 * @param Title $title
+	 * @param User $user
+	 * @param ParserOptions $popts
 	 * @return Content $this
 	 *
 	 * @see Content::preSaveTransform
@@ -367,6 +416,7 @@ abstract class AbstractContent implements Content {
 	/**
 	 * @since 1.21
 	 *
+	 * @param string $header
 	 * @return Content $this
 	 *
 	 * @see Content::addSectionHeader
@@ -378,17 +428,24 @@ abstract class AbstractContent implements Content {
 	/**
 	 * @since 1.21
 	 *
+	 * @param Title $title
+	 * @param ParserOptions $popts
+	 * @param array $params
 	 * @return Content $this
 	 *
 	 * @see Content::preloadTransform
 	 */
-	public function preloadTransform( Title $title, ParserOptions $popts, $params = array() ) {
+	public function preloadTransform( Title $title, ParserOptions $popts, $params = [] ) {
 		return $this;
 	}
 
 	/**
 	 * @since 1.21
 	 *
+	 * @param WikiPage $page
+	 * @param int $flags
+	 * @param int $parentRevId
+	 * @param User $user
 	 * @return Status
 	 *
 	 * @see Content::prepareSave
@@ -405,16 +462,16 @@ abstract class AbstractContent implements Content {
 	 * @since 1.21
 	 *
 	 * @param WikiPage $page
-	 * @param ParserOutput $parserOutput
+	 * @param ParserOutput|null $parserOutput
 	 *
-	 * @return LinksDeletionUpdate[]
+	 * @return DeferrableUpdate[]
 	 *
 	 * @see Content::getDeletionUpdates
 	 */
 	public function getDeletionUpdates( WikiPage $page, ParserOutput $parserOutput = null ) {
-		return array(
+		return [
 			new LinksDeletionUpdate( $page ),
-		);
+		];
 	}
 
 	/**
@@ -446,14 +503,14 @@ abstract class AbstractContent implements Content {
 	 */
 	public function convert( $toModel, $lossy = '' ) {
 		if ( $this->getModel() === $toModel ) {
-			//nothing to do, shorten out.
+			// nothing to do, shorten out.
 			return $this;
 		}
 
 		$lossy = ( $lossy === 'lossy' ); // string flag, convert to boolean for convenience
 		$result = false;
 
-		Hooks::run( 'ConvertContent', array( $this, $toModel, $lossy, &$result ) );
+		Hooks::run( 'ConvertContent', [ $this, $toModel, $lossy, &$result ] );
 
 		return $result;
 	}
@@ -473,7 +530,7 @@ abstract class AbstractContent implements Content {
 	 *
 	 * @param Title $title Context title for parsing
 	 * @param int|null $revId Revision ID (for {{REVISIONID}})
-	 * @param ParserOptions|null $options Parser options
+	 * @param ParserOptions|null $options
 	 * @param bool $generateHtml Whether or not to generate HTML
 	 *
 	 * @return ParserOutput Containing information derived from this content.
@@ -482,14 +539,15 @@ abstract class AbstractContent implements Content {
 		ParserOptions $options = null, $generateHtml = true
 	) {
 		if ( $options === null ) {
-			$options = $this->getContentHandler()->makeParserOptions( 'canonical' );
+			$options = ParserOptions::newCanonical( 'canonical' );
 		}
 
 		$po = new ParserOutput();
+		$options->registerWatcher( [ $po, 'recordOption' ] );
 
 		if ( Hooks::run( 'ContentGetParserOutput',
-			array( $this, $title, $revId, $options, $generateHtml, &$po ) ) ) {
-
+			[ $this, $title, $revId, $options, $generateHtml, &$po ] )
+		) {
 			// Save and restore the old value, just in case something is reusing
 			// the ParserOptions object in some weird way.
 			$oldRedir = $options->getRedirectTarget();
@@ -498,7 +556,8 @@ abstract class AbstractContent implements Content {
 			$options->setRedirectTarget( $oldRedir );
 		}
 
-		Hooks::run( 'ContentAlterParserOutput', array( $this, $title, $po ) );
+		Hooks::run( 'ContentAlterParserOutput', [ $this, $title, $po ] );
+		$options->registerWatcher( null );
 
 		return $po;
 	}
@@ -517,7 +576,7 @@ abstract class AbstractContent implements Content {
 	 *
 	 * @param Title $title Context title for parsing
 	 * @param int|null $revId Revision ID (for {{REVISIONID}})
-	 * @param ParserOptions $options Parser options
+	 * @param ParserOptions $options
 	 * @param bool $generateHtml Whether or not to generate HTML
 	 * @param ParserOutput &$output The output object to fill (reference).
 	 *

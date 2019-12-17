@@ -19,6 +19,8 @@
  * @ingroup Maintenance
  */
 
+use MediaWiki\MediaWikiServices;
+
 require_once __DIR__ . '/Maintenance.php';
 
 /**
@@ -30,8 +32,8 @@ require_once __DIR__ . '/Maintenance.php';
 class DeleteEqualMessages extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = 'Deletes all pages in the MediaWiki namespace that are equal to '
-			. 'the default message';
+		$this->addDescription( 'Deletes all pages in the MediaWiki namespace that are equal to '
+			. 'the default message' );
 		$this->addOption( 'delete', 'Actually delete the pages (default: dry run)' );
 		$this->addOption( 'delete-talk', 'Don\'t leave orphaned talk pages behind during deletion' );
 		$this->addOption( 'lang-code', 'Check for subpages of this language code (default: root '
@@ -44,15 +46,14 @@ class DeleteEqualMessages extends Maintenance {
 	 * @param array &$messageInfo
 	 */
 	protected function fetchMessageInfo( $langCode, array &$messageInfo ) {
-		global $wgContLang;
-
+		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 		if ( $langCode ) {
 			$this->output( "\n... fetching message info for language: $langCode" );
-			$nonContLang = true;
+			$nonContentLanguage = true;
 		} else {
 			$this->output( "\n... fetching message info for content language" );
-			$langCode = $wgContLang->getCode();
-			$nonContLang = false;
+			$langCode = $contLang->getCode();
+			$nonContentLanguage = false;
 		}
 
 		/* Based on SpecialAllmessages::reallyDoQuery #filter=modified */
@@ -60,12 +61,12 @@ class DeleteEqualMessages extends Maintenance {
 		$l10nCache = Language::getLocalisationCache();
 		$messageNames = $l10nCache->getSubitemList( 'en', 'messages' );
 		// Normalise message names for NS_MEDIAWIKI page_title
-		$messageNames = array_map( array( $wgContLang, 'ucfirst' ), $messageNames );
+		$messageNames = array_map( [ $contLang, 'ucfirst' ], $messageNames );
 
 		$statuses = AllMessagesTablePager::getCustomisedStatuses(
-			$messageNames, $langCode, $nonContLang );
+			$messageNames, $langCode, $nonContentLanguage );
 		// getCustomisedStatuses is stripping the sub page from the page titles, add it back
-		$titleSuffix = $nonContLang ? "/$langCode" : '';
+		$titleSuffix = $nonContentLanguage ? "/$langCode" : '';
 
 		foreach ( $messageNames as $key ) {
 			$customised = isset( $statuses['pages'][$key] );
@@ -82,10 +83,10 @@ class DeleteEqualMessages extends Maintenance {
 						$actual === $default
 				) {
 					$hasTalk = isset( $statuses['talks'][$key] );
-					$messageInfo['results'][] = array(
+					$messageInfo['results'][] = [
 						'title' => $key . $titleSuffix,
 						'hasTalk' => $hasTalk,
-					);
+					];
 					$messageInfo['equalPages']++;
 					if ( $hasTalk ) {
 						$messageInfo['equalPagesTalks']++;
@@ -100,12 +101,12 @@ class DeleteEqualMessages extends Maintenance {
 		$doDeleteTalk = $this->hasOption( 'delete-talk' );
 		$langCode = $this->getOption( 'lang-code' );
 
-		$messageInfo = array(
+		$messageInfo = [
 			'relevantPages' => 0,
 			'equalPages' => 0,
 			'equalPagesTalks' => 0,
-			'results' => array(),
-		);
+			'results' => [],
+		];
 
 		$this->output( 'Checking for pages with default message...' );
 
@@ -123,7 +124,7 @@ class DeleteEqualMessages extends Maintenance {
 				$this->fetchMessageInfo( false, $messageInfo );
 			} else {
 				if ( !isset( $langCodes[$langCode] ) ) {
-					$this->error( 'Invalid language code: ' . $langCode, 1 );
+					$this->fatalError( 'Invalid language code: ' . $langCode );
 				}
 				$this->fetchMessageInfo( $langCode, $messageInfo );
 			}
@@ -162,9 +163,9 @@ class DeleteEqualMessages extends Maintenance {
 			return;
 		}
 
-		$user = User::newFromName( 'MediaWiki default' );
+		$user = User::newSystemUser( 'MediaWiki default', [ 'steal' => true ] );
 		if ( !$user ) {
-			$this->error( "Invalid username", true );
+			$this->fatalError( "Invalid username" );
 		}
 		global $wgUser;
 		$wgUser = $user;
@@ -174,7 +175,7 @@ class DeleteEqualMessages extends Maintenance {
 
 		// Handle deletion
 		$this->output( "\n...deleting equal messages (this may take a long time!)..." );
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = $this->getDB( DB_MASTER );
 		foreach ( $messageInfo['results'] as $result ) {
 			wfWaitForSlaves();
 			$dbw->ping();
@@ -202,5 +203,5 @@ class DeleteEqualMessages extends Maintenance {
 	}
 }
 
-$maintClass = "DeleteEqualMessages";
+$maintClass = DeleteEqualMessages::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

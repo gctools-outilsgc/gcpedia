@@ -21,6 +21,8 @@
  * @ingroup SpecialPage
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * A special page that redirects to: the user for a numeric user id,
  * the file for a given filename, or the page for a given revision id.
@@ -33,16 +35,18 @@ class SpecialRedirect extends FormSpecialPage {
 	/**
 	 * The type of the redirect (user/file/revision)
 	 *
+	 * Example value: `'user'`
+	 *
 	 * @var string $mType
-	 * @example 'user'
 	 */
 	protected $mType;
 
 	/**
 	 * The identifier/value for the redirect (which id, which file)
 	 *
+	 * Example value: `'42'`
+	 *
 	 * @var string $mValue
-	 * @example '42'
 	 */
 	protected $mValue;
 
@@ -66,96 +70,138 @@ class SpecialRedirect extends FormSpecialPage {
 	/**
 	 * Handle Special:Redirect/user/xxxx (by redirecting to User:YYYY)
 	 *
-	 * @return string|null Url to redirect to, or null if $mValue is invalid.
+	 * @return Status A good status contains the url to redirect to
 	 */
 	function dispatchUser() {
 		if ( !ctype_digit( $this->mValue ) ) {
-			return null;
+			// Message: redirect-not-numeric
+			return Status::newFatal( $this->getMessagePrefix() . '-not-numeric' );
 		}
 		$user = User::newFromId( (int)$this->mValue );
 		$username = $user->getName(); // load User as side-effect
 		if ( $user->isAnon() ) {
-			return null;
+			// Message: redirect-not-exists
+			return Status::newFatal( $this->getMessagePrefix() . '-not-exists' );
+		}
+		if ( $user->isHidden() && !MediaWikiServices::getInstance()->getPermissionManager()
+			->userHasRight( $this->getUser(), 'hideuser' )
+		) {
+			throw new PermissionsError( null, [ 'badaccess-group0' ] );
 		}
 		$userpage = Title::makeTitle( NS_USER, $username );
 
-		return $userpage->getFullURL( '', false, PROTO_CURRENT );
+		return Status::newGood( [
+			$userpage->getFullURL( '', false, PROTO_CURRENT ), 302
+		] );
 	}
 
 	/**
 	 * Handle Special:Redirect/file/xxxx
 	 *
-	 * @return string|null Url to redirect to, or null if $mValue is not found.
+	 * @return Status A good status contains the url to redirect to
 	 */
 	function dispatchFile() {
-		$title = Title::makeTitleSafe( NS_FILE, $this->mValue );
-
-		if ( !$title instanceof Title ) {
-			return null;
+		try {
+			$title = Title::newFromTextThrow( $this->mValue, NS_FILE );
+			if ( $title && !$title->inNamespace( NS_FILE ) ) {
+				// If the given value contains a namespace enforce file namespace
+				$title = Title::newFromTextThrow( Title::makeName( NS_FILE, $this->mValue ) );
+			}
+		} catch ( MalformedTitleException $e ) {
+			return Status::newFatal( $e->getMessageObject() );
 		}
 		$file = wfFindFile( $title );
 
 		if ( !$file || !$file->exists() ) {
-			return null;
+			// Message: redirect-not-exists
+			return Status::newFatal( $this->getMessagePrefix() . '-not-exists' );
 		}
 		// Default behavior: Use the direct link to the file.
-		$url = $file->getURL();
+		$url = $file->getUrl();
 		$request = $this->getRequest();
 		$width = $request->getInt( 'width', -1 );
 		$height = $request->getInt( 'height', -1 );
 
 		// If a width is requested...
 		if ( $width != -1 ) {
-			$mto = $file->transform( array( 'width' => $width, 'height' => $height ) );
+			$mto = $file->transform( [ 'width' => $width, 'height' => $height ] );
 			// ... and we can
 			if ( $mto && !$mto->isError() ) {
 				// ... change the URL to point to a thumbnail.
-				$url = $mto->getURL();
+				// Note: This url is more temporary as can change
+				// if file is reuploaded and has different aspect ratio.
+				$url = [ $mto->getUrl(), $height === -1 ? 301 : 302 ];
 			}
 		}
 
-		return $url;
+		return Status::newGood( $url );
 	}
 
 	/**
 	 * Handle Special:Redirect/revision/xxx
 	 * (by redirecting to index.php?oldid=xxx)
 	 *
-	 * @return string|null Url to redirect to, or null if $mValue is invalid.
+	 * @return Status A good status contains the url to redirect to
 	 */
 	function dispatchRevision() {
 		$oldid = $this->mValue;
 		if ( !ctype_digit( $oldid ) ) {
-			return null;
+			// Message: redirect-not-numeric
+			return Status::newFatal( $this->getMessagePrefix() . '-not-numeric' );
 		}
 		$oldid = (int)$oldid;
 		if ( $oldid === 0 ) {
-			return null;
+			// Message: redirect-not-exists
+			return Status::newFatal( $this->getMessagePrefix() . '-not-exists' );
 		}
 
-		return wfAppendQuery( wfScript( 'index' ), array(
+		return Status::newGood( wfAppendQuery( wfScript( 'index' ), [
 			'oldid' => $oldid
-		) );
+		] ) );
 	}
 
 	/**
 	 * Handle Special:Redirect/page/xxx (by redirecting to index.php?curid=xxx)
 	 *
-	 * @return string|null Url to redirect to, or null if $mValue is invalid.
+	 * @return Status A good status contains the url to redirect to
 	 */
 	function dispatchPage() {
 		$curid = $this->mValue;
 		if ( !ctype_digit( $curid ) ) {
-			return null;
+			// Message: redirect-not-numeric
+			return Status::newFatal( $this->getMessagePrefix() . '-not-numeric' );
 		}
 		$curid = (int)$curid;
 		if ( $curid === 0 ) {
-			return null;
+			// Message: redirect-not-exists
+			return Status::newFatal( $this->getMessagePrefix() . '-not-exists' );
 		}
 
-		return wfAppendQuery( wfScript( 'index' ), array(
+		return Status::newGood( wfAppendQuery( wfScript( 'index' ), [
 			'curid' => $curid
-		) );
+		] ) );
+	}
+
+	/**
+	 * Handle Special:Redirect/logid/xxx
+	 * (by redirecting to index.php?title=Special:Log&logid=xxx)
+	 *
+	 * @since 1.27
+	 * @return Status A good status contains the url to redirect to
+	 */
+	function dispatchLog() {
+		$logid = $this->mValue;
+		if ( !ctype_digit( $logid ) ) {
+			// Message: redirect-not-numeric
+			return Status::newFatal( $this->getMessagePrefix() . '-not-numeric' );
+		}
+		$logid = (int)$logid;
+		if ( $logid === 0 ) {
+			// Message: redirect-not-exists
+			return Status::newFatal( $this->getMessagePrefix() . '-not-exists' );
+		}
+		$query = [ 'title' => 'Special:Log', 'logid' => $logid ];
+		return Status::newGood( wfAppendQuery( wfScript( 'index' ), $query ) );
 	}
 
 	/**
@@ -164,39 +210,53 @@ class SpecialRedirect extends FormSpecialPage {
 	 * or do nothing (if $mValue wasn't set) allowing the form to be
 	 * displayed.
 	 *
-	 * @return bool True if a redirect was successfully handled.
+	 * @return Status|bool True if a redirect was successfully handled.
 	 */
 	function dispatch() {
 		// the various namespaces supported by Special:Redirect
 		switch ( $this->mType ) {
 			case 'user':
-				$url = $this->dispatchUser();
+				$status = $this->dispatchUser();
 				break;
 			case 'file':
-				$url = $this->dispatchFile();
+				$status = $this->dispatchFile();
 				break;
 			case 'revision':
-				$url = $this->dispatchRevision();
+				$status = $this->dispatchRevision();
 				break;
 			case 'page':
-				$url = $this->dispatchPage();
+				$status = $this->dispatchPage();
+				break;
+			case 'logid':
+				$status = $this->dispatchLog();
 				break;
 			default:
-				$this->getOutput()->setStatusCode( 404 );
-				$url = null;
+				$status = null;
 				break;
 		}
-		if ( $url ) {
-			$this->getOutput()->redirect( $url );
+		if ( $status && $status->isGood() ) {
+			// These urls can sometimes be linked from prominent places,
+			// so varnish cache.
+			$value = $status->getValue();
+			if ( is_array( $value ) ) {
+				list( $url, $code ) = $value;
+			} else {
+				$url = $value;
+				$code = 301;
+			}
+			if ( $code === 301 ) {
+				$this->getOutput()->setCdnMaxage( 60 * 60 );
+			} else {
+				$this->getOutput()->setCdnMaxage( 10 );
+			}
+			$this->getOutput()->redirect( $url, $code );
 
 			return true;
 		}
 		if ( !is_null( $this->mValue ) ) {
 			$this->getOutput()->setStatusCode( 404 );
-			// Message: redirect-not-exists
-			$msg = $this->getMessagePrefix() . '-not-exists';
 
-			return Status::newFatal( $msg );
+			return $status;
 		}
 
 		return false;
@@ -204,30 +264,31 @@ class SpecialRedirect extends FormSpecialPage {
 
 	protected function getFormFields() {
 		$mp = $this->getMessagePrefix();
-		$ns = array(
+		$ns = [
 			// subpage => message
 			// Messages: redirect-user, redirect-page, redirect-revision,
-			// redirect-file
+			// redirect-file, redirect-logid
 			'user' => $mp . '-user',
 			'page' => $mp . '-page',
 			'revision' => $mp . '-revision',
 			'file' => $mp . '-file',
-		);
-		$a = array();
-		$a['type'] = array(
+			'logid' => $mp . '-logid',
+		];
+		$a = [];
+		$a['type'] = [
 			'type' => 'select',
 			'label-message' => $mp . '-lookup', // Message: redirect-lookup
-			'options' => array(),
+			'options' => [],
 			'default' => current( array_keys( $ns ) ),
-		);
+		];
 		foreach ( $ns as $n => $m ) {
 			$m = $this->msg( $m )->text();
 			$a['type']['options'][$m] = $n;
 		}
-		$a['value'] = array(
+		$a['value'] = [
 			'type' => 'text',
 			'label-message' => $mp . '-value' // Message: redirect-value
-		);
+		];
 		// set the defaults according to the parsed subpage path
 		if ( !empty( $this->mType ) ) {
 			$a['type']['default'] = $this->mType;
@@ -262,18 +323,37 @@ class SpecialRedirect extends FormSpecialPage {
 		$form->setMethod( 'get' );
 	}
 
+	protected function getDisplayFormat() {
+		return 'ooui';
+	}
+
 	/**
 	 * Return an array of subpages that this special page will accept.
 	 *
 	 * @return string[] subpages
 	 */
 	protected function getSubpagesForPrefixSearch() {
-		return array(
-			"file",
-			"page",
-			"revision",
-			"user",
-		);
+		return [
+			'file',
+			'page',
+			'revision',
+			'user',
+			'logid',
+		];
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function requiresWrite() {
+		return false;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function requiresUnblock() {
+		return false;
 	}
 
 	protected function getGroupName() {

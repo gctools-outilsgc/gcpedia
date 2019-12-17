@@ -3,7 +3,9 @@
 /**
  * @group Xml
  */
-class XmlJs extends PHPUnit_Framework_TestCase {
+class XmlJsTest extends PHPUnit\Framework\TestCase {
+
+	use MediaWikiCoversValidator;
 
 	/**
 	 * @covers XmlJsCode::__construct
@@ -15,10 +17,10 @@ class XmlJs extends PHPUnit_Framework_TestCase {
 	}
 
 	public static function provideConstruction() {
-		return array(
-			array( null ),
-			array( '' ),
-		);
+		return [
+			[ null ],
+			[ '' ],
+		];
 	}
 
 }

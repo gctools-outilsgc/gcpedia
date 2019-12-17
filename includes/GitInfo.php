@@ -23,6 +23,8 @@
  * @file
  */
 
+use MediaWiki\Shell\Shell;
+
 class GitInfo {
 
 	/**
@@ -36,6 +38,11 @@ class GitInfo {
 	protected $basedir;
 
 	/**
+	 * Location of the repository
+	 */
+	protected $repoDir;
+
+	/**
 	 * Path to JSON cache file for pre-computed git information.
 	 */
 	protected $cacheFile;
@@ -43,10 +50,10 @@ class GitInfo {
 	/**
 	 * Cached git information.
 	 */
-	protected $cache = array();
+	protected $cache = [];
 
 	/**
-	 * Map of repo URLs to viewer URLs. Access via static method getViewers().
+	 * @var array|false Map of repo URLs to viewer URLs. Access via static method getViewers().
 	 */
 	private static $viewers = false;
 
@@ -56,6 +63,7 @@ class GitInfo {
 	 * @see precomputeValues
 	 */
 	public function __construct( $repoDir, $usePrecomputed = true ) {
+		$this->repoDir = $repoDir;
 		$this->cacheFile = self::getCacheFilePath( $repoDir );
 		wfDebugLog( 'gitinfo',
 			"Computed cacheFile={$this->cacheFile} for {$repoDir}"
@@ -96,7 +104,7 @@ class GitInfo {
 	 *
 	 * @param string $repoDir The root directory of the repo where .git can be found
 	 * @return string Path to GitInfo cache file in $wgGitInfoCacheDirectory or
-	 * null if $wgGitInfoCacheDirectory is false (cache disabled).
+	 * fallback in the extension directory itself
 	 * @since 1.24
 	 */
 	protected static function getCacheFilePath( $repoDir ) {
@@ -119,9 +127,13 @@ class GitInfo {
 			// a filename
 			$repoName = strtr( $repoName, DIRECTORY_SEPARATOR, '-' );
 			$fileName = 'info' . $repoName . '.json';
-			return "{$wgGitInfoCacheDirectory}/{$fileName}";
+			$cachePath = "{$wgGitInfoCacheDirectory}/{$fileName}";
+			if ( is_readable( $cachePath ) ) {
+				return $cachePath;
+			}
 		}
-		return null;
+
+		return "$repoDir/gitinfo.json";
 	}
 
 	/**
@@ -144,7 +156,7 @@ class GitInfo {
 	 * @return bool Whether or not the string looks like a SHA1
 	 */
 	public static function isSHA1( $str ) {
-		return !!preg_match( '/^[0-9A-F]{40}$/i', $str );
+		return (bool)preg_match( '/^[0-9A-F]{40}$/i', $str );
 	}
 
 	/**
@@ -187,8 +199,14 @@ class GitInfo {
 			} else {
 				// If not a SHA1 it may be a ref:
 				$refFile = "{$this->basedir}/{$head}";
+				$packedRefs = "{$this->basedir}/packed-refs";
+				$headRegex = preg_quote( $head, '/' );
 				if ( is_readable( $refFile ) ) {
 					$sha1 = rtrim( file_get_contents( $refFile ) );
+				} elseif ( is_readable( $packedRefs ) &&
+					preg_match( "/^([0-9A-Fa-f]{40}) $headRegex$/m", file_get_contents( $packedRefs ), $matches )
+				) {
+					$sha1 = $matches[1];
 				}
 			}
 			$this->cache['headSHA1'] = $sha1;
@@ -209,15 +227,25 @@ class GitInfo {
 			$date = false;
 			if ( is_file( $wgGitBin ) &&
 				is_executable( $wgGitBin ) &&
+				!Shell::isDisabled() &&
 				$this->getHead() !== false
 			) {
-				$environment = array( "GIT_DIR" => $this->basedir );
-				$cmd = wfEscapeShellArg( $wgGitBin ) .
-					" show -s --format=format:%ct HEAD";
-				$retc = false;
-				$commitDate = wfShellExec( $cmd, $retc, $environment );
-				if ( $retc === 0 ) {
-					$date = (int)$commitDate;
+				$cmd = [
+					$wgGitBin,
+					'show',
+					'-s',
+					'--format=format:%ct',
+					'HEAD',
+				];
+				$gitDir = realpath( $this->basedir );
+				$result = Shell::command( $cmd )
+					->environment( [ 'GIT_DIR' => $gitDir ] )
+					->restrict( Shell::RESTRICT_DEFAULT | Shell::NO_NETWORK )
+					->whitelistPaths( [ $gitDir, $this->repoDir ] )
+					->execute();
+
+				if ( $result->getExitCode() === 0 ) {
+					$date = (int)$result->getStdout();
 				}
 			}
 			$this->cache['headCommitDate'] = $date;
@@ -253,19 +281,17 @@ class GitInfo {
 		if ( $url === false ) {
 			return false;
 		}
-		if ( substr( $url, -4 ) !== '.git' ) {
-			$url .= '.git';
-		}
 		foreach ( self::getViewers() as $repo => $viewer ) {
 			$pattern = '#^' . $repo . '$#';
 			if ( preg_match( $pattern, $url, $matches ) ) {
 				$viewerUrl = preg_replace( $pattern, $viewer, $url );
 				$headSHA1 = $this->getHeadSHA1();
-				$replacements = array(
+				$replacements = [
 					'%h' => substr( $headSHA1, 0, 7 ),
 					'%H' => $headSHA1,
 					'%r' => urlencode( $matches[1] ),
-				);
+					'%R' => $matches[1],
+				];
 				return strtr( $viewerUrl, $replacements );
 			}
 		}
@@ -281,9 +307,9 @@ class GitInfo {
 			$config = "{$this->basedir}/config";
 			$url = false;
 			if ( is_readable( $config ) ) {
-				MediaWiki\suppressWarnings();
+				Wikimedia\suppressWarnings();
 				$configArray = parse_ini_file( $config, true );
-				MediaWiki\restoreWarnings();
+				Wikimedia\restoreWarnings();
 				$remote = false;
 
 				// Use the "origin" remote repo if available or any other repo if not.
@@ -392,7 +418,7 @@ class GitInfo {
 
 		if ( self::$viewers === false ) {
 			self::$viewers = $wgGitRepositoryViewers;
-			Hooks::run( 'GitViewers', array( &self::$viewers ) );
+			Hooks::run( 'GitViewers', [ &self::$viewers ] );
 		}
 
 		return self::$viewers;

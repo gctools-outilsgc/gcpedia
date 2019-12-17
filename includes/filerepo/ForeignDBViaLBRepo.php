@@ -21,6 +21,10 @@
  * @ingroup FileRepo
  */
 
+use MediaWiki\MediaWikiServices;
+use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\ILoadBalancer;
+
 /**
  * A foreign repository with a MediaWiki database accessible via the configured LBFactory
  *
@@ -30,17 +34,14 @@ class ForeignDBViaLBRepo extends LocalRepo {
 	/** @var string */
 	protected $wiki;
 
-	/** @var string */
-	protected $dbName;
-
-	/** @var string */
-	protected $tablePrefix;
+	/** @var array */
+	protected $fileFactory = [ ForeignDBFile::class, 'newFromTitle' ];
 
 	/** @var array */
-	protected $fileFactory = array( 'ForeignDBFile', 'newFromTitle' );
+	protected $fileFromRowFactory = [ ForeignDBFile::class, 'newFromRow' ];
 
-	/** @var array */
-	protected $fileFromRowFactory = array( 'ForeignDBFile', 'newFromRow' );
+	/** @var bool */
+	protected $hasSharedCache;
 
 	/**
 	 * @param array|null $info
@@ -48,32 +49,39 @@ class ForeignDBViaLBRepo extends LocalRepo {
 	function __construct( $info ) {
 		parent::__construct( $info );
 		$this->wiki = $info['wiki'];
-		list( $this->dbName, $this->tablePrefix ) = wfSplitWikiID( $this->wiki );
 		$this->hasSharedCache = $info['hasSharedCache'];
 	}
 
 	/**
-	 * @return DatabaseBase
+	 * @return IDatabase
 	 */
 	function getMasterDB() {
-		return wfGetDB( DB_MASTER, array(), $this->wiki );
+		return $this->getDBLoadBalancer()->getConnectionRef( DB_MASTER, [], $this->wiki );
 	}
 
 	/**
-	 * @return DatabaseBase
+	 * @return IDatabase
 	 */
-	function getSlaveDB() {
-		return wfGetDB( DB_SLAVE, array(), $this->wiki );
+	function getReplicaDB() {
+		return $this->getDBLoadBalancer()->getConnectionRef( DB_REPLICA, [], $this->wiki );
 	}
 
 	/**
 	 * @return Closure
 	 */
 	protected function getDBFactory() {
-		$wiki = $this->wiki;
-		return function( $index ) use ( $wiki ) {
-			return wfGetDB( $index, array(), $wiki );
+		return function ( $index ) {
+			return $this->getDBLoadBalancer()->getConnectionRef( $index, [], $this->wiki );
 		};
+	}
+
+	/**
+	 * @return ILoadBalancer
+	 */
+	protected function getDBLoadBalancer() {
+		$lbFactory = MediaWikiServices::getInstance()->getDBLoadBalancerFactory();
+
+		return $lbFactory->getMainLB( $this->wiki );
 	}
 
 	function hasSharedCache() {
@@ -98,7 +106,7 @@ class ForeignDBViaLBRepo extends LocalRepo {
 	}
 
 	protected function assertWritableRepo() {
-		throw new MWException( get_class( $this ) . ': write operations are not supported.' );
+		throw new MWException( static::class . ': write operations are not supported.' );
 	}
 
 	public function getInfo() {

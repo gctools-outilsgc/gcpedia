@@ -30,9 +30,9 @@
  */
 class BcryptPassword extends ParameterizedPassword {
 	protected function getDefaultParams() {
-		return array(
+		return [
 			'rounds' => $this->config['cost'],
-		);
+		];
 	}
 
 	protected function getDelimiter() {
@@ -65,7 +65,7 @@ class BcryptPassword extends ParameterizedPassword {
 				// Replace + with ., because bcrypt uses a non-MIME base64 format
 				strtr(
 					// Random base64 encoded string
-					base64_encode( MWCryptRand::generate( 16, true ) ),
+					base64_encode( random_bytes( 16 ) ),
 					'+', '.'
 				),
 				0, 22

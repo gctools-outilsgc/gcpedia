@@ -28,7 +28,7 @@ class PackedImageGallery extends TraditionalImageGallery {
 	}
 
 	/**
-	 * We artificially have 1.5 the resolution neccessary so that
+	 * We artificially have 1.5 the resolution necessary so that
 	 * we can scale it up by that much on the client side, without
 	 * worrying about requesting a new image.
 	 */
@@ -60,10 +60,10 @@ class PackedImageGallery extends TraditionalImageGallery {
 		}
 
 		// self::SCALE_FACTOR so the js has some room to manipulate sizes.
-		return array(
+		return [
 			'width' => $width * self::SCALE_FACTOR,
 			'height' => $this->mHeights * self::SCALE_FACTOR,
-		);
+		];
 	}
 
 	protected function getThumbDivWidth( $thumbWidth ) {
@@ -98,7 +98,7 @@ class PackedImageGallery extends TraditionalImageGallery {
 	 * @return array
 	 */
 	protected function getModules() {
-		return array( 'mediawiki.page.gallery' );
+		return [ 'mediawiki.page.gallery' ];
 	}
 
 	/**
@@ -107,6 +107,5 @@ class PackedImageGallery extends TraditionalImageGallery {
 	 * @param int $num
 	 */
 	public function setPerRow( $num ) {
-		return;
 	}
 }

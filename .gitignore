@@ -20,9 +20,12 @@ project.index
 ## Sublime
 sublime-*
 sftp-config.json
+## Visual Studio Code
+*.vscode/
 
 # MediaWiki install & usage
 /cache
+/docs/coverage
 /docs/js
 /images/[0-9a-f]
 /images/archive
@@ -33,23 +36,29 @@ sftp-config.json
 /images/thumb
 ## Extension:EasyTimeline
 /images/timeline
+## Extension:Score
+/images/lilypond
+## Extension:TimedMediaHandler
+/images/transcoded
 /images/tmp
 /maintenance/.mweval_history
 /maintenance/.mwsql_history
 /maintenance/dev/data
 /AdminSettings.php
 /LocalSettings.php
-/StartProfiler.php
 
 # Building & testing
+npm-debug.log
 node_modules/
+/resources/lib/.foreign
 /tests/phpunit/phpunit.phar
+/tests/selenium/log
+.eslintcache
 
 # Composer
-/vendor
 /composer.lock
-/composer.json
 /composer.local.json
+/composer.phar
 
 # MediaWiki UI documentation
 /docs/kss/static
@@ -64,6 +73,7 @@ Thumbs.db
 .buildpath
 .classpath
 .idea
+*.iml
 .metadata*
 .settings
 /favicon.ico
@@ -72,3 +82,5 @@ Thumbs.db
 /.htaccess
 /.htpasswd
 /data
+/tests/phan/issues
+*.rej

@@ -23,6 +23,8 @@
 
 require_once __DIR__ . '/../Maintenance.php';
 
+use Wikimedia\StaticArrayWriter;
+
 /**
  * Generates the normalizer data file for Malayalam.
  *
@@ -33,7 +35,7 @@ require_once __DIR__ . '/../Maintenance.php';
 class GenerateNormalizerDataMl extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = 'Generate the normalizer data file for Malayalam';
+		$this->addDescription( 'Generate the normalizer data file for Malayalam' );
 	}
 
 	public function getDbType() {
@@ -41,8 +43,8 @@ class GenerateNormalizerDataMl extends Maintenance {
 	}
 
 	public function execute() {
-		$hexPairs = array(
-			# From http://unicode.org/versions/Unicode5.1.0/#Malayalam_Chillu_Characters
+		$hexPairs = [
+			# From https://www.unicode.org/versions/Unicode5.1.0/#Malayalam_Chillu_Characters
 			'0D23 0D4D 200D' => '0D7A',
 			'0D28 0D4D 200D' => '0D7B',
 			'0D30 0D4D 200D' => '0D7C',
@@ -51,9 +53,9 @@ class GenerateNormalizerDataMl extends Maintenance {
 
 			# From http://permalink.gmane.org/gmane.science.linguistics.wikipedia.technical/46413
 			'0D15 0D4D 200D' => '0D7F',
-		);
+		];
 
-		$pairs = array();
+		$pairs = [];
 		foreach ( $hexPairs as $hexSource => $hexDest ) {
 			$source = UtfNormal\Utils::hexSequenceToUtf8( $hexSource );
 			$dest = UtfNormal\Utils::hexSequenceToUtf8( $hexDest );
@@ -61,10 +63,15 @@ class GenerateNormalizerDataMl extends Maintenance {
 		}
 
 		global $IP;
-		file_put_contents( "$IP/serialized/normalize-ml.ser", serialize( $pairs ) );
+		$writer = new StaticArrayWriter();
+		file_put_contents( "$IP/languages/data/normalize-ml.php", $writer->create(
+			$pairs,
+			'File created by generateNormalizerDataMl.php'
+		) );
+
 		echo "ml: " . count( $pairs ) . " pairs written.\n";
 	}
 }
 
-$maintClass = 'GenerateNormalizerDataMl';
+$maintClass = GenerateNormalizerDataMl::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

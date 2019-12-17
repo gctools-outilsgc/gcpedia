@@ -1,9 +1,5 @@
 <?php
 /**
- *
- *
- * Created on Sep 25, 2008
- *
  * Copyright © 2008 Roan Kattouw "<Firstname>.<Lastname>@gmail.com"
  *
  * This program is free software; you can redistribute it and/or modify
@@ -37,14 +33,18 @@
 class ApiQueryDisabled extends ApiQueryBase {
 
 	public function execute() {
-		$this->setWarning( "The \"{$this->getModuleName()}\" module has been disabled." );
+		$this->addWarning( [ 'apierror-moduledisabled', $this->getModuleName() ] );
 	}
 
 	public function getAllowedParams() {
-		return array();
+		return [];
 	}
 
-	public function getDescriptionMessage() {
-		return 'apihelp-query+disabled-description';
+	public function getSummaryMessage() {
+		return 'apihelp-query+disabled-summary';
+	}
+
+	public function getExtendedDescription() {
+		return 'apihelp-query+disabled-extended-description';
 	}
 }

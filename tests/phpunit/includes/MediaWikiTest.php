@@ -1,119 +1,147 @@
 <?php
 
 class MediaWikiTest extends MediaWikiTestCase {
+	private $oldServer, $oldGet, $oldPost;
+
 	protected function setUp() {
 		parent::setUp();
 
-		$this->setMwGlobals( array(
+		$this->setMwGlobals( [
 			'wgServer' => 'http://example.org',
 			'wgScriptPath' => '/w',
 			'wgScript' => '/w/index.php',
 			'wgArticlePath' => '/wiki/$1',
-			'wgActionPaths' => array(),
-		) );
+			'wgActionPaths' => [],
+		] );
+
+		// phpcs:disable MediaWiki.Usage.SuperGlobalsUsage.SuperGlobals
+		$this->oldServer = $_SERVER;
+		$this->oldGet = $_GET;
+		$this->oldPost = $_POST;
+	}
+
+	protected function tearDown() {
+		parent::tearDown();
+		$_SERVER = $this->oldServer;
+		$_GET = $this->oldGet;
+		$_POST = $this->oldPost;
 	}
 
 	public static function provideTryNormaliseRedirect() {
-		return array(
-			array(
+		return [
+			[
 				// View: Canonical
 				'url' => 'http://example.org/wiki/Foo_Bar',
-				'query' => array(),
+				'query' => [],
 				'title' => 'Foo_Bar',
 				'redirect' => false,
-			),
-			array(
+			],
+			[
 				// View: Escaped title
 				'url' => 'http://example.org/wiki/Foo%20Bar',
-				'query' => array(),
+				'query' => [],
 				'title' => 'Foo_Bar',
 				'redirect' => 'http://example.org/wiki/Foo_Bar',
-			),
-			array(
+			],
+			[
 				// View: Script path
 				'url' => 'http://example.org/w/index.php?title=Foo_Bar',
-				'query' => array( 'title' => 'Foo_Bar' ),
+				'query' => [ 'title' => 'Foo_Bar' ],
 				'title' => 'Foo_Bar',
-				'redirect' => 'http://example.org/wiki/Foo_Bar',
-			),
-			array(
+				'redirect' => false,
+			],
+			[
 				// View: Script path with implicit title from page id
 				'url' => 'http://example.org/w/index.php?curid=123',
-				'query' => array( 'curid' => '123' ),
+				'query' => [ 'curid' => '123' ],
 				'title' => 'Foo_Bar',
 				'redirect' => false,
-			),
-			array(
+			],
+			[
 				// View: Script path with implicit title from revision id
 				'url' => 'http://example.org/w/index.php?oldid=123',
-				'query' => array( 'oldid' => '123' ),
+				'query' => [ 'oldid' => '123' ],
 				'title' => 'Foo_Bar',
 				'redirect' => false,
-			),
-			array(
+			],
+			[
 				// View: Script path without title
 				'url' => 'http://example.org/w/index.php',
-				'query' => array(),
+				'query' => [],
 				'title' => 'Main_Page',
 				'redirect' => 'http://example.org/wiki/Main_Page',
-			),
-			array(
+			],
+			[
 				// View: Script path with empty title
 				'url' => 'http://example.org/w/index.php?title=',
-				'query' => array( 'title' => '' ),
+				'query' => [ 'title' => '' ],
 				'title' => 'Main_Page',
 				'redirect' => 'http://example.org/wiki/Main_Page',
-			),
-			array(
+			],
+			[
 				// View: Index with escaped title
 				'url' => 'http://example.org/w/index.php?title=Foo%20Bar',
-				'query' => array( 'title' => 'Foo Bar' ),
+				'query' => [ 'title' => 'Foo Bar' ],
 				'title' => 'Foo_Bar',
 				'redirect' => 'http://example.org/wiki/Foo_Bar',
-			),
-			array(
+			],
+			[
 				// View: Script path with escaped title
 				'url' => 'http://example.org/w/?title=Foo_Bar',
-				'query' => array( 'title' => 'Foo_Bar' ),
+				'query' => [ 'title' => 'Foo_Bar' ],
 				'title' => 'Foo_Bar',
-				'redirect' => 'http://example.org/wiki/Foo_Bar',
-			),
-			array(
+				'redirect' => false,
+			],
+			[
 				// View: Root path with escaped title
 				'url' => 'http://example.org/?title=Foo_Bar',
-				'query' => array( 'title' => 'Foo_Bar' ),
+				'query' => [ 'title' => 'Foo_Bar' ],
 				'title' => 'Foo_Bar',
-				'redirect' => 'http://example.org/wiki/Foo_Bar',
-			),
-			array(
+				'redirect' => false,
+			],
+			[
 				// View: Canonical with redundant query
 				'url' => 'http://example.org/wiki/Foo_Bar?action=view',
-				'query' => array( 'action' => 'view' ),
+				'query' => [ 'action' => 'view' ],
 				'title' => 'Foo_Bar',
-				'redirect' => 'http://example.org/wiki/Foo_Bar',
-			),
-			array(
+				'redirect' => false,
+			],
+			[
 				// Edit: Canonical view url with action query
 				'url' => 'http://example.org/wiki/Foo_Bar?action=edit',
-				'query' => array( 'action' => 'edit' ),
+				'query' => [ 'action' => 'edit' ],
 				'title' => 'Foo_Bar',
 				'redirect' => false,
-			),
-			array(
+			],
+			[
 				// View: Index with action query
 				'url' => 'http://example.org/w/index.php?title=Foo_Bar&action=view',
-				'query' => array( 'title' => 'Foo_Bar', 'action' => 'view' ),
-				'title' => 'Foo_Bar',
-				'redirect' => 'http://example.org/wiki/Foo_Bar',
-			),
-			array(
-				// Edit: Index with action query
-				'url' => 'http://example.org/w/index.php?title=Foo_Bar&action=edit',
-				'query' => array( 'title' => 'Foo_Bar', 'action' => 'edit' ),
+				'query' => [ 'title' => 'Foo_Bar', 'action' => 'view' ],
 				'title' => 'Foo_Bar',
 				'redirect' => false,
-			),
-		);
+			],
+			[
+				// Edit: Index with action query
+				'url' => 'http://example.org/w/index.php?title=Foo_Bar&action=edit',
+				'query' => [ 'title' => 'Foo_Bar', 'action' => 'edit' ],
+				'title' => 'Foo_Bar',
+				'redirect' => false,
+			],
+			[
+				// Path with double slash prefix (T100782)
+				'url' => 'http://example.org//wiki/Double_slash',
+				'query' => [],
+				'title' => 'Double_slash',
+				'redirect' => false,
+			],
+			[
+				// View: Media namespace redirect (T203942)
+				'url' => 'http://example.org/w/index.php?title=Media:Foo_Bar',
+				'query' => [ 'title' => 'Foo_Bar' ],
+				'title' => 'File:Foo_Bar',
+				'redirect' => 'http://example.org/wiki/File:Foo_Bar',
+			],
+		];
 	}
 
 	/**
@@ -122,11 +150,13 @@ class MediaWikiTest extends MediaWikiTestCase {
 	 */
 	public function testTryNormaliseRedirect( $url, $query, $title, $expectedRedirect = false ) {
 		// Set SERVER because interpolateTitle() doesn't use getRequestURL(),
-		// whereas tryNormaliseRedirect does().
+		// whereas tryNormaliseRedirect does(). Also, using WebRequest allows
+		// us to test some quirks in that class.
 		$_SERVER['REQUEST_URI'] = $url;
+		$_POST = [];
+		$_GET = $query;
+		$req = new WebRequest;
 
-		$req = new FauxRequest( $query );
-		$req->setRequestURL( $url );
 		// This adds a virtual 'title' query parameter. Normally called from Setup.php
 		$req->interpolateTitle();
 
@@ -152,6 +182,56 @@ class MediaWikiTest extends MediaWikiTestCase {
 		$this->assertEquals(
 			$expectedRedirect ?: '',
 			$context->getOutput()->getRedirect()
+		);
+	}
+
+	/**
+	 * Test a post-send job can not set cookies (T191537).
+	 * @coversNothing
+	 */
+	public function testPostSendJobDoesNotSetCookie() {
+		// Prevent updates from running
+		$this->setMwGlobals( 'wgCommandLineMode', false );
+
+		$response = new WebResponse;
+
+		// A job that attempts to set a cookie
+		$jobHasRun = false;
+		DeferredUpdates::addCallableUpdate( function () use ( $response, &$jobHasRun ) {
+			$jobHasRun = true;
+			$response->setCookie( 'JobCookie', 'yes' );
+			$response->header( 'Foo: baz' );
+		} );
+
+		$hookWasRun = false;
+		$this->setTemporaryHook( 'WebResponseSetCookie', function () use ( &$hookWasRun ) {
+			$hookWasRun = true;
+			return true;
+		} );
+
+		$logger = new TestLogger();
+		$logger->setCollect( true );
+		$this->setLogger( 'cookie', $logger );
+		$this->setLogger( 'header', $logger );
+
+		$mw = new MediaWiki();
+		$mw->doPostOutputShutdown();
+		// restInPeace() might have been registered to a callback of
+		// register_postsend_function() and thus can not be triggered from
+		// PHPUnit.
+		if ( $jobHasRun === false ) {
+			$mw->restInPeace();
+		}
+
+		$this->assertTrue( $jobHasRun, 'post-send job has run' );
+		$this->assertFalse( $hookWasRun,
+			'post-send job must not trigger WebResponseSetCookie hook' );
+		$this->assertEquals(
+			[
+				[ 'info', 'ignored post-send cookie {cookie}' ],
+				[ 'info', 'ignored post-send header {header}' ],
+			],
+			$logger->getBuffer()
 		);
 	}
 }

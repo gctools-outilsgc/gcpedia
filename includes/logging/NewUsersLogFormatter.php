@@ -19,7 +19,7 @@
  *
  * @file
  * @author Niklas Laxström
- * @license http://www.gnu.org/copyleft/gpl.html GNU General Public License 2.0 or later
+ * @license GPL-2.0-or-later
  * @since 1.22
  */
 
@@ -59,10 +59,10 @@ class NewUsersLogFormatter extends LogFormatter {
 	public function getPreloadTitles() {
 		$subtype = $this->entry->getSubtype();
 		if ( $subtype === 'create2' || $subtype === 'byemail' ) {
-			//add the user talk to LinkBatch for the userLink
-			return array( Title::makeTitle( NS_USER_TALK, $this->entry->getTarget()->getText() ) );
+			// add the user talk to LinkBatch for the userLink
+			return [ Title::makeTitle( NS_USER_TALK, $this->entry->getTarget()->getText() ) ];
 		}
 
-		return array();
+		return [];
 	}
 }

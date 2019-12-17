@@ -21,6 +21,8 @@
  * @ingroup RevisionDelete
  */
 
+use Wikimedia\Rdbms\IDatabase;
+
 /**
  * Backend functions for suppressing and unsuppressing all references to a given user,
  * used when blocking with HideUser enabled.  This was spun out of SpecialBlockip.php
@@ -33,13 +35,16 @@ class RevisionDeleteUser {
 
 	/**
 	 * Update *_deleted bitfields in various tables to hide or unhide usernames
+	 *
 	 * @param string $name Username
 	 * @param int $userId User id
 	 * @param string $op Operator '|' or '&'
 	 * @param null|IDatabase $dbw If you happen to have one lying around
-	 * @return bool
+	 * @return bool True on success, false on failure (e.g. invalid user ID)
 	 */
-	private static function setUsernameBitfields( $name, $userId, $op, $dbw ) {
+	private static function setUsernameBitfields( $name, $userId, $op, IDatabase $dbw = null ) {
+		global $wgActorTableSchemaMigrationStage;
+
 		if ( !$userId || ( $op !== '|' && $op !== '&' ) ) {
 			return false; // sanity check
 		}
@@ -54,7 +59,7 @@ class RevisionDeleteUser {
 		# The same goes for the sysop-restricted *_deleted bit.
 		$delUser = Revision::DELETED_USER | Revision::DELETED_RESTRICTED;
 		$delAction = LogPage::DELETED_ACTION | Revision::DELETED_RESTRICTED;
-		if ( $op == '&' ) {
+		if ( $op === '&' ) {
 			$delUser = $dbw->bitNot( $delUser );
 			$delAction = $dbw->bitNot( $delAction );
 		}
@@ -63,80 +68,156 @@ class RevisionDeleteUser {
 		$userTitle = Title::makeTitleSafe( NS_USER, $name );
 		$userDbKey = $userTitle->getDBkey();
 
-		# Hide name from live edits
-		$dbw->update(
-			'revision',
-			array( self::buildSetBitDeletedField( 'rev_deleted', $op, $delUser, $dbw ) ),
-			array( 'rev_user' => $userId ),
-			__METHOD__ );
+		if ( $wgActorTableSchemaMigrationStage & SCHEMA_COMPAT_WRITE_OLD ) {
+			# Hide name from live edits
+			$dbw->update(
+				'revision',
+				[ self::buildSetBitDeletedField( 'rev_deleted', $op, $delUser, $dbw ) ],
+				[ 'rev_user' => $userId ],
+				__METHOD__ );
 
-		# Hide name from deleted edits
-		$dbw->update(
-			'archive',
-			array( self::buildSetBitDeletedField( 'ar_deleted', $op, $delUser, $dbw ) ),
-			array( 'ar_user_text' => $name ),
-			__METHOD__
-		);
+			# Hide name from deleted edits
+			$dbw->update(
+				'archive',
+				[ self::buildSetBitDeletedField( 'ar_deleted', $op, $delUser, $dbw ) ],
+				[ 'ar_user_text' => $name ],
+				__METHOD__
+			);
 
-		# Hide name from logs
+			# Hide name from logs
+			$dbw->update(
+				'logging',
+				[ self::buildSetBitDeletedField( 'log_deleted', $op, $delUser, $dbw ) ],
+				[ 'log_user' => $userId, 'log_type != ' . $dbw->addQuotes( 'suppress' ) ],
+				__METHOD__
+			);
+
+			# Hide name from RC
+			$dbw->update(
+				'recentchanges',
+				[ self::buildSetBitDeletedField( 'rc_deleted', $op, $delUser, $dbw ) ],
+				[ 'rc_user_text' => $name ],
+				__METHOD__
+			);
+
+			# Hide name from live images
+			$dbw->update(
+				'oldimage',
+				[ self::buildSetBitDeletedField( 'oi_deleted', $op, $delUser, $dbw ) ],
+				[ 'oi_user_text' => $name ],
+				__METHOD__
+			);
+
+			# Hide name from deleted images
+			$dbw->update(
+				'filearchive',
+				[ self::buildSetBitDeletedField( 'fa_deleted', $op, $delUser, $dbw ) ],
+				[ 'fa_user_text' => $name ],
+				__METHOD__
+			);
+		}
+
+		if ( $wgActorTableSchemaMigrationStage & SCHEMA_COMPAT_WRITE_NEW ) {
+			$actorId = $dbw->selectField( 'actor', 'actor_id', [ 'actor_name' => $name ], __METHOD__ );
+			if ( $actorId ) {
+				# Hide name from live edits
+				$ids = $dbw->selectFieldValues(
+					'revision_actor_temp', 'revactor_rev', [ 'revactor_actor' => $actorId ], __METHOD__
+				);
+				if ( $ids ) {
+					$dbw->update(
+						'revision',
+						[ self::buildSetBitDeletedField( 'rev_deleted', $op, $delUser, $dbw ) ],
+						[ 'rev_id' => $ids ],
+						__METHOD__
+					);
+				}
+
+				# Hide name from deleted edits
+				$dbw->update(
+					'archive',
+					[ self::buildSetBitDeletedField( 'ar_deleted', $op, $delUser, $dbw ) ],
+					[ 'ar_actor' => $actorId ],
+					__METHOD__
+				);
+
+				# Hide name from logs
+				$dbw->update(
+					'logging',
+					[ self::buildSetBitDeletedField( 'log_deleted', $op, $delUser, $dbw ) ],
+					[ 'log_actor' => $actorId, 'log_type != ' . $dbw->addQuotes( 'suppress' ) ],
+					__METHOD__
+				);
+
+				# Hide name from RC
+				$dbw->update(
+					'recentchanges',
+					[ self::buildSetBitDeletedField( 'rc_deleted', $op, $delUser, $dbw ) ],
+					[ 'rc_actor' => $actorId ],
+					__METHOD__
+				);
+
+				# Hide name from live images
+				$dbw->update(
+					'oldimage',
+					[ self::buildSetBitDeletedField( 'oi_deleted', $op, $delUser, $dbw ) ],
+					[ 'oi_actor' => $actorId ],
+					__METHOD__
+				);
+
+				# Hide name from deleted images
+				$dbw->update(
+					'filearchive',
+					[ self::buildSetBitDeletedField( 'fa_deleted', $op, $delUser, $dbw ) ],
+					[ 'fa_actor' => $actorId ],
+					__METHOD__
+				);
+			}
+		}
+
+		# Hide log entries pointing to the user page
 		$dbw->update(
 			'logging',
-			array( self::buildSetBitDeletedField( 'log_deleted', $op, $delUser, $dbw ) ),
-			array( 'log_user' => $userId, 'log_type != ' . $dbw->addQuotes( 'suppress' ) ),
-			__METHOD__
-		);
-		$dbw->update(
-			'logging',
-			array( self::buildSetBitDeletedField( 'log_deleted', $op, $delAction, $dbw ) ),
-			array( 'log_namespace' => NS_USER, 'log_title' => $userDbKey,
-				'log_type != ' . $dbw->addQuotes( 'suppress' ) ),
+			[ self::buildSetBitDeletedField( 'log_deleted', $op, $delAction, $dbw ) ],
+			[ 'log_namespace' => NS_USER, 'log_title' => $userDbKey,
+			'log_type != ' . $dbw->addQuotes( 'suppress' ) ],
 			__METHOD__
 		);
 
-		# Hide name from RC
+		# Hide RC entries pointing to the user page
 		$dbw->update(
 			'recentchanges',
-			array( self::buildSetBitDeletedField( 'rc_deleted', $op, $delUser, $dbw ) ),
-			array( 'rc_user_text' => $name ),
-			__METHOD__
-		);
-		$dbw->update(
-			'recentchanges',
-			array( self::buildSetBitDeletedField( 'rc_deleted', $op, $delAction, $dbw ) ),
-			array( 'rc_namespace' => NS_USER, 'rc_title' => $userDbKey, 'rc_logid > 0' ),
+			[ self::buildSetBitDeletedField( 'rc_deleted', $op, $delAction, $dbw ) ],
+			[ 'rc_namespace' => NS_USER, 'rc_title' => $userDbKey, 'rc_logid > 0' ],
 			__METHOD__
 		);
 
-		# Hide name from live images
-		$dbw->update(
-			'oldimage',
-			array( self::buildSetBitDeletedField( 'oi_deleted', $op, $delUser, $dbw ) ),
-			array( 'oi_user_text' => $name ),
-			__METHOD__
-		);
-
-		# Hide name from deleted images
-		$dbw->update(
-			'filearchive',
-			array( self::buildSetBitDeletedField( 'fa_deleted', $op, $delUser, $dbw ) ),
-			array( 'fa_user_text' => $name ),
-			__METHOD__
-		);
-		# Done!
 		return true;
 	}
 
-	private static function buildSetBitDeletedField( $field, $op, $value, $dbw ) {
+	private static function buildSetBitDeletedField( $field, $op, $value, IDatabase $dbw ) {
 		return $field . ' = ' . ( $op === '&'
 			? $dbw->bitAnd( $field, $value )
 			: $dbw->bitOr( $field, $value ) );
 	}
 
-	public static function suppressUserName( $name, $userId, $dbw = null ) {
+	/**
+	 * @param string $name User name
+	 * @param int $userId Both user name and ID must be provided
+	 * @param IDatabase|null $dbw If you happen to have one lying around
+	 * @return bool True on success, false on failure (e.g. invalid user ID)
+	 */
+	public static function suppressUserName( $name, $userId, IDatabase $dbw = null ) {
 		return self::setUsernameBitfields( $name, $userId, '|', $dbw );
 	}
 
-	public static function unsuppressUserName( $name, $userId, $dbw = null ) {
+	/**
+	 * @param string $name User name
+	 * @param int $userId Both user name and ID must be provided
+	 * @param IDatabase|null $dbw If you happen to have one lying around
+	 * @return bool True on success, false on failure (e.g. invalid user ID)
+	 */
+	public static function unsuppressUserName( $name, $userId, IDatabase $dbw = null ) {
 		return self::setUsernameBitfields( $name, $userId, '&', $dbw );
 	}
 }

@@ -1,8 +1,6 @@
 <?php
 
 /**
- * Tests for the SiteImporter class.
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -29,28 +27,30 @@
  *
  * @author Daniel Kinzler
  */
-class SiteImporterTest extends PHPUnit_Framework_TestCase {
+class SiteImporterTest extends PHPUnit\Framework\TestCase {
+
+	use MediaWikiCoversValidator;
+	use PHPUnit4And6Compat;
 
 	private function newSiteImporter( array $expectedSites, $errorCount ) {
-		$store = $this->getMock( 'SiteStore' );
+		$store = $this->getMockBuilder( SiteStore::class )->getMock();
 
-		$that = $this;
 		$store->expects( $this->once() )
 			->method( 'saveSites' )
-			->will( $this->returnCallback( function ( $sites ) use ( $expectedSites, $that ) {
-				$that->assertSitesEqual( $expectedSites, $sites );
+			->will( $this->returnCallback( function ( $sites ) use ( $expectedSites ) {
+				$this->assertSitesEqual( $expectedSites, $sites );
 			} ) );
 
 		$store->expects( $this->any() )
 			->method( 'getSites' )
 			->will( $this->returnValue( new SiteList() ) );
 
-		$errorHandler = $this->getMock( 'Psr\Log\LoggerInterface' );
+		$errorHandler = $this->getMockBuilder( Psr\Log\LoggerInterface::class )->getMock();
 		$errorHandler->expects( $this->exactly( $errorCount ) )
 			->method( 'error' );
 
 		$importer = new SiteImporter( $store );
-		$importer->setExceptionCallback( array( $errorHandler, 'error' ) );
+		$importer->setExceptionCallback( [ $errorHandler, 'error' ] );
 
 		return $importer;
 	}
@@ -83,22 +83,22 @@ class SiteImporterTest extends PHPUnit_Framework_TestCase {
 		$dewiki->setPath( MediaWikiSite::PATH_PAGE, 'http://de.wikipedia.org/wiki/' );
 		$dewiki->setSource( 'meta.wikimedia.org' );
 
-		return array(
-			'empty' => array(
+		return [
+			'empty' => [
 				'<sites></sites>',
-				array(),
-			),
-			'no sites' => array(
+				[],
+			],
+			'no sites' => [
 				'<sites><Foo><globalid>Foo</globalid></Foo><Bar><quux>Bla</quux></Bar></sites>',
-				array(),
-			),
-			'minimal' => array(
+				[],
+			],
+			'minimal' => [
 				'<sites>' .
 					'<site><globalid>Foo</globalid></site>' .
 				'</sites>',
-				array( $foo ),
-			),
-			'full' => array(
+				[ $foo ],
+			],
+			'full' => [
 				'<sites>' .
 					'<site><globalid>Foo</globalid></site>' .
 					'<site>' .
@@ -118,9 +118,9 @@ class SiteImporterTest extends PHPUnit_Framework_TestCase {
 						'<path type="page_path">http://de.wikipedia.org/wiki/</path>' .
 					'</site>' .
 				'</sites>',
-				array( $foo, $acme, $dewiki ),
-			),
-			'skip' => array(
+				[ $foo, $acme, $dewiki ],
+			],
+			'skip' => [
 				'<sites>' .
 					'<site><globalid>Foo</globalid></site>' .
 					'<site><barf>Foo</barf></site>' .
@@ -132,10 +132,10 @@ class SiteImporterTest extends PHPUnit_Framework_TestCase {
 						'<path type="link">http://acme.com/</path>' .
 					'</site>' .
 				'</sites>',
-				array( $foo, $acme ),
+				[ $foo, $acme ],
 				1
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -147,9 +147,9 @@ class SiteImporterTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testImportFromXML_malformed() {
-		$this->setExpectedException( 'Exception' );
+		$this->setExpectedException( Exception::class );
 
-		$store = $this->getMock( 'SiteStore' );
+		$store = $this->getMockBuilder( SiteStore::class )->getMock();
 		$importer = new SiteImporter( $store );
 		$importer->importFromXML( 'THIS IS NOT XML' );
 	}
@@ -174,7 +174,7 @@ class SiteImporterTest extends PHPUnit_Framework_TestCase {
 		$dewiki->setPath( MediaWikiSite::PATH_PAGE, 'http://de.wikipedia.org/wiki/' );
 		$dewiki->setSource( 'meta.wikimedia.org' );
 
-		$importer = $this->newSiteImporter( array( $foo, $acme, $dewiki ), 0 );
+		$importer = $this->newSiteImporter( [ $foo, $acme, $dewiki ], 0 );
 
 		$file = __DIR__ . '/SiteImporterTest.xml';
 		$importer->importFromFile( $file );
@@ -186,7 +186,7 @@ class SiteImporterTest extends PHPUnit_Framework_TestCase {
 	 * @return array[]
 	 */
 	private function getSerializedSiteList( $sites ) {
-		$serialized = array();
+		$serialized = [];
 
 		foreach ( $sites as $site ) {
 			$key = $site->getGlobalId();

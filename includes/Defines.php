@@ -20,36 +20,31 @@
  * @file
  */
 
+require_once __DIR__ . '/libs/mime/defines.php';
+require_once __DIR__ . '/libs/rdbms/defines.php';
+
+use Wikimedia\Rdbms\IDatabase;
+
 /**
  * @defgroup Constants MediaWiki constants
  */
 
-/**@{
- * Database related constants
- */
-define( 'DBO_DEBUG', 1 );
-define( 'DBO_NOBUFFER', 2 );
-define( 'DBO_IGNORE', 4 );
-define( 'DBO_TRX', 8 ); // automatically start transaction on first query
-define( 'DBO_DEFAULT', 16 );
-define( 'DBO_PERSISTENT', 32 );
-define( 'DBO_SYSDBA', 64 ); //for oracle maintenance
-define( 'DBO_DDLMODE', 128 ); // when using schema files: mostly for Oracle
-define( 'DBO_SSL', 256 );
-define( 'DBO_COMPRESS', 512 );
-/**@}*/
-
-/**@{
- * Valid database indexes
- * Operation-based indexes
- */
-define( 'DB_SLAVE', -1 );     # Read from the slave (or only server)
-define( 'DB_MASTER', -2 );    # Write to master (or only server)
-/**@}*/
-
 # Obsolete aliases
-define( 'DB_READ', -1 );
-define( 'DB_WRITE', -2 );
+/**
+ * @deprecated since 1.28, use DB_REPLICA instead
+ */
+define( 'DB_SLAVE', -1 );
+
+/**@{
+ * Obsolete IDatabase::makeList() constants
+ * These are also available as Database class constants
+ */
+define( 'LIST_COMMA', IDatabase::LIST_COMMA );
+define( 'LIST_AND', IDatabase::LIST_AND );
+define( 'LIST_SET', IDatabase::LIST_SET );
+define( 'LIST_NAMES', IDatabase::LIST_NAMES );
+define( 'LIST_OR', IDatabase::LIST_OR );
+/**@}*/
 
 /**@{
  * Virtual namespaces; don't appear in the page database
@@ -64,7 +59,7 @@ define( 'NS_SPECIAL', -1 );
  * Number 100 and beyond are reserved for custom namespaces;
  * DO NOT assign standard namespaces at 100 or beyond.
  * DO NOT Change integer values as they are most probably hardcoded everywhere
- * see bug #696 which talked about that.
+ * see T2696 which talked about that.
  */
 define( 'NS_MAIN', 0 );
 define( 'NS_TALK', 1 );
@@ -90,8 +85,13 @@ define( 'NS_CATEGORY_TALK', 15 );
  * When writing code that should be compatible with older MediaWiki
  * versions, either stick to the old names or define the new constants
  * yourself, if they're not defined already.
+ *
+ * @deprecated since 1.14
  */
 define( 'NS_IMAGE', NS_FILE );
+/**
+ * @deprecated since 1.14
+ */
 define( 'NS_IMAGE_TALK', NS_FILE_TALK );
 /**@}*/
 
@@ -102,43 +102,16 @@ define( 'CACHE_ANYTHING', -1 );  // Use anything, as long as it works
 define( 'CACHE_NONE', 0 );       // Do not cache
 define( 'CACHE_DB', 1 );         // Store cache objects in the DB
 define( 'CACHE_MEMCACHED', 2 );  // MemCached, must specify servers in $wgMemCacheServers
-define( 'CACHE_ACCEL', 3 );      // APC, XCache or WinCache
-/**@}*/
-
-/**@{
- * Media types.
- * This defines constants for the value returned by File::getMediaType()
- */
-// unknown format
-define( 'MEDIATYPE_UNKNOWN', 'UNKNOWN' );
-// some bitmap image or image source (like psd, etc). Can't scale up.
-define( 'MEDIATYPE_BITMAP', 'BITMAP' );
-// some vector drawing (SVG, WMF, PS, ...) or image source (oo-draw, etc). Can scale up.
-define( 'MEDIATYPE_DRAWING', 'DRAWING' );
-// simple audio file (ogg, mp3, wav, midi, whatever)
-define( 'MEDIATYPE_AUDIO', 'AUDIO' );
-// simple video file (ogg, mpg, etc;
-// no not include formats here that may contain executable sections or scripts!)
-define( 'MEDIATYPE_VIDEO', 'VIDEO' );
-// Scriptable Multimedia (flash, advanced video container formats, etc)
-define( 'MEDIATYPE_MULTIMEDIA', 'MULTIMEDIA' );
-// Office Documents, Spreadsheets (office formats possibly containing apples, scripts, etc)
-define( 'MEDIATYPE_OFFICE', 'OFFICE' );
-// Plain text (possibly containing program code or scripts)
-define( 'MEDIATYPE_TEXT', 'TEXT' );
-// binary executable
-define( 'MEDIATYPE_EXECUTABLE', 'EXECUTABLE' );
-// archive file (zip, tar, etc)
-define( 'MEDIATYPE_ARCHIVE', 'ARCHIVE' );
+define( 'CACHE_ACCEL', 3 );      // APC or WinCache
 /**@}*/
 
 /**@{
  * Antivirus result codes, for use in $wgAntivirusSetup.
  */
-define( 'AV_NO_VIRUS', 0 );  #scan ok, no virus found
-define( 'AV_VIRUS_FOUND', 1 );  #virus found!
-define( 'AV_SCAN_ABORTED', -1 );  #scan aborted, the file is probably immune
-define( 'AV_SCAN_FAILED', false );  #scan failed (scanner not found or error in scanner)
+define( 'AV_NO_VIRUS', 0 );  # scan ok, no virus found
+define( 'AV_VIRUS_FOUND', 1 );  # virus found!
+define( 'AV_SCAN_ABORTED', -1 );  # scan aborted, the file is probably immune
+define( 'AV_SCAN_FAILED', false );  # scan failed (scanner not found or error in scanner)
 /**@}*/
 
 /**@{
@@ -170,6 +143,7 @@ define( 'RC_EDIT', 0 );
 define( 'RC_NEW', 1 );
 define( 'RC_LOG', 3 );
 define( 'RC_EXTERNAL', 5 );
+define( 'RC_CATEGORIZE', 6 );
 /**@}*/
 
 /**@{
@@ -180,25 +154,10 @@ define( 'EDIT_UPDATE', 2 );
 define( 'EDIT_MINOR', 4 );
 define( 'EDIT_SUPPRESS_RC', 8 );
 define( 'EDIT_FORCE_BOT', 16 );
-define( 'EDIT_DEFER_UPDATES', 32 );
+define( 'EDIT_DEFER_UPDATES', 32 ); // Unused since 1.27
 define( 'EDIT_AUTOSUMMARY', 64 );
+define( 'EDIT_INTERNAL', 128 );
 /**@}*/
-
-/**@{
- * Flags for Database::makeList()
- * These are also available as Database class constants
- */
-define( 'LIST_COMMA', 0 );
-define( 'LIST_AND', 1 );
-define( 'LIST_SET', 2 );
-define( 'LIST_NAMES', 3 );
-define( 'LIST_OR', 4 );
-/**@}*/
-
-/**
- * Unicode and normalisation related
- */
-require_once __DIR__ . '/compat/normal/UtfNormalDefines.php';
 
 /**@{
  * Hook support constants
@@ -303,4 +262,68 @@ define( 'CONTENT_FORMAT_SERIALIZED', 'application/vnd.php.serialized' );
 define( 'CONTENT_FORMAT_JSON', 'application/json' );
 // for future use with the api, and for use by extensions
 define( 'CONTENT_FORMAT_XML', 'application/xml' );
+/**@}*/
+
+/**@{
+ * Max string length for shell invocations; based on binfmts.h
+ */
+define( 'SHELL_MAX_ARG_STRLEN', '100000' );
+/**@}*/
+
+/**@{
+ * Schema compatibility flags.
+ *
+ * Used as flags in a bit field that indicates whether the old or new schema (or both)
+ * are read or written.
+ *
+ * - SCHEMA_COMPAT_WRITE_OLD: Whether information is written to the old schema.
+ * - SCHEMA_COMPAT_READ_OLD: Whether information stored in the old schema is read.
+ * - SCHEMA_COMPAT_WRITE_NEW: Whether information is written to the new schema.
+ * - SCHEMA_COMPAT_READ_NEW: Whether information stored in the new schema is read.
+ */
+define( 'SCHEMA_COMPAT_WRITE_OLD', 0x01 );
+define( 'SCHEMA_COMPAT_READ_OLD', 0x02 );
+define( 'SCHEMA_COMPAT_WRITE_NEW', 0x10 );
+define( 'SCHEMA_COMPAT_READ_NEW', 0x20 );
+define( 'SCHEMA_COMPAT_WRITE_BOTH', SCHEMA_COMPAT_WRITE_OLD | SCHEMA_COMPAT_WRITE_NEW );
+define( 'SCHEMA_COMPAT_READ_BOTH', SCHEMA_COMPAT_READ_OLD | SCHEMA_COMPAT_READ_NEW );
+define( 'SCHEMA_COMPAT_OLD', SCHEMA_COMPAT_WRITE_OLD | SCHEMA_COMPAT_READ_OLD );
+define( 'SCHEMA_COMPAT_NEW', SCHEMA_COMPAT_WRITE_NEW | SCHEMA_COMPAT_READ_NEW );
+/**@}*/
+
+/**@{
+ * Schema change migration flags.
+ *
+ * Used as values of a feature flag for an orderly transition from an old
+ * schema to a new schema. The numeric values of these constants are compatible with the
+ * SCHEMA_COMPAT_XXX bitfield semantics. High bits are used to ensure that the numeric
+ * ordering follows the order in which the migration stages should be used.
+ *
+ * - MIGRATION_OLD: Only read and write the old schema. The new schema need not
+ *   even exist. This is used from when the patch is merged until the schema
+ *   change is actually applied to the database.
+ * - MIGRATION_WRITE_BOTH: Write both the old and new schema. Read the new
+ *   schema preferentially, falling back to the old. This is used while the
+ *   change is being tested, allowing easy roll-back to the old schema.
+ * - MIGRATION_WRITE_NEW: Write only the new schema. Read the new schema
+ *   preferentially, falling back to the old. This is used while running the
+ *   maintenance script to migrate existing entries in the old schema to the
+ *   new schema.
+ * - MIGRATION_NEW: Only read and write the new schema. The old schema (and the
+ *   feature flag) may now be removed.
+ */
+define( 'MIGRATION_OLD', 0x00000000 | SCHEMA_COMPAT_OLD );
+define( 'MIGRATION_WRITE_BOTH', 0x10000000 | SCHEMA_COMPAT_READ_BOTH | SCHEMA_COMPAT_WRITE_BOTH );
+define( 'MIGRATION_WRITE_NEW', 0x20000000 | SCHEMA_COMPAT_READ_BOTH | SCHEMA_COMPAT_WRITE_NEW );
+define( 'MIGRATION_NEW', 0x30000000 | SCHEMA_COMPAT_NEW );
+/**@}*/
+
+/**@{
+ * XML dump schema versions, for use with XmlDumpWriter.
+ * See also the corresponding export-nnnn.xsd files in the docs directory,
+ * which are also listed at <https://www.mediawiki.org/xml/>.
+ * Note that not all old schema versions are represented here, as several
+ * were already unsupported at the time these constants were introduced.
+ */
+define( 'XML_DUMP_SCHEMA_VERSION_10', '0.10' );
 /**@}*/

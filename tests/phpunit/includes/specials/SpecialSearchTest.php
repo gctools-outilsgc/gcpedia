@@ -1,4 +1,6 @@
 <?php
+use MediaWiki\MediaWikiServices;
+
 /**
  * Test class for SpecialSearch class
  * Copyright © 2012, Antoine Musso
@@ -6,7 +8,6 @@
  * @author Antoine Musso
  * @group Database
  */
-
 class SpecialSearchTest extends MediaWikiTestCase {
 
 	/**
@@ -28,10 +29,10 @@ class SpecialSearchTest extends MediaWikiTestCase {
 			$this->newUserWithSearchNS( $userOptions )
 		);
 		/*
-		$context->setRequest( new FauxRequest( array(
+		$context->setRequest( new FauxRequest( [
 			'ns5'=>true,
 			'ns6'=>true,
-		) ));
+		] ));
 		 */
 		$context->setRequest( new FauxRequest( $requested ) );
 		$search = new SpecialSearch();
@@ -44,24 +45,24 @@ class SpecialSearchTest extends MediaWikiTestCase {
 		 * after an assertion fail.
 		 */
 		$this->assertEquals(
-			array( /** Expected: */
+			[ /** Expected: */
 				'ProfileName' => $expectedProfile,
 				'Namespaces' => $expectedNS,
-			),
-			array( /** Actual: */
+			],
+			[ /** Actual: */
 				'ProfileName' => $search->getProfile(),
 				'Namespaces' => $search->getNamespaces(),
-			),
+			],
 			$message
 		);
 	}
 
 	public static function provideSearchOptionsTests() {
-		$defaultNS = SearchEngine::defaultNamespaces();
-		$EMPTY_REQUEST = array();
+		$defaultNS = MediaWikiServices::getInstance()->getSearchEngineConfig()->defaultNamespaces();
+		$EMPTY_REQUEST = [];
 		$NO_USER_PREF = null;
 
-		return array(
+		return [
 			/**
 			 * Parameters:
 			 *     <Web Request>, <User options>
@@ -69,28 +70,28 @@ class SpecialSearchTest extends MediaWikiTestCase {
 			 *     <ProfileName>, <NSList>
 			 * Then an optional message.
 			 */
-			array(
+			[
 				$EMPTY_REQUEST, $NO_USER_PREF,
 				'default', $defaultNS,
-				'Bug 33270: No request nor user preferences should give default profile'
-			),
-			array(
-				array( 'ns5' => 1 ), $NO_USER_PREF,
-				'advanced', array( 5 ),
+				'T35270: No request nor user preferences should give default profile'
+			],
+			[
+				[ 'ns5' => 1 ], $NO_USER_PREF,
+				'advanced', [ 5 ],
 				'Web request with specific NS should override user preference'
-			),
-			array(
-				$EMPTY_REQUEST, array(
+			],
+			[
+				$EMPTY_REQUEST, [
 				'searchNs2' => 1,
 				'searchNs14' => 1,
-			) + array_fill_keys( array_map( function ( $ns ) {
+			] + array_fill_keys( array_map( function ( $ns ) {
 				return "searchNs$ns";
 			}, $defaultNS ), 0 ),
-				'advanced', array( 2, 14 ),
-				'Bug 33583: search with no option should honor User search preferences'
+				'advanced', [ 2, 14 ],
+				'T35583: search with no option should honor User search preferences'
 					. ' and have all other namespace disabled'
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -113,20 +114,23 @@ class SpecialSearchTest extends MediaWikiTestCase {
 	/**
 	 * Verify we do not expand search term in <title> on search result page
 	 * https://gerrit.wikimedia.org/r/4841
+	 * @covers SpecialSearch::setupPage
 	 */
 	public function testSearchTermIsNotExpanded() {
-		$this->setMwGlobals( array(
+		$this->setMwGlobals( [
 			'wgSearchType' => null,
-		) );
+		] );
 
 		# Initialize [[Special::Search]]
+		$ctx = new RequestContext();
+		$term = '{{SITENAME}}';
+		$ctx->setRequest( new FauxRequest( [ 'search' => $term, 'fulltext' => 1 ] ) );
+		$ctx->setTitle( Title::newFromText( 'Special:Search' ) );
 		$search = new SpecialSearch();
-		$search->getContext()->setTitle( Title::newFromText( 'Special:Search' ) );
-		$search->load();
+		$search->setContext( $ctx );
 
 		# Simulate a user searching for a given term
-		$term = '{{SITENAME}}';
-		$search->showResults( $term );
+		$search->execute( '' );
 
 		# Lookup the HTML page title set for that page
 		$pageTitle = $search
@@ -143,44 +147,64 @@ class SpecialSearchTest extends MediaWikiTestCase {
 	}
 
 	public function provideRewriteQueryWithSuggestion() {
-		return array(
-			array(
+		return [
+			[
 				'With suggestion and no rewritten query shows did you mean',
 				'/Did you mean: <a[^>]+>first suggestion/',
-				new SpecialSearchTestMockResultSet( 'first suggestion', null, array(
-					SearchResult::newFromTitle( Title::newMainPage() ),
-				) ),
-			),
+				'first suggestion',
+				null,
+				[ Title::newMainPage() ]
+			],
 
-			array(
+			[
 				'With rewritten query informs user of change',
 				'/Showing results for <a[^>]+>first suggestion/',
-				new SpecialSearchTestMockResultSet( 'asdf', 'first suggestion', array(
-					SearchResult::newFromTitle( Title::newMainPage() ),
-				) ),
-			),
+				'asdf',
+				'first suggestion',
+				[ Title::newMainPage() ]
+			],
 
-			array(
+			[
 				'When both queries have no results user gets no results',
 				'/There were no results matching the query/',
-				new SpecialSearchTestMockResultSet( 'first suggestion', 'first suggestion', array() ),
-			),
-		);
+				'first suggestion',
+				'first suggestion',
+				[]
+			],
+		];
 	}
 
 	/**
 	 * @dataProvider provideRewriteQueryWithSuggestion
+	 * @covers SpecialSearch::showResults
 	 */
-	public function testRewriteQueryWithSuggestion( $message, $expectRegex, $results ) {
-		$mockSearchEngine = $this->mockSearchEngine( $results );
-		$search = $this->getMockBuilder( 'SpecialSearch' )
-			->setMethods( array( 'getSearchEngine' ) )
+	public function testRewriteQueryWithSuggestion(
+		$message,
+		$expectRegex,
+		$suggestion,
+		$rewrittenQuery,
+		array $resultTitles
+	) {
+		$results = array_map( function ( $title ) {
+			return SearchResult::newFromTitle( $title );
+		}, $resultTitles );
+
+		$searchResults = new SpecialSearchTestMockResultSet(
+			$suggestion,
+			$rewrittenQuery,
+			$results
+		);
+
+		$mockSearchEngine = $this->mockSearchEngine( $searchResults );
+		$search = $this->getMockBuilder( SpecialSearch::class )
+			->setMethods( [ 'getSearchEngine' ] )
 			->getMock();
 		$search->expects( $this->any() )
 			->method( 'getSearchEngine' )
 			->will( $this->returnValue( $mockSearchEngine ) );
 
 		$search->getContext()->setTitle( Title::makeTitle( NS_SPECIAL, 'Search' ) );
+		$search->getContext()->setLanguage( Language::factory( 'en' ) );
 		$search->load();
 		$search->showResults( 'this is a fake search' );
 
@@ -191,8 +215,8 @@ class SpecialSearchTest extends MediaWikiTestCase {
 	}
 
 	protected function mockSearchEngine( $results ) {
-		$mock = $this->getMockBuilder( 'SearchEngine' )
-			->setMethods( array( 'searchText', 'searchTitle' ) )
+		$mock = $this->getMockBuilder( SearchEngine::class )
+			->setMethods( [ 'searchText', 'searchTitle' ] )
 			->getMock();
 
 		$mock->expects( $this->any() )
@@ -201,21 +225,50 @@ class SpecialSearchTest extends MediaWikiTestCase {
 
 		return $mock;
 	}
+
+	/**
+	 * @covers SpecialSearch::execute
+	 */
+	public function testSubPageRedirect() {
+		$this->setMwGlobals( [
+			'wgScript' => '/w/index.php',
+		] );
+
+		$ctx = new RequestContext;
+		$sp = Title::newFromText( 'Special:Search/foo_bar' );
+		MediaWikiServices::getInstance()->getSpecialPageFactory()->executePath( $sp, $ctx );
+		$url = $ctx->getOutput()->getRedirect();
+		// some older versions of hhvm have a bug that doesn't parse relative
+		// urls with a port, so help it out a little bit.
+		// https://github.com/facebook/hhvm/issues/7136
+		$url = wfExpandUrl( $url, PROTO_CURRENT );
+
+		$parts = parse_url( $url );
+		$this->assertEquals( '/w/index.php', $parts['path'] );
+		parse_str( $parts['query'], $query );
+		$this->assertEquals( 'Special:Search', $query['title'] );
+		$this->assertEquals( 'foo bar', $query['search'] );
+	}
 }
 
 class SpecialSearchTestMockResultSet extends SearchResultSet {
 	protected $results;
 	protected $suggestion;
 
-	public function __construct( $suggestion = null, $rewrittenQuery = null, array $results = array(), $containedSyntax = false) {
+	public function __construct(
+		$suggestion = null,
+		$rewrittenQuery = null,
+		array $results = [],
+		$containedSyntax = false
+	) {
 		$this->suggestion = $suggestion;
 		$this->rewrittenQuery = $rewrittenQuery;
 		$this->results = $results;
 		$this->containedSyntax = $containedSyntax;
 	}
 
-	public function numRows() {
-		return count( $this->results );
+	public function expandResults() {
+		return $this->results;
 	}
 
 	public function getTotalHits() {

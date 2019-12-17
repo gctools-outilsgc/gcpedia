@@ -32,14 +32,14 @@ class ClearInterwikiCache extends Maintenance {
 
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Clear all interwiki links for all languages from the cache";
+		$this->addDescription( 'Clear all interwiki links for all languages from the cache' );
 	}
 
 	public function execute() {
 		global $wgLocalDatabases, $wgMemc;
-		$dbr = wfGetDB( DB_SLAVE );
-		$res = $dbr->select( 'interwiki', array( 'iw_prefix' ), false );
-		$prefixes = array();
+		$dbr = $this->getDB( DB_REPLICA );
+		$res = $dbr->select( 'interwiki', [ 'iw_prefix' ], '', __METHOD__ );
+		$prefixes = [];
 		foreach ( $res as $row ) {
 			$prefixes[] = $row->iw_prefix;
 		}
@@ -54,5 +54,5 @@ class ClearInterwikiCache extends Maintenance {
 	}
 }
 
-$maintClass = "ClearInterwikiCache";
+$maintClass = ClearInterwikiCache::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

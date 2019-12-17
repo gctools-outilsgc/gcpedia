@@ -4,7 +4,7 @@
  * @copyright 2011-2015 MediaWiki Widgets Team and others; see AUTHORS.txt
  * @license The MIT License (MIT); see LICENSE.txt
  */
-( function ( $, mw ) {
+( function () {
 
 	/**
 	 * Namespace input widget. Displays a dropdown box with the choice of available namespaces.
@@ -19,7 +19,7 @@
 	 */
 	mw.widgets.NamespaceInputWidget = function MwWidgetsNamespaceInputWidget( config ) {
 		// Configuration initialization
-		config = $.extend( {}, config, { options: this.getNamespaceDropdownOptions( config ) } );
+		config = $.extend( {}, config, { options: this.constructor.static.getNamespaceDropdownOptions( config ) } );
 
 		// Parent constructor
 		mw.widgets.NamespaceInputWidget.parent.call( this, config );
@@ -32,22 +32,26 @@
 
 	OO.inheritClass( mw.widgets.NamespaceInputWidget, OO.ui.DropdownInputWidget );
 
-	/* Methods */
+	/* Static methods */
 
 	/**
-	 * @private
+	 * Get a list of namespace options, sorted by ID.
+	 *
+	 * @param {Object} [config] Configuration options
+	 * @return {Object[]} Dropdown options
 	 */
-	mw.widgets.NamespaceInputWidget.prototype.getNamespaceDropdownOptions = function ( config ) {
+	mw.widgets.NamespaceInputWidget.static.getNamespaceDropdownOptions = function ( config ) {
 		var options,
 			exclude = config.exclude || [],
-			NS_MAIN = 0;
+			mainNamespace = mw.config.get( 'wgNamespaceIds' )[ '' ];
 
+		// eslint-disable-next-line no-jquery/no-map-util
 		options = $.map( mw.config.get( 'wgFormattedNamespaces' ), function ( name, ns ) {
-			if ( ns < NS_MAIN || exclude.indexOf( Number( ns ) ) !== -1 ) {
+			if ( ns < mainNamespace || exclude.indexOf( Number( ns ) ) !== -1 ) {
 				return null; // skip
 			}
 			ns = String( ns );
-			if ( ns === String( NS_MAIN ) ) {
+			if ( ns === String( mainNamespace ) ) {
 				name = mw.message( 'blanknamespace' ).text();
 			}
 			return { data: ns, label: name };
@@ -66,4 +70,4 @@
 		return options;
 	};
 
-}( jQuery, mediaWiki ) );
+}() );

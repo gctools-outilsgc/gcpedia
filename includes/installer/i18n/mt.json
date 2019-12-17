@@ -42,9 +42,6 @@
 	"config-db-web-create": "Oħloq il-kont jekk għadu ma jeżistix",
 	"config-mysql-innodb": "InnoDB",
 	"config-mysql-myisam": "MyISAM",
-	"config-mysql-charset": "Sett ta' karattri tad-databażi:",
-	"config-mysql-binary": "Binarju",
-	"config-mysql-utf8": "UTF-8",
 	"config-site-name": "Isem tal-wiki:",
 	"config-site-name-help": "Dan se jidher fil-barra tat-titlu tal-browżer u f'diversi postijiet oħra.",
 	"config-site-name-blank": "Daħħal isem tas-sit.",
@@ -86,5 +83,5 @@
 	"config-help": "għajnuna",
 	"config-nofile": "Il-fajl \"$1\" ma setax jinstab. Dan ġie mħassar?",
 	"mainpagetext": "'''MediaWiki ġie installat b'suċċess.'''",
-	"mainpagedocfooter": "Ikkonsulta l-[//meta.wikimedia.org/wiki/Help:Contents Gwida għall-utenti] sabiex tikseb iktar informazzjoni dwar kif tuża' s-softwer tal-wiki.\n\n== Biex tibda ==\n* [//www.mediawiki.org/wiki/Special:MyLanguage/Manual:Configuration_settings Lista ta' preferenzi għall-konfigurazzjoni]\n* [//www.mediawiki.org/wiki/Special:MyLanguage/Manual:FAQ Mistoqsijiet rikorrenti fuq il-MediaWiki]\n* [https://lists.wikimedia.org/mailman/listinfo/mediawiki-announce Il-lista tal-posta tħabbar 'l MediaWiki]"
+	"mainpagedocfooter": "Ikkonsulta l-[https://meta.wikimedia.org/wiki/Help:Contents Gwida għall-utenti] sabiex tikseb iktar informazzjoni dwar kif tuża' s-softwer tal-wiki.\n\n== Biex tibda ==\n* [https://www.mediawiki.org/wiki/Special:MyLanguage/Manual:Configuration_settings Lista ta' preferenzi għall-konfigurazzjoni]\n* [https://www.mediawiki.org/wiki/Special:MyLanguage/Manual:FAQ Mistoqsijiet rikorrenti fuq il-MediaWiki]\n* [https://lists.wikimedia.org/mailman/listinfo/mediawiki-announce Il-lista tal-posta tħabbar 'l MediaWiki]"
 }

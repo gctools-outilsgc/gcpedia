@@ -33,24 +33,22 @@ require_once __DIR__ . '/Maintenance.php';
 class GetTextMaint extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = 'Outputs page text to stdout';
+		$this->addDescription( 'Outputs page text to stdout' );
 		$this->addOption( 'show-private', 'Show the text even if it\'s not available to the public' );
 		$this->addArg( 'title', 'Page title' );
 	}
 
 	public function execute() {
-		$this->db = wfGetDB( DB_SLAVE );
-
 		$titleText = $this->getArg( 0 );
 		$title = Title::newFromText( $titleText );
 		if ( !$title ) {
-			$this->error( "$titleText is not a valid title.\n", true );
+			$this->fatalError( "$titleText is not a valid title.\n" );
 		}
 
 		$rev = Revision::newFromTitle( $title );
 		if ( !$rev ) {
 			$titleText = $title->getPrefixedText();
-			$this->error( "Page $titleText does not exist.\n", true );
+			$this->fatalError( "Page $titleText does not exist.\n" );
 		}
 		$content = $rev->getContent( $this->hasOption( 'show-private' )
 			? Revision::RAW
@@ -58,11 +56,11 @@ class GetTextMaint extends Maintenance {
 
 		if ( $content === false ) {
 			$titleText = $title->getPrefixedText();
-			$this->error( "Couldn't extract the text from $titleText.\n", true );
+			$this->fatalError( "Couldn't extract the text from $titleText.\n" );
 		}
 		$this->output( $content->serialize() );
 	}
 }
 
-$maintClass = "GetTextMaint";
+$maintClass = GetTextMaint::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

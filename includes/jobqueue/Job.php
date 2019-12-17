@@ -23,8 +23,7 @@
 
 /**
  * Class to both describe a background job and handle jobs.
- * The queue aspects of this class are now deprecated.
- * Using the class to push jobs onto queues is deprecated (use JobSpecification).
+ * To push jobs onto queues, use JobQueueGroup::singleton()->push();
  *
  * @ingroup JobQueue
  */
@@ -36,16 +35,25 @@ abstract class Job implements IJobSpecification {
 	public $params;
 
 	/** @var array Additional queue metadata */
-	public $metadata = array();
+	public $metadata = [];
 
 	/** @var Title */
 	protected $title;
 
 	/** @var bool Expensive jobs may set this to true */
-	protected $removeDuplicates;
+	protected $removeDuplicates = false;
 
 	/** @var string Text for error that occurred last */
 	protected $error;
+
+	/** @var callable[] */
+	protected $teardownCallbacks = [];
+
+	/** @var int Bitfield of JOB_* class constants */
+	protected $executionFlags = 0;
+
+	/** @var int Job must not be wrapped in the usual explicit LBFactory transaction round */
+	const JOB_NO_EXPLICIT_TRX_ROUND = 1;
 
 	/**
 	 * Run the job
@@ -57,50 +65,76 @@ abstract class Job implements IJobSpecification {
 	 * Create the appropriate object to handle a specific job
 	 *
 	 * @param string $command Job command
-	 * @param Title $title Associated title
-	 * @param array $params Job parameters
-	 * @throws MWException
+	 * @param array|Title $params Job parameters
+	 * @throws InvalidArgumentException
 	 * @return Job
 	 */
-	public static function factory( $command, Title $title, $params = array() ) {
+	public static function factory( $command, $params = [] ) {
 		global $wgJobClasses;
-		if ( isset( $wgJobClasses[$command] ) ) {
-			$class = $wgJobClasses[$command];
 
-			return new $class( $title, $params );
+		if ( $params instanceof Title ) {
+			// Backwards compatibility for old signature ($command, $title, $params)
+			$title = $params;
+			$params = func_num_args() >= 3 ? func_get_arg( 2 ) : [];
+		} else {
+			// Subclasses can override getTitle() to return something more meaningful
+			$title = Title::makeTitle( NS_SPECIAL, 'Blankpage' );
 		}
-		throw new MWException( "Invalid job command `{$command}`" );
+
+		if ( isset( $wgJobClasses[$command] ) ) {
+			$handler = $wgJobClasses[$command];
+
+			if ( is_callable( $handler ) ) {
+				$job = call_user_func( $handler, $title, $params );
+			} elseif ( class_exists( $handler ) ) {
+				$job = new $handler( $title, $params );
+			} else {
+				$job = null;
+			}
+
+			if ( $job instanceof Job ) {
+				$job->command = $command;
+
+				return $job;
+			} else {
+				throw new InvalidArgumentException(
+					"Could not instantiate job '$command': bad spec!"
+				);
+			}
+		}
+
+		throw new InvalidArgumentException( "Invalid job command '{$command}'" );
 	}
 
 	/**
 	 * @param string $command
-	 * @param Title $title
-	 * @param array|bool $params Can not be === true
+	 * @param array|Title|null $params
 	 */
-	public function __construct( $command, $title, $params = false ) {
+	public function __construct( $command, $params = null ) {
+		if ( $params instanceof Title ) {
+			// Backwards compatibility for old signature ($command, $title, $params)
+			$title = $params;
+			$params = func_get_arg( 2 );
+		} else {
+			// Subclasses can override getTitle() to return something more meaningful
+			$title = Title::makeTitle( NS_SPECIAL, 'Blankpage' );
+		}
+
 		$this->command = $command;
 		$this->title = $title;
-		$this->params = is_array( $params ) ? $params : array(); // sanity
-
-		// expensive jobs may set this to true
-		$this->removeDuplicates = false;
+		$this->params = is_array( $params ) ? $params : [];
+		if ( !isset( $this->params['requestId'] ) ) {
+			$this->params['requestId'] = WebRequest::getRequestId();
+		}
 	}
 
 	/**
-	 * Batch-insert a group of jobs into the queue.
-	 * This will be wrapped in a transaction with a forced commit.
-	 *
-	 * This may add duplicate at insert time, but they will be
-	 * removed later on, when the first one is popped.
-	 *
-	 * @param Job[] $jobs Array of Job objects
+	 * @param int $flag JOB_* class constant
 	 * @return bool
-	 * @deprecated since 1.21
+	 * @since 1.31
 	 */
-	public static function batchInsert( $jobs ) {
-		wfDeprecated( __METHOD__, '1.21' );
-		JobQueueGroup::singleton()->push( $jobs );
-		return true;
+	public function hasExecutionFlag( $flag ) {
+		return ( $this->executionFlags & $flag ) === $flag;
 	}
 
 	/**
@@ -125,6 +159,36 @@ abstract class Job implements IJobSpecification {
 	}
 
 	/**
+	 * @param string|null $field Metadata field or null to get all the metadata
+	 * @return mixed|null Value; null if missing
+	 * @since 1.33
+	 */
+	public function getMetadata( $field = null ) {
+		if ( $field === null ) {
+			return $this->metadata;
+		}
+
+		return $this->metadata[$field] ?? null;
+	}
+
+	/**
+	 * @param string $field Key name to set the value for
+	 * @param mixed $value The value to set the field for
+	 * @return mixed|null The prior field value; null if missing
+	 * @since 1.33
+	 */
+	public function setMetadata( $field, $value ) {
+		$old = $this->getMetadata( $field );
+		if ( $value === null ) {
+			unset( $this->metadata[$field] );
+		} else {
+			$this->metadata[$field] = $value;
+		}
+
+		return $old;
+	}
+
+	/**
 	 * @return int|null UNIX timestamp to delay running this job until, otherwise null
 	 * @since 1.22
 	 */
@@ -142,6 +206,16 @@ abstract class Job implements IJobSpecification {
 		return isset( $this->metadata['timestamp'] )
 			? wfTimestampOrNull( TS_UNIX, $this->metadata['timestamp'] )
 			: null;
+	}
+
+	/**
+	 * @return string|null Id of the request that created this job. Follows
+	 *  jobs recursively, allowing to track the id of the request that started a
+	 *  job when jobs insert jobs which insert other jobs.
+	 * @since 1.27
+	 */
+	public function getRequestId() {
+		return $this->params['requestId'] ?? null;
 	}
 
 	/**
@@ -194,18 +268,20 @@ abstract class Job implements IJobSpecification {
 	 * @since 1.21
 	 */
 	public function getDeduplicationInfo() {
-		$info = array(
+		$info = [
 			'type' => $this->getType(),
 			'namespace' => $this->getTitle()->getNamespace(),
 			'title' => $this->getTitle()->getDBkey(),
 			'params' => $this->getParams()
-		);
+		];
 		if ( is_array( $info['params'] ) ) {
 			// Identical jobs with different "root" jobs should count as duplicates
 			unset( $info['params']['rootJobSignature'] );
 			unset( $info['params']['rootJobTimestamp'] );
 			// Likewise for jobs with different delay times
 			unset( $info['params']['jobReleaseTimestamp'] );
+			// Identical jobs from different requests should count as duplicates
+			unset( $info['params']['requestId'] );
 			// Queues pack and hash this array, so normalize the order
 			ksort( $info['params'] );
 		}
@@ -233,11 +309,11 @@ abstract class Job implements IJobSpecification {
 	 * @since 1.21
 	 */
 	public static function newRootJobParams( $key ) {
-		return array(
+		return [
 			'rootJobIsSelf'    => true,
 			'rootJobSignature' => sha1( $key ),
 			'rootJobTimestamp' => wfTimestampNow()
-		);
+		];
 	}
 
 	/**
@@ -246,14 +322,10 @@ abstract class Job implements IJobSpecification {
 	 * @since 1.21
 	 */
 	public function getRootJobParams() {
-		return array(
-			'rootJobSignature' => isset( $this->params['rootJobSignature'] )
-				? $this->params['rootJobSignature']
-				: null,
-			'rootJobTimestamp' => isset( $this->params['rootJobTimestamp'] )
-				? $this->params['rootJobTimestamp']
-				: null
-		);
+		return [
+			'rootJobSignature' => $this->params['rootJobSignature'] ?? null,
+			'rootJobTimestamp' => $this->params['rootJobTimestamp'] ?? null
+		];
 	}
 
 	/**
@@ -275,27 +347,30 @@ abstract class Job implements IJobSpecification {
 	}
 
 	/**
-	 * Insert a single job into the queue.
-	 * @return bool True on success
-	 * @deprecated since 1.21
+	 * @param callable $callback A function with one parameter, the success status, which will be
+	 *   false if the job failed or it succeeded but the DB changes could not be committed or
+	 *   any deferred updates threw an exception. (This parameter was added in 1.28.)
+	 * @since 1.27
 	 */
-	public function insert() {
-		JobQueueGroup::singleton()->push( $this );
-		return true;
+	protected function addTeardownCallback( $callback ) {
+		$this->teardownCallbacks[] = $callback;
+	}
+
+	/**
+	 * Do any final cleanup after run(), deferred updates, and all DB commits happen
+	 * @param bool $status Whether the job, its deferred updates, and DB commit all succeeded
+	 * @since 1.27
+	 */
+	public function teardown( $status ) {
+		foreach ( $this->teardownCallbacks as $callback ) {
+			call_user_func( $callback, $status );
+		}
 	}
 
 	/**
 	 * @return string
 	 */
 	public function toString() {
-		$truncFunc = function ( $value ) {
-			$value = (string)$value;
-			if ( mb_strlen( $value ) > 1024 ) {
-				$value = "string(" . mb_strlen( $value ) . ")";
-			}
-			return $value;
-		};
-
 		$paramString = '';
 		if ( $this->params ) {
 			foreach ( $this->params as $key => $value ) {
@@ -303,16 +378,16 @@ abstract class Job implements IJobSpecification {
 					$paramString .= ' ';
 				}
 				if ( is_array( $value ) ) {
-					$filteredValue = array();
+					$filteredValue = [];
 					foreach ( $value as $k => $v ) {
-						if ( is_scalar( $v ) ) {
-							$filteredValue[$k] = $truncFunc( $v );
+						$json = FormatJson::encode( $v );
+						if ( $json === false || mb_strlen( $json ) > 512 ) {
+							$filteredValue[$k] = gettype( $v ) . '(...)';
 						} else {
-							$filteredValue = null;
-							break;
+							$filteredValue[$k] = $v;
 						}
 					}
-					if ( $filteredValue && count( $filteredValue ) < 10 ) {
+					if ( count( $filteredValue ) <= 10 ) {
 						$value = FormatJson::encode( $filteredValue );
 					} else {
 						$value = "array(" . count( $value ) . ")";
@@ -321,7 +396,12 @@ abstract class Job implements IJobSpecification {
 					$value = "object(" . get_class( $value ) . ")";
 				}
 
-				$paramString .= "$key={$truncFunc( $value )}";
+				$flatValue = (string)$value;
+				if ( mb_strlen( $value ) > 1024 ) {
+					$flatValue = "string(" . mb_strlen( $value ) . ")";
+				}
+
+				$paramString .= "$key={$flatValue}";
 			}
 		}
 

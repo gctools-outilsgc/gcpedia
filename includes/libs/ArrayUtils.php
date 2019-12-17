@@ -28,7 +28,7 @@
 class ArrayUtils {
 	/**
 	 * Sort the given array in a pseudo-random order which depends only on the
-	 * given key and each element value. This is typically used for load
+	 * given key and each element value in $array. This is typically used for load
 	 * balancing between servers each with a local cache.
 	 *
 	 * Keys are preserved. The input array is modified in place.
@@ -39,7 +39,7 @@ class ArrayUtils {
 	 * justification for breaking compatibility with installations
 	 * compiled with ./configure --disable-hash.
 	 *
-	 * @param array $array Array to sort
+	 * @param array &$array Array to sort
 	 * @param string $key
 	 * @param string $separator A separator used to delimit the array elements and the
 	 *     key. This can be chosen to provide backwards compatibility with
@@ -47,7 +47,7 @@ class ArrayUtils {
 	 *     function was introduced.
 	 */
 	public static function consistentHashSort( &$array, $key, $separator = "\000" ) {
-		$hashes = array();
+		$hashes = [];
 		foreach ( $array as $elt ) {
 			$hashes[$elt] = md5( $elt . $separator . $key );
 		}
@@ -120,8 +120,8 @@ class ArrayUtils {
 		$max = $valueCount;
 		do {
 			$mid = $min + ( ( $max - $min ) >> 1 );
-			$item = call_user_func( $valueCallback, $mid );
-			$comparison = call_user_func( $comparisonCallback, $target, $item );
+			$item = $valueCallback( $mid );
+			$comparison = $comparisonCallback( $target, $item );
 			if ( $comparison > 0 ) {
 				$min = $mid;
 			} elseif ( $comparison == 0 ) {
@@ -133,8 +133,8 @@ class ArrayUtils {
 		} while ( $min < $max - 1 );
 
 		if ( $min == 0 ) {
-			$item = call_user_func( $valueCallback, $min );
-			$comparison = call_user_func( $comparisonCallback, $target, $item );
+			$item = $valueCallback( $min );
+			$comparison = $comparisonCallback( $target, $item );
 			if ( $comparison < 0 ) {
 				// Before the first item
 				return false;
@@ -158,17 +158,17 @@ class ArrayUtils {
 	public static function arrayDiffAssocRecursive( $array1 ) {
 		$arrays = func_get_args();
 		array_shift( $arrays );
-		$ret = array();
+		$ret = [];
 
 		foreach ( $array1 as $key => $value ) {
 			if ( is_array( $value ) ) {
-				$args = array( $value );
+				$args = [ $value ];
 				foreach ( $arrays as $array ) {
 					if ( isset( $array[$key] ) ) {
 						$args[] = $array[$key];
 					}
 				}
-				$valueret = call_user_func_array( __METHOD__, $args );
+				$valueret = self::arrayDiffAssocRecursive( ...$args );
 				if ( count( $valueret ) ) {
 					$ret[$key] = $valueret;
 				}

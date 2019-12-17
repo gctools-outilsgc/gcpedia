@@ -18,6 +18,7 @@
  * @author Happy-melon
  * @file
  */
+use MediaWiki\MediaWikiServices;
 
 /**
  * The simplest way of implementing IContextSource is to hold a RequestContext as a
@@ -38,7 +39,7 @@ abstract class ContextSource implements IContextSource {
 	 */
 	public function getContext() {
 		if ( $this->context === null ) {
-			$class = get_class( $this );
+			$class = static::class;
 			wfDebug( __METHOD__ . " ($class): called and \$context is null. " .
 				"Using RequestContext::getMain() for sanity\n" );
 			$this->context = RequestContext::getMain();
@@ -48,8 +49,6 @@ abstract class ContextSource implements IContextSource {
 	}
 
 	/**
-	 * Set the IContextSource object
-	 *
 	 * @since 1.18
 	 * @param IContextSource $context
 	 */
@@ -58,8 +57,6 @@ abstract class ContextSource implements IContextSource {
 	}
 
 	/**
-	 * Get the Config object
-	 *
 	 * @since 1.23
 	 * @return Config
 	 */
@@ -68,8 +65,6 @@ abstract class ContextSource implements IContextSource {
 	}
 
 	/**
-	 * Get the WebRequest object
-	 *
 	 * @since 1.18
 	 * @return WebRequest
 	 */
@@ -78,8 +73,6 @@ abstract class ContextSource implements IContextSource {
 	}
 
 	/**
-	 * Get the Title object
-	 *
 	 * @since 1.18
 	 * @return Title|null
 	 */
@@ -113,8 +106,6 @@ abstract class ContextSource implements IContextSource {
 	}
 
 	/**
-	 * Get the OutputPage object
-	 *
 	 * @since 1.18
 	 * @return OutputPage
 	 */
@@ -123,8 +114,6 @@ abstract class ContextSource implements IContextSource {
 	}
 
 	/**
-	 * Get the User object
-	 *
 	 * @since 1.18
 	 * @return User
 	 */
@@ -133,8 +122,6 @@ abstract class ContextSource implements IContextSource {
 	}
 
 	/**
-	 * Get the Language object
-	 *
 	 * @since 1.19
 	 * @return Language
 	 */
@@ -143,8 +130,6 @@ abstract class ContextSource implements IContextSource {
 	}
 
 	/**
-	 * Get the Skin object
-	 *
 	 * @since 1.18
 	 * @return Skin
 	 */
@@ -153,28 +138,37 @@ abstract class ContextSource implements IContextSource {
 	}
 
 	/**
-	 * Get the Stats object
-	 *
-	 * @since 1.25
-	 * @return BufferingStatsdDataFactory
+	 * @since 1.27
+	 * @return Timing
 	 */
-	public function getStats() {
-		return $this->getContext()->getStats();
+	public function getTiming() {
+		return $this->getContext()->getTiming();
 	}
 
+	/**
+	 * @deprecated since 1.27 use a StatsdDataFactory from MediaWikiServices (preferably injected)
+	 *
+	 * @since 1.25
+	 * @return IBufferingStatsdDataFactory
+	 */
+	public function getStats() {
+		return MediaWikiServices::getInstance()->getStatsdDataFactory();
+	}
 
 	/**
 	 * Get a Message object with context set
 	 * Parameters are the same as wfMessage()
 	 *
 	 * @since 1.18
-	 * @param mixed ...
+	 * @param string|string[]|MessageSpecifier $key Message key, or array of keys,
+	 *   or a MessageSpecifier.
+	 * @param mixed $args,...
 	 * @return Message
 	 */
-	public function msg( /* $args */ ) {
+	public function msg( $key /* $args */ ) {
 		$args = func_get_args();
 
-		return call_user_func_array( array( $this->getContext(), 'msg' ), $args );
+		return $this->getContext()->msg( ...$args );
 	}
 
 	/**

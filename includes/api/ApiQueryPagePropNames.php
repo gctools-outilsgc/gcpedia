@@ -1,8 +1,6 @@
 <?php
 /**
- * Created on January 21, 2013
- *
- * Copyright © 2013 Brad Jorsch <bjorsch@wikimedia.org>
+ * Copyright © 2013 Wikimedia Foundation and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +19,6 @@
  *
  * @file
  * @since 1.21
- * @author Brad Jorsch
  */
 
 /**
@@ -57,7 +54,11 @@ class ApiQueryPagePropNames extends ApiQueryBase {
 		}
 
 		$limit = $params['limit'];
-		$this->addOption( 'LIMIT', $limit + 1 );
+
+		// mysql has issues with limit in loose index T115825
+		if ( $this->getDB()->getType() !== 'mysql' ) {
+			$this->addOption( 'LIMIT', $limit + 1 );
+		}
 
 		$result = $this->getResult();
 		$count = 0;
@@ -69,41 +70,41 @@ class ApiQueryPagePropNames extends ApiQueryBase {
 				break;
 			}
 
-			$vals = array();
+			$vals = [];
 			$vals['propname'] = $row->pp_propname;
-			$fit = $result->addValue( array( 'query', $this->getModuleName() ), null, $vals );
+			$fit = $result->addValue( [ 'query', $this->getModuleName() ], null, $vals );
 			if ( !$fit ) {
 				$this->setContinueEnumParameter( 'continue', $row->pp_propname );
 				break;
 			}
 		}
 
-		$result->addIndexedTagName( array( 'query', $this->getModuleName() ), 'p' );
+		$result->addIndexedTagName( [ 'query', $this->getModuleName() ], 'p' );
 	}
 
 	public function getAllowedParams() {
-		return array(
-			'continue' => array(
+		return [
+			'continue' => [
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-continue',
-			),
-			'limit' => array(
+			],
+			'limit' => [
 				ApiBase::PARAM_TYPE => 'limit',
 				ApiBase::PARAM_DFLT => 10,
 				ApiBase::PARAM_MIN => 1,
 				ApiBase::PARAM_MAX => ApiBase::LIMIT_BIG1,
 				ApiBase::PARAM_MAX2 => ApiBase::LIMIT_BIG2
-			),
-		);
+			],
+		];
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=query&list=pagepropnames'
 				=> 'apihelp-query+pagepropnames-example-simple',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Pagepropnames';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Pagepropnames';
 	}
 }

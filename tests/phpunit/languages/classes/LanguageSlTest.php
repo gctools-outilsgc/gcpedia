@@ -6,14 +6,16 @@
  * @file
  */
 
-/** Tests for MediaWiki languages/classes/LanguageSl.php */
+/**
+ * @covers LanguageSl
+ */
 class LanguageSlTest extends LanguageClassesTestCase {
 	/**
 	 * @dataProvider providerPlural
 	 * @covers Language::convertPlural
 	 */
 	public function testPlural( $result, $value ) {
-		$forms = array( 'one', 'two', 'few', 'other' );
+		$forms = [ 'one', 'two', 'few', 'other' ];
 		$this->assertEquals( $result, $this->getLang()->convertPlural( $value, $forms ) );
 	}
 
@@ -26,19 +28,19 @@ class LanguageSlTest extends LanguageClassesTestCase {
 	}
 
 	public static function providerPlural() {
-		return array(
-			array( 'other', 0 ),
-			array( 'one', 1 ),
-			array( 'two', 2 ),
-			array( 'few', 3 ),
-			array( 'few', 4 ),
-			array( 'other', 5 ),
-			array( 'other', 99 ),
-			array( 'other', 100 ),
-			array( 'one', 101 ),
-			array( 'two', 102 ),
-			array( 'few', 103 ),
-			array( 'one', 201 ),
-		);
+		return [
+			[ 'other', 0 ],
+			[ 'one', 1 ],
+			[ 'two', 2 ],
+			[ 'few', 3 ],
+			[ 'few', 4 ],
+			[ 'other', 5 ],
+			[ 'other', 99 ],
+			[ 'other', 100 ],
+			[ 'one', 101 ],
+			[ 'two', 102 ],
+			[ 'few', 103 ],
+			[ 'one', 201 ],
+		];
 	}
 }

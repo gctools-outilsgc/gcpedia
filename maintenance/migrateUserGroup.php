@@ -31,7 +31,7 @@ require_once __DIR__ . '/Maintenance.php';
 class MigrateUserGroup extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Re-assign users from an old group to a new one";
+		$this->addDescription( 'Re-assign users from an old group to a new one' );
 		$this->addArg( 'oldgroup', 'Old user group key', true );
 		$this->addArg( 'newgroup', 'New user group key', true );
 		$this->setBatchSize( 200 );
@@ -41,30 +41,31 @@ class MigrateUserGroup extends Maintenance {
 		$count = 0;
 		$oldGroup = $this->getArg( 0 );
 		$newGroup = $this->getArg( 1 );
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = $this->getDB( DB_MASTER );
+		$batchSize = $this->getBatchSize();
 		$start = $dbw->selectField( 'user_groups', 'MIN(ug_user)',
-			array( 'ug_group' => $oldGroup ), __FUNCTION__ );
+			[ 'ug_group' => $oldGroup ], __FUNCTION__ );
 		$end = $dbw->selectField( 'user_groups', 'MAX(ug_user)',
-			array( 'ug_group' => $oldGroup ), __FUNCTION__ );
+			[ 'ug_group' => $oldGroup ], __FUNCTION__ );
 		if ( $start === null ) {
-			$this->error( "Nothing to do - no users in the '$oldGroup' group", true );
+			$this->fatalError( "Nothing to do - no users in the '$oldGroup' group" );
 		}
 		# Do remaining chunk
-		$end += $this->mBatchSize - 1;
+		$end += $batchSize - 1;
 		$blockStart = $start;
-		$blockEnd = $start + $this->mBatchSize - 1;
+		$blockEnd = $start + $batchSize - 1;
 		// Migrate users over in batches...
 		while ( $blockEnd <= $end ) {
 			$affected = 0;
 			$this->output( "Doing users $blockStart to $blockEnd\n" );
 
-			$dbw->begin( __METHOD__ );
+			$this->beginTransaction( $dbw, __METHOD__ );
 			$dbw->update( 'user_groups',
-				array( 'ug_group' => $newGroup ),
-				array( 'ug_group' => $oldGroup,
-					"ug_user BETWEEN $blockStart AND $blockEnd" ),
+				[ 'ug_group' => $newGroup ],
+				[ 'ug_group' => $oldGroup,
+					"ug_user BETWEEN " . (int)$blockStart . " AND " . (int)$blockEnd ],
 				__METHOD__,
-				array( 'IGNORE' )
+				[ 'IGNORE' ]
 			);
 			$affected += $dbw->affectedRows();
 			// Delete rows that the UPDATE operation above had to ignore.
@@ -72,20 +73,20 @@ class MigrateUserGroup extends Maintenance {
 			// Updating the row for the old group membership failed since
 			// user/group is UNIQUE.
 			$dbw->delete( 'user_groups',
-				array( 'ug_group' => $oldGroup,
-					"ug_user BETWEEN $blockStart AND $blockEnd" ),
+				[ 'ug_group' => $oldGroup,
+					"ug_user BETWEEN " . (int)$blockStart . " AND " . (int)$blockEnd ],
 				__METHOD__
 			);
 			$affected += $dbw->affectedRows();
-			$dbw->commit( __METHOD__ );
+			$this->commitTransaction( $dbw, __METHOD__ );
 
-			// Clear cache for the affected users (bug 40340)
+			// Clear cache for the affected users (T42340)
 			if ( $affected > 0 ) {
 				// XXX: This also invalidates cache of unaffected users that
 				// were in the new group and not in the group.
 				$res = $dbw->select( 'user_groups', 'ug_user',
-					array( 'ug_group' => $newGroup,
-						"ug_user BETWEEN $blockStart AND $blockEnd" ),
+					[ 'ug_group' => $newGroup,
+						"ug_user BETWEEN " . (int)$blockStart . " AND " . (int)$blockEnd ],
 					__METHOD__
 				);
 				if ( $res !== false ) {
@@ -97,13 +98,12 @@ class MigrateUserGroup extends Maintenance {
 			}
 
 			$count += $affected;
-			$blockStart += $this->mBatchSize;
-			$blockEnd += $this->mBatchSize;
-			wfWaitForSlaves();
+			$blockStart += $batchSize;
+			$blockEnd += $batchSize;
 		}
 		$this->output( "Done! $count users in group '$oldGroup' are now in '$newGroup' instead.\n" );
 	}
 }
 
-$maintClass = "MigrateUserGroup";
+$maintClass = MigrateUserGroup::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

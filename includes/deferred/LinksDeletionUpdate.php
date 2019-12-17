@@ -19,87 +19,114 @@
  *
  * @file
  */
+use MediaWiki\MediaWikiServices;
+use Wikimedia\ScopedCallback;
 
 /**
  * Update object handling the cleanup of links tables after a page was deleted.
- **/
-class LinksDeletionUpdate extends SqlDataUpdate {
-	/** @var WikiPage The WikiPage that was deleted */
-	protected $mPage;
+ */
+class LinksDeletionUpdate extends LinksUpdate implements EnqueueableDataUpdate {
+	/** @var WikiPage */
+	protected $page;
+	/** @var string */
+	protected $timestamp;
 
 	/**
-	 * Constructor
-	 *
 	 * @param WikiPage $page Page we are updating
+	 * @param int|null $pageId ID of the page we are updating [optional]
+	 * @param string|null $timestamp TS_MW timestamp of deletion
 	 * @throws MWException
 	 */
-	function __construct( WikiPage $page ) {
-		parent::__construct( false ); // no implicit transaction
-
-		$this->mPage = $page;
-
-		if ( !$page->exists() ) {
-			throw new MWException( "Page ID not known, perhaps the page doesn't exist?" );
+	function __construct( WikiPage $page, $pageId = null, $timestamp = null ) {
+		$this->page = $page;
+		if ( $pageId ) {
+			$this->mId = $pageId; // page ID at time of deletion
+		} elseif ( $page->exists() ) {
+			$this->mId = $page->getId();
+		} else {
+			throw new InvalidArgumentException( "Page ID not known. Page doesn't exist?" );
 		}
+
+		$this->timestamp = $timestamp ?: wfTimestampNow();
+
+		$fakePO = new ParserOutput();
+		$fakePO->setCacheTime( $timestamp );
+		parent::__construct( $page->getTitle(), $fakePO, false );
 	}
 
-	/**
-	 * Do some database updates after deletion
-	 */
-	public function doUpdate() {
-		$title = $this->mPage->getTitle();
-		$id = $this->mPage->getId();
+	protected function doIncrementalUpdate() {
+		$services = MediaWikiServices::getInstance();
+		$config = $services->getMainConfig();
+		$lbFactory = $services->getDBLoadBalancerFactory();
+		$batchSize = $config->get( 'UpdateRowsPerQuery' );
 
-		# Delete restrictions for it
-		$this->mDb->delete( 'page_restrictions', array( 'pr_page' => $id ), __METHOD__ );
+		$id = $this->mId;
+		$title = $this->mTitle;
 
-		# Fix category table counts
-		$cats = array();
-		$res = $this->mDb->select( 'categorylinks', 'cl_to', array( 'cl_from' => $id ), __METHOD__ );
+		$dbw = $this->getDB(); // convenience
 
-		foreach ( $res as $row ) {
-			$cats[] = $row->cl_to;
+		parent::doIncrementalUpdate();
+
+		// Typically, a category is empty when deleted, so check that we don't leave
+		// spurious row in the category table.
+		if ( $title->getNamespace() === NS_CATEGORY ) {
+			// T166757: do the update after the main job DB commit
+			DeferredUpdates::addCallableUpdate( function () use ( $title ) {
+				$cat = Category::newFromName( $title->getDBkey() );
+				$cat->refreshCountsIfEmpty();
+			} );
 		}
 
-		$this->mPage->updateCategoryCounts( array(), $cats );
+		// Delete restrictions for the deleted page
+		$dbw->delete( 'page_restrictions', [ 'pr_page' => $id ], __METHOD__ );
 
-		# If using cascading deletes, we can skip some explicit deletes
-		if ( !$this->mDb->cascadingDeletes() ) {
-			# Delete outgoing links
-			$this->mDb->delete( 'pagelinks', array( 'pl_from' => $id ), __METHOD__ );
-			$this->mDb->delete( 'imagelinks', array( 'il_from' => $id ), __METHOD__ );
-			$this->mDb->delete( 'categorylinks', array( 'cl_from' => $id ), __METHOD__ );
-			$this->mDb->delete( 'templatelinks', array( 'tl_from' => $id ), __METHOD__ );
-			$this->mDb->delete( 'externallinks', array( 'el_from' => $id ), __METHOD__ );
-			$this->mDb->delete( 'langlinks', array( 'll_from' => $id ), __METHOD__ );
-			$this->mDb->delete( 'iwlinks', array( 'iwl_from' => $id ), __METHOD__ );
-			$this->mDb->delete( 'redirect', array( 'rd_from' => $id ), __METHOD__ );
-			$this->mDb->delete( 'page_props', array( 'pp_page' => $id ), __METHOD__ );
-		}
+		// Delete any redirect entry
+		$dbw->delete( 'redirect', [ 'rd_from' => $id ], __METHOD__ );
 
-		# If using cleanup triggers, we can skip some manual deletes
-		if ( !$this->mDb->cleanupTriggers() ) {
-			# Find recentchanges entries to clean up...
-			$rcIdsForTitle = $this->mDb->selectFieldValues( 'recentchanges',
-				'rc_id',
-				array(
-					'rc_type != ' . RC_LOG,
-					'rc_namespace' => $title->getNamespace(),
-					'rc_title' => $title->getDBkey()
-				),
-				__METHOD__
-			);
-			$rcIdsForPage = $this->mDb->selectFieldValues( 'recentchanges',
-				'rc_id',
-				array( 'rc_type != ' . RC_LOG, 'rc_cur_id' => $id ),
-				__METHOD__
-			);
+		// Find recentchanges entries to clean up...
+		$rcIdsForTitle = $dbw->selectFieldValues(
+			'recentchanges',
+			'rc_id',
+			[
+				'rc_type != ' . RC_LOG,
+				'rc_namespace' => $title->getNamespace(),
+				'rc_title' => $title->getDBkey(),
+				'rc_timestamp < ' .
+					$dbw->addQuotes( $dbw->timestamp( $this->timestamp ) )
+			],
+			__METHOD__
+		);
+		$rcIdsForPage = $dbw->selectFieldValues(
+			'recentchanges',
+			'rc_id',
+			[ 'rc_type != ' . RC_LOG, 'rc_cur_id' => $id ],
+			__METHOD__
+		);
 
-			# T98706: delete PK to avoid lock contention with RC delete log insertions
-			$rcIds = array_merge( $rcIdsForTitle, $rcIdsForPage );
-			if ( $rcIds ) {
-				$this->mDb->delete( 'recentchanges', array( 'rc_id' => $rcIds ), __METHOD__ );
+		// T98706: delete by PK to avoid lock contention with RC delete log insertions
+		$rcIdBatches = array_chunk( array_merge( $rcIdsForTitle, $rcIdsForPage ), $batchSize );
+		foreach ( $rcIdBatches as $rcIdBatch ) {
+			$dbw->delete( 'recentchanges', [ 'rc_id' => $rcIdBatch ], __METHOD__ );
+			if ( count( $rcIdBatches ) > 1 ) {
+				$lbFactory->commitAndWaitForReplication(
+					__METHOD__, $this->ticket, [ 'domain' => $dbw->getDomainID() ]
+				);
 			}
 		}
+
+		// Commit and release the lock (if set)
+		ScopedCallback::consume( $scopedLock );
+	}
+
+	public function getAsJobSpecification() {
+		return [
+			'domain' => $this->getDB()->getDomainID(),
+			'job' => new JobSpecification(
+				'deleteLinks',
+				[ 'pageId' => $this->mId, 'timestamp' => $this->timestamp ],
+				[ 'removeDuplicates' => true ],
+				$this->mTitle
+			)
+		];
 	}
 }

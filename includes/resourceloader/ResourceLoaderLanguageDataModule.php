@@ -1,6 +1,6 @@
 <?php
 /**
- * Resource loader module for populating language specific data.
+ * ResourceLoader module for populating language specific data.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,11 @@
  */
 
 /**
- * ResourceLoader module for populating language specific data.
+ * ResourceLoader module for populating language specific data, such as grammar forms.
  */
-class ResourceLoaderLanguageDataModule extends ResourceLoaderModule {
+class ResourceLoaderLanguageDataModule extends ResourceLoaderFileModule {
 
-	protected $targets = array( 'desktop', 'mobile' );
+	protected $targets = [ 'desktop', 'mobile' ];
 
 	/**
 	 * Get all the dynamic data for the content language to an array.
@@ -37,14 +37,17 @@ class ResourceLoaderLanguageDataModule extends ResourceLoaderModule {
 	 */
 	protected function getData( ResourceLoaderContext $context ) {
 		$language = Language::factory( $context->getLanguage() );
-		return array(
+		return [
 			'digitTransformTable' => $language->digitTransformTable(),
 			'separatorTransformTable' => $language->separatorTransformTable(),
+			'minimumGroupingDigits' => $language->minimumGroupingDigits(),
 			'grammarForms' => $language->getGrammarForms(),
+			'grammarTransformations' => $language->getGrammarTransformations(),
 			'pluralRules' => $language->getPluralRules(),
 			'digitGroupingPattern' => $language->digitGroupingPattern(),
 			'fallbackLanguages' => $language->getFallbackLanguages(),
-		);
+			'bcp47Map' => LanguageCode::getNonstandardLanguageCodeMapping(),
+		];
 	}
 
 	/**
@@ -52,14 +55,16 @@ class ResourceLoaderLanguageDataModule extends ResourceLoaderModule {
 	 * @return string JavaScript code
 	 */
 	public function getScript( ResourceLoaderContext $context ) {
-		return Xml::encodeJsCall(
+		$fileScript = parent::getScript( $context );
+		$langDataScript = Xml::encodeJsCall(
 			'mw.language.setData',
-			array(
+			[
 				$context->getLanguage(),
 				$this->getData( $context )
-			),
+			],
 			ResourceLoader::inDebugMode()
 		);
+		return $fileScript . $langDataScript;
 	}
 
 	/**
@@ -70,10 +75,9 @@ class ResourceLoaderLanguageDataModule extends ResourceLoaderModule {
 	}
 
 	/**
-	 * @param ResourceLoaderContext $context
-	 * @return array
+	 * @return bool
 	 */
-	public function getDependencies( ResourceLoaderContext $context = null ) {
-		return array( 'mediawiki.language.init' );
+	public function supportsURLLoading() {
+		return false;
 	}
 }

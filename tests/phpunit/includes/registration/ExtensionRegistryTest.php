@@ -1,9 +1,109 @@
 <?php
 
+use Wikimedia\ScopedCallback;
+
+/**
+ * @covers ExtensionRegistry
+ */
 class ExtensionRegistryTest extends MediaWikiTestCase {
 
+	private $dataDir;
+
+	public function setUp() {
+		parent::setUp();
+		$this->dataDir = __DIR__ . '/../../data/registration';
+	}
+
+	public function testQueue_invalid() {
+		$registry = new ExtensionRegistry();
+		$path = __DIR__ . '/doesnotexist.json';
+		$this->setExpectedException(
+			Exception::class,
+			"$path does not exist!"
+		);
+		$registry->queue( $path );
+	}
+
+	public function testQueue() {
+		$registry = new ExtensionRegistry();
+		$path = "{$this->dataDir}/good.json";
+		$registry->queue( $path );
+		$this->assertArrayHasKey(
+			$path,
+			$registry->getQueue()
+		);
+		$registry->clearQueue();
+		$this->assertEmpty( $registry->getQueue() );
+	}
+
+	public function testLoadFromQueue_empty() {
+		$registry = new ExtensionRegistry();
+		$registry->loadFromQueue();
+		$this->assertEmpty( $registry->getAllThings() );
+	}
+
+	public function testLoadFromQueue_late() {
+		$registry = new ExtensionRegistry();
+		$registry->finish();
+		$registry->queue( "{$this->dataDir}/good.json" );
+		$this->setExpectedException(
+			MWException::class,
+			"The following paths tried to load late: {$this->dataDir}/good.json"
+		);
+		$registry->loadFromQueue();
+	}
+
+	public function testLoadFromQueue() {
+		$registry = new ExtensionRegistry();
+		$registry->queue( "{$this->dataDir}/good.json" );
+		$registry->loadFromQueue();
+		$this->assertArrayHasKey( 'FooBar', $registry->getAllThings() );
+		$this->assertTrue( $registry->isLoaded( 'FooBar' ) );
+		$this->assertTrue( $registry->isLoaded( 'FooBar', '*' ) );
+		$this->assertSame( [ 'test' ], $registry->getAttribute( 'FooBarAttr' ) );
+		$this->assertSame( [], $registry->getAttribute( 'NotLoadedAttr' ) );
+	}
+
+	public function testLoadFromQueueWithConstraintWithVersion() {
+		$registry = new ExtensionRegistry();
+		$registry->queue( "{$this->dataDir}/good_with_version.json" );
+		$registry->loadFromQueue();
+		$this->assertTrue( $registry->isLoaded( 'FooBar', '>= 1.2.0' ) );
+		$this->assertFalse( $registry->isLoaded( 'FooBar', '^1.3.0' ) );
+	}
+
 	/**
-	 * @covers ExtensionRegistry::exportExtractedData
+	 * @expectedException LogicException
+	 */
+	public function testLoadFromQueueWithConstraintWithoutVersion() {
+		$registry = new ExtensionRegistry();
+		$registry->queue( "{$this->dataDir}/good.json" );
+		$registry->loadFromQueue();
+		$registry->isLoaded( 'FooBar', '>= 1.2.0' );
+	}
+
+	/**
+	 * @expectedException PHPUnit_Framework_Error
+	 */
+	public function testReadFromQueue_nonexistent() {
+		$registry = new ExtensionRegistry();
+		$registry->readFromQueue( [
+			__DIR__ . '/doesnotexist.json' => 1
+		] );
+	}
+
+	public function testReadFromQueueInitializeAutoloaderWithPsr4Namespaces() {
+		$registry = new ExtensionRegistry();
+		$registry->readFromQueue( [
+			"{$this->dataDir}/autoload_namespaces.json" => 1
+		] );
+		$this->assertTrue(
+			class_exists( 'Test\\MediaWiki\\AutoLoader\\TestFooBar' ),
+			"Registry initializes Autoloader from AutoloadNamespaces"
+		);
+	}
+
+	/**
 	 * @dataProvider provideExportExtractedDataGlobals
 	 */
 	public function testExportExtractedDataGlobals( $desc, $before, $globals, $expected ) {
@@ -19,18 +119,19 @@ class ExtensionRegistryTest extends MediaWikiTestCase {
 			}
 		}
 
-		$info = array(
+		$info = [
 			'globals' => $globals,
-			'callbacks' => array(),
-			'defines' => array(),
-			'credits' => array(),
-			'attributes' => array(),
-		);
+			'callbacks' => [],
+			'defines' => [],
+			'credits' => [],
+			'attributes' => [],
+			'autoloaderPaths' => []
+		];
 		$registry = new ExtensionRegistry();
-		$class = new ReflectionClass( 'ExtensionRegistry' );
+		$class = new ReflectionClass( ExtensionRegistry::class );
 		$method = $class->getMethod( 'exportExtractedData' );
 		$method->setAccessible( true );
-		$method->invokeArgs( $registry, array( $info ) );
+		$method->invokeArgs( $registry, [ $info ] );
 		foreach ( $expected as $name => $value ) {
 			$this->assertArrayHasKey( $name, $GLOBALS, $desc );
 			$this->assertEquals( $value, $GLOBALS[$name], $desc );
@@ -48,209 +149,280 @@ class ExtensionRegistryTest extends MediaWikiTestCase {
 
 	public static function provideExportExtractedDataGlobals() {
 		// "mwtest" prefix used instead of "$wg" to avoid potential conflicts
-		return array(
-			array(
+		return [
+			[
 				'Simple non-array values',
-				array(
+				[
 					'mwtestFooBarConfig' => true,
 					'mwtestFooBarConfig2' => 'string',
-				),
-				array(
+				],
+				[
 					'mwtestFooBarDefault' => 1234,
 					'mwtestFooBarConfig' => false,
-				),
-				array(
+				],
+				[
 					'mwtestFooBarConfig' => true,
 					'mwtestFooBarConfig2' => 'string',
 					'mwtestFooBarDefault' => 1234,
-				),
-			),
-			array(
+				],
+			],
+			[
 				'No global already set, simple array',
 				null,
-				array(
-					'mwtestDefaultOptions' => array(
+				[
+					'mwtestDefaultOptions' => [
 						'foobar' => true,
-					)
-				),
-				array(
-					'mwtestDefaultOptions' => array(
+					]
+				],
+				[
+					'mwtestDefaultOptions' => [
 						'foobar' => true,
-					)
-				),
-			),
-			array(
+					]
+				],
+			],
+			[
 				'Global already set, simple array',
-				array(
-					'mwtestDefaultOptions' => array(
+				[
+					'mwtestDefaultOptions' => [
 						'foobar' => true,
 						'foo' => 'string'
-					),
-				),
-				array(
-					'mwtestDefaultOptions' => array(
+					],
+				],
+				[
+					'mwtestDefaultOptions' => [
 						'barbaz' => 12345,
 						'foobar' => false,
-					),
-				),
-				array(
-					'mwtestDefaultOptions' => array(
+					],
+				],
+				[
+					'mwtestDefaultOptions' => [
 						'barbaz' => 12345,
 						'foo' => 'string',
 						'foobar' => true,
-					),
-				)
-			),
-			array(
+					],
+				]
+			],
+			[
 				'Global already set, 1d array that appends',
-				array(
-					'mwAvailableRights' => array(
+				[
+					'mwAvailableRights' => [
 						'foobar',
 						'foo'
-					),
-				),
-				array(
-					'mwAvailableRights' => array(
+					],
+				],
+				[
+					'mwAvailableRights' => [
 						'barbaz',
-					),
-				),
-				array(
-					'mwAvailableRights' => array(
+					],
+				],
+				[
+					'mwAvailableRights' => [
 						'barbaz',
 						'foobar',
 						'foo',
-					),
-				)
-			),
-			array(
+					],
+				]
+			],
+			[
 				'Global already set, array with integer keys',
-				array(
-					'mwNamespacesFoo' => array(
+				[
+					'mwNamespacesFoo' => [
 						100 => true,
 						102 => false
-					),
-				),
-				array(
-					'mwNamespacesFoo' => array(
+					],
+				],
+				[
+					'mwNamespacesFoo' => [
 						100 => false,
 						500 => true,
 						ExtensionRegistry::MERGE_STRATEGY => 'array_plus',
-					),
-				),
-				array(
-					'mwNamespacesFoo' => array(
+					],
+				],
+				[
+					'mwNamespacesFoo' => [
 						100 => true,
 						102 => false,
 						500 => true,
-					),
-				)
-			),
-			array(
+					],
+				]
+			],
+			[
 				'No global already set, $wgHooks',
-				array(
-					'wgHooks' => array(),
-				),
-				array(
-					'wgHooks' => array(
-						'FooBarEvent' => array(
+				[
+					'wgHooks' => [],
+				],
+				[
+					'wgHooks' => [
+						'FooBarEvent' => [
 							'FooBarClass::onFooBarEvent'
-						),
+						],
 						ExtensionRegistry::MERGE_STRATEGY => 'array_merge_recursive'
-					),
-				),
-				array(
-					'wgHooks' => array(
-						'FooBarEvent' => array(
+					],
+				],
+				[
+					'wgHooks' => [
+						'FooBarEvent' => [
 							'FooBarClass::onFooBarEvent'
-						),
-					),
-				),
-			),
-			array(
+						],
+					],
+				],
+			],
+			[
 				'Global already set, $wgHooks',
-				array(
-					'wgHooks' => array(
-						'FooBarEvent' => array(
+				[
+					'wgHooks' => [
+						'FooBarEvent' => [
 							'FooBarClass::onFooBarEvent'
-						),
-						'BazBarEvent' => array(
+						],
+						'BazBarEvent' => [
 							'FooBarClass::onBazBarEvent',
-						),
-					),
-				),
-				array(
-					'wgHooks' => array(
-						'FooBarEvent' => array(
+						],
+					],
+				],
+				[
+					'wgHooks' => [
+						'FooBarEvent' => [
 							'BazBarClass::onFooBarEvent',
-						),
+						],
 						ExtensionRegistry::MERGE_STRATEGY => 'array_merge_recursive',
-					),
-				),
-				array(
-					'wgHooks' => array(
-						'FooBarEvent' => array(
+					],
+				],
+				[
+					'wgHooks' => [
+						'FooBarEvent' => [
 							'FooBarClass::onFooBarEvent',
 							'BazBarClass::onFooBarEvent',
-						),
-						'BazBarEvent' => array(
+						],
+						'BazBarEvent' => [
 							'FooBarClass::onBazBarEvent',
-						),
-					),
-				),
-			),
-			array(
+						],
+					],
+				],
+			],
+			[
 				'Global already set, $wgGroupPermissions',
-				array(
-					'wgGroupPermissions' => array(
-						'sysop' => array(
+				[
+					'wgGroupPermissions' => [
+						'sysop' => [
 							'something' => true,
-						),
-						'user' => array(
+						],
+						'user' => [
 							'somethingtwo' => true,
-						)
-					),
-				),
-				array(
-					'wgGroupPermissions' => array(
-						'customgroup' => array(
+						]
+					],
+				],
+				[
+					'wgGroupPermissions' => [
+						'customgroup' => [
 							'right' => true,
-						),
-						'user' => array(
+						],
+						'user' => [
 							'right' => true,
 							'somethingtwo' => false,
 							'nonduplicated' => true,
-						),
+						],
 						ExtensionRegistry::MERGE_STRATEGY => 'array_plus_2d',
-					),
-				),
-				array(
-					'wgGroupPermissions' => array(
-						'customgroup' => array(
+					],
+				],
+				[
+					'wgGroupPermissions' => [
+						'customgroup' => [
 							'right' => true,
-						),
-						'sysop' => array(
+						],
+						'sysop' => [
 							'something' => true,
-						),
-						'user' => array(
+						],
+						'user' => [
 							'somethingtwo' => true,
 							'right' => true,
 							'nonduplicated' => true,
-						)
-					),
-				),
-			),
-			array(
+						]
+					],
+				],
+			],
+			[
 				'False local setting should not be overridden (T100767)',
-				array(
+				[
 					'mwtestT100767' => false,
-				),
-				array(
+				],
+				[
 					'mwtestT100767' => true,
-				),
-				array(
+				],
+				[
 					'mwtestT100767' => false,
-				),
-			),
-		);
+				],
+			],
+			[
+				'test array_replace_recursive',
+				[
+					'mwtestJsonConfigs' => [
+						'JsonZeroConfig' => [
+							'namespace' => 480,
+							'nsName' => 'Zero',
+							'isLocal' => true,
+						],
+					],
+				],
+				[
+					'mwtestJsonConfigs' => [
+						'JsonZeroConfig' => [
+							'isLocal' => false,
+							'remote' => [
+								'username' => 'foo',
+							],
+						],
+						ExtensionRegistry::MERGE_STRATEGY => 'array_replace_recursive',
+					],
+				],
+				[
+					'mwtestJsonConfigs' => [
+						'JsonZeroConfig' => [
+							'namespace' => 480,
+							'nsName' => 'Zero',
+							'isLocal' => false,
+							'remote' => [
+								'username' => 'foo',
+							],
+						],
+					],
+				],
+			],
+			[
+				'global is null before',
+				[
+					'NullGlobal' => null,
+				],
+				[
+					'NullGlobal' => 'not-null'
+				],
+				[
+					'NullGlobal' => null
+				],
+			],
+		];
+	}
+
+	public function testSetAttributeForTest() {
+		$registry = new ExtensionRegistry();
+		$registry->queue( "{$this->dataDir}/good.json" );
+		$registry->loadFromQueue();
+		// Sanity check that it worked
+		$this->assertSame( [ 'test' ], $registry->getAttribute( 'FooBarAttr' ) );
+		$reset = $registry->setAttributeForTest( 'FooBarAttr', [ 'override' ] );
+		// overridden properly
+		$this->assertSame( [ 'override' ], $registry->getAttribute( 'FooBarAttr' ) );
+		ScopedCallback::consume( $reset );
+		// reset properly
+		$this->assertSame( [ 'test' ], $registry->getAttribute( 'FooBarAttr' ) );
+	}
+
+	/**
+	 * @expectedException Exception
+	 * @expectedExceptionMessage The attribute 'foo' has already been overridden
+	 */
+	public function testSetAttributeForTestDuplicate() {
+		$registry = new ExtensionRegistry();
+		$reset1 = $registry->setAttributeForTest( 'foo', [ 'val1' ] );
+		$reset2 = $registry->setAttributeForTest( 'foo', [ 'val2' ] );
 	}
 }

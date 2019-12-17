@@ -16,8 +16,9 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @file
- * @license GPL 2+
  */
+
+use MediaWiki\MediaWikiServices;
 
 /**
  * A parser that translates page titles on a foreign wiki into ForeignTitle
@@ -43,21 +44,22 @@ class NaiveForeignTitleFactory implements ForeignTitleFactory {
 	public function createForeignTitle( $title, $ns = null ) {
 		$pieces = explode( ':', $title, 2 );
 
-		global $wgContLang;
-
-		// Can we assume that the part of the page title before the colon is a
-		// namespace name?
-		//
-		// XML export schema version 0.5 and earlier (MW 1.18 and earlier) does not
-		// contain a <ns> tag, so we need to be able to handle that case.
-		//
-		// If we know the namespace ID, we assume a non-zero namespace ID means
-		// the ':' sets off a valid namespace name. If we don't know the namespace
-		// ID, we fall back to using the local wiki's namespace names to resolve
-		// this -- better than nothing, and mimics the old crappy behavior
-		$isNamespacePartValid = is_null( $ns ) ?
-			( $wgContLang->getNsIndex( $pieces[0] ) !== false ) :
-			$ns != 0;
+		/**
+		 * Can we assume that the part of the page title before the colon is a
+		 * namespace name?
+		 *
+		 * XML export schema version 0.5 and earlier (MW 1.18 and earlier) does not
+		 * contain a <ns> tag, so we need to be able to handle that case.
+		 *
+		 * If we know the namespace ID, we assume a non-zero namespace ID means
+		 * the ':' sets off a valid namespace name. If we don't know the namespace
+		 * ID, we fall back to using the local wiki's namespace names to resolve
+		 * this -- better than nothing, and mimics the old crappy behavior
+		 */
+		$isNamespacePartValid = is_null( $ns )
+			? MediaWikiServices::getInstance()->getContentLanguage()->getNsIndex( $pieces[0] ) !==
+				false
+			: $ns != 0;
 
 		if ( count( $pieces ) === 2 && $isNamespacePartValid ) {
 			list( $namespaceName, $pageName ) = $pieces;

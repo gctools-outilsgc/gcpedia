@@ -5,6 +5,7 @@
  *
  * Represents files in a repository.
  */
+use MediaWiki\MediaWikiServices;
 
 /**
  * Base code for files.
@@ -28,6 +29,7 @@
  * @ingroup FileAbstraction
  */
 
+// @phan-file-suppress PhanTypeMissingReturn false positives
 /**
  * Implements some public methods and some protected utility functions which
  * are required by multiple child classes. Contains stub functionality for
@@ -127,7 +129,7 @@ abstract class File implements IDBAccessObject {
 	/** @var string Relative path including trailing slash */
 	protected $hashPath;
 
-	/** @var string Number of pages of a multipage document, or false for
+	/** @var string|false Number of pages of a multipage document, or false for
 	 *    documents which aren't multipage documents
 	 */
 	protected $pageCount;
@@ -147,10 +149,10 @@ abstract class File implements IDBAccessObject {
 	protected $isSafeFile;
 
 	/** @var string Required Repository class type */
-	protected $repoClass = 'FileRepo';
+	protected $repoClass = FileRepo::class;
 
 	/** @var array Cache of tmp filepaths pointing to generated bucket thumbnails, keyed by width */
-	protected $tmpBucketedThumbCache = array();
+	protected $tmpBucketedThumbCache = [];
 
 	/**
 	 * Call this constructor from child classes.
@@ -202,11 +204,11 @@ abstract class File implements IDBAccessObject {
 	}
 
 	function __get( $name ) {
-		$function = array( $this, 'get' . ucfirst( $name ) );
+		$function = [ $this, 'get' . ucfirst( $name ) ];
 		if ( !is_callable( $function ) ) {
 			return null;
 		} else {
-			$this->$name = call_user_func( $function );
+			$this->$name = $function();
 
 			return $this->$name;
 		}
@@ -222,12 +224,12 @@ abstract class File implements IDBAccessObject {
 	 */
 	static function normalizeExtension( $extension ) {
 		$lower = strtolower( $extension );
-		$squish = array(
+		$squish = [
 			'htm' => 'html',
 			'jpeg' => 'jpg',
 			'mpeg' => 'mpg',
 			'tiff' => 'tif',
-			'ogv' => 'ogg' );
+			'ogv' => 'ogg' ];
 		if ( isset( $squish[$lower] ) ) {
 			return $squish[$lower];
 		} elseif ( preg_match( '/^[0-9a-z]+$/', $lower ) ) {
@@ -249,7 +251,7 @@ abstract class File implements IDBAccessObject {
 		$oldMime = $old->getMimeType();
 		$n = strrpos( $new, '.' );
 		$newExt = self::normalizeExtension( $n ? substr( $new, $n + 1 ) : '' );
-		$mimeMagic = MimeMagic::singleton();
+		$mimeMagic = MediaWiki\MediaWikiServices::getInstance()->getMimeAnalyzer();
 
 		return $mimeMagic->isMatchingExtension( $newExt, $oldMime );
 	}
@@ -267,13 +269,13 @@ abstract class File implements IDBAccessObject {
 	 * a two-part name, set the minor type to 'unknown'.
 	 *
 	 * @param string $mime "text/html" etc
-	 * @return array ("text", "html") etc
+	 * @return string[] ("text", "html") etc
 	 */
 	public static function splitMime( $mime ) {
 		if ( strpos( $mime, '/' ) !== false ) {
 			return explode( '/', $mime, 2 );
 		} else {
-			return array( $mime, 'unknown' );
+			return [ $mime, 'unknown' ];
 		}
 	}
 
@@ -355,6 +357,16 @@ abstract class File implements IDBAccessObject {
 	}
 
 	/**
+	 * Get short description URL for a files based on the page ID
+	 *
+	 * @return string|null
+	 * @since 1.27
+	 */
+	public function getDescriptionShortUrl() {
+		return null;
+	}
+
+	/**
 	 * Return a fully-qualified URL to the file.
 	 * Upload URL paths _may or may not_ be fully qualified, so
 	 * we check. Local paths are assumed to belong on $wgServer.
@@ -383,10 +395,10 @@ abstract class File implements IDBAccessObject {
 				wfDebug( __METHOD__ . ': supposed to render ' . $this->getName() .
 					' (' . $this->getMimeType() . "), but can't!\n" );
 
-				return $this->getURL(); #hm... return NULL?
+				return $this->getUrl(); # hm... return NULL?
 			}
 		} else {
-			return $this->getURL();
+			return $this->getUrl();
 		}
 	}
 
@@ -426,7 +438,7 @@ abstract class File implements IDBAccessObject {
 			$this->fsFile = $this->repo->getLocalReference( $this->getPath() );
 
 			$statTiming = microtime( true ) - $starttime;
-			RequestContext::getMain()->getStats()->timing(
+			MediaWikiServices::getInstance()->getStatsdDataFactory()->timing(
 				'media.thumbnail.generate.fetchoriginal', 1000 * $statTiming );
 
 			if ( !$this->fsFile ) {
@@ -525,7 +537,7 @@ abstract class File implements IDBAccessObject {
 	/**
 	 * Get the duration of a media file in seconds
 	 *
-	 * @return int
+	 * @return float|int
 	 */
 	public function getLength() {
 		$handler = $this->getHandler();
@@ -558,7 +570,7 @@ abstract class File implements IDBAccessObject {
 	 * format does not support that sort of thing, returns
 	 * an empty array.
 	 *
-	 * @return array
+	 * @return string[]
 	 * @since 1.23
 	 */
 	public function getAvailableLanguages() {
@@ -566,15 +578,34 @@ abstract class File implements IDBAccessObject {
 		if ( $handler ) {
 			return $handler->getAvailableLanguages( $this );
 		} else {
-			return array();
+			return [];
 		}
+	}
+
+	/**
+	 * Get the language code from the available languages for this file that matches the language
+	 * requested by the user
+	 *
+	 * @param string $userPreferredLanguage
+	 * @return string|null
+	 */
+	public function getMatchedLanguage( $userPreferredLanguage ) {
+		$handler = $this->getHandler();
+		if ( $handler ) {
+			return $handler->getMatchedLanguage(
+				$userPreferredLanguage,
+				$handler->getAvailableLanguages( $this )
+			);
+		}
+
+		return null;
 	}
 
 	/**
 	 * In files that support multiple language, what is the default language
 	 * to use if none specified.
 	 *
-	 * @return string Lang code, or null if filetype doesn't support multiple languages.
+	 * @return string|null Lang code, or null if filetype doesn't support multiple languages.
 	 * @since 1.23
 	 */
 	public function getDefaultRenderLanguage() {
@@ -603,20 +634,15 @@ abstract class File implements IDBAccessObject {
 			// one would not expect it to be animated
 			// so true.
 			return true;
-		} else {
-			if ( $this->allowInlineDisplay()
-				&& $handler->isAnimatedImage( $this )
-				&& !$handler->canAnimateThumbnail( $this )
-			) {
-				// Image is animated, but thumbnail isn't.
-				// This is unexpected to the user.
-				return false;
-			} else {
-				// Image is not animated, so one would
-				// not expect thumb to be
-				return true;
-			}
 		}
+
+		return !$this->allowInlineDisplay()
+			// Image is not animated, so one would
+			// not expect thumb to be
+			|| !$handler->isAnimatedImage( $this )
+			// Image is animated, but thumbnail isn't.
+			// This is unexpected to the user.
+			|| $handler->canAnimateThumbnail( $this );
 	}
 
 	/**
@@ -806,17 +832,17 @@ abstract class File implements IDBAccessObject {
 
 		$type = $this->getMediaType();
 		$mime = $this->getMimeType();
-		#wfDebug( "LocalFile::isSafeFile: type= $type, mime= $mime\n" );
+		# wfDebug( "LocalFile::isSafeFile: type= $type, mime= $mime\n" );
 
 		if ( !$type || $type === MEDIATYPE_UNKNOWN ) {
-			return false; #unknown type, not trusted
+			return false; # unknown type, not trusted
 		}
 		if ( in_array( $type, $wgTrustedMediaFormats ) ) {
 			return true;
 		}
 
 		if ( $mime === "unknown/unknown" ) {
-			return false; #unknown type, not trusted
+			return false; # unknown type, not trusted
 		}
 		if ( in_array( $mime, $wgTrustedMediaFormats ) ) {
 			return true;
@@ -839,8 +865,8 @@ abstract class File implements IDBAccessObject {
 	 * @return bool
 	 */
 	function isTrustedFile() {
-		#this could be implemented to check a flag in the database,
-		#look for signatures, etc
+		# this could be implemented to check a flag in the database,
+		# look for signatures, etc
 		return false;
 	}
 
@@ -851,7 +877,7 @@ abstract class File implements IDBAccessObject {
 	 *
 	 * Overridden by LocalFile to actually query the DB
 	 *
-	 * @param integer $flags Bitfield of File::READ_* constants
+	 * @param int $flags Bitfield of File::READ_* constants
 	 */
 	public function load( $flags = 0 ) {
 	}
@@ -886,7 +912,7 @@ abstract class File implements IDBAccessObject {
 			if ( $this->repo ) {
 				$script = $this->repo->getThumbScriptUrl();
 				if ( $script ) {
-					$this->transformScript = wfAppendQuery( $script, array( 'f' => $this->getName() ) );
+					$this->transformScript = wfAppendQuery( $script, [ 'f' => $this->getName() ] );
 				}
 			}
 		}
@@ -899,17 +925,17 @@ abstract class File implements IDBAccessObject {
 	 *
 	 * @param array $handlerParams
 	 *
-	 * @return string
+	 * @return ThumbnailImage|MediaTransformOutput|bool False on failure
 	 */
-	function getUnscaledThumb( $handlerParams = array() ) {
+	function getUnscaledThumb( $handlerParams = [] ) {
 		$hp =& $handlerParams;
-		$page = isset( $hp['page'] ) ? $hp['page'] : false;
+		$page = $hp['page'] ?? false;
 		$width = $this->getWidth( $page );
 		if ( !$width ) {
 			return $this->iconThumb();
 		}
 		$hp['width'] = $width;
-		// be sure to ignore any height specification as well (bug 62258)
+		// be sure to ignore any height specification as well (T64258)
 		unset( $hp['height'] );
 
 		return $this->transform( $hp );
@@ -922,7 +948,7 @@ abstract class File implements IDBAccessObject {
 	 *
 	 * @param array $params Handler-specific parameters
 	 * @param int $flags Bitfield that supports THUMB_* constants
-	 * @return string
+	 * @return string|null
 	 */
 	public function thumbName( $params, $flags = 0 ) {
 		$name = ( $this->repo && !( $flags & self::THUMB_FULL_NAME ) )
@@ -937,7 +963,7 @@ abstract class File implements IDBAccessObject {
 	 *
 	 * @param string $name
 	 * @param array $params Parameters which will be passed to MediaHandler::makeParamString
-	 * @return string
+	 * @return string|null
 	 */
 	public function generateThumbName( $name, $params ) {
 		if ( !$this->getHandler() ) {
@@ -946,9 +972,16 @@ abstract class File implements IDBAccessObject {
 		$extension = $this->getExtension();
 		list( $thumbExt, ) = $this->getHandler()->getThumbType(
 			$extension, $this->getMimeType(), $params );
-		$thumbName = $this->getHandler()->makeParamString( $params ) . '-' . $name;
-		if ( $thumbExt != $extension ) {
-			$thumbName .= ".$thumbExt";
+		$thumbName = $this->getHandler()->makeParamString( $params );
+
+		if ( $this->repo->supportsSha1URLs() ) {
+			$thumbName .= '-' . $this->getSha1() . '.' . $thumbExt;
+		} else {
+			$thumbName .= '-' . $name;
+
+			if ( $thumbExt != $extension ) {
+				$thumbName .= ".$thumbExt";
+			}
 		}
 
 		return $thumbName;
@@ -972,7 +1005,7 @@ abstract class File implements IDBAccessObject {
 	 * @return string
 	 */
 	public function createThumb( $width, $height = -1 ) {
-		$params = array( 'width' => $width );
+		$params = [ 'width' => $width ];
 		if ( $height != -1 ) {
 			$params['height'] = $height;
 		}
@@ -1001,7 +1034,7 @@ abstract class File implements IDBAccessObject {
 			return $handler->getTransform( $this, $thumbPath, $thumbUrl, $params );
 		} else {
 			return new MediaTransformError( 'thumbnail_error',
-				$params['width'], 0, wfMessage( 'thumbnail-dest-create' )->text() );
+				$params['width'], 0, wfMessage( 'thumbnail-dest-create' ) );
 		}
 	}
 
@@ -1011,7 +1044,7 @@ abstract class File implements IDBAccessObject {
 	 * @param array $params An associative array of handler-specific parameters.
 	 *   Typical keys are width, height and page.
 	 * @param int $flags A bitfield, may contain self::RENDER_NOW to force rendering
-	 * @return MediaTransformOutput|bool False on failure
+	 * @return ThumbnailImage|MediaTransformOutput|bool False on failure
 	 */
 	function transform( $params, $flags = 0 ) {
 		global $wgThumbnailEpoch;
@@ -1022,7 +1055,7 @@ abstract class File implements IDBAccessObject {
 				break; // not a bitmap or renderable image, don't try
 			}
 
-			// Get the descriptionUrl to embed it as comment into the thumbnail. Bug 19791.
+			// Get the descriptionUrl to embed it as comment into the thumbnail. T21791.
 			$descriptionUrl = $this->getDescriptionUrl();
 			if ( $descriptionUrl ) {
 				$params['descriptionUrl'] = wfExpandUrl( $descriptionUrl, PROTO_CANONICAL );
@@ -1048,7 +1081,6 @@ abstract class File implements IDBAccessObject {
 			if ( $this->repo ) {
 				// Defer rendering if a 404 handler is set up...
 				if ( $this->repo->canTransformVia404() && !( $flags & self::RENDER_NOW ) ) {
-					wfDebug( __METHOD__ . " transformation deferred.\n" );
 					// XXX: Pass in the storage path even though we are not rendering anything
 					// and the path is supposed to be an FS path. This is due to getScalerType()
 					// getting called on the path and clobbering $thumb->getUrl() if it's false.
@@ -1101,7 +1133,7 @@ abstract class File implements IDBAccessObject {
 	public function generateAndSaveThumb( $tmpFile, $transformParams, $flags ) {
 		global $wgIgnoreImageErrors;
 
-		$stats = RequestContext::getMain()->getStats();
+		$stats = MediaWikiServices::getInstance()->getStatsdDataFactory();
 
 		$handler = $this->getHandler();
 
@@ -1130,6 +1162,7 @@ abstract class File implements IDBAccessObject {
 		if ( !$thumb ) { // bad params?
 			$thumb = false;
 		} elseif ( $thumb->isError() ) { // transform error
+			/** @var MediaTransformError $thumb */
 			$this->lastError = $thumb->toText();
 			// Ignore errors if requested
 			if ( $wgIgnoreImageErrors && !( $flags & self::RENDER_NOW ) ) {
@@ -1152,7 +1185,7 @@ abstract class File implements IDBAccessObject {
 			$stats->timing( 'media.thumbnail.generate.store', 1000 * $statTiming );
 
 			// Give extensions a chance to do something with this thumbnail...
-			Hooks::run( 'FileTransformed', array( $this, $thumb, $tmpThumbPath, $thumbPath ) );
+			Hooks::run( 'FileTransformed', [ $this, $thumb, $tmpThumbPath, $thumbPath ] );
 		}
 
 		return $thumb;
@@ -1168,8 +1201,13 @@ abstract class File implements IDBAccessObject {
 		if ( !$this->repo
 			|| !isset( $params['physicalWidth'] )
 			|| !isset( $params['physicalHeight'] )
-			|| !( $bucket = $this->getThumbnailBucket( $params['physicalWidth'] ) )
-			|| $bucket == $params['physicalWidth'] ) {
+		) {
+			return false;
+		}
+
+		$bucket = $this->getThumbnailBucket( $params['physicalWidth'] );
+
+		if ( !$bucket || $bucket == $params['physicalWidth'] ) {
 			return false;
 		}
 
@@ -1205,7 +1243,7 @@ abstract class File implements IDBAccessObject {
 		// this object exists
 		$tmpFile->bind( $this );
 
-		RequestContext::getMain()->getStats()->timing(
+		MediaWikiServices::getInstance()->getStatsdDataFactory()->timing(
 			'media.thumbnail.generate.bucket', 1000 * $buckettime );
 
 		return true;
@@ -1233,11 +1271,11 @@ abstract class File implements IDBAccessObject {
 				$tmpPath = $this->tmpBucketedThumbCache[$bucket];
 
 				if ( file_exists( $tmpPath ) ) {
-					return array(
+					return [
 						'path' => $tmpPath,
 						'width' => $bucket,
 						'height' => $bucketHeight
-					);
+					];
 				}
 			}
 
@@ -1247,11 +1285,11 @@ abstract class File implements IDBAccessObject {
 				$fsFile = $this->repo->getLocalReference( $bucketPath );
 
 				if ( $fsFile ) {
-					return array(
+					return [
 						'path' => $fsFile->getPath(),
 						'width' => $bucket,
 						'height' => $bucketHeight
-					);
+					];
 				}
 			}
 		}
@@ -1259,13 +1297,12 @@ abstract class File implements IDBAccessObject {
 		// Thumbnailing a very large file could result in network saturation if
 		// everyone does it at once.
 		if ( $this->getSize() >= 1e7 ) { // 10MB
-			$that = $this;
 			$work = new PoolCounterWorkViaCallback( 'GetLocalFileCopy', sha1( $this->getName() ),
-				array(
-					'doWork' => function () use ( $that ) {
-						return $that->getLocalRefPath();
+				[
+					'doWork' => function () {
+						return $this->getLocalRefPath();
 					}
-				)
+				]
 			);
 			$srcPath = $work->execute();
 		} else {
@@ -1273,11 +1310,11 @@ abstract class File implements IDBAccessObject {
 		}
 
 		// Original file
-		return array(
+		return [
 			'path' => $srcPath,
 			'width' => $this->getWidth(),
 			'height' => $this->getHeight()
-		);
+		];
 	}
 
 	/**
@@ -1296,17 +1333,17 @@ abstract class File implements IDBAccessObject {
 	 * @return string
 	 */
 	protected function getBucketThumbName( $bucket ) {
-		return $this->thumbName( array( 'physicalWidth' => $bucket ) );
+		return $this->thumbName( [ 'physicalWidth' => $bucket ] );
 	}
 
 	/**
 	 * Creates a temp FS file with the same extension and the thumbnail
 	 * @param string $thumbPath Thumbnail path
-	 * @return TempFSFile
+	 * @return TempFSFile|null
 	 */
 	protected function makeTransformTmpFile( $thumbPath ) {
 		$thumbExt = FileBackend::extensionFromPath( $thumbPath );
-		return TempFSFile::factory( 'transform_', $thumbExt );
+		return TempFSFile::factory( 'transform_', $thumbExt, wfTempDir() );
 	}
 
 	/**
@@ -1357,10 +1394,10 @@ abstract class File implements IDBAccessObject {
 		$assetsPath = "$wgResourceBasePath/resources/assets/file-type-icons/";
 		$assetsDirectory = "$IP/resources/assets/file-type-icons/";
 
-		$try = array( 'fileicon-' . $this->getExtension() . '.png', 'fileicon.png' );
+		$try = [ 'fileicon-' . $this->getExtension() . '.png', 'fileicon.png' ];
 		foreach ( $try as $icon ) {
 			if ( file_exists( $assetsDirectory . $icon ) ) { // always FS
-				$params = array( 'width' => 120, 'height' => 120 );
+				$params = [ 'width' => 120, 'height' => 120 ];
 
 				return new ThumbnailImage( $this, $assetsPath . $icon, false, $params );
 			}
@@ -1382,10 +1419,10 @@ abstract class File implements IDBAccessObject {
 	 * Get all thumbnail names previously generated for this file
 	 * STUB
 	 * Overridden by LocalFile
-	 * @return array
+	 * @return string[]
 	 */
 	function getThumbnails() {
-		return array();
+		return [];
 	}
 
 	/**
@@ -1395,7 +1432,7 @@ abstract class File implements IDBAccessObject {
 	 * @param array $options Options, which include:
 	 *   'forThumbRefresh' : The purging is only to refresh thumbnails
 	 */
-	function purgeCache( $options = array() ) {
+	function purgeCache( $options = [] ) {
 	}
 
 	/**
@@ -1423,8 +1460,9 @@ abstract class File implements IDBAccessObject {
 		// Purge cache of all pages using this file
 		$title = $this->getTitle();
 		if ( $title ) {
-			$update = new HTMLCacheUpdate( $title, 'imagelinks' );
-			$update->doUpdate();
+			DeferredUpdates::addUpdate(
+				new HTMLCacheUpdate( $title, 'imagelinks', 'file-purge' )
+			);
 		}
 	}
 
@@ -1432,15 +1470,15 @@ abstract class File implements IDBAccessObject {
 	 * Return a fragment of the history of file.
 	 *
 	 * STUB
-	 * @param int $limit Limit of rows to return
-	 * @param string $start Only revisions older than $start will be returned
-	 * @param string $end Only revisions newer than $end will be returned
+	 * @param int|null $limit Limit of rows to return
+	 * @param string|int|null $start Only revisions older than $start will be returned
+	 * @param string|int|null $end Only revisions newer than $end will be returned
 	 * @param bool $inc Include the endpoints of the time range
 	 *
-	 * @return array
+	 * @return File[]
 	 */
 	function getHistory( $limit = null, $start = null, $end = null, $inc = true ) {
-		return array();
+		return [];
 	}
 
 	/**
@@ -1501,7 +1539,7 @@ abstract class File implements IDBAccessObject {
 	function getArchiveRel( $suffix = false ) {
 		$path = 'archive/' . $this->getHashPath();
 		if ( $suffix === false ) {
-			$path = substr( $path, 0, -1 );
+			$path = rtrim( $path, '/' );
 		} else {
 			$path .= $suffix;
 		}
@@ -1544,11 +1582,9 @@ abstract class File implements IDBAccessObject {
 	 * @return string
 	 */
 	function getArchiveThumbRel( $archiveName, $suffix = false ) {
-		$path = 'archive/' . $this->getHashPath() . $archiveName . "/";
-		if ( $suffix === false ) {
-			$path = substr( $path, 0, -1 );
-		} else {
-			$path .= $suffix;
+		$path = $this->getArchiveRel( $archiveName );
+		if ( $suffix !== false ) {
+			$path .= '/' . $suffix;
 		}
 
 		return $path;
@@ -1615,7 +1651,7 @@ abstract class File implements IDBAccessObject {
 		$ext = $this->getExtension();
 		$path = $this->repo->getZoneUrl( 'public', $ext ) . '/archive/' . $this->getHashPath();
 		if ( $suffix === false ) {
-			$path = substr( $path, 0, -1 );
+			$path = rtrim( $path, '/' );
 		} else {
 			$path .= rawurlencode( $suffix );
 		}
@@ -1634,11 +1670,9 @@ abstract class File implements IDBAccessObject {
 		$this->assertRepoDefined();
 		$ext = $this->getExtension();
 		$path = $this->repo->getZoneUrl( 'thumb', $ext ) . '/archive/' .
-			$this->getHashPath() . rawurlencode( $archiveName ) . "/";
-		if ( $suffix === false ) {
-			$path = substr( $path, 0, -1 );
-		} else {
-			$path .= rawurlencode( $suffix );
+			$this->getHashPath() . rawurlencode( $archiveName );
+		if ( $suffix !== false ) {
+			$path .= '/' . rawurlencode( $suffix );
 		}
 
 		return $path;
@@ -1708,7 +1742,7 @@ abstract class File implements IDBAccessObject {
 		$this->assertRepoDefined();
 		$path = $this->repo->getVirtualUrl() . '/public/archive/' . $this->getHashPath();
 		if ( $suffix === false ) {
-			$path = substr( $path, 0, -1 );
+			$path = rtrim( $path, '/' );
 		} else {
 			$path .= rawurlencode( $suffix );
 		}
@@ -1745,7 +1779,7 @@ abstract class File implements IDBAccessObject {
 	 * @throws MWException
 	 */
 	function readOnlyError() {
-		throw new MWException( get_class( $this ) . ': write operations are not supported' );
+		throw new MWException( static::class . ': write operations are not supported' );
 	}
 
 	/**
@@ -1771,7 +1805,7 @@ abstract class File implements IDBAccessObject {
 
 	/**
 	 * Move or copy a file to its public location. If a file exists at the
-	 * destination, move it to an archive. Returns a FileRepoStatus object with
+	 * destination, move it to an archive. Returns a Status object with
 	 * the archive name in the "value" member on success.
 	 *
 	 * The archive name should be passed through to recordUpload for database
@@ -1780,17 +1814,17 @@ abstract class File implements IDBAccessObject {
 	 * Options to $options include:
 	 *   - headers : name/value map of HTTP headers to use in response to GET/HEAD requests
 	 *
-	 * @param string $srcPath Local filesystem path to the source image
+	 * @param string|FSFile $src Local filesystem path to the source image
 	 * @param int $flags A bitwise combination of:
 	 *   File::DELETE_SOURCE    Delete the source file, i.e. move rather than copy
 	 * @param array $options Optional additional parameters
-	 * @return FileRepoStatus On success, the value member contains the
+	 * @return Status On success, the value member contains the
 	 *   archive name, or an empty string if it was a new file.
 	 *
 	 * STUB
 	 * Overridden by LocalFile
 	 */
-	function publish( $srcPath, $flags = 0, array $options = array() ) {
+	function publish( $src, $flags = 0, array $options = [] ) {
 		$this->readOnlyError();
 	}
 
@@ -1884,7 +1918,7 @@ abstract class File implements IDBAccessObject {
 	 * and logging are caller's responsibility
 	 *
 	 * @param Title $target New file name
-	 * @return FileRepoStatus
+	 * @return Status
 	 */
 	function move( $target ) {
 		$this->readOnlyError();
@@ -1901,7 +1935,7 @@ abstract class File implements IDBAccessObject {
 	 * @param string $reason
 	 * @param bool $suppress Hide content from sysops?
 	 * @param User|null $user
-	 * @return bool Boolean on success, false on some kind of failure
+	 * @return Status
 	 * STUB
 	 * Overridden by LocalFile
 	 */
@@ -1923,7 +1957,7 @@ abstract class File implements IDBAccessObject {
 	 * STUB
 	 * Overridden by LocalFile
 	 */
-	function restore( $versions = array(), $unsuppress = false ) {
+	function restore( $versions = [], $unsuppress = false ) {
 		$this->readOnlyError();
 	}
 
@@ -1942,7 +1976,7 @@ abstract class File implements IDBAccessObject {
 	 * Returns the number of pages of a multipage document, or false for
 	 * documents which aren't multipage documents
 	 *
-	 * @return bool|int
+	 * @return string|bool|int
 	 */
 	function pageCount() {
 		if ( !isset( $this->pageCount ) ) {
@@ -1970,7 +2004,7 @@ abstract class File implements IDBAccessObject {
 		if ( $srcWidth == 0 ) {
 			return 0;
 		} else {
-			return round( $srcHeight * $dstWidth / $srcWidth );
+			return (int)round( $srcHeight * $dstWidth / $srcWidth );
 		}
 	}
 
@@ -1981,8 +2015,8 @@ abstract class File implements IDBAccessObject {
 	 * @note Use getWidth()/getHeight() instead of this method unless you have a
 	 *  a good reason. This method skips all caches.
 	 *
-	 * @param string $filePath The path to the file (e.g. From getLocalPathRef() )
-	 * @return array The width, followed by height, with optionally more things after
+	 * @param string $filePath The path to the file (e.g. From getLocalRefPath() )
+	 * @return array|false The width, followed by height, with optionally more things after
 	 */
 	function getImageSize( $filePath ) {
 		if ( !$this->getHandler() ) {
@@ -2009,45 +2043,44 @@ abstract class File implements IDBAccessObject {
 	/**
 	 * Get the HTML text of the description page, if available
 	 *
-	 * @param bool|Language $lang Optional language to fetch description in
-	 * @return string
+	 * @param Language|null $lang Optional language to fetch description in
+	 * @return string|false
 	 */
-	function getDescriptionText( $lang = false ) {
-		global $wgMemc, $wgLang;
+	function getDescriptionText( Language $lang = null ) {
+		global $wgLang;
+
 		if ( !$this->repo || !$this->repo->fetchDescription ) {
 			return false;
 		}
-		if ( !$lang ) {
-			$lang = $wgLang;
-		}
+
+		$lang = $lang ?? $wgLang;
+
 		$renderUrl = $this->repo->getDescriptionRenderUrl( $this->getName(), $lang->getCode() );
 		if ( $renderUrl ) {
-			if ( $this->repo->descriptionCacheExpiry > 0 ) {
-				wfDebug( "Attempting to get the description from cache..." );
-				$key = $this->repo->getLocalCacheKey(
-					'RemoteFileDescription',
-					'url',
-					$lang->getCode(),
-					$this->getName()
-				);
-				$obj = $wgMemc->get( $key );
-				if ( $obj ) {
-					wfDebug( "success!\n" );
+			$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+			$key = $this->repo->getLocalCacheKey(
+				'RemoteFileDescription',
+				$lang->getCode(),
+				md5( $this->getName() )
+			);
+			$fname = __METHOD__;
 
-					return $obj;
+			return $cache->getWithSetCallback(
+				$key,
+				$this->repo->descriptionCacheExpiry ?: $cache::TTL_UNCACHEABLE,
+				function ( $oldValue, &$ttl, array &$setOpts ) use ( $renderUrl, $fname ) {
+					wfDebug( "Fetching shared description from $renderUrl\n" );
+					$res = Http::get( $renderUrl, [], $fname );
+					if ( !$res ) {
+						$ttl = WANObjectCache::TTL_UNCACHEABLE;
+					}
+
+					return $res;
 				}
-				wfDebug( "miss\n" );
-			}
-			wfDebug( "Fetching shared description from $renderUrl\n" );
-			$res = Http::get( $renderUrl, array(), __METHOD__ );
-			if ( $res && $this->repo->descriptionCacheExpiry > 0 ) {
-				$wgMemc->set( $key, $res, $this->repo->descriptionCacheExpiry );
-			}
-
-			return $res;
-		} else {
-			return false;
+			);
 		}
+
+		return false;
 	}
 
 	/**
@@ -2058,9 +2091,9 @@ abstract class File implements IDBAccessObject {
 	 *   File::FOR_PUBLIC       to be displayed to all users
 	 *   File::FOR_THIS_USER    to be displayed to the given user
 	 *   File::RAW              get the description regardless of permissions
-	 * @param User $user User object to check for, only if FOR_THIS_USER is
+	 * @param User|null $user User object to check for, only if FOR_THIS_USER is
 	 *   passed to the $audience parameter
-	 * @return string
+	 * @return null|string
 	 */
 	function getDescription( $audience = self::FOR_PUBLIC, User $user = null ) {
 		return null;
@@ -2102,7 +2135,7 @@ abstract class File implements IDBAccessObject {
 	/**
 	 * Get the deletion archive key, "<sha1>.<ext>"
 	 *
-	 * @return string
+	 * @return string|false
 	 */
 	function getStorageKey() {
 		$hash = $this->getSha1();
@@ -2120,7 +2153,7 @@ abstract class File implements IDBAccessObject {
 	 * field of this file, if it's marked as deleted.
 	 * STUB
 	 * @param int $field
-	 * @param User $user User object to check, or null to use $wgUser
+	 * @param User|null $user User object to check, or null to use $wgUser
 	 * @return bool
 	 */
 	function userCan( $field, User $user = null ) {
@@ -2128,15 +2161,26 @@ abstract class File implements IDBAccessObject {
 	}
 
 	/**
-	 * @return array HTTP header name/value map to use for HEAD/GET request responses
+	 * @return string[] HTTP header name/value map to use for HEAD/GET request responses
+	 * @since 1.30
 	 */
-	function getStreamHeaders() {
+	function getContentHeaders() {
 		$handler = $this->getHandler();
 		if ( $handler ) {
-			return $handler->getStreamHeaders( $this->getMetadata() );
-		} else {
-			return array();
+			$metadata = $this->getMetadata();
+
+			if ( is_string( $metadata ) ) {
+				$metadata = Wikimedia\quietCall( 'unserialize', $metadata );
+			}
+
+			if ( !is_array( $metadata ) ) {
+				$metadata = [];
+			}
+
+			return $handler->getContentHeaders( $metadata );
 		}
+
+		return [];
 	}
 
 	/**

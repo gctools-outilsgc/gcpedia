@@ -32,17 +32,17 @@ class ListVariants extends Maintenance {
 
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = 'Outputs a list of language variants';
+		$this->addDescription( 'Outputs a list of language variants' );
 		$this->addOption( 'flat', 'Output variants in a flat list' );
 		$this->addOption( 'json', 'Output variants as JSON' );
 	}
 
 	public function execute() {
-		$variantLangs = array();
-		$variants = array();
+		$variantLangs = [];
+		$variants = [];
 		foreach ( LanguageConverter::$languagesWithVariants as $langCode ) {
 			$lang = Language::factory( $langCode );
-			if ( count( $lang->getVariants() ) > 1 ) {
+			if ( $lang->hasVariants() ) {
 				$variants += array_flip( $lang->getVariants() );
 				$variantLangs[$langCode] = $lang->getVariants();
 			}
@@ -69,5 +69,5 @@ class ListVariants extends Maintenance {
 	}
 }
 
-$maintClass = 'ListVariants';
+$maintClass = ListVariants::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

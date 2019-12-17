@@ -29,6 +29,8 @@
  * @ingroup Maintenance
  */
 
+use MediaWiki\MediaWikiServices;
+
 require_once __DIR__ . '/cleanupTable.inc';
 
 /**
@@ -36,17 +38,17 @@ require_once __DIR__ . '/cleanupTable.inc';
  *
  * @ingroup Maintenance
  */
-class WatchlistCleanup extends TableCleanup {
-	protected $defaultParams = array(
+class CleanupWatchlist extends TableCleanup {
+	protected $defaultParams = [
 		'table' => 'watchlist',
-		'index' => array( 'wl_user', 'wl_namespace', 'wl_title' ),
-		'conds' => array(),
+		'index' => [ 'wl_user', 'wl_namespace', 'wl_title' ],
+		'conds' => [],
 		'callback' => 'processRow'
-	);
+	];
 
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Script to remove broken, unparseable titles in the Watchlist";
+		$this->addDescription( 'Script to remove broken, unparseable titles in the Watchlist' );
 		$this->addOption( 'fix', 'Actually remove entries; without will only report.' );
 	}
 
@@ -58,10 +60,9 @@ class WatchlistCleanup extends TableCleanup {
 	}
 
 	protected function processRow( $row ) {
-		global $wgContLang;
 		$current = Title::makeTitle( $row->wl_namespace, $row->wl_title );
 		$display = $current->getPrefixedText();
-		$verified = $wgContLang->normalize( $display );
+		$verified = MediaWikiServices::getInstance()->getContentLanguage()->normalize( $display );
 		$title = Title::newFromText( $verified );
 
 		if ( $row->wl_user == 0 || is_null( $title ) || !$title->equals( $current ) ) {
@@ -77,12 +78,12 @@ class WatchlistCleanup extends TableCleanup {
 
 	private function removeWatch( $row ) {
 		if ( !$this->dryrun && $this->hasOption( 'fix' ) ) {
-			$dbw = wfGetDB( DB_MASTER );
+			$dbw = $this->getDB( DB_MASTER );
 			$dbw->delete(
-				'watchlist', array(
+				'watchlist', [
 				'wl_user' => $row->wl_user,
 				'wl_namespace' => $row->wl_namespace,
-				'wl_title' => $row->wl_title ),
+				'wl_title' => $row->wl_title ],
 				__METHOD__
 			);
 
@@ -95,5 +96,5 @@ class WatchlistCleanup extends TableCleanup {
 	}
 }
 
-$maintClass = "WatchlistCleanup";
+$maintClass = CleanupWatchlist::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

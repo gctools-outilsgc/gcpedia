@@ -1,6 +1,6 @@
 <?php
 /**
- * Derivative context for resource loader modules.
+ * Derivative context for ResourceLoader modules.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ class DerivativeResourceLoaderContext extends ResourceLoaderContext {
 	protected $only = self::INHERIT_VALUE;
 	protected $version = self::INHERIT_VALUE;
 	protected $raw = self::INHERIT_VALUE;
+	protected $contentOverrideCallback = self::INHERIT_VALUE;
 
 	public function __construct( ResourceLoaderContext $context ) {
 		$this->context = $context;
@@ -121,7 +122,7 @@ class DerivativeResourceLoaderContext extends ResourceLoaderContext {
 	}
 
 	/**
-	 * @param string $user
+	 * @param string|null $user
 	 */
 	public function setUser( $user ) {
 		$this->user = $user;
@@ -194,6 +195,23 @@ class DerivativeResourceLoaderContext extends ResourceLoaderContext {
 
 	public function getResourceLoader() {
 		return $this->context->getResourceLoader();
+	}
+
+	public function getContentOverrideCallback() {
+		if ( $this->contentOverrideCallback === self::INHERIT_VALUE ) {
+			return $this->context->getContentOverrideCallback();
+		}
+		return $this->contentOverrideCallback;
+	}
+
+	/**
+	 * @see self::getContentOverrideCallback
+	 * @since 1.32
+	 * @param callable|null|int $callback As per self::getContentOverrideCallback,
+	 *  or self::INHERIT_VALUE
+	 */
+	public function setContentOverrideCallback( $callback ) {
+		$this->contentOverrideCallback = $callback;
 	}
 
 }

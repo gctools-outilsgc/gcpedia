@@ -51,7 +51,6 @@ abstract class PasswordTestCase extends MediaWikiTestCase {
 	 * parameter (a password) should match.
 	 * @return array
 	 * @throws MWException
-	 * @abstract
 	 */
 	public static function providePasswordTests() {
 		throw new MWException( "Not implemented" );
@@ -61,9 +60,8 @@ abstract class PasswordTestCase extends MediaWikiTestCase {
 	 * @dataProvider providePasswordTests
 	 */
 	public function testHashing( $shouldMatch, $hash, $password ) {
-		$hash = $this->passwordFactory->newFromCiphertext( $hash );
-		$password = $this->passwordFactory->newFromPlaintext( $password, $hash );
-		$this->assertSame( $shouldMatch, $hash->equals( $password ) );
+		$passwordObj = $this->passwordFactory->newFromCiphertext( $hash );
+		$this->assertSame( $shouldMatch, $passwordObj->verify( $password ) );
 	}
 
 	/**
@@ -73,13 +71,12 @@ abstract class PasswordTestCase extends MediaWikiTestCase {
 		$hashObj = $this->passwordFactory->newFromCiphertext( $hash );
 		$serialized = $hashObj->toString();
 		$unserialized = $this->passwordFactory->newFromCiphertext( $serialized );
-		$this->assertTrue( $hashObj->equals( $unserialized ) );
+		$this->assertEquals( $hashObj->toString(), $unserialized->toString() );
 	}
 
 	/**
 	 * @dataProvider providePasswordTests
-	 * @covers InvalidPassword::equals
-	 * @covers InvalidPassword::toString
+	 * @covers InvalidPassword
 	 */
 	public function testInvalidUnequalNormal( $shouldMatch, $hash, $password ) {
 		$invalid = $this->passwordFactory->newFromCiphertext( null );
@@ -87,5 +84,35 @@ abstract class PasswordTestCase extends MediaWikiTestCase {
 
 		$this->assertFalse( $invalid->equals( $normal ) );
 		$this->assertFalse( $normal->equals( $invalid ) );
+		$this->assertFalse( $invalid->verify( $hash ) );
+	}
+
+	protected function getValidTypes() {
+		return array_keys( $this->getTypeConfigs() );
+	}
+
+	public function provideTypes( $type ) {
+		$params = [];
+		foreach ( $this->getValidTypes() as $type ) {
+			$params[] = [ $type ];
+		}
+		return $params;
+	}
+
+	/**
+	 * @dataProvider provideTypes
+	 */
+	public function testCrypt( $type ) {
+		$fromType = $this->passwordFactory->newFromType( $type );
+		$fromType->crypt( 'password' );
+		$fromPlaintext = $this->passwordFactory->newFromPlaintext( 'password', $fromType );
+		$this->assertTrue( $fromType->verify( 'password' ) );
+		$this->assertTrue( $fromPlaintext->verify( 'password' ) );
+		$this->assertFalse( $fromType->verify( 'different password' ) );
+		$this->assertFalse( $fromPlaintext->verify( 'different password' ) );
+		$this->assertEquals( get_class( $fromType ),
+			get_class( $fromPlaintext ),
+			'newFromPlaintext() should produce instance of the same class as newFromType()'
+		);
 	}
 }

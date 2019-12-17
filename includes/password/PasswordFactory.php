@@ -36,19 +36,41 @@ final class PasswordFactory {
 
 	/**
 	 * Mapping of password types to classes
+	 *
 	 * @var array
 	 * @see PasswordFactory::register
 	 * @see Setup.php
 	 */
-	private $types = array(
-		'' => array( 'type' => '', 'class' => 'InvalidPassword' ),
-	);
+	private $types = [
+		'' => [ 'type' => '', 'class' => InvalidPassword::class ],
+	];
+
+	/**
+	 * Construct a new password factory.
+	 * Most of the time you'll want to use MediaWikiServices::getInstance()->getPasswordFactory
+	 * instead.
+	 * @param array $config Mapping of password type => config
+	 * @param string $default Default password type
+	 * @see PasswordFactory::register
+	 * @see PasswordFactory::setDefaultType
+	 */
+	public function __construct( array $config = [], $default = '' ) {
+		foreach ( $config as $type => $options ) {
+			$this->register( $type, $options );
+		}
+
+		if ( $default !== '' ) {
+			$this->setDefaultType( $default );
+		}
+	}
 
 	/**
 	 * Register a new type of password hash
 	 *
-	 * @param string $type Unique type name for the hash
-	 * @param array $config Array of configuration options
+	 * @param string $type Unique type name for the hash. Will be prefixed to the password hashes
+	 *   to identify what hashing method was used.
+	 * @param array $config Array of configuration options. 'class' is required (the Password
+	 *   subclass name), everything else is passed to the constructor of that class.
 	 */
 	public function register( $type, array $config ) {
 		$config['type'] = $type;
@@ -58,8 +80,11 @@ final class PasswordFactory {
 	/**
 	 * Set the default password type
 	 *
-	 * @throws InvalidArgumentException If the type is not registered
+	 * This type will be used for creating new passwords when the type is not specified.
+	 * Passwords of a different type will be considered outdated and in need of update.
+	 *
 	 * @param string $type Password hash type
+	 * @throws InvalidArgumentException If the type is not registered
 	 */
 	public function setDefaultType( $type ) {
 		if ( !isset( $this->types[$type] ) ) {
@@ -78,6 +103,8 @@ final class PasswordFactory {
 	}
 
 	/**
+	 * @deprecated since 1.32 Initialize settings using the constructor
+	 *
 	 * Initialize the internal static variables using the global variables
 	 *
 	 * @param Config $config Configuration object to load data from
@@ -112,7 +139,7 @@ final class PasswordFactory {
 	 */
 	public function newFromCiphertext( $hash ) {
 		if ( $hash === null || $hash === false || $hash === '' ) {
-			return new InvalidPassword( $this, array( 'type' => '' ), null );
+			return new InvalidPassword( $this, [ 'type' => '' ], null );
 		} elseif ( $hash[0] !== ':' ) {
 			throw new PasswordError( 'Invalid hash given' );
 		}
@@ -156,7 +183,7 @@ final class PasswordFactory {
 	 */
 	public function newFromPlaintext( $password, Password $existing = null ) {
 		if ( $password === null ) {
-			return new InvalidPassword( $this, array( 'type' => '' ), null );
+			return new InvalidPassword( $this, [ 'type' => '' ], null );
 		}
 
 		if ( $existing === null ) {
@@ -187,5 +214,38 @@ final class PasswordFactory {
 		} else {
 			return $password->needsUpdate();
 		}
+	}
+
+	/**
+	 * Generate a random string suitable for a password
+	 *
+	 * @param int $minLength Minimum length of password to generate
+	 * @return string
+	 */
+	public static function generateRandomPasswordString( $minLength = 10 ) {
+		// Decide the final password length based on our min password length,
+		// stopping at a minimum of 10 chars.
+		$length = max( 10, $minLength );
+		// Multiply by 1.25 to get the number of hex characters we need
+		// Generate random hex chars
+		$hex = MWCryptRand::generateHex( ceil( $length * 1.25 ) );
+		// Convert from base 16 to base 32 to get a proper password like string
+		return substr( Wikimedia\base_convert( $hex, 16, 32, $length ), -$length );
+	}
+
+	/**
+	 * Create an InvalidPassword
+	 *
+	 * @return InvalidPassword
+	 */
+	public static function newInvalidPassword() {
+		static $password = null;
+
+		if ( $password === null ) {
+			$factory = new self();
+			$password = new InvalidPassword( $factory, [ 'type' => '' ], null );
+		}
+
+		return $password;
 	}
 }

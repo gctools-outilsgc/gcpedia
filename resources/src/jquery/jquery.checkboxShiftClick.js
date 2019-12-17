@@ -1,7 +1,7 @@
 /**
  * @class jQuery.plugin.checkboxShiftClick
  */
-( function ( $ ) {
+( function () {
 
 	/**
 	 * Enable checkboxes to be checked or unchecked in a row by clicking one,
@@ -14,7 +14,7 @@
 		var prevCheckbox = null,
 			$box = this;
 		// When our boxes are clicked..
-		$box.click( function ( e ) {
+		$box.on( 'click', function ( e ) {
 			// And one has been clicked before...
 			if ( prevCheckbox !== null && e.shiftKey ) {
 				// Check or uncheck this one and all in-between checkboxes,
@@ -40,4 +40,4 @@
 	 * @mixins jQuery.plugin.checkboxShiftClick
 	 */
 
-}( jQuery ) );
+}() );

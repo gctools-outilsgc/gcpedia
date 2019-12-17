@@ -1,17 +1,16 @@
 <?php
 
+use MediaWiki\Session\SessionManager;
+
 abstract class ApiTestCase extends MediaWikiLangTestCase {
 	protected static $apiUrl;
+
+	protected static $errorFormatter = null;
 
 	/**
 	 * @var ApiTestContext
 	 */
 	protected $apiContext;
-
-	/**
-	 * @var array
-	 */
-	protected $tablesUsed = array( 'user', 'user_groups', 'user_properties' );
 
 	protected function setUp() {
 		global $wgServer;
@@ -21,55 +20,24 @@ abstract class ApiTestCase extends MediaWikiLangTestCase {
 
 		ApiQueryInfo::resetTokenCache(); // tokens are invalid because we cleared the session
 
-		self::$users = array(
-			'sysop' => new TestUser(
-				'Apitestsysop',
-				'Api Test Sysop',
-				'api_test_sysop@example.com',
-				array( 'sysop' )
-			),
-			'uploader' => new TestUser(
-				'Apitestuser',
-				'Api Test User',
-				'api_test_user@example.com',
-				array()
-			)
-		);
+		self::$users = [
+			'sysop' => static::getTestSysop(),
+			'uploader' => static::getTestUser(),
+		];
 
-		$this->setMwGlobals( array(
-			'wgMemc' => new EmptyBagOStuff(),
-			'wgAuth' => new StubObject( 'wgAuth', 'AuthPlugin' ),
-			'wgRequest' => new FauxRequest( array() ),
-			'wgUser' => self::$users['sysop']->user,
-		) );
+		$this->setMwGlobals( [
+			'wgRequest' => new FauxRequest( [] ),
+			'wgUser' => self::$users['sysop']->getUser(),
+		] );
 
 		$this->apiContext = new ApiTestContext();
 	}
 
 	protected function tearDown() {
 		// Avoid leaking session over tests
-		if ( session_id() != '' ) {
-			global $wgUser;
-			$wgUser->logout();
-			session_destroy();
-		}
+		MediaWiki\Session\SessionManager::getGlobalSession()->clear();
 
 		parent::tearDown();
-	}
-
-	/**
-	 * Edits or creates a page/revision
-	 * @param string $pageName Page title
-	 * @param string $text Content of the page
-	 * @param string $summary Optional summary string for the revision
-	 * @param int $defaultNs Optional namespace id
-	 * @return array Array as returned by WikiPage::doEditContent()
-	 */
-	protected function editPage( $pageName, $text, $summary = '', $defaultNs = NS_MAIN ) {
-		$title = Title::newFromText( $pageName, $defaultNs );
-		$page = WikiPage::factory( $title );
-
-		return $page->doEditContent( ContentHandler::makeContent( $text, $title ), $summary );
 	}
 
 	/**
@@ -85,11 +53,14 @@ abstract class ApiTestCase extends MediaWikiLangTestCase {
 	 * @param array|null $session
 	 * @param bool $appendModule
 	 * @param User|null $user
+	 * @param string|null $tokenType Set to a string like 'csrf' to send an
+	 *   appropriate token
 	 *
+	 * @throws ApiUsageException
 	 * @return array
 	 */
 	protected function doApiRequest( array $params, array $session = null,
-		$appendModule = false, User $user = null
+		$appendModule = false, User $user = null, $tokenType = null
 	) {
 		global $wgRequest, $wgUser;
 
@@ -98,14 +69,33 @@ abstract class ApiTestCase extends MediaWikiLangTestCase {
 			$session = $wgRequest->getSessionArray();
 		}
 
+		$sessionObj = SessionManager::singleton()->getEmptySession();
+
+		if ( $session !== null ) {
+			foreach ( $session as $key => $value ) {
+				$sessionObj->set( $key, $value );
+			}
+		}
+
 		// set up global environment
 		if ( $user ) {
 			$wgUser = $user;
 		}
 
-		$wgRequest = new FauxRequest( $params, true, $session );
+		if ( $tokenType !== null ) {
+			if ( $tokenType === 'auto' ) {
+				$tokenType = ( new ApiMain() )->getModuleManager()
+					->getModule( $params['action'], 'action' )->needsToken();
+			}
+			$params['token'] = ApiQueryTokens::getToken(
+				$wgUser, $sessionObj, ApiQueryTokens::getTokenTypeSalts()[$tokenType]
+			)->toString();
+		}
+
+		$wgRequest = new FauxRequest( $params, true, $sessionObj );
 		RequestContext::getMain()->setRequest( $wgRequest );
 		RequestContext::getMain()->setUser( $wgUser );
+		MediaWiki\Auth\AuthManager::resetCache();
 
 		// set up local environment
 		$context = $this->apiContext->newTestContext( $wgRequest, $wgUser );
@@ -116,11 +106,11 @@ abstract class ApiTestCase extends MediaWikiLangTestCase {
 		$module->execute();
 
 		// construct result
-		$results = array(
-			$module->getResult()->getResultData( null, array( 'Strip' => 'all' ) ),
+		$results = [
+			$module->getResult()->getResultData( null, [ 'Strip' => 'all' ] ),
 			$context->getRequest(),
 			$context->getRequest()->getSessionArray()
-		);
+		];
 
 		if ( $appendModule ) {
 			$results[] = $module;
@@ -130,72 +120,51 @@ abstract class ApiTestCase extends MediaWikiLangTestCase {
 	}
 
 	/**
-	 * Add an edit token to the API request
-	 * This is cheating a bit -- we grab a token in the correct format and then
-	 * add it to the pseudo-session and to the request, without actually
-	 * requesting a "real" edit token.
+	 * Convenience function to access the token parameter of doApiRequest()
+	 * more succinctly.
 	 *
 	 * @param array $params Key-value API params
 	 * @param array|null $session Session array
 	 * @param User|null $user A User object for the context
+	 * @param string $tokenType Which token type to pass
 	 * @return array Result of the API call
-	 * @throws Exception In case wsToken is not set in the session
 	 */
 	protected function doApiRequestWithToken( array $params, array $session = null,
-		User $user = null
+		User $user = null, $tokenType = 'auto'
 	) {
-		global $wgRequest;
-
-		if ( $session === null ) {
-			$session = $wgRequest->getSessionArray();
-		}
-
-		if ( isset( $session['wsToken'] ) && $session['wsToken'] ) {
-			// @todo Why does this directly mess with the session? Fix that.
-			// add edit token to fake session
-			$session['wsEditToken'] = $session['wsToken'];
-			// add token to request parameters
-			$timestamp = wfTimestamp();
-			$params['token'] = hash_hmac( 'md5', $timestamp, $session['wsToken'] ) .
-				dechex( $timestamp ) .
-				User::EDIT_TOKEN_SUFFIX;
-
-			return $this->doApiRequest( $params, $session, false, $user );
-		} else {
-			throw new Exception( "Session token not available" );
-		}
+		return $this->doApiRequest( $params, $session, false, $user, $tokenType );
 	}
 
-	protected function doLogin( $user = 'sysop' ) {
-		if ( !array_key_exists( $user, self::$users ) ) {
-			throw new MWException( "Can not log in to undefined user $user" );
+	/**
+	 * Previously this would do API requests to log in, as well as setting $wgUser and the request
+	 * context's user.  The API requests are unnecessary, and the global-setting is unwanted, so
+	 * this method should not be called.  Instead, pass appropriate User values directly to
+	 * functions that need them.  For functions that still rely on $wgUser, set that directly.  If
+	 * you just want to log in the test sysop user, don't do anything -- that's the default.
+	 *
+	 * @param TestUser|string $testUser Object, or key to self::$users such as 'sysop' or 'uploader'
+	 * @deprecated since 1.31
+	 */
+	protected function doLogin( $testUser = null ) {
+		global $wgUser;
+
+		if ( $testUser === null ) {
+			$testUser = static::getTestSysop();
+		} elseif ( is_string( $testUser ) && array_key_exists( $testUser, self::$users ) ) {
+			$testUser = self::$users[$testUser];
+		} elseif ( !$testUser instanceof TestUser ) {
+			throw new MWException( "Can't log in to undefined user $testUser" );
 		}
 
-		$data = $this->doApiRequest( array(
-			'action' => 'login',
-			'lgname' => self::$users[$user]->username,
-			'lgpassword' => self::$users[$user]->password ) );
-
-		$token = $data[0]['login']['token'];
-
-		$data = $this->doApiRequest(
-			array(
-				'action' => 'login',
-				'lgtoken' => $token,
-				'lgname' => self::$users[$user]->username,
-				'lgpassword' => self::$users[$user]->password,
-			),
-			$data[2]
-		);
-
-		return $data;
+		$wgUser = $testUser->getUser();
+		RequestContext::getMain()->setUser( $wgUser );
 	}
 
-	protected function getTokenList( $user, $session = null ) {
-		$data = $this->doApiRequest( array(
+	protected function getTokenList( TestUser $user, $session = null ) {
+		$data = $this->doApiRequest( [
 			'action' => 'tokens',
 			'type' => 'edit|delete|protect|move|block|unblock|watch'
-		), $session, false, $user->user );
+		], $session, false, $user->getUser() );
 
 		if ( !array_key_exists( 'tokens', $data[0] ) ) {
 			throw new MWException( 'Api failed to return a token list' );
@@ -204,8 +173,31 @@ abstract class ApiTestCase extends MediaWikiLangTestCase {
 		return $data[0]['tokens'];
 	}
 
+	protected static function getErrorFormatter() {
+		if ( self::$errorFormatter === null ) {
+			self::$errorFormatter = new ApiErrorFormatter(
+				new ApiResult( false ),
+				Language::factory( 'en' ),
+				'none'
+			);
+		}
+		return self::$errorFormatter;
+	}
+
+	public static function apiExceptionHasCode( ApiUsageException $ex, $code ) {
+		return (bool)array_filter(
+			self::getErrorFormatter()->arrayFromStatus( $ex->getStatusValue() ),
+			function ( $e ) use ( $code ) {
+				return is_array( $e ) && $e['code'] === $code;
+			}
+		);
+	}
+
+	/**
+	 * @coversNothing
+	 */
 	public function testApiTestGroup() {
-		$groups = PHPUnit_Util_Test::getGroups( get_class( $this ) );
+		$groups = PHPUnit_Util_Test::getGroups( static::class );
 		$constraint = PHPUnit_Framework_Assert::logicalOr(
 			$this->contains( 'medium' ),
 			$this->contains( 'large' )
@@ -213,5 +205,18 @@ abstract class ApiTestCase extends MediaWikiLangTestCase {
 		$this->assertThat( $groups, $constraint,
 			'ApiTestCase::setUp can be slow, tests must be "medium" or "large"'
 		);
+	}
+
+	/**
+	 * Expect an ApiUsageException to be thrown with the given parameters, which are the same as
+	 * ApiUsageException::newWithMessage()'s parameters.  This allows checking for an exception
+	 * whose text is given by a message key instead of text, so as not to hard-code the message's
+	 * text into test code.
+	 */
+	protected function setExpectedApiException(
+		$msg, $code = null, array $data = null, $httpCode = 0
+	) {
+		$expected = ApiUsageException::newWithMessage( null, $msg, $code, $data, $httpCode );
+		$this->setExpectedException( ApiUsageException::class, $expected->getMessage() );
 	}
 }

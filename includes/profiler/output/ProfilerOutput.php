@@ -28,10 +28,9 @@ abstract class ProfilerOutput {
 	/** @var Profiler */
 	protected $collector;
 	/** @var array Configuration of $wgProfiler */
-	protected $params = array();
+	protected $params = [];
 
 	/**
-	 * Constructor
 	 * @param Profiler $collector The actual profiler
 	 * @param array $params Configuration array, passed down from $wgProfiler
 	 */
@@ -46,6 +45,15 @@ abstract class ProfilerOutput {
 	 */
 	public function canUse() {
 		return true;
+	}
+
+	/**
+	 * Does log() just send the data to the request/script output?
+	 * @return bool
+	 * @since 1.33
+	 */
+	public function logsToOutput() {
+		return false;
 	}
 
 	/**

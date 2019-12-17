@@ -25,8 +25,9 @@
  * @ingroup Maintenance
  */
 
-$wgUseMasterForMaintenance = true;
 require_once __DIR__ . '/Maintenance.php';
+
+use Wikimedia\Rdbms\IMaintainableDatabase;
 
 /**
  * Maintenance script to run database schema updates.
@@ -36,7 +37,7 @@ require_once __DIR__ . '/Maintenance.php';
 class UpdateMediaWiki extends Maintenance {
 	function __construct() {
 		parent::__construct();
-		$this->mDescription = "MediaWiki database updater";
+		$this->addDescription( 'MediaWiki database updater' );
 		$this->addOption( 'skip-compat-checks', 'Skips compatibility checks, mostly for developers' );
 		$this->addOption( 'quick', 'Skip 5 second countdown before starting' );
 		$this->addOption( 'doshared', 'Also update shared tables' );
@@ -65,54 +66,58 @@ class UpdateMediaWiki extends Maintenance {
 
 		list( $pcreVersion ) = explode( ' ', PCRE_VERSION, 2 );
 		if ( version_compare( $pcreVersion, $minimumPcreVersion, '<' ) ) {
-			$this->error(
+			$this->fatalError(
 				"PCRE $minimumPcreVersion or later is required.\n" .
 				"Your PHP binary is linked with PCRE $pcreVersion.\n\n" .
 				"More information:\n" .
 				"https://www.mediawiki.org/wiki/Manual:Errors_and_symptoms/PCRE\n\n" .
-				"ABORTING.\n",
-				true );
+				"ABORTING.\n" );
 		}
 
 		$test = new PhpXmlBugTester();
 		if ( !$test->ok ) {
-			$this->error(
+			$this->fatalError(
 				"Your system has a combination of PHP and libxml2 versions that is buggy\n" .
 				"and can cause hidden data corruption in MediaWiki and other web apps.\n" .
 				"Upgrade to libxml2 2.7.3 or later.\n" .
-				"ABORTING (see https://bugs.php.net/bug.php?id=45996).\n",
-				true );
+				"ABORTING (see https://bugs.php.net/bug.php?id=45996).\n" );
 		}
 	}
 
 	function execute() {
-		global $wgVersion, $wgLang, $wgAllowSchemaUpdates;
+		global $wgVersion, $wgLang, $wgAllowSchemaUpdates, $wgMessagesDirs;
 
 		if ( !$wgAllowSchemaUpdates
 			&& !( $this->hasOption( 'force' )
 				|| $this->hasOption( 'schema' )
 				|| $this->hasOption( 'noschema' ) )
 		) {
-			$this->error( "Do not run update.php on this wiki. If you're seeing this you should\n"
+			$this->fatalError( "Do not run update.php on this wiki. If you're seeing this you should\n"
 				. "probably ask for some help in performing your schema updates or use\n"
 				. "the --noschema and --schema options to get an SQL file for someone\n"
 				. "else to inspect and run.\n\n"
-				. "If you know what you are doing, you can continue with --force\n", true );
+				. "If you know what you are doing, you can continue with --force\n" );
 		}
 
 		$this->fileHandle = null;
 		if ( substr( $this->getOption( 'schema' ), 0, 2 ) === "--" ) {
-			$this->error( "The --schema option requires a file as an argument.\n", true );
+			$this->fatalError( "The --schema option requires a file as an argument.\n" );
 		} elseif ( $this->hasOption( 'schema' ) ) {
 			$file = $this->getOption( 'schema' );
 			$this->fileHandle = fopen( $file, "w" );
 			if ( $this->fileHandle === false ) {
 				$err = error_get_last();
-				$this->error( "Problem opening the schema file for writing: $file\n\t{$err['message']}", true );
+				$this->fatalError( "Problem opening the schema file for writing: $file\n\t{$err['message']}" );
 			}
 		}
 
-		$wgLang = Language::factory( 'en' );
+		// T206765: We need to load the installer i18n files as some of errors come installer/updater code
+		$wgMessagesDirs['MediawikiInstaller'] = dirname( __DIR__ ) . '/includes/installer/i18n';
+
+		$lang = Language::factory( 'en' );
+		// Set global language to ensure localised errors are in English (T22633)
+		RequestContext::getMain()->setLanguage( $lang );
+		$wgLang = $lang; // BackCompat
 
 		define( 'MW_UPDATER', true );
 
@@ -124,12 +129,12 @@ class UpdateMediaWiki extends Maintenance {
 			$this->compatChecks();
 		} else {
 			$this->output( "Skipping compatibility checks, proceed at your own risk (Ctrl+C to abort)\n" );
-			wfCountdown( 5 );
+			$this->countDown( 5 );
 		}
 
 		// Check external dependencies are up to date
 		if ( !$this->hasOption( 'skip-external-dependencies' ) ) {
-			$composerLockUpToDate = $this->runChild( 'CheckComposerLockUpToDate' );
+			$composerLockUpToDate = $this->runChild( CheckComposerLockUpToDate::class );
 			$composerLockUpToDate->execute();
 		} else {
 			$this->output(
@@ -139,10 +144,21 @@ class UpdateMediaWiki extends Maintenance {
 
 		# Attempt to connect to the database as a privileged user
 		# This will vomit up an error if there are permissions problems
-		$db = wfGetDB( DB_MASTER );
+		$db = $this->getDB( DB_MASTER );
+
+		# Check to see whether the database server meets the minimum requirements
+		/** @var DatabaseInstaller $dbInstallerClass */
+		$dbInstallerClass = Installer::getDBInstallerClass( $db->getType() );
+		$status = $dbInstallerClass::meetsMinimumRequirement( $db->getServerVersion() );
+		if ( !$status->isOK() ) {
+			// This might output some wikitext like <strong> but it should be comprehensible
+			$text = $status->getWikiText();
+			$this->fatalError( $text );
+		}
 
 		$this->output( "Going to run database updates for " . wfWikiID() . "\n" );
 		if ( $db->getType() === 'sqlite' ) {
+			/** @var IMaintainableDatabase|DatabaseSqlite $db */
 			$this->output( "Using SQLite file: '{$db->getDbFilePath()}'\n" );
 		}
 		$this->output( "Depending on the size of your database this may take a while!\n" );
@@ -150,14 +166,32 @@ class UpdateMediaWiki extends Maintenance {
 		if ( !$this->hasOption( 'quick' ) ) {
 			$this->output( "Abort with control-c in the next five seconds "
 				. "(skip this countdown with --quick) ... " );
-			wfCountDown( 5 );
+			$this->countDown( 5 );
 		}
 
 		$time1 = microtime( true );
 
+		$badPhpUnit = dirname( __DIR__ ) . '/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php';
+		if ( file_exists( $badPhpUnit ) ) {
+			// Bad versions of the file are:
+			// https://raw.githubusercontent.com/sebastianbergmann/phpunit/c820f915bfae34e5a836f94967a2a5ea5ef34f21/src/Util/PHP/eval-stdin.php
+			// https://raw.githubusercontent.com/sebastianbergmann/phpunit/3aaddb1c5bd9b9b8d070b4cf120e71c36fd08412/src/Util/PHP/eval-stdin.php
+			$md5 = md5_file( $badPhpUnit );
+			if ( $md5 === '120ac49800671dc383b6f3709c25c099'
+				|| $md5 === '28af792cb38fc9a1b236b91c1aad2876'
+			) {
+				$success = unlink( $badPhpUnit );
+				if ( $success ) {
+					$this->output( "Removed PHPUnit eval-stdin.php to protect against CVE-2017-9841\n" );
+				} else {
+					$this->error( "Unable to remove $badPhpUnit, you should manually. See CVE-2017-9841" );
+				}
+			}
+		}
+
 		$shared = $this->hasOption( 'doshared' );
 
-		$updates = array( 'core', 'extensions' );
+		$updates = [ 'core', 'extensions' ];
 		if ( !$this->hasOption( 'schema' ) ) {
 			if ( $this->hasOption( 'noschema' ) ) {
 				$updates[] = 'noschema';
@@ -165,7 +199,7 @@ class UpdateMediaWiki extends Maintenance {
 			$updates[] = 'stats';
 		}
 
-		$updater = DatabaseUpdater::newForDb( $db, $shared, $this );
+		$updater = DatabaseUpdater::newForDB( $db, $shared, $this );
 		$updater->doUpdates( $updates );
 
 		foreach ( $updater->getPostDatabaseUpdateMaintenance() as $maint ) {
@@ -191,7 +225,7 @@ class UpdateMediaWiki extends Maintenance {
 
 		$time2 = microtime( true );
 
-		$timeDiff = $wgLang->formatTimePeriod( $time2 - $time1 );
+		$timeDiff = $lang->formatTimePeriod( $time2 - $time1 );
 		$this->output( "\nDone in $timeDiff.\n" );
 	}
 
@@ -200,15 +234,42 @@ class UpdateMediaWiki extends Maintenance {
 
 		# Don't try to access the database
 		# This needs to be disabled early since extensions will try to use the l10n
-		# cache from $wgExtensionFunctions (bug 20471)
-		$wgLocalisationCacheConf = array(
-			'class' => 'LocalisationCache',
-			'storeClass' => 'LCStoreNull',
+		# cache from $wgExtensionFunctions (T22471)
+		$wgLocalisationCacheConf = [
+			'class' => LocalisationCache::class,
+			'storeClass' => LCStoreNull::class,
 			'storeDirectory' => false,
 			'manualRecache' => false,
-		);
+		];
+	}
+
+	/**
+	 * @throws FatalError
+	 * @throws MWException
+	 * @suppress PhanPluginDuplicateConditionalNullCoalescing
+	 */
+	public function validateParamsAndArgs() {
+		// Allow extensions to add additional params.
+		$params = [];
+		Hooks::run( 'MaintenanceUpdateAddParams', [ &$params ] );
+
+		// This executes before the PHP version check, so don't use null coalesce (??).
+		// Keeping this compatible with older PHP versions lets us reach the code that
+		// displays a more helpful error.
+		foreach ( $params as $name => $param ) {
+			$this->addOption(
+				$name,
+				$param['desc'],
+				isset( $param['require'] ) ? $param['require'] : false,
+				isset( $param['withArg'] ) ? $param['withArg'] : false,
+				isset( $param['shortName'] ) ? $param['shortName'] : false,
+				isset( $param['multiOccurrence'] ) ? $param['multiOccurrence'] : false
+			);
+		}
+
+		parent::validateParamsAndArgs();
 	}
 }
 
-$maintClass = 'UpdateMediaWiki';
+$maintClass = UpdateMediaWiki::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

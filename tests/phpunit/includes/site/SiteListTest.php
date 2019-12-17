@@ -1,8 +1,6 @@
 <?php
 
 /**
- * Tests for the SiteList class.
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -37,7 +35,7 @@ class SiteListTest extends MediaWikiTestCase {
 	public function siteListProvider() {
 		$sitesArrays = $this->siteArrayProvider();
 
-		$listInstances = array();
+		$listInstances = [];
 
 		foreach ( $sitesArrays as $sitesArray ) {
 			$listInstances[] = new SiteList( $sitesArray[0] );
@@ -53,13 +51,13 @@ class SiteListTest extends MediaWikiTestCase {
 	public function siteArrayProvider() {
 		$sites = TestSites::getSites();
 
-		$siteArrays = array();
+		$siteArrays = [];
 
 		$siteArrays[] = $sites;
 
-		$siteArrays[] = array( array_shift( $sites ) );
+		$siteArrays[] = [ array_shift( $sites ) ];
 
-		$siteArrays[] = array( array_shift( $sites ), array_shift( $sites ) );
+		$siteArrays[] = [ array_shift( $sites ), array_shift( $sites ) ];
 
 		return $this->arrayWrap( $siteArrays );
 	}
@@ -99,7 +97,7 @@ class SiteListTest extends MediaWikiTestCase {
 		 * @var Site $site
 		 */
 		foreach ( $sites as $site ) {
-			if ( is_integer( $site->getInternalId() ) ) {
+			if ( is_int( $site->getInternalId() ) ) {
 				$this->assertEquals( $site, $sites->getSiteByInternalId( $site->getInternalId() ) );
 			}
 		}
@@ -155,7 +153,7 @@ class SiteListTest extends MediaWikiTestCase {
 		 * @var Site $site
 		 */
 		foreach ( $sites as $site ) {
-			if ( is_integer( $site->getInternalId() ) ) {
+			if ( is_int( $site->getInternalId() ) ) {
 				$this->assertTrue( $site, $sites->hasInternalId( $site->getInternalId() ) );
 			}
 		}
@@ -192,7 +190,7 @@ class SiteListTest extends MediaWikiTestCase {
 
 		$this->assertTrue( is_array( $identifiers ) );
 
-		$expected = array();
+		$expected = [];
 
 		/**
 		 * @var Site $site
@@ -216,7 +214,7 @@ class SiteListTest extends MediaWikiTestCase {
 	public function testSerialization( SiteList $list ) {
 		$serialization = serialize( $list );
 		/**
-		 * @var SiteArray $copy
+		 * @var SiteList $copy
 		 */
 		$copy = unserialize( $serialization );
 

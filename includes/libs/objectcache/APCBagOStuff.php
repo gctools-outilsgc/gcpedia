@@ -24,6 +24,13 @@
 /**
  * This is a wrapper for APC's shared memory functions
  *
+ * Use PHP serialization to avoid bugs and easily create CAS tokens.
+ * APCu has a memory corruption bug when the serializer is set to 'default'.
+ * See T120267, and upstream bug reports:
+ *  - https://github.com/krakjoe/apcu/issues/38
+ *  - https://github.com/krakjoe/apcu/issues/35
+ *  - https://github.com/krakjoe/apcu/issues/111
+ *
  * @ingroup Cache
  */
 class APCBagOStuff extends BagOStuff {
@@ -39,66 +46,39 @@ class APCBagOStuff extends BagOStuff {
 	 *  whenever the handling of values is changed, to prevent existing code
 	 *  from encountering older values which it cannot handle.
 	 */
-	const KEY_SUFFIX = ':2';
+	const KEY_SUFFIX = ':3';
 
-	/**
-	 * Constructor
-	 *
-	 * Available parameters are:
-	 *   - nativeSerialize:     If true, pass objects to apc_store(), and trust it
-	 *                          to serialize them correctly. If false, serialize
-	 *                          all values in PHP.
-	 *
-	 * @param array $params
-	 */
-	public function __construct( array $params = array() ) {
-		parent::__construct( $params );
+	protected function doGet( $key, $flags = 0, &$casToken = null ) {
+		$casToken = null;
 
-		if ( isset( $params['nativeSerialize'] ) ) {
-			$this->nativeSerialize = $params['nativeSerialize'];
-		} elseif ( extension_loaded( 'apcu' ) && ini_get( 'apc.serializer' ) === 'default' ) {
-			// APCu has a memory corruption bug when the serializer is set to 'default'.
-			// See T120267, and upstream bug reports:
-			//  - https://github.com/krakjoe/apcu/issues/38
-			//  - https://github.com/krakjoe/apcu/issues/35
-			//  - https://github.com/krakjoe/apcu/issues/111
-			$this->logger->warning(
-				'The APCu extension is loaded and the apc.serializer INI setting ' .
-				'is set to "default". This can cause memory corruption! ' .
-				'You should change apc.serializer to "php" instead. ' .
-				'See <https://github.com/krakjoe/apcu/issues/38>.'
-			);
-			$this->nativeSerialize = false;
-		} else {
-			$this->nativeSerialize = true;
+		$blob = apc_fetch( $key . self::KEY_SUFFIX );
+		$value = $this->unserialize( $blob );
+		if ( $value !== false ) {
+			$casToken = $blob; // don't bother hashing this
 		}
+
+		return $value;
 	}
 
-	public function get( $key, &$casToken = null, $flags = 0 ) {
-		$val = apc_fetch( $key . self::KEY_SUFFIX );
-
-		$casToken = $val;
-
-		if ( is_string( $val ) && !$this->nativeSerialize ) {
-			$val = $this->isInteger( $val )
-				? intval( $val )
-				: unserialize( $val );
-		}
-
-		return $val;
-	}
-
-	public function set( $key, $value, $exptime = 0 ) {
-		if ( !$this->nativeSerialize && !$this->isInteger( $value ) ) {
-			$value = serialize( $value );
-		}
-
-		apc_store( $key . self::KEY_SUFFIX, $value, $exptime );
+	public function set( $key, $value, $exptime = 0, $flags = 0 ) {
+		apc_store(
+			$key . self::KEY_SUFFIX,
+			$this->serialize( $value ),
+			$exptime
+		);
 
 		return true;
 	}
 
-	public function delete( $key ) {
+	public function add( $key, $value, $exptime = 0, $flags = 0 ) {
+		return apc_add(
+			$key . self::KEY_SUFFIX,
+			$this->serialize( $value ),
+			$exptime
+		);
+	}
+
+	public function delete( $key, $flags = 0 ) {
 		apc_delete( $key . self::KEY_SUFFIX );
 
 		return true;
@@ -110,5 +90,13 @@ class APCBagOStuff extends BagOStuff {
 
 	public function decr( $key, $value = 1 ) {
 		return apc_dec( $key . self::KEY_SUFFIX, $value );
+	}
+
+	protected function serialize( $value ) {
+		return $this->isInteger( $value ) ? (int)$value : serialize( $value );
+	}
+
+	protected function unserialize( $value ) {
+		return $this->isInteger( $value ) ? (int)$value : unserialize( $value );
 	}
 }

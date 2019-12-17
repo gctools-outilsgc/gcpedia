@@ -40,7 +40,7 @@ abstract class DumpIterator extends Maintenance {
 
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Does something with a dump";
+		$this->addDescription( 'Does something with a dump' );
 		$this->addOption( 'file', 'File with text to run.', false, true );
 		$this->addOption( 'dump', 'XML dump to execute all revisions.', false, true );
 		$this->addOption( 'from', 'Article from XML dump to start from.', false, true );
@@ -48,7 +48,7 @@ abstract class DumpIterator extends Maintenance {
 
 	public function execute() {
 		if ( !( $this->hasOption( 'file' ) ^ $this->hasOption( 'dump' ) ) ) {
-			$this->error( "You must provide a file or dump", true );
+			$this->fatalError( "You must provide a file or dump" );
 		}
 
 		$this->checkOptions();
@@ -70,13 +70,16 @@ abstract class DumpIterator extends Maintenance {
 		if ( $this->getOption( 'dump' ) == '-' ) {
 			$source = new ImportStreamSource( $this->getStdin() );
 		} else {
-			$this->error( "Sorry, I don't support dump filenames yet. "
-				. "Use - and provide it on stdin on the meantime.", true );
+			$this->fatalError( "Sorry, I don't support dump filenames yet. "
+				. "Use - and provide it on stdin on the meantime." );
 		}
 		$importer = new WikiImporter( $source, $this->getConfig() );
 
 		$importer->setRevisionCallback(
-			array( &$this, 'handleRevision' ) );
+			[ $this, 'handleRevision' ] );
+		$importer->setNoticeCallback( function ( $msg, $params ) {
+			echo wfMessage( $msg, $params )->text() . "\n";
+		} );
 
 		$this->from = $this->getOption( 'from', null );
 		$this->count = 0;
@@ -102,7 +105,7 @@ abstract class DumpIterator extends Maintenance {
 		if ( $this->getDbType() == Maintenance::DB_NONE ) {
 			global $wgUseDatabaseMessages, $wgLocalisationCacheConf, $wgHooks;
 			$wgUseDatabaseMessages = false;
-			$wgLocalisationCacheConf['storeClass'] = 'LCStoreNull';
+			$wgLocalisationCacheConf['storeClass'] = LCStoreNull::class;
 			$wgHooks['InterwikiLoadPrefix'][] = 'DumpIterator::disableInterwikis';
 		}
 	}
@@ -117,7 +120,7 @@ abstract class DumpIterator extends Maintenance {
 	/**
 	 * Callback function for each revision, child classes should override
 	 * processRevision instead.
-	 * @param DatabaseBase $rev
+	 * @param WikiRevision $rev
 	 */
 	public function handleRevision( $rev ) {
 		$title = $rev->getTitle();
@@ -143,12 +146,10 @@ abstract class DumpIterator extends Maintenance {
 
 	/* Stub function for processing additional options */
 	public function checkOptions() {
-		return;
 	}
 
 	/* Stub function for giving data about what was computed */
 	public function conclusions() {
-		return;
 	}
 
 	/* Core function which does whatever the maintenance script is designed to do */
@@ -164,7 +165,7 @@ class SearchDump extends DumpIterator {
 
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Runs a regex in the revisions from a dump";
+		$this->addDescription( 'Runs a regex in the revisions from a dump' );
 		$this->addOption( 'regex', 'Searching regex', true, true );
 	}
 
@@ -182,5 +183,5 @@ class SearchDump extends DumpIterator {
 	}
 }
 
-$maintClass = "SearchDump";
+$maintClass = SearchDump::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

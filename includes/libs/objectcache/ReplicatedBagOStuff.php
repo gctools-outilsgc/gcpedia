@@ -17,12 +17,12 @@
  *
  * @file
  * @ingroup Cache
- * @author Aaron Schulz
  */
+use Wikimedia\ObjectFactory;
 
 /**
  * A cache class that directs writes to one set of servers and reads to
- * another. This assumes that the servers used for reads are setup to slave
+ * another. This assumes that the servers used for reads are setup to replica DB
  * those that writes go to. This can easily be used with redis for example.
  *
  * In the WAN scenario (e.g. multi-datacenter case), this is useful when
@@ -39,10 +39,10 @@ class ReplicatedBagOStuff extends BagOStuff {
 
 	/**
 	 * Constructor. Parameters are:
-	 *   - writeFactory : ObjectFactory::getObjectFromSpec parameters yeilding BagOStuff.
+	 *   - writeFactory : ObjectFactory::getObjectFromSpec array yeilding BagOStuff.
 	 *                    This object will be used for writes (e.g. the master DB).
-	 *   - readFactory  : ObjectFactory::getObjectFromSpec parameters yeilding BagOStuff.
-	 *                    This object will be used for reads (e.g. a slave DB).
+	 *   - readFactory  : ObjectFactory::getObjectFromSpec array yeilding BagOStuff.
+	 *                    This object will be used for reads (e.g. a replica DB).
 	 *
 	 * @param array $params
 	 * @throws InvalidArgumentException
@@ -59,12 +59,14 @@ class ReplicatedBagOStuff extends BagOStuff {
 				__METHOD__ . ': the "readFactory" parameter is required' );
 		}
 
+		$opts = [ 'reportDupes' => false ]; // redundant
 		$this->writeStore = ( $params['writeFactory'] instanceof BagOStuff )
 			? $params['writeFactory']
-			: ObjectFactory::getObjectFromSpec( $params['writeFactory'] );
+			: ObjectFactory::getObjectFromSpec( $opts + $params['writeFactory'] );
 		$this->readStore = ( $params['readFactory'] instanceof BagOStuff )
 			? $params['readFactory']
-			: ObjectFactory::getObjectFromSpec( $params['readFactory'] );
+			: ObjectFactory::getObjectFromSpec( $opts + $params['readFactory'] );
+		$this->attrMap = $this->mergeFlagMaps( [ $this->readStore, $this->writeStore ] );
 	}
 
 	public function setDebug( $debug ) {
@@ -72,36 +74,30 @@ class ReplicatedBagOStuff extends BagOStuff {
 		$this->readStore->setDebug( $debug );
 	}
 
-	public function get( $key, &$casToken = null, $flags = 0 ) {
+	public function get( $key, $flags = 0 ) {
 		return ( $flags & self::READ_LATEST )
-			? $this->writeStore->get( $key, $casToken, $flags )
-			: $this->readStore->get( $key, $casToken, $flags );
+			? $this->writeStore->get( $key, $flags )
+			: $this->readStore->get( $key, $flags );
 	}
 
-	public function getMulti( array $keys, $flags = 0 ) {
-		return ( $flags & self::READ_LATEST )
-			? $this->writeStore->getMulti( $keys, $flags )
-			: $this->readStore->getMulti( $keys, $flags );
+	public function set( $key, $value, $exptime = 0, $flags = 0 ) {
+		return $this->writeStore->set( $key, $value, $exptime, $flags );
 	}
 
-	public function set( $key, $value, $exptime = 0 ) {
-		return $this->writeStore->set( $key, $value, $exptime );
+	public function delete( $key, $flags = 0 ) {
+		return $this->writeStore->delete( $key, $flags );
 	}
 
-	public function delete( $key ) {
-		return $this->writeStore->delete( $key );
+	public function add( $key, $value, $exptime = 0, $flags = 0 ) {
+		return $this->writeStore->add( $key, $value, $exptime, $flags );
 	}
 
-	public function add( $key, $value, $exptime = 0 ) {
-		return $this->writeStore->add( $key, $value, $exptime );
+	public function merge( $key, callable $callback, $exptime = 0, $attempts = 10, $flags = 0 ) {
+		return $this->writeStore->merge( $key, $callback, $exptime, $attempts, $flags );
 	}
 
-	public function incr( $key, $value = 1 ) {
-		return $this->writeStore->incr( $key, $value );
-	}
-
-	public function decr( $key, $value = 1 ) {
-		return $this->writeStore->decr( $key, $value );
+	public function changeTTL( $key, $exptime = 0, $flags = 0 ) {
+		return $this->writeStore->changeTTL( $key, $exptime, $flags );
 	}
 
 	public function lock( $key, $timeout = 6, $expiry = 6, $rclass = '' ) {
@@ -112,8 +108,34 @@ class ReplicatedBagOStuff extends BagOStuff {
 		return $this->writeStore->unlock( $key );
 	}
 
-	public function merge( $key, $callback, $exptime = 0, $attempts = 10 ) {
-		return $this->writeStore->merge( $key, $callback, $exptime, $attempts );
+	public function deleteObjectsExpiringBefore( $date, $progressCallback = false ) {
+		return $this->writeStore->deleteObjectsExpiringBefore( $date, $progressCallback );
+	}
+
+	public function getMulti( array $keys, $flags = 0 ) {
+		return ( ( $flags & self::READ_LATEST ) == self::READ_LATEST )
+			? $this->writeStore->getMulti( $keys, $flags )
+			: $this->readStore->getMulti( $keys, $flags );
+	}
+
+	public function setMulti( array $data, $exptime = 0, $flags = 0 ) {
+		return $this->writeStore->setMulti( $data, $exptime, $flags );
+	}
+
+	public function deleteMulti( array $keys, $flags = 0 ) {
+		return $this->writeStore->deleteMulti( $keys, $flags );
+	}
+
+	public function incr( $key, $value = 1 ) {
+		return $this->writeStore->incr( $key, $value );
+	}
+
+	public function decr( $key, $value = 1 ) {
+		return $this->writeStore->decr( $key, $value );
+	}
+
+	public function incrWithInit( $key, $ttl, $value = 1, $init = 1 ) {
+		return $this->writeStore->incrWithInit( $key, $ttl, $value, $init );
 	}
 
 	public function getLastError() {
@@ -125,5 +147,21 @@ class ReplicatedBagOStuff extends BagOStuff {
 	public function clearLastError() {
 		$this->writeStore->clearLastError();
 		$this->readStore->clearLastError();
+	}
+
+	public function makeKeyInternal( $keyspace, $args ) {
+		return $this->writeStore->makeKeyInternal( ...func_get_args() );
+	}
+
+	public function makeKey( $class, $component = null ) {
+		return $this->writeStore->makeKey( ...func_get_args() );
+	}
+
+	public function makeGlobalKey( $class, $component = null ) {
+		return $this->writeStore->makeGlobalKey( ...func_get_args() );
+	}
+
+	protected function doGet( $key, $flags = 0, &$casToken = null ) {
+		throw new LogicException( __METHOD__ . ': proxy class does not need this method.' );
 	}
 }

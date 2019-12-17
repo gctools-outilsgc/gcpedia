@@ -1,5 +1,8 @@
 <?php
 
+use MediaWiki\Linker\LinkTarget;
+use MediaWiki\MediaWikiServices;
+
 /**
  * @group Database
  * @group Title
@@ -8,15 +11,13 @@ class TitleTest extends MediaWikiTestCase {
 	protected function setUp() {
 		parent::setUp();
 
-		$this->setMwGlobals( array(
-			'wgLanguageCode' => 'en',
-			'wgContLang' => Language::factory( 'en' ),
-			// User language
-			'wgLang' => Language::factory( 'en' ),
+		$this->setMwGlobals( [
 			'wgAllowUserJs' => false,
 			'wgDefaultLanguageVariant' => false,
 			'wgMetaNamespace' => 'Project',
-		) );
+		] );
+		$this->setUserLang( 'en' );
+		$this->setContentLang( 'en' );
 	}
 
 	/**
@@ -42,109 +43,118 @@ class TitleTest extends MediaWikiTestCase {
 	}
 
 	public static function provideValidSecureAndSplit() {
-		return array(
-			array( 'Sandbox' ),
-			array( 'A "B"' ),
-			array( 'A \'B\'' ),
-			array( '.com' ),
-			array( '~' ),
-			array( '#' ),
-			array( '"' ),
-			array( '\'' ),
-			array( 'Talk:Sandbox' ),
-			array( 'Talk:Foo:Sandbox' ),
-			array( 'File:Example.svg' ),
-			array( 'File_talk:Example.svg' ),
-			array( 'Foo/.../Sandbox' ),
-			array( 'Sandbox/...' ),
-			array( 'A~~' ),
-			array( ':A' ),
+		return [
+			[ 'Sandbox' ],
+			[ 'A "B"' ],
+			[ 'A \'B\'' ],
+			[ '.com' ],
+			[ '~' ],
+			[ '#' ],
+			[ '"' ],
+			[ '\'' ],
+			[ 'Talk:Sandbox' ],
+			[ 'Talk:Foo:Sandbox' ],
+			[ 'File:Example.svg' ],
+			[ 'File_talk:Example.svg' ],
+			[ 'Foo/.../Sandbox' ],
+			[ 'Sandbox/...' ],
+			[ 'A~~' ],
+			[ ':A' ],
 			// Length is 256 total, but only title part matters
-			array( 'Category:' . str_repeat( 'x', 248 ) ),
-			array( str_repeat( 'x', 252 ) ),
+			[ 'Category:' . str_repeat( 'x', 248 ) ],
+			[ str_repeat( 'x', 252 ) ],
 			// interwiki prefix
-			array( 'localtestiw: #anchor' ),
-			array( 'localtestiw:' ),
-			array( 'localtestiw:foo' ),
-			array( 'localtestiw: foo # anchor' ),
-			array( 'localtestiw: Talk: Sandbox # anchor' ),
-			array( 'remotetestiw:' ),
-			array( 'remotetestiw: Talk: # anchor' ),
-			array( 'remotetestiw: #bar' ),
-			array( 'remotetestiw: Talk:' ),
-			array( 'remotetestiw: Talk: Foo' ),
-			array( 'localtestiw:remotetestiw:' ),
-			array( 'localtestiw:remotetestiw:foo' )
-		);
+			[ 'localtestiw: #anchor' ],
+			[ 'localtestiw:' ],
+			[ 'localtestiw:foo' ],
+			[ 'localtestiw: foo # anchor' ],
+			[ 'localtestiw: Talk: Sandbox # anchor' ],
+			[ 'remotetestiw:' ],
+			[ 'remotetestiw: Talk: # anchor' ],
+			[ 'remotetestiw: #bar' ],
+			[ 'remotetestiw: Talk:' ],
+			[ 'remotetestiw: Talk: Foo' ],
+			[ 'localtestiw:remotetestiw:' ],
+			[ 'localtestiw:remotetestiw:foo' ]
+		];
 	}
 
 	public static function provideInvalidSecureAndSplit() {
-		return array(
-			array( '', 'title-invalid-empty' ),
-			array( ':', 'title-invalid-empty' ),
-			array( '__  __', 'title-invalid-empty' ),
-			array( '  __  ', 'title-invalid-empty' ),
+		return [
+			[ '', 'title-invalid-empty' ],
+			[ ':', 'title-invalid-empty' ],
+			[ '__  __', 'title-invalid-empty' ],
+			[ '  __  ', 'title-invalid-empty' ],
 			// Bad characters forbidden regardless of wgLegalTitleChars
-			array( 'A [ B', 'title-invalid-characters' ),
-			array( 'A ] B', 'title-invalid-characters' ),
-			array( 'A { B', 'title-invalid-characters' ),
-			array( 'A } B', 'title-invalid-characters' ),
-			array( 'A < B', 'title-invalid-characters' ),
-			array( 'A > B', 'title-invalid-characters' ),
-			array( 'A | B', 'title-invalid-characters' ),
+			[ 'A [ B', 'title-invalid-characters' ],
+			[ 'A ] B', 'title-invalid-characters' ],
+			[ 'A { B', 'title-invalid-characters' ],
+			[ 'A } B', 'title-invalid-characters' ],
+			[ 'A < B', 'title-invalid-characters' ],
+			[ 'A > B', 'title-invalid-characters' ],
+			[ 'A | B', 'title-invalid-characters' ],
+			[ "A \t B", 'title-invalid-characters' ],
+			[ "A \n B", 'title-invalid-characters' ],
 			// URL encoding
-			array( 'A%20B', 'title-invalid-characters' ),
-			array( 'A%23B', 'title-invalid-characters' ),
-			array( 'A%2523B', 'title-invalid-characters' ),
+			[ 'A%20B', 'title-invalid-characters' ],
+			[ 'A%23B', 'title-invalid-characters' ],
+			[ 'A%2523B', 'title-invalid-characters' ],
 			// XML/HTML character entity references
 			// Note: Commented out because they are not marked invalid by the PHP test as
 			// Title::newFromText runs Sanitizer::decodeCharReferencesAndNormalize first.
-			//'A &eacute; B',
-			//'A &#233; B',
-			//'A &#x00E9; B',
+			// 'A &eacute; B',
+			// 'A &#233; B',
+			// 'A &#x00E9; B',
 			// Subject of NS_TALK does not roundtrip to NS_MAIN
-			array( 'Talk:File:Example.svg', 'title-invalid-talk-namespace' ),
+			[ 'Talk:File:Example.svg', 'title-invalid-talk-namespace' ],
 			// Directory navigation
-			array( '.', 'title-invalid-relative' ),
-			array( '..', 'title-invalid-relative' ),
-			array( './Sandbox', 'title-invalid-relative' ),
-			array( '../Sandbox', 'title-invalid-relative' ),
-			array( 'Foo/./Sandbox', 'title-invalid-relative' ),
-			array( 'Foo/../Sandbox', 'title-invalid-relative' ),
-			array( 'Sandbox/.', 'title-invalid-relative' ),
-			array( 'Sandbox/..', 'title-invalid-relative' ),
+			[ '.', 'title-invalid-relative' ],
+			[ '..', 'title-invalid-relative' ],
+			[ './Sandbox', 'title-invalid-relative' ],
+			[ '../Sandbox', 'title-invalid-relative' ],
+			[ 'Foo/./Sandbox', 'title-invalid-relative' ],
+			[ 'Foo/../Sandbox', 'title-invalid-relative' ],
+			[ 'Sandbox/.', 'title-invalid-relative' ],
+			[ 'Sandbox/..', 'title-invalid-relative' ],
 			// Tilde
-			array( 'A ~~~ Name', 'title-invalid-magic-tilde' ),
-			array( 'A ~~~~ Signature', 'title-invalid-magic-tilde' ),
-			array( 'A ~~~~~ Timestamp', 'title-invalid-magic-tilde' ),
+			[ 'A ~~~ Name', 'title-invalid-magic-tilde' ],
+			[ 'A ~~~~ Signature', 'title-invalid-magic-tilde' ],
+			[ 'A ~~~~~ Timestamp', 'title-invalid-magic-tilde' ],
 			// Length
-			array( str_repeat( 'x', 256 ), 'title-invalid-too-long' ),
+			[ str_repeat( 'x', 256 ), 'title-invalid-too-long' ],
 			// Namespace prefix without actual title
-			array( 'Talk:', 'title-invalid-empty' ),
-			array( 'Talk:#', 'title-invalid-empty' ),
-			array( 'Category: ', 'title-invalid-empty' ),
-			array( 'Category: #bar', 'title-invalid-empty' ),
+			[ 'Talk:', 'title-invalid-empty' ],
+			[ 'Talk:#', 'title-invalid-empty' ],
+			[ 'Category: ', 'title-invalid-empty' ],
+			[ 'Category: #bar', 'title-invalid-empty' ],
 			// interwiki prefix
-			array( 'localtestiw: Talk: # anchor', 'title-invalid-empty' ),
-			array( 'localtestiw: Talk:', 'title-invalid-empty' )
-		);
+			[ 'localtestiw: Talk: # anchor', 'title-invalid-empty' ],
+			[ 'localtestiw: Talk:', 'title-invalid-empty' ]
+		];
 	}
 
 	private function secureAndSplitGlobals() {
-		$this->setMwGlobals( array(
-			'wgLocalInterwikis' => array( 'localtestiw' ),
-			'wgHooks' => array(
-				'InterwikiLoadPrefix' => array(
+		$this->setMwGlobals( [
+			'wgLocalInterwikis' => [ 'localtestiw' ],
+			'wgHooks' => [
+				'InterwikiLoadPrefix' => [
 					function ( $prefix, &$data ) {
 						if ( $prefix === 'localtestiw' ) {
-							$data = array( 'iw_url' => 'localtestiw' );
+							$data = [ 'iw_url' => 'localtestiw' ];
 						} elseif ( $prefix === 'remotetestiw' ) {
-							$data = array( 'iw_url' => 'remotetestiw' );
+							$data = [ 'iw_url' => 'remotetestiw' ];
 						}
 						return false;
 					}
-				)
-			)
+				]
+			]
+		] );
+
+		// Reset TitleParser since we modified $wgLocalInterwikis
+		$this->setService( 'TitleParser', new MediaWikiTitleCodec(
+				Language::factory( 'en' ),
+				new GenderCache(),
+				[ 'localtestiw' ]
 		) );
 	}
 
@@ -156,7 +166,7 @@ class TitleTest extends MediaWikiTestCase {
 	 */
 	public function testSecureAndSplitValid( $text ) {
 		$this->secureAndSplitGlobals();
-		$this->assertInstanceOf( 'Title', Title::newFromText( $text ), "Valid: $text" );
+		$this->assertInstanceOf( Title::class, Title::newFromText( $text ), "Valid: $text" );
 	}
 
 	/**
@@ -176,64 +186,64 @@ class TitleTest extends MediaWikiTestCase {
 	}
 
 	public static function provideConvertByteClassToUnicodeClass() {
-		return array(
-			array(
+		return [
+			[
 				' %!"$&\'()*,\\-.\\/0-9:;=?@A-Z\\\\^_`a-z~\\x80-\\xFF+',
 				' %!"$&\'()*,\\-./0-9:;=?@A-Z\\\\\\^_`a-z~+\\u0080-\\uFFFF',
-			),
-			array(
+			],
+			[
 				'QWERTYf-\\xFF+',
 				'QWERTYf-\\x7F+\\u0080-\\uFFFF',
-			),
-			array(
+			],
+			[
 				'QWERTY\\x66-\\xFD+',
 				'QWERTYf-\\x7F+\\u0080-\\uFFFF',
-			),
-			array(
+			],
+			[
 				'QWERTYf-y+',
 				'QWERTYf-y+',
-			),
-			array(
+			],
+			[
 				'QWERTYf-\\x80+',
 				'QWERTYf-\\x7F+\\u0080-\\uFFFF',
-			),
-			array(
+			],
+			[
 				'QWERTY\\x66-\\x80+\\x23',
 				'QWERTYf-\\x7F+#\\u0080-\\uFFFF',
-			),
-			array(
+			],
+			[
 				'QWERTY\\x66-\\x80+\\xD3',
 				'QWERTYf-\\x7F+\\u0080-\\uFFFF',
-			),
-			array(
+			],
+			[
 				'\\\\\\x99',
 				'\\\\\\u0080-\\uFFFF',
-			),
-			array(
+			],
+			[
 				'-\\x99',
 				'\\-\\u0080-\\uFFFF',
-			),
-			array(
+			],
+			[
 				'QWERTY\\-\\x99',
 				'QWERTY\\-\\u0080-\\uFFFF',
-			),
-			array(
+			],
+			[
 				'\\\\x99',
 				'\\\\x99',
-			),
-			array(
+			],
+			[
 				'A-\\x9F',
 				'A-\\x7F\\u0080-\\uFFFF',
-			),
-			array(
+			],
+			[
 				'\\x66-\\x77QWERTY\\x88-\\x91FXZ',
 				'f-wQWERTYFXZ\\u0080-\\uFFFF',
-			),
-			array(
+			],
+			[
 				'\\x66-\\x99QWERTY\\xAA-\\xEEFXZ',
 				'f-\\x7FQWERTYFXZ\\u0080-\\uFFFF',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -260,28 +270,26 @@ class TitleTest extends MediaWikiTestCase {
 		$this->assertEquals(
 			$expectedParam,
 			$par,
-			"Bug 31100 regression check: Title->fixSpecialName() should preserve parameter"
+			"T33100 regression check: Title->fixSpecialName() should preserve parameter"
 		);
 	}
 
 	public static function provideSpecialNamesWithAndWithoutParameter() {
-		return array(
-			array( 'Special:Version', null ),
-			array( 'Special:Version/', '' ),
-			array( 'Special:Version/param', 'param' ),
-		);
+		return [
+			[ 'Special:Version', null ],
+			[ 'Special:Version/', '' ],
+			[ 'Special:Version/param', 'param' ],
+		];
 	}
 
 	/**
 	 * Auth-less test of Title::isValidMoveOperation
 	 *
-	 * @group Database
 	 * @param string $source
 	 * @param string $target
 	 * @param array|string|bool $expected Required error
 	 * @dataProvider provideTestIsValidMoveOperation
 	 * @covers Title::isValidMoveOperation
-	 * @covers Title::validateFileMoveOperation
 	 */
 	public function testIsValidMoveOperation( $source, $target, $expected ) {
 		$this->setMwGlobals( 'wgContentHandlerUseDB', false );
@@ -299,17 +307,16 @@ class TitleTest extends MediaWikiTestCase {
 	}
 
 	public static function provideTestIsValidMoveOperation() {
-		return array(
+		return [
 			// for Title::isValidMoveOperation
-			array( 'Some page', '', 'badtitletext' ),
-			array( 'Test', 'Test', 'selfmove' ),
-			array( 'Special:FooBar', 'Test', 'immobile-source-namespace' ),
-			array( 'Test', 'Special:FooBar', 'immobile-target-namespace' ),
-			array( 'MediaWiki:Common.js', 'Help:Some wikitext page', 'bad-target-model' ),
-			array( 'Page', 'File:Test.jpg', 'nonfile-cannot-move-to-file' ),
-			// for Title::validateFileMoveOperation
-			array( 'File:Test.jpg', 'Page', 'imagenocrossnamespace' ),
-		);
+			[ 'Some page', '', 'badtitletext' ],
+			[ 'Test', 'Test', 'selfmove' ],
+			[ 'Special:FooBar', 'Test', 'immobile-source-namespace' ],
+			[ 'Test', 'Special:FooBar', 'immobile-target-namespace' ],
+			[ 'MediaWiki:Common.js', 'Help:Some wikitext page', 'bad-target-model' ],
+			[ 'Page', 'File:Test.jpg', 'nonfile-cannot-move-to-file' ],
+			[ 'File:Test.jpg', 'Page', 'imagenocrossnamespace' ],
+		];
 	}
 
 	/**
@@ -320,7 +327,7 @@ class TitleTest extends MediaWikiTestCase {
 	 * @param string $action
 	 * @param array|string|bool $expected Required error
 	 *
-	 * @covers Title::checkReadPermissions
+	 * @covers \Mediawiki\Permissions\PermissionManager::checkReadPermissions
 	 * @dataProvider dataWgWhitelistReadRegexp
 	 */
 	public function testWgWhitelistReadRegexp( $whitelistRegexp, $source, $action, $expected ) {
@@ -329,21 +336,21 @@ class TitleTest extends MediaWikiTestCase {
 		// as a string. Thus we cast to an array() to honor $wgWhitelistReadRegexp
 		// type requisite.
 		if ( is_string( $whitelistRegexp ) ) {
-			$whitelistRegexp = array( $whitelistRegexp );
+			$whitelistRegexp = [ $whitelistRegexp ];
 		}
 
-		$this->setMwGlobals( array(
+		$this->setMwGlobals( [
 			// So User::isEveryoneAllowed( 'read' ) === false
-			'wgGroupPermissions' => array( '*' => array( 'read' => false ) ),
-			'wgWhitelistRead' => array( 'some random non sense title' ),
+			'wgGroupPermissions' => [ '*' => [ 'read' => false ] ],
+			'wgWhitelistRead' => [ 'some random non sense title' ],
 			'wgWhitelistReadRegexp' => $whitelistRegexp,
-		) );
+		] );
 
 		$title = Title::newFromDBkey( $source );
 
 		// New anonymous user with no rights
 		$user = new User;
-		$user->mRights = array();
+		$user->mRights = [];
 		$errors = $title->userCan( $action, $user );
 
 		if ( is_bool( $expected ) ) {
@@ -371,40 +378,40 @@ class TitleTest extends MediaWikiTestCase {
 		$ALLOWED = true;
 		$DISALLOWED = false;
 
-		return array(
+		return [
 			// Everything, if this doesn't work, we're really in trouble
-			array( '/.*/', 'Main_Page', 'read', $ALLOWED ),
-			array( '/.*/', 'Main_Page', 'edit', $DISALLOWED ),
+			[ '/.*/', 'Main_Page', 'read', $ALLOWED ],
+			[ '/.*/', 'Main_Page', 'edit', $DISALLOWED ],
 
 			// We validate against the title name, not the db key
-			array( '/^Main_Page$/', 'Main_Page', 'read', $DISALLOWED ),
+			[ '/^Main_Page$/', 'Main_Page', 'read', $DISALLOWED ],
 			// Main page
-			array( '/^Main/', 'Main_Page', 'read', $ALLOWED ),
-			array( '/^Main.*/', 'Main_Page', 'read', $ALLOWED ),
+			[ '/^Main/', 'Main_Page', 'read', $ALLOWED ],
+			[ '/^Main.*/', 'Main_Page', 'read', $ALLOWED ],
 			// With spaces
-			array( '/Mic\sCheck/', 'Mic Check', 'read', $ALLOWED ),
+			[ '/Mic\sCheck/', 'Mic Check', 'read', $ALLOWED ],
 			// Unicode multibyte
 			// ...without unicode modifier
-			array( '/Unicode Test . Yes/', 'Unicode Test Ñ Yes', 'read', $DISALLOWED ),
+			[ '/Unicode Test . Yes/', 'Unicode Test Ñ Yes', 'read', $DISALLOWED ],
 			// ...with unicode modifier
-			array( '/Unicode Test . Yes/u', 'Unicode Test Ñ Yes', 'read', $ALLOWED ),
+			[ '/Unicode Test . Yes/u', 'Unicode Test Ñ Yes', 'read', $ALLOWED ],
 			// Case insensitive
-			array( '/MiC ChEcK/', 'mic check', 'read', $DISALLOWED ),
-			array( '/MiC ChEcK/i', 'mic check', 'read', $ALLOWED ),
+			[ '/MiC ChEcK/', 'mic check', 'read', $DISALLOWED ],
+			[ '/MiC ChEcK/i', 'mic check', 'read', $ALLOWED ],
 
 			// From DefaultSettings.php:
-			array( "@^UsEr.*@i", 'User is banned', 'read', $ALLOWED ),
-			array( "@^UsEr.*@i", 'User:John Doe', 'read', $ALLOWED ),
+			[ "@^UsEr.*@i", 'User is banned', 'read', $ALLOWED ],
+			[ "@^UsEr.*@i", 'User:John Doe', 'read', $ALLOWED ],
 
 			// With namespaces:
-			array( '/^Special:NewPages$/', 'Special:NewPages', 'read', $ALLOWED ),
-			array( null, 'Special:Newpages', 'read', $DISALLOWED ),
+			[ '/^Special:NewPages$/', 'Special:NewPages', 'read', $ALLOWED ],
+			[ null, 'Special:Newpages', 'read', $DISALLOWED ],
 
-		);
+		];
 	}
 
 	public function flattenErrorsArray( $errors ) {
-		$result = array();
+		$result = [];
 		foreach ( $errors as $error ) {
 			$result[] = $error[0];
 		}
@@ -420,16 +427,15 @@ class TitleTest extends MediaWikiTestCase {
 		$lang, $variant, $msg = ''
 	) {
 		// Setup environnement for this test
-		$this->setMwGlobals( array(
-			'wgLanguageCode' => $contLang,
-			'wgContLang' => Language::factory( $contLang ),
-			'wgLang' => Language::factory( $lang ),
+		$this->setMwGlobals( [
 			'wgDefaultLanguageVariant' => $variant,
 			'wgAllowUserJs' => true,
-		) );
+		] );
+		$this->setUserLang( $lang );
+		$this->setContentLang( $contLang );
 
 		$title = Title::newFromText( $titleText );
-		$this->assertInstanceOf( 'Title', $title,
+		$this->assertInstanceOf( Title::class, $title,
 			"Test must be passed a valid title text, you gave '$titleText'"
 		);
 		$this->assertEquals( $expected,
@@ -442,39 +448,39 @@ class TitleTest extends MediaWikiTestCase {
 		# Format:
 		# - expected
 		# - Title name
-		# - wgContLang (expected in most case)
+		# - content language (expected in most cases)
 		# - wgLang (on some specific pages)
 		# - wgDefaultLanguageVariant
 		# - Optional message
-		return array(
-			array( 'fr', 'Help:I_need_somebody', 'fr', 'fr', false ),
-			array( 'es', 'Help:I_need_somebody', 'es', 'zh-tw', false ),
-			array( 'zh', 'Help:I_need_somebody', 'zh', 'zh-tw', false ),
+		return [
+			[ 'fr', 'Help:I_need_somebody', 'fr', 'fr', false ],
+			[ 'es', 'Help:I_need_somebody', 'es', 'zh-tw', false ],
+			[ 'zh', 'Help:I_need_somebody', 'zh', 'zh-tw', false ],
 
-			array( 'es', 'Help:I_need_somebody', 'es', 'zh-tw', 'zh-cn' ),
-			array( 'es', 'MediaWiki:About', 'es', 'zh-tw', 'zh-cn' ),
-			array( 'es', 'MediaWiki:About/', 'es', 'zh-tw', 'zh-cn' ),
-			array( 'de', 'MediaWiki:About/de', 'es', 'zh-tw', 'zh-cn' ),
-			array( 'en', 'MediaWiki:Common.js', 'es', 'zh-tw', 'zh-cn' ),
-			array( 'en', 'MediaWiki:Common.css', 'es', 'zh-tw', 'zh-cn' ),
-			array( 'en', 'User:JohnDoe/Common.js', 'es', 'zh-tw', 'zh-cn' ),
-			array( 'en', 'User:JohnDoe/Monobook.css', 'es', 'zh-tw', 'zh-cn' ),
+			[ 'es', 'Help:I_need_somebody', 'es', 'zh-tw', 'zh-cn' ],
+			[ 'es', 'MediaWiki:About', 'es', 'zh-tw', 'zh-cn' ],
+			[ 'es', 'MediaWiki:About/', 'es', 'zh-tw', 'zh-cn' ],
+			[ 'de', 'MediaWiki:About/de', 'es', 'zh-tw', 'zh-cn' ],
+			[ 'en', 'MediaWiki:Common.js', 'es', 'zh-tw', 'zh-cn' ],
+			[ 'en', 'MediaWiki:Common.css', 'es', 'zh-tw', 'zh-cn' ],
+			[ 'en', 'User:JohnDoe/Common.js', 'es', 'zh-tw', 'zh-cn' ],
+			[ 'en', 'User:JohnDoe/Monobook.css', 'es', 'zh-tw', 'zh-cn' ],
 
-			array( 'zh-cn', 'Help:I_need_somebody', 'zh', 'zh-tw', 'zh-cn' ),
-			array( 'zh', 'MediaWiki:About', 'zh', 'zh-tw', 'zh-cn' ),
-			array( 'zh', 'MediaWiki:About/', 'zh', 'zh-tw', 'zh-cn' ),
-			array( 'de', 'MediaWiki:About/de', 'zh', 'zh-tw', 'zh-cn' ),
-			array( 'zh-cn', 'MediaWiki:About/zh-cn', 'zh', 'zh-tw', 'zh-cn' ),
-			array( 'zh-tw', 'MediaWiki:About/zh-tw', 'zh', 'zh-tw', 'zh-cn' ),
-			array( 'en', 'MediaWiki:Common.js', 'zh', 'zh-tw', 'zh-cn' ),
-			array( 'en', 'MediaWiki:Common.css', 'zh', 'zh-tw', 'zh-cn' ),
-			array( 'en', 'User:JohnDoe/Common.js', 'zh', 'zh-tw', 'zh-cn' ),
-			array( 'en', 'User:JohnDoe/Monobook.css', 'zh', 'zh-tw', 'zh-cn' ),
+			[ 'zh-cn', 'Help:I_need_somebody', 'zh', 'zh-tw', 'zh-cn' ],
+			[ 'zh', 'MediaWiki:About', 'zh', 'zh-tw', 'zh-cn' ],
+			[ 'zh', 'MediaWiki:About/', 'zh', 'zh-tw', 'zh-cn' ],
+			[ 'de', 'MediaWiki:About/de', 'zh', 'zh-tw', 'zh-cn' ],
+			[ 'zh-cn', 'MediaWiki:About/zh-cn', 'zh', 'zh-tw', 'zh-cn' ],
+			[ 'zh-tw', 'MediaWiki:About/zh-tw', 'zh', 'zh-tw', 'zh-cn' ],
+			[ 'en', 'MediaWiki:Common.js', 'zh', 'zh-tw', 'zh-cn' ],
+			[ 'en', 'MediaWiki:Common.css', 'zh', 'zh-tw', 'zh-cn' ],
+			[ 'en', 'User:JohnDoe/Common.js', 'zh', 'zh-tw', 'zh-cn' ],
+			[ 'en', 'User:JohnDoe/Monobook.css', 'zh', 'zh-tw', 'zh-cn' ],
 
-			array( 'zh-tw', 'Special:NewPages', 'es', 'zh-tw', 'zh-cn' ),
-			array( 'zh-tw', 'Special:NewPages', 'zh', 'zh-tw', 'zh-cn' ),
+			[ 'zh-tw', 'Special:NewPages', 'es', 'zh-tw', 'zh-cn' ],
+			[ 'zh-tw', 'Special:NewPages', 'zh', 'zh-tw', 'zh-cn' ],
 
-		);
+		];
 	}
 
 	/**
@@ -490,11 +496,11 @@ class TitleTest extends MediaWikiTestCase {
 	}
 
 	public static function provideBaseTitleCases() {
-		return array(
+		return [
 			# Title, expected base, optional message
-			array( 'User:John_Doe/subOne/subTwo', 'John Doe/subOne' ),
-			array( 'User:Foo/Bar/Baz', 'Foo/Bar' ),
-		);
+			[ 'User:John_Doe/subOne/subTwo', 'John Doe/subOne' ],
+			[ 'User:Foo/Bar/Baz', 'Foo/Bar' ],
+		];
 	}
 
 	/**
@@ -510,11 +516,11 @@ class TitleTest extends MediaWikiTestCase {
 	}
 
 	public static function provideRootTitleCases() {
-		return array(
+		return [
 			# Title, expected base, optional message
-			array( 'User:John_Doe/subOne/subTwo', 'John Doe' ),
-			array( 'User:Foo/Bar/Baz', 'Foo' ),
-		);
+			[ 'User:John_Doe/subOne/subTwo', 'John Doe' ],
+			[ 'User:Foo/Bar/Baz', 'Foo' ],
+		];
 	}
 
 	/**
@@ -531,22 +537,23 @@ class TitleTest extends MediaWikiTestCase {
 	}
 
 	public static function provideSubpageTitleCases() {
-		return array(
+		return [
 			# Title, expected base, optional message
-			array( 'User:John_Doe/subOne/subTwo', 'subTwo' ),
-			array( 'User:John_Doe/subOne', 'subOne' ),
-		);
+			[ 'User:John_Doe/subOne/subTwo', 'subTwo' ],
+			[ 'User:John_Doe/subOne', 'subOne' ],
+		];
 	}
 
 	public static function provideNewFromTitleValue() {
-		return array(
-			array( new TitleValue( NS_MAIN, 'Foo' ) ),
-			array( new TitleValue( NS_MAIN, 'Foo', 'bar' ) ),
-			array( new TitleValue( NS_USER, 'Hansi_Maier' ) ),
-		);
+		return [
+			[ new TitleValue( NS_MAIN, 'Foo' ) ],
+			[ new TitleValue( NS_MAIN, 'Foo', 'bar' ) ],
+			[ new TitleValue( NS_USER, 'Hansi_Maier' ) ],
+		];
 	}
 
 	/**
+	 * @covers Title::newFromTitleValue
 	 * @dataProvider provideNewFromTitleValue
 	 */
 	public function testNewFromTitleValue( TitleValue $value ) {
@@ -558,15 +565,42 @@ class TitleTest extends MediaWikiTestCase {
 		$this->assertEquals( $value->getFragment(), $title->getFragment() );
 	}
 
-	public static function provideGetTitleValue() {
-		return array(
-			array( 'Foo' ),
-			array( 'Foo#bar' ),
-			array( 'User:Hansi_Maier' ),
-		);
+	/**
+	 * @covers Title::newFromLinkTarget
+	 * @dataProvider provideNewFromTitleValue
+	 */
+	public function testNewFromLinkTarget( LinkTarget $value ) {
+		$title = Title::newFromLinkTarget( $value );
+
+		$dbkey = str_replace( ' ', '_', $value->getText() );
+		$this->assertEquals( $dbkey, $title->getDBkey() );
+		$this->assertEquals( $value->getNamespace(), $title->getNamespace() );
+		$this->assertEquals( $value->getFragment(), $title->getFragment() );
 	}
 
 	/**
+	 * @covers Title::newFromLinkTarget
+	 */
+	public function testNewFromLinkTarget_clone() {
+		$title = Title::newFromText( __METHOD__ );
+		$this->assertSame( $title, Title::newFromLinkTarget( $title ) );
+
+		// The Title::NEW_CLONE flag should ensure that a fresh instance is returned.
+		$clone = Title::newFromLinkTarget( $title, Title::NEW_CLONE );
+		$this->assertNotSame( $title, $clone );
+		$this->assertTrue( $clone->equals( $title ) );
+	}
+
+	public static function provideGetTitleValue() {
+		return [
+			[ 'Foo' ],
+			[ 'Foo#bar' ],
+			[ 'User:Hansi_Maier' ],
+		];
+	}
+
+	/**
+	 * @covers Title::getTitleValue
 	 * @dataProvider provideGetTitleValue
 	 */
 	public function testGetTitleValue( $text ) {
@@ -580,24 +614,25 @@ class TitleTest extends MediaWikiTestCase {
 	}
 
 	public static function provideGetFragment() {
-		return array(
-			array( 'Foo', '' ),
-			array( 'Foo#bar', 'bar' ),
-			array( 'Foo#bär', 'bär' ),
+		return [
+			[ 'Foo', '' ],
+			[ 'Foo#bar', 'bar' ],
+			[ 'Foo#bär', 'bär' ],
 
 			// Inner whitespace is normalized
-			array( 'Foo#bar_bar', 'bar bar' ),
-			array( 'Foo#bar bar', 'bar bar' ),
-			array( 'Foo#bar   bar', 'bar bar' ),
+			[ 'Foo#bar_bar', 'bar bar' ],
+			[ 'Foo#bar bar', 'bar bar' ],
+			[ 'Foo#bar   bar', 'bar bar' ],
 
 			// Leading whitespace is kept, trailing whitespace is trimmed.
 			// XXX: Is this really want we want?
-			array( 'Foo#_bar_bar_', ' bar bar' ),
-			array( 'Foo# bar bar ', ' bar bar' ),
-		);
+			[ 'Foo#_bar_bar_', ' bar bar' ],
+			[ 'Foo# bar bar ', ' bar bar' ],
+		];
 	}
 
 	/**
+	 * @covers Title::getFragment
 	 * @dataProvider provideGetFragment
 	 *
 	 * @param string $full
@@ -620,15 +655,37 @@ class TitleTest extends MediaWikiTestCase {
 	}
 
 	public static function provideIsAlwaysKnown() {
-		return array(
-			array( 'Some nonexistent page', false ),
-			array( 'UTPage', false ),
-			array( '#test', true ),
-			array( 'Special:BlankPage', true ),
-			array( 'Special:SomeNonexistentSpecialPage', false ),
-			array( 'MediaWiki:Parentheses', true ),
-			array( 'MediaWiki:Some nonexistent message', false ),
-		);
+		return [
+			[ 'Some nonexistent page', false ],
+			[ 'UTPage', false ],
+			[ '#test', true ],
+			[ 'Special:BlankPage', true ],
+			[ 'Special:SomeNonexistentSpecialPage', false ],
+			[ 'MediaWiki:Parentheses', true ],
+			[ 'MediaWiki:Some nonexistent message', false ],
+		];
+	}
+
+	/**
+	 * @covers Title::isValid
+	 * @dataProvider provideIsValid
+	 * @param Title $title
+	 * @param bool $isValid
+	 */
+	public function testIsValid( Title $title, $isValid ) {
+		$this->assertEquals( $isValid, $title->isValid(), $title->getPrefixedText() );
+	}
+
+	public static function provideIsValid() {
+		return [
+			[ Title::makeTitle( NS_MAIN, '' ), false ],
+			[ Title::makeTitle( NS_MAIN, '<>' ), false ],
+			[ Title::makeTitle( NS_MAIN, '|' ), false ],
+			[ Title::makeTitle( NS_MAIN, '#' ), false ],
+			[ Title::makeTitle( NS_MAIN, 'Test' ), true ],
+			[ Title::makeTitle( -33, 'Test' ), false ],
+			[ Title::makeTitle( 77663399, 'Test' ), false ],
+		];
 	}
 
 	/**
@@ -644,7 +701,7 @@ class TitleTest extends MediaWikiTestCase {
 	 */
 	public function testExists() {
 		$title = Title::makeTitle( NS_PROJECT, 'New page' );
-		$linkCache = LinkCache::singleton();
+		$linkCache = MediaWikiServices::getInstance()->getLinkCache();
 
 		$article = new Article( $title );
 		$page = $article->getPage();
@@ -657,7 +714,387 @@ class TitleTest extends MediaWikiTestCase {
 		$linkCache->clearLink( $title );
 		$linkCache->addBadLinkObj( $title );
 
-		$this->assertEquals( false, $title->exists(), 'exists() should rely on link cache unless GAID_FOR_UPDATE is used' );
-		$this->assertEquals( true, $title->exists( Title::GAID_FOR_UPDATE ), 'exists() should re-query database when GAID_FOR_UPDATE is used' );
+		$this->assertEquals(
+			false,
+			$title->exists(),
+			'exists() should rely on link cache unless GAID_FOR_UPDATE is used'
+		);
+		$this->assertEquals(
+			true,
+			$title->exists( Title::GAID_FOR_UPDATE ),
+			'exists() should re-query database when GAID_FOR_UPDATE is used'
+		);
+	}
+
+	public function provideCanHaveTalkPage() {
+		return [
+			'User page has talk page' => [
+				Title::makeTitle( NS_USER, 'Jane' ), true
+			],
+			'Talke page has talk page' => [
+				Title::makeTitle( NS_TALK, 'Foo' ), true
+			],
+			'Special page cannot have talk page' => [
+				Title::makeTitle( NS_SPECIAL, 'Thing' ), false
+			],
+			'Virtual namespace cannot have talk page' => [
+				Title::makeTitle( NS_MEDIA, 'Kitten.jpg' ), false
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider provideCanHaveTalkPage
+	 * @covers Title::canHaveTalkPage
+	 *
+	 * @param Title $title
+	 * @param bool $expected
+	 */
+	public function testCanHaveTalkPage( Title $title, $expected ) {
+		$actual = $title->canHaveTalkPage();
+		$this->assertSame( $expected, $actual, $title->getPrefixedDBkey() );
+	}
+
+	public static function provideGetTalkPage_good() {
+		return [
+			[ Title::makeTitle( NS_MAIN, 'Test' ), Title::makeTitle( NS_TALK, 'Test' ) ],
+			[ Title::makeTitle( NS_TALK, 'Test' ), Title::makeTitle( NS_TALK, 'Test' ) ],
+		];
+	}
+
+	/**
+	 * @dataProvider provideGetTalkPage_good
+	 * @covers Title::getTalkPage
+	 */
+	public function testGetTalkPage_good( Title $title, Title $expected ) {
+		$talk = $title->getTalkPage();
+		$this->assertSame(
+			$expected->getPrefixedDBKey(),
+			$talk->getPrefixedDBKey(),
+			$title->getPrefixedDBKey()
+		);
+	}
+
+	/**
+	 * @dataProvider provideGetTalkPage_good
+	 * @covers Title::getTalkPageIfDefined
+	 */
+	public function testGetTalkPageIfDefined_good( Title $title ) {
+		$talk = $title->getTalkPageIfDefined();
+		$this->assertInstanceOf(
+			Title::class,
+			$talk,
+			$title->getPrefixedDBKey()
+		);
+	}
+
+	public static function provideGetTalkPage_bad() {
+		return [
+			[ Title::makeTitle( NS_SPECIAL, 'Test' ) ],
+			[ Title::makeTitle( NS_MEDIA, 'Test' ) ],
+		];
+	}
+
+	/**
+	 * @dataProvider provideGetTalkPage_bad
+	 * @covers Title::getTalkPageIfDefined
+	 */
+	public function testGetTalkPageIfDefined_bad( Title $title ) {
+		$talk = $title->getTalkPageIfDefined();
+		$this->assertNull(
+			$talk,
+			$title->getPrefixedDBKey()
+		);
+	}
+
+	public function provideCreateFragmentTitle() {
+		return [
+			[ Title::makeTitle( NS_MAIN, 'Test' ), 'foo' ],
+			[ Title::makeTitle( NS_TALK, 'Test', 'foo' ), '' ],
+			[ Title::makeTitle( NS_CATEGORY, 'Test', 'foo' ), 'bar' ],
+			[ Title::makeTitle( NS_MAIN, 'Test1', '', 'interwiki' ), 'baz' ]
+		];
+	}
+
+	/**
+	 * @covers Title::createFragmentTarget
+	 * @dataProvider provideCreateFragmentTitle
+	 */
+	public function testCreateFragmentTitle( Title $title, $fragment ) {
+		$this->mergeMwGlobalArrayValue( 'wgHooks', [
+			'InterwikiLoadPrefix' => [
+				function ( $prefix, &$iwdata ) {
+					if ( $prefix === 'interwiki' ) {
+						$iwdata = [
+							'iw_url' => 'http://example.com/',
+							'iw_local' => 0,
+							'iw_trans' => 0,
+						];
+						return false;
+					}
+				},
+			],
+		] );
+
+		$fragmentTitle = $title->createFragmentTarget( $fragment );
+
+		$this->assertEquals( $title->getNamespace(), $fragmentTitle->getNamespace() );
+		$this->assertEquals( $title->getText(), $fragmentTitle->getText() );
+		$this->assertEquals( $title->getInterwiki(), $fragmentTitle->getInterwiki() );
+		$this->assertEquals( $fragment, $fragmentTitle->getFragment() );
+	}
+
+	public function provideGetPrefixedText() {
+		return [
+			// ns = 0
+			[
+				Title::makeTitle( NS_MAIN, 'Foo bar' ),
+				'Foo bar'
+			],
+			// ns = 2
+			[
+				Title::makeTitle( NS_USER, 'Foo bar' ),
+				'User:Foo bar'
+			],
+			// ns = 3
+			[
+				Title::makeTitle( NS_USER_TALK, 'Foo bar' ),
+				'User talk:Foo bar'
+			],
+			// fragment not included
+			[
+				Title::makeTitle( NS_MAIN, 'Foo bar', 'fragment' ),
+				'Foo bar'
+			],
+			// ns = -2
+			[
+				Title::makeTitle( NS_MEDIA, 'Foo bar' ),
+				'Media:Foo bar'
+			],
+			// non-existent namespace
+			[
+				Title::makeTitle( 100777, 'Foo bar' ),
+				'Special:Badtitle/NS100777:Foo bar'
+			],
+		];
+	}
+
+	/**
+	 * @covers Title::getPrefixedText
+	 * @dataProvider provideGetPrefixedText
+	 */
+	public function testGetPrefixedText( Title $title, $expected ) {
+		$this->assertEquals( $expected, $title->getPrefixedText() );
+	}
+
+	public function provideGetPrefixedDBKey() {
+		return [
+			// ns = 0
+			[
+				Title::makeTitle( NS_MAIN, 'Foo_bar' ),
+				'Foo_bar'
+			],
+			// ns = 2
+			[
+				Title::makeTitle( NS_USER, 'Foo_bar' ),
+				'User:Foo_bar'
+			],
+			// ns = 3
+			[
+				Title::makeTitle( NS_USER_TALK, 'Foo_bar' ),
+				'User_talk:Foo_bar'
+			],
+			// fragment not included
+			[
+				Title::makeTitle( NS_MAIN, 'Foo_bar', 'fragment' ),
+				'Foo_bar'
+			],
+			// ns = -2
+			[
+				Title::makeTitle( NS_MEDIA, 'Foo_bar' ),
+				'Media:Foo_bar'
+			],
+			// non-existent namespace
+			[
+				Title::makeTitle( 100777, 'Foo_bar' ),
+				'Special:Badtitle/NS100777:Foo_bar'
+			],
+		];
+	}
+
+	/**
+	 * @covers Title::getPrefixedDBKey
+	 * @dataProvider provideGetPrefixedDBKey
+	 */
+	public function testGetPrefixedDBKey( Title $title, $expected ) {
+		$this->assertEquals( $expected, $title->getPrefixedDBkey() );
+	}
+
+	/**
+	 * @covers Title::getFragmentForURL
+	 * @dataProvider provideGetFragmentForURL
+	 *
+	 * @param string $titleStr
+	 * @param string $expected
+	 */
+	public function testGetFragmentForURL( $titleStr, $expected ) {
+		$this->setMwGlobals( [
+			'wgFragmentMode' => [ 'html5' ],
+			'wgExternalInterwikiFragmentMode' => 'legacy',
+		] );
+		$dbw = wfGetDB( DB_MASTER );
+		$dbw->insert( 'interwiki',
+			[
+				[
+					'iw_prefix' => 'de',
+					'iw_url' => 'http://de.wikipedia.org/wiki/',
+					'iw_api' => 'http://de.wikipedia.org/w/api.php',
+					'iw_wikiid' => 'dewiki',
+					'iw_local' => 1,
+					'iw_trans' => 0,
+				],
+				[
+					'iw_prefix' => 'zz',
+					'iw_url' => 'http://zzwiki.org/wiki/',
+					'iw_api' => 'http://zzwiki.org/w/api.php',
+					'iw_wikiid' => 'zzwiki',
+					'iw_local' => 0,
+					'iw_trans' => 0,
+				],
+			],
+			__METHOD__,
+			[ 'IGNORE' ]
+		);
+
+		$title = Title::newFromText( $titleStr );
+		self::assertEquals( $expected, $title->getFragmentForURL() );
+
+		$dbw->delete( 'interwiki', '*', __METHOD__ );
+	}
+
+	public function provideGetFragmentForURL() {
+		return [
+			[ 'Foo', '' ],
+			[ 'Foo#ümlåût', '#ümlåût' ],
+			[ 'de:Foo#Bå®', '#Bå®' ],
+			[ 'zz:Foo#тест', '#.D1.82.D0.B5.D1.81.D1.82' ],
+		];
+	}
+
+	/**
+	 * @covers Title::isRawHtmlMessage
+	 * @dataProvider provideIsRawHtmlMessage
+	 */
+	public function testIsRawHtmlMessage( $textForm, $expected ) {
+		$this->setMwGlobals( 'wgRawHtmlMessages', [
+			'foobar',
+			'foo_bar',
+			'foo-bar',
+		] );
+
+		$title = Title::newFromText( $textForm );
+		$this->assertSame( $expected, $title->isRawHtmlMessage() );
+	}
+
+	public function provideIsRawHtmlMessage() {
+		return [
+			[ 'MediaWiki:Foobar', true ],
+			[ 'MediaWiki:Foo bar', true ],
+			[ 'MediaWiki:Foo-bar', true ],
+			[ 'MediaWiki:foo bar', true ],
+			[ 'MediaWiki:foo-bar', true ],
+			[ 'MediaWiki:foobar', true ],
+			[ 'MediaWiki:some-other-message', false ],
+			[ 'Main Page', false ],
+		];
+	}
+
+	public function provideEquals() {
+		yield [
+			Title::newFromText( 'Main Page' ),
+			Title::newFromText( 'Main Page' ),
+			true
+		];
+		yield [
+			Title::newFromText( 'Main Page' ),
+			Title::newFromText( 'Not The Main Page' ),
+			false
+		];
+		yield [
+			Title::newFromText( 'Main Page' ),
+			Title::newFromText( 'Project:Main Page' ),
+			false
+		];
+		yield [
+			Title::newFromText( 'File:Example.png' ),
+			Title::newFromText( 'Image:Example.png' ),
+			true
+		];
+		yield [
+			Title::newFromText( 'Special:Version' ),
+			Title::newFromText( 'Special:Version' ),
+			true
+		];
+		yield [
+			Title::newFromText( 'Special:Version' ),
+			Title::newFromText( 'Special:Recentchanges' ),
+			false
+		];
+		yield [
+			Title::newFromText( 'Special:Version' ),
+			Title::newFromText( 'Main Page' ),
+			false
+		];
+		yield [
+			Title::makeTitle( NS_MAIN, 'Foo', '', '' ),
+			Title::makeTitle( NS_MAIN, 'Foo', '', '' ),
+			true
+		];
+		yield [
+			Title::makeTitle( NS_MAIN, 'Foo', '', '' ),
+			Title::makeTitle( NS_MAIN, 'Bar', '', '' ),
+			false
+		];
+		yield [
+			Title::makeTitle( NS_MAIN, 'Foo', '', '' ),
+			Title::makeTitle( NS_TALK, 'Foo', '', '' ),
+			false
+		];
+		yield [
+			Title::makeTitle( NS_MAIN, 'Foo', 'Bar', '' ),
+			Title::makeTitle( NS_MAIN, 'Foo', 'Bar', '' ),
+			true
+		];
+		yield [
+			Title::makeTitle( NS_MAIN, 'Foo', 'Bar', '' ),
+			Title::makeTitle( NS_MAIN, 'Foo', 'Baz', '' ),
+			true
+		];
+		yield [
+			Title::makeTitle( NS_MAIN, 'Foo', 'Bar', '' ),
+			Title::makeTitle( NS_MAIN, 'Foo', '', '' ),
+			true
+		];
+		yield [
+			Title::makeTitle( NS_MAIN, 'Foo', '', 'baz' ),
+			Title::makeTitle( NS_MAIN, 'Foo', '', 'baz' ),
+			true
+		];
+		yield [
+			Title::makeTitle( NS_MAIN, 'Foo', '', '' ),
+			Title::makeTitle( NS_MAIN, 'Foo', '', 'baz' ),
+			false
+		];
+	}
+
+	/**
+	 * @covers Title::equals
+	 * @dataProvider provideEquals
+	 */
+	public function testEquals( Title $firstValue, /* LinkTarget */ $secondValue, $expectedSame ) {
+		$this->assertSame(
+			$expectedSame,
+			$firstValue->equals( $secondValue )
+		);
 	}
 }

@@ -23,6 +23,8 @@
  * @ingroup Content
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * Content handler for wiki text pages.
  *
@@ -31,11 +33,11 @@
 class WikitextContentHandler extends TextContentHandler {
 
 	public function __construct( $modelId = CONTENT_MODEL_WIKITEXT ) {
-		parent::__construct( $modelId, array( CONTENT_FORMAT_WIKITEXT ) );
+		parent::__construct( $modelId, [ CONTENT_FORMAT_WIKITEXT ] );
 	}
 
 	protected function getContentClass() {
-		return 'WikitextContent';
+		return WikitextContent::class;
 	}
 
 	/**
@@ -60,7 +62,7 @@ class WikitextContentHandler extends TextContentHandler {
 			}
 		}
 
-		$mwRedir = MagicWord::get( 'redirect' );
+		$mwRedir = MediaWikiServices::getInstance()->getMagicWordFactory()->get( 'redirect' );
 		$redirectText = $mwRedir->getSynonym( 0 ) .
 			' [[' . $optionalColon . $destination->getFullText() . ']]';
 
@@ -106,6 +108,78 @@ class WikitextContentHandler extends TextContentHandler {
 	 */
 	public function isParserCacheSupported() {
 		return true;
+	}
+
+	/**
+	 * Get file handler
+	 * @return FileContentHandler
+	 */
+	protected function getFileHandler() {
+		return new FileContentHandler();
+	}
+
+	public function getFieldsForSearchIndex( SearchEngine $engine ) {
+		$fields = parent::getFieldsForSearchIndex( $engine );
+
+		$fields['heading'] =
+			$engine->makeSearchFieldMapping( 'heading', SearchIndexField::INDEX_TYPE_TEXT );
+		$fields['heading']->setFlag( SearchIndexField::FLAG_SCORING );
+
+		$fields['auxiliary_text'] =
+			$engine->makeSearchFieldMapping( 'auxiliary_text', SearchIndexField::INDEX_TYPE_TEXT );
+
+		$fields['opening_text'] =
+			$engine->makeSearchFieldMapping( 'opening_text', SearchIndexField::INDEX_TYPE_TEXT );
+		$fields['opening_text']->setFlag(
+			SearchIndexField::FLAG_SCORING | SearchIndexField::FLAG_NO_HIGHLIGHT
+		);
+		// Until we have full first-class content handler for files, we invoke it explicitly here
+		$fields = array_merge( $fields, $this->getFileHandler()->getFieldsForSearchIndex( $engine ) );
+
+		return $fields;
+	}
+
+	public function getDataForSearchIndex(
+		WikiPage $page,
+		ParserOutput $parserOutput,
+		SearchEngine $engine
+	) {
+		$fields = parent::getDataForSearchIndex( $page, $parserOutput, $engine );
+
+		$structure = new WikiTextStructure( $parserOutput );
+		$fields['heading'] = $structure->headings();
+		// text fields
+		$fields['opening_text'] = $structure->getOpeningText();
+		$fields['text'] = $structure->getMainText(); // overwrites one from ContentHandler
+		$fields['auxiliary_text'] = $structure->getAuxiliaryText();
+		$fields['defaultsort'] = $structure->getDefaultSort();
+
+		// Until we have full first-class content handler for files, we invoke it explicitly here
+		if ( NS_FILE == $page->getTitle()->getNamespace() ) {
+			$fields = array_merge( $fields,
+					$this->getFileHandler()->getDataForSearchIndex( $page, $parserOutput, $engine ) );
+		}
+		return $fields;
+	}
+
+	/**
+	 * Returns the content's text as-is.
+	 *
+	 * @param Content $content
+	 * @param string|null $format The serialization format to check
+	 *
+	 * @return mixed
+	 */
+	public function serializeContent( Content $content, $format = null ) {
+		$this->checkFormat( $format );
+
+		// NOTE: MessageContent also uses CONTENT_MODEL_WIKITEXT, but it's not a TextContent!
+		// Perhaps MessageContent should use a separate ContentHandler instead.
+		if ( $content instanceof MessageContent ) {
+			return $content->getMessage()->plain();
+		}
+
+		return parent::serializeContent( $content, $format );
 	}
 
 }

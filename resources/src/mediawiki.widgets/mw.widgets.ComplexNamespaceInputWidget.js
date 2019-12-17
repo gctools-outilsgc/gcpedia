@@ -4,7 +4,7 @@
  * @copyright 2011-2015 MediaWiki Widgets Team and others; see AUTHORS.txt
  * @license The MIT License (MIT); see LICENSE.txt
  */
-( function ( $, mw ) {
+( function () {
 
 	/**
 	 * Namespace input widget. Displays a dropdown box with the choice of available namespaces, plus
@@ -115,4 +115,22 @@
 		}
 	};
 
-}( jQuery, mediaWiki ) );
+	/**
+	 * @inheritdoc
+	 */
+	mw.widgets.ComplexNamespaceInputWidget.prototype.setDisabled = function ( disabled ) {
+		mw.widgets.ComplexNamespaceInputWidget.parent.prototype.setDisabled.call( this, disabled );
+		if ( this.namespace ) {
+			this.namespace.setDisabled( disabled );
+		}
+		if ( this.invert ) {
+			this.invert.setDisabled( disabled );
+		}
+
+		if ( this.associated ) {
+			this.associated.setDisabled( disabled );
+		}
+		return this;
+	};
+
+}() );

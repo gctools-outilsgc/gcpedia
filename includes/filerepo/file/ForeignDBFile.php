@@ -21,6 +21,10 @@
  * @ingroup FileAbstraction
  */
 
+use MediaWiki\MediaWikiServices;
+use Wikimedia\Rdbms\DBUnexpectedError;
+
+// @phan-file-suppress PhanTypeMissingReturn false positives
 /**
  * Foreign file with an accessible MediaWiki database
  *
@@ -57,10 +61,10 @@ class ForeignDBFile extends LocalFile {
 	 * @param string $srcPath
 	 * @param int $flags
 	 * @param array $options
-	 * @return FileRepoStatus
+	 * @return Status
 	 * @throws MWException
 	 */
-	function publish( $srcPath, $flags = 0, array $options = array() ) {
+	function publish( $srcPath, $flags = 0, array $options = [] ) {
 		$this->readOnlyError();
 	}
 
@@ -72,7 +76,7 @@ class ForeignDBFile extends LocalFile {
 	 * @param string $source
 	 * @param bool $watch
 	 * @param bool|string $timestamp
-	 * @param User $user User object or null to use $wgUser
+	 * @param User|null $user User object or null to use $wgUser
 	 * @return bool
 	 * @throws MWException
 	 */
@@ -84,10 +88,10 @@ class ForeignDBFile extends LocalFile {
 	/**
 	 * @param array $versions
 	 * @param bool $unsuppress
-	 * @return FileRepoStatus
+	 * @return Status
 	 * @throws MWException
 	 */
-	function restore( $versions = array(), $unsuppress = false ) {
+	function restore( $versions = [], $unsuppress = false ) {
 		$this->readOnlyError();
 	}
 
@@ -95,7 +99,7 @@ class ForeignDBFile extends LocalFile {
 	 * @param string $reason
 	 * @param bool $suppress
 	 * @param User|null $user
-	 * @return FileRepoStatus
+	 * @return Status
 	 * @throws MWException
 	 */
 	function delete( $reason, $suppress = false, $user = null ) {
@@ -104,7 +108,7 @@ class ForeignDBFile extends LocalFile {
 
 	/**
 	 * @param Title $target
-	 * @return FileRepoStatus
+	 * @return Status
 	 * @throws MWException
 	 */
 	function move( $target ) {
@@ -120,11 +124,82 @@ class ForeignDBFile extends LocalFile {
 	}
 
 	/**
-	 * @param bool|Language $lang Optional language to fetch description in.
-	 * @return string
+	 * @param Language|null $lang Optional language to fetch description in.
+	 * @return string|false
 	 */
-	function getDescriptionText( $lang = false ) {
-		// Restore remote behavior
-		return File::getDescriptionText( $lang );
+	function getDescriptionText( Language $lang = null ) {
+		global $wgLang;
+
+		if ( !$this->repo->fetchDescription ) {
+			return false;
+		}
+
+		$lang = $lang ?? $wgLang;
+		$renderUrl = $this->repo->getDescriptionRenderUrl( $this->getName(), $lang->getCode() );
+		if ( !$renderUrl ) {
+			return false;
+		}
+
+		$touched = $this->repo->getReplicaDB()->selectField(
+			'page',
+			'page_touched',
+			[
+				'page_namespace' => NS_FILE,
+				'page_title' => $this->title->getDBkey()
+			]
+		);
+		if ( $touched === false ) {
+			return false; // no description page
+		}
+
+		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+		$fname = __METHOD__;
+
+		return $cache->getWithSetCallback(
+			$this->repo->getLocalCacheKey(
+				'ForeignFileDescription',
+				$lang->getCode(),
+				md5( $this->getName() ),
+				$touched
+			),
+			$this->repo->descriptionCacheExpiry ?: $cache::TTL_UNCACHEABLE,
+			function ( $oldValue, &$ttl, array &$setOpts ) use ( $renderUrl, $fname ) {
+				wfDebug( "Fetching shared description from $renderUrl\n" );
+				$res = Http::get( $renderUrl, [], $fname );
+				if ( !$res ) {
+					$ttl = WANObjectCache::TTL_UNCACHEABLE;
+				}
+
+				return $res;
+			}
+		);
 	}
+
+	/**
+	 * Get short description URL for a file based on the page ID.
+	 *
+	 * @return string
+	 * @throws DBUnexpectedError
+	 * @since 1.27
+	 */
+	public function getDescriptionShortUrl() {
+		$dbr = $this->repo->getReplicaDB();
+		$pageId = $dbr->selectField(
+			'page',
+			'page_id',
+			[
+				'page_namespace' => NS_FILE,
+				'page_title' => $this->title->getDBkey()
+			]
+		);
+
+		if ( $pageId !== false ) {
+			$url = $this->repo->makeUrl( [ 'curid' => $pageId ] );
+			if ( $url !== false ) {
+				return $url;
+			}
+		}
+		return null;
+	}
+
 }

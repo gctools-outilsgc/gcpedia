@@ -32,12 +32,12 @@ class CoreTagHooks {
 	 */
 	public static function register( $parser ) {
 		global $wgRawHtml;
-		$parser->setHook( 'pre', array( __CLASS__, 'pre' ) );
-		$parser->setHook( 'nowiki', array( __CLASS__, 'nowiki' ) );
-		$parser->setHook( 'gallery', array( __CLASS__, 'gallery' ) );
-		$parser->setHook( 'indicator', array( __CLASS__, 'indicator' ) );
+		$parser->setHook( 'pre', [ __CLASS__, 'pre' ] );
+		$parser->setHook( 'nowiki', [ __CLASS__, 'nowiki' ] );
+		$parser->setHook( 'gallery', [ __CLASS__, 'gallery' ] );
+		$parser->setHook( 'indicator', [ __CLASS__, 'indicator' ] );
 		if ( $wgRawHtml ) {
-			$parser->setHook( 'html', array( __CLASS__, 'html' ) );
+			$parser->setHook( 'html', [ __CLASS__, 'html' ] );
 		}
 	}
 
@@ -45,6 +45,10 @@ class CoreTagHooks {
 	 * Core parser tag hook function for 'pre'.
 	 * Text is treated roughly as 'nowiki' wrapped in an HTML 'pre' tag;
 	 * valid HTML attributes are passed on.
+	 *
+	 * Uses custom html escaping which phan-taint-check won't recognize
+	 * hence we suppress the error.
+	 * @suppress SecurityCheck-XSS
 	 *
 	 * @param string $text
 	 * @param array $attribs
@@ -56,9 +60,14 @@ class CoreTagHooks {
 		$content = StringUtils::delimiterReplace( '<nowiki>', '</nowiki>', '$1', $text, 'i' );
 
 		$attribs = Sanitizer::validateTagAttributes( $attribs, 'pre' );
-		return Xml::openElement( 'pre', $attribs ) .
-			Xml::escapeTagsOnly( $content ) .
-			'</pre>';
+		// We need to let both '"' and '&' through,
+		// for strip markers and entities respectively.
+		$content = str_replace(
+			[ '>', '<' ],
+			[ '&gt;', '&lt;' ],
+			$content
+		);
+		return Html::rawElement( 'pre', $attribs, $content );
 	}
 
 	/**
@@ -70,16 +79,30 @@ class CoreTagHooks {
 	 *
 	 * Uses undocumented extended tag hook return values, introduced in r61913.
 	 *
+	 * @suppress SecurityCheck-XSS
 	 * @param string $content
 	 * @param array $attributes
 	 * @param Parser $parser
 	 * @throws MWException
-	 * @return array
+	 * @return array|string Output of tag hook
 	 */
 	public static function html( $content, $attributes, $parser ) {
 		global $wgRawHtml;
 		if ( $wgRawHtml ) {
-			return array( $content, 'markerType' => 'nowiki' );
+			if ( $parser->getOptions()->getAllowUnsafeRawHtml() ) {
+				return [ $content, 'markerType' => 'nowiki' ];
+			} else {
+				// In a system message where raw html is
+				// not allowed (but it is allowed in other
+				// contexts).
+				return Html::rawElement(
+					'span',
+					[ 'class' => 'error' ],
+					// Using ->text() not ->parse() as
+					// a paranoia measure against a loop.
+					wfMessage( 'rawhtml-notallowed' )->escaped()
+				);
+			}
 		} else {
 			throw new MWException( '<html> extension tag encountered unexpectedly' );
 		}
@@ -92,14 +115,27 @@ class CoreTagHooks {
 	 *
 	 * Uses undocumented extended tag hook return values, introduced in r61913.
 	 *
+	 * Uses custom html escaping which phan-taint-check won't recognize
+	 * hence we suppress the error.
+	 * @suppress SecurityCheck-XSS
+	 *
 	 * @param string $content
 	 * @param array $attributes
 	 * @param Parser $parser
 	 * @return array
 	 */
 	public static function nowiki( $content, $attributes, $parser ) {
-		$content = strtr( $content, array( '-{' => '-&#123;', '}-' => '&#125;-' ) );
-		return array( Xml::escapeTagsOnly( $content ), 'markerType' => 'nowiki' );
+		$content = strtr( $content, [
+			// lang converter
+			'-{' => '-&#123;',
+			'}-' => '&#125;-',
+			// html tags
+			'<' => '&lt;',
+			'>' => '&gt;'
+			// Note: Both '"' and '&' are not converted.
+			// This allows strip markers and entities through.
+		] );
+		return [ $content, 'markerType' => 'nowiki' ];
 	}
 
 	/**

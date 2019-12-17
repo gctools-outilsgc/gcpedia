@@ -1,9 +1,5 @@
 <?php
 /**
- *
- *
- * Created on May 13, 2007
- *
  * Copyright © 2006 Yuri Astrakhan "<Firstname><Lastname>@gmail.com"
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,6 +19,8 @@
  *
  * @file
  */
+
+use MediaWiki\MediaWikiServices;
 
 /**
  * A query module to list all langlinks (links to corresponding foreign language pages).
@@ -44,21 +42,27 @@ class ApiQueryLangLinks extends ApiQueryBase {
 		$prop = array_flip( (array)$params['prop'] );
 
 		if ( isset( $params['title'] ) && !isset( $params['lang'] ) ) {
-			$this->dieUsageMsg( array( 'missingparam', 'lang' ) );
+			$this->dieWithError(
+				[
+					'apierror-invalidparammix-mustusewith',
+					$this->encodeParamName( 'title' ),
+					$this->encodeParamName( 'lang' ),
+				],
+				'invalidparammix'
+			);
 		}
 
 		// Handle deprecated param
 		$this->requireMaxOneParameter( $params, 'url', 'prop' );
 		if ( $params['url'] ) {
-			$this->logFeatureUsage( 'prop=langlinks&llurl' );
-			$prop = array( 'url' => 1 );
+			$prop = [ 'url' => 1 ];
 		}
 
-		$this->addFields( array(
+		$this->addFields( [
 			'll_from',
 			'll_lang',
 			'll_title'
-		) );
+		] );
 
 		$this->addTables( 'langlinks' );
 		$this->addWhereFld( 'll_from', array_keys( $this->getPageSet()->getGoodTitles() ) );
@@ -66,7 +70,7 @@ class ApiQueryLangLinks extends ApiQueryBase {
 			$cont = explode( '|', $params['continue'] );
 			$this->dieContinueUsageIf( count( $cont ) != 2 );
 			$op = $params['dir'] == 'descending' ? '<' : '>';
-			$llfrom = intval( $cont[0] );
+			$llfrom = (int)$cont[0];
 			$lllang = $this->getDB()->addQuotes( $cont[1] );
 			$this->addWhere(
 				"ll_from $op $llfrom OR " .
@@ -75,7 +79,7 @@ class ApiQueryLangLinks extends ApiQueryBase {
 			);
 		}
 
-		//FIXME: (follow-up) To allow extensions to add to the language links, we need
+		// FIXME: (follow-up) To allow extensions to add to the language links, we need
 		//       to load them all, add the extra links, then apply paging.
 		//       Should not be terrible, it's not going to be more than a few hundred links.
 
@@ -93,10 +97,10 @@ class ApiQueryLangLinks extends ApiQueryBase {
 			if ( count( $this->getPageSet()->getGoodTitles() ) == 1 ) {
 				$this->addOption( 'ORDER BY', 'll_lang' . $sort );
 			} else {
-				$this->addOption( 'ORDER BY', array(
+				$this->addOption( 'ORDER BY', [
 					'll_from' . $sort,
 					'll_lang' . $sort
-				) );
+				] );
 			}
 		}
 
@@ -111,7 +115,7 @@ class ApiQueryLangLinks extends ApiQueryBase {
 				$this->setContinueEnumParameter( 'continue', "{$row->ll_from}|{$row->ll_lang}" );
 				break;
 			}
-			$entry = array( 'lang' => $row->ll_lang );
+			$entry = [ 'lang' => $row->ll_lang ];
 			if ( isset( $prop['url'] ) ) {
 				$title = Title::newFromText( "{$row->ll_lang}:{$row->ll_title}" );
 				if ( $title ) {
@@ -138,52 +142,51 @@ class ApiQueryLangLinks extends ApiQueryBase {
 	}
 
 	public function getAllowedParams() {
-		global $wgContLang;
-		return array(
-			'prop' => array(
+		return [
+			'prop' => [
 				ApiBase::PARAM_ISMULTI => true,
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'url',
 					'langname',
 					'autonym',
-				),
-				ApiBase::PARAM_HELP_MSG_PER_VALUE => array(),
-			),
+				],
+				ApiBase::PARAM_HELP_MSG_PER_VALUE => [],
+			],
 			'lang' => null,
 			'title' => null,
-			'dir' => array(
+			'dir' => [
 				ApiBase::PARAM_DFLT => 'ascending',
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'ascending',
 					'descending'
-				)
-			),
-			'inlanguagecode' => $wgContLang->getCode(),
-			'limit' => array(
+				]
+			],
+			'inlanguagecode' => MediaWikiServices::getInstance()->getContentLanguage()->getCode(),
+			'limit' => [
 				ApiBase::PARAM_DFLT => 10,
 				ApiBase::PARAM_TYPE => 'limit',
 				ApiBase::PARAM_MIN => 1,
 				ApiBase::PARAM_MAX => ApiBase::LIMIT_BIG1,
 				ApiBase::PARAM_MAX2 => ApiBase::LIMIT_BIG2
-			),
-			'continue' => array(
+			],
+			'continue' => [
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-continue',
-			),
-			'url' => array(
+			],
+			'url' => [
 				ApiBase::PARAM_DFLT => false,
 				ApiBase::PARAM_DEPRECATED => true,
-			),
-		);
+			],
+		];
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=query&prop=langlinks&titles=Main%20Page&redirects='
 				=> 'apihelp-query+langlinks-example-simple',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Langlinks';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Langlinks';
 	}
 }

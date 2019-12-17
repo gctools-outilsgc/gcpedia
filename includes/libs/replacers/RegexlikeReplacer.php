@@ -20,6 +20,8 @@
 
 /**
  * Class to replace regex matches with a string similar to that used in preg_replace()
+ *
+ * @deprecated since 1.32, use a Closure instead
  */
 class RegexlikeReplacer extends Replacer {
 	private $r;
@@ -28,6 +30,7 @@ class RegexlikeReplacer extends Replacer {
 	 * @param string $r
 	 */
 	public function __construct( $r ) {
+		wfDeprecated( __METHOD__, '1.32' );
 		$this->r = $r;
 	}
 
@@ -36,7 +39,7 @@ class RegexlikeReplacer extends Replacer {
 	 * @return string
 	 */
 	public function replace( array $matches ) {
-		$pairs = array();
+		$pairs = [];
 		foreach ( $matches as $i => $match ) {
 			$pairs["\$$i"] = $match;
 		}

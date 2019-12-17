@@ -1,8 +1,8 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 /**
- * Tests for the DBSiteStore class.
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -32,23 +32,33 @@
 class DBSiteStoreTest extends MediaWikiTestCase {
 
 	/**
+	 * @return DBSiteStore
+	 */
+	private function newDBSiteStore() {
+		// NOTE: Use the real DB load balancer for now. Eventually, the test framework should
+		// provide a LoadBalancer that is safe to use in unit tests.
+		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		return new DBSiteStore( $lb );
+	}
+
+	/**
 	 * @covers DBSiteStore::getSites
 	 */
 	public function testGetSites() {
 		$expectedSites = TestSites::getSites();
 		TestSites::insertIntoDb();
 
-		$store = new DBSiteStore();
+		$store = $this->newDBSiteStore();
 
 		$sites = $store->getSites();
 
-		$this->assertInstanceOf( 'SiteList', $sites );
+		$this->assertInstanceOf( SiteList::class, $sites );
 
 		/**
 		 * @var Site $site
 		 */
 		foreach ( $sites as $site ) {
-			$this->assertInstanceOf( 'Site', $site );
+			$this->assertInstanceOf( Site::class, $site );
 		}
 
 		foreach ( $expectedSites as $site ) {
@@ -62,9 +72,9 @@ class DBSiteStoreTest extends MediaWikiTestCase {
 	 * @covers DBSiteStore::saveSites
 	 */
 	public function testSaveSites() {
-		$store = new DBSiteStore();
+		$store = $this->newDBSiteStore();
 
-		$sites = array();
+		$sites = [];
 
 		$site = new Site();
 		$site->setGlobalId( 'ertrywuutr' );
@@ -79,15 +89,15 @@ class DBSiteStoreTest extends MediaWikiTestCase {
 		$this->assertTrue( $store->saveSites( $sites ) );
 
 		$site = $store->getSite( 'ertrywuutr' );
-		$this->assertInstanceOf( 'Site', $site );
+		$this->assertInstanceOf( Site::class, $site );
 		$this->assertEquals( 'en', $site->getLanguageCode() );
-		$this->assertTrue( is_integer( $site->getInternalId() ) );
+		$this->assertTrue( is_int( $site->getInternalId() ) );
 		$this->assertTrue( $site->getInternalId() >= 0 );
 
 		$site = $store->getSite( 'sdfhxujgkfpth' );
-		$this->assertInstanceOf( 'Site', $site );
+		$this->assertInstanceOf( Site::class, $site );
 		$this->assertEquals( 'nl', $site->getLanguageCode() );
-		$this->assertTrue( is_integer( $site->getInternalId() ) );
+		$this->assertTrue( is_int( $site->getInternalId() ) );
 		$this->assertTrue( $site->getInternalId() >= 0 );
 	}
 
@@ -95,8 +105,8 @@ class DBSiteStoreTest extends MediaWikiTestCase {
 	 * @covers DBSiteStore::reset
 	 */
 	public function testReset() {
-		$store1 = new DBSiteStore();
-		$store2 = new DBSiteStore();
+		$store1 = $this->newDBSiteStore();
+		$store2 = $this->newDBSiteStore();
 
 		// initialize internal cache
 		$this->assertGreaterThan( 0, $store1->getSites()->count() );
@@ -121,7 +131,7 @@ class DBSiteStoreTest extends MediaWikiTestCase {
 	 * @covers DBSiteStore::clear
 	 */
 	public function testClear() {
-		$store = new DBSiteStore();
+		$store = $this->newDBSiteStore();
 		$this->assertTrue( $store->clear() );
 
 		$site = $store->getSite( 'enwiki' );
@@ -135,23 +145,23 @@ class DBSiteStoreTest extends MediaWikiTestCase {
 	 * @covers DBSiteStore::getSites
 	 */
 	public function testGetSitesDefaultOrder() {
-		$store = new DBSiteStore();
+		$store = $this->newDBSiteStore();
 		$siteB = new Site();
 		$siteB->setGlobalId( 'B' );
 		$siteA = new Site();
 		$siteA->setGlobalId( 'A' );
-		$store->saveSites( array( $siteB, $siteA ) );
+		$store->saveSites( [ $siteB, $siteA ] );
 
 		$sites = $store->getSites();
-		$siteIdentifiers = array();
+		$siteIdentifiers = [];
 		/** @var Site $site */
 		foreach ( $sites as $site ) {
 			$siteIdentifiers[] = $site->getGlobalId();
 		}
-		$this->assertSame( array( 'A', 'B' ), $siteIdentifiers );
+		$this->assertSame( [ 'A', 'B' ], $siteIdentifiers );
 
 		// Note: SiteList::getGlobalIdentifiers uses an other internal state. Iteration must be
 		// tested separately.
-		$this->assertSame( array( 'A', 'B' ), $sites->getGlobalIdentifiers() );
+		$this->assertSame( [ 'A', 'B' ], $sites->getGlobalIdentifiers() );
 	}
 }

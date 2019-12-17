@@ -1,7 +1,5 @@
 <?php
 /**
- * Created on Feb 10, 2013
- *
  * Copyright © 2013 Yuri Astrakhan "<Firstname><Lastname>@gmail.com"
  *
  * This program is free software; you can redistribute it and/or modify
@@ -38,15 +36,15 @@ STR;
 	 * @return array
 	 */
 	protected function merge( /*...*/ ) {
-		$request = array();
-		$expected = array();
+		$request = [];
+		$expected = [];
 		foreach ( func_get_args() as $v ) {
 			list( $req, $exp ) = $this->validateRequestExpectedPair( $v );
 			$request = array_merge_recursive( $request, $req );
 			$this->mergeExpected( $expected, $exp );
 		}
 
-		return array( $request, $expected );
+		return [ $request, $expected ];
 	}
 
 	/**
@@ -89,9 +87,9 @@ STR;
 	 * Checks that the request's result matches the expected results.
 	 * Assumes no rawcontinue and a complete batch.
 	 * @param array $values Array is a two element array( request, expected_results )
-	 * @param array $session
+	 * @param array|null $session
 	 * @param bool $appendModule
-	 * @param User $user
+	 * @param User|null $user
 	 */
 	protected function check( $values, array $session = null,
 		$appendModule = false, User $user = null
@@ -100,17 +98,13 @@ STR;
 		if ( !array_key_exists( 'action', $req ) ) {
 			$req['action'] = 'query';
 		}
-		// Silence warning
-		if ( !isset( $params['continue'] ) ) {
-			$params['continue'] = '';
-		}
 		foreach ( $req as &$val ) {
 			if ( is_array( $val ) ) {
 				$val = implode( '|', array_unique( $val ) );
 			}
 		}
 		$result = $this->doApiRequest( $req, $session, $appendModule, $user );
-		$this->assertResult( array( 'batchcomplete' => true, 'query' => $exp ), $result[0], $req );
+		$this->assertResult( [ 'batchcomplete' => true, 'query' => $exp ], $result[0], $req );
 	}
 
 	protected function assertResult( $exp, $result, $message = '' ) {

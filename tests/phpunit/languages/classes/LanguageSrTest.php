@@ -16,8 +16,68 @@
  *  - Tests for LanguageConverter and Language should probably be separate..
  */
 
-/** Tests for MediaWiki languages/LanguageSr.php */
+/**
+ * @covers LanguageSr
+ * @covers SrConverter
+ */
 class LanguageSrTest extends LanguageClassesTestCase {
+	/**
+	 * @covers Language::hasVariants
+	 */
+	public function testHasVariants() {
+		$this->assertTrue( $this->getLang()->hasVariants(), 'sr has variants' );
+	}
+
+	/**
+	 * @covers Language::hasVariant
+	 */
+	public function testHasVariant() {
+		$langs = [
+			'sr' => $this->getLang(),
+			'sr-ec' => Language::factory( 'sr-ec' ),
+			'sr-cyrl' => Language::factory( 'sr-cyrl' ),
+		];
+		foreach ( $langs as $code => $l ) {
+			$p = $l->getParentLanguage();
+			$this->assertTrue( $p !== null, 'parent language exists' );
+			$this->assertEquals( 'sr', $p->getCode(), 'sr is parent language' );
+			$this->assertTrue( $p instanceof LanguageSr, 'parent is LanguageSr' );
+			// This is a valid variant of the base
+			$this->assertTrue( $p->hasVariant( $l->getCode() ) );
+			// This test should be tweaked if/when sr-ec is renamed (T117845)
+			// to swap the roles of sr-ec and sr-Cyrl
+			$this->assertTrue( $l->hasVariant( 'sr-ec' ), 'sr-ec exists' );
+			// note that sr-cyrl is an alias, not a (strict) variant name
+			foreach ( [ 'sr-EC', 'sr-Cyrl', 'sr-cyrl', 'sr-bogus' ] as $v ) {
+				$this->assertFalse( $l->hasVariant( $v ), "$v is not a variant of $code" );
+			}
+		}
+	}
+
+	/**
+	 * @covers Language::hasVariant
+	 */
+	public function testHasVariantBogus() {
+		$langs = [
+			// Note that case matters when calling Language::factory();
+			// these are all bogus language codes
+			'sr-EC' => Language::factory( 'sr-EC' ),
+			'sr-Cyrl' => Language::factory( 'sr-Cyrl' ),
+			'sr-bogus' => Language::factory( 'sr-bogus' ),
+		];
+		foreach ( $langs as $code => $l ) {
+			$p = $l->getParentLanguage();
+			$this->assertTrue( $p === null, 'no parent for bogus language' );
+			$this->assertFalse( $l instanceof LanguageSr, "$code is not sr" );
+			$this->assertFalse( $this->getLang()->hasVariant( $code ), "$code is not a sr variant" );
+			foreach ( [ 'sr', 'sr-ec', 'sr-EC', 'sr-Cyrl', 'sr-cyrl', 'sr-bogus' ] as $v ) {
+				if ( $v !== $code ) {
+					$this->assertFalse( $l->hasVariant( $v ), "no variant $v" );
+				}
+			}
+		}
+	}
+
 	/**
 	 * @covers LanguageConverter::convertTo
 	 */
@@ -38,11 +98,11 @@ class LanguageSrTest extends LanguageClassesTestCase {
 	public function testMixedConversions() {
 		$this->assertCyrillic(
 			'шђчћжШЂЧЋЖ - šđčćž',
-			'Mostly cyrillic characters'
+			'Mostly Cyrillic characters'
 		);
 		$this->assertLatin(
 			'šđčćžŠĐČĆŽ - шђчћж',
-			'Mostly latin characters'
+			'Mostly Latin characters'
 		);
 	}
 
@@ -51,11 +111,11 @@ class LanguageSrTest extends LanguageClassesTestCase {
 	 */
 	public function testSameAmountOfLatinAndCyrillicGetConverted() {
 		$this->assertConverted(
-			'4 latin: šđčć | 4 cyrillic: шђчћ',
+			'4 Latin: šđčć | 4 Cyrillic: шђчћ',
 			'sr-ec'
 		);
 		$this->assertConverted(
-			'4 latin: šđčć | 4 cyrillic: шђчћ',
+			'4 Latin: šđčć | 4 Cyrillic: шђчћ',
 			'sr-el'
 		);
 	}
@@ -65,35 +125,35 @@ class LanguageSrTest extends LanguageClassesTestCase {
 	 * @covers LanguageConverter::convertTo
 	 */
 	public function testConversionToCyrillic() {
-		//A simple convertion of Latin to Cyrillic
+		// A simple conversion of Latin to Cyrillic
 		$this->assertEquals( 'абвг',
 			$this->convertToCyrillic( 'abvg' )
 		);
-		//Same as above, but assert that -{}-s must be removed and not converted
+		// Same as above, but assert that -{}-s must be removed and not converted
 		$this->assertEquals( 'ljабnjвгdž',
 			$this->convertToCyrillic( '-{lj}-ab-{nj}-vg-{dž}-' )
 		);
-		//A simple convertion of Cyrillic to Cyrillic
+		// A simple conversion of Cyrillic to Cyrillic
 		$this->assertEquals( 'абвг',
 			$this->convertToCyrillic( 'абвг' )
 		);
-		//Same as above, but assert that -{}-s must be removed and not converted
+		// Same as above, but assert that -{}-s must be removed and not converted
 		$this->assertEquals( 'ljабnjвгdž',
 			$this->convertToCyrillic( '-{lj}-аб-{nj}-вг-{dž}-' )
 		);
-		//This text has some Latin, but is recognized as Cyrillic, so it should not be converted
+		// This text has some Latin, but is recognized as Cyrillic, so it should not be converted
 		$this->assertEquals( 'abvgшђжчћ',
 			$this->convertToCyrillic( 'abvgшђжчћ' )
 		);
-		//Same as above, but assert that -{}-s must be removed
+		// Same as above, but assert that -{}-s must be removed
 		$this->assertEquals( 'љabvgњшђжчћџ',
 			$this->convertToCyrillic( '-{љ}-abvg-{њ}-шђжчћ-{џ}-' )
 		);
-		//This text has some Cyrillic, but is recognized as Latin, so it should be converted
+		// This text has some Cyrillic, but is recognized as Latin, so it should be converted
 		$this->assertEquals( 'абвгшђжчћ',
 			$this->convertToCyrillic( 'абвгšđžčć' )
 		);
-		//Same as above, but assert that -{}-s must be removed and not converted
+		// Same as above, but assert that -{}-s must be removed and not converted
 		$this->assertEquals( 'ljабвгnjшђжчћdž',
 			$this->convertToCyrillic( '-{lj}-абвг-{nj}-šđžčć-{dž}-' )
 		);
@@ -107,19 +167,19 @@ class LanguageSrTest extends LanguageClassesTestCase {
 	 * @covers LanguageConverter::convertTo
 	 */
 	public function testConversionToLatin() {
-		//A simple convertion of Latin to Latin
+		// A simple conversion of Latin to Latin
 		$this->assertEquals( 'abcd',
 			$this->convertToLatin( 'abcd' )
 		);
-		//A simple convertion of Cyrillic to Latin
+		// A simple conversion of Cyrillic to Latin
 		$this->assertEquals( 'abcd',
 			$this->convertToLatin( 'абцд' )
 		);
-		//This text has some Latin, but is recognized as Cyrillic, so it should be converted
+		// This text has some Latin, but is recognized as Cyrillic, so it should be converted
 		$this->assertEquals( 'abcdšđžčć',
 			$this->convertToLatin( 'abcdшђжчћ' )
 		);
-		//This text has some Cyrillic, but is recognized as Latin, so it should not be converted
+		// This text has some Cyrillic, but is recognized as Latin, so it should not be converted
 		$this->assertEquals( 'абцдšđžčć',
 			$this->convertToLatin( 'абцдšđžčć' )
 		);
@@ -130,7 +190,7 @@ class LanguageSrTest extends LanguageClassesTestCase {
 	 * @covers Language::convertPlural
 	 */
 	public function testPlural( $result, $value ) {
-		$forms = array( 'one', 'few', 'other' );
+		$forms = [ 'one', 'few', 'other' ];
 		$this->assertEquals( $result, $this->getLang()->convertPlural( $value, $forms ) );
 	}
 
@@ -143,19 +203,19 @@ class LanguageSrTest extends LanguageClassesTestCase {
 	}
 
 	public static function providePlural() {
-		return array(
-			array( 'one', 1 ),
-			array( 'other', 11 ),
-			array( 'one', 91 ),
-			array( 'one', 121 ),
-			array( 'few', 2 ),
-			array( 'few', 3 ),
-			array( 'few', 4 ),
-			array( 'few', 334 ),
-			array( 'other', 5 ),
-			array( 'other', 15 ),
-			array( 'other', 120 ),
-		);
+		return [
+			[ 'one', 1 ],
+			[ 'other', 11 ],
+			[ 'one', 91 ],
+			[ 'one', 121 ],
+			[ 'few', 2 ],
+			[ 'few', 3 ],
+			[ 'few', 4 ],
+			[ 'few', 334 ],
+			[ 'other', 5 ],
+			[ 'other', 15 ],
+			[ 'other', 120 ],
+		];
 	}
 
 	/**
@@ -163,21 +223,21 @@ class LanguageSrTest extends LanguageClassesTestCase {
 	 * @covers Language::convertPlural
 	 */
 	public function testPluralTwoForms( $result, $value ) {
-		$forms = array( 'one', 'other' );
+		$forms = [ 'one', 'other' ];
 		$this->assertEquals( $result, $this->getLang()->convertPlural( $value, $forms ) );
 	}
 
 	public static function providePluralTwoForms() {
-		return array(
-			array( 'one', 1 ),
-			array( 'other', 11 ),
-			array( 'other', 4 ),
-			array( 'one', 91 ),
-			array( 'one', 121 ),
-		);
+		return [
+			[ 'one', 1 ],
+			[ 'other', 11 ],
+			[ 'other', 4 ],
+			[ 'one', 91 ],
+			[ 'one', 121 ],
+		];
 	}
 
-	##### HELPERS #####################################################
+	# #### HELPERS #####################################################
 	/**
 	 *Wrapper to verify text stay the same after applying conversion
 	 * @param string $text Text to convert
@@ -208,7 +268,7 @@ class LanguageSrTest extends LanguageClassesTestCase {
 
 	/**
 	 * Verifiy the given Cyrillic text is not converted when using
-	 * using the cyrillic variant and converted to Latin when using
+	 * using the Cyrillic variant and converted to Latin when using
 	 * the Latin variant.
 	 * @param string $text Text to convert
 	 * @param string $msg Optional message

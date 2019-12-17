@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * Parser-related tests that don't suit for parserTests.txt
  *
@@ -16,24 +18,23 @@ class ExtraParserTest extends MediaWikiTestCase {
 		parent::setUp();
 
 		$contLang = Language::factory( 'en' );
-		$this->setMwGlobals( array(
-			'wgShowDBErrorBacktrace' => true,
-			'wgLanguageCode' => 'en',
-			'wgContLang' => $contLang,
-			'wgLang' => Language::factory( 'en' ),
-			'wgMemc' => new EmptyBagOStuff,
+		$this->setMwGlobals( [
+			'wgShowExceptionDetails' => true,
 			'wgCleanSignatures' => true,
-		) );
+		] );
+		$this->setUserLang( 'en' );
+		$this->setContentLang( $contLang );
 
+		// FIXME: This test should pass without setting global content language
 		$this->options = ParserOptions::newFromUserAndLang( new User, $contLang );
-		$this->options->setTemplateCallback( array( __CLASS__, 'statelessFetchTemplate' ) );
+		$this->options->setTemplateCallback( [ __CLASS__, 'statelessFetchTemplate' ] );
 		$this->parser = new Parser;
 
-		MagicWord::clearCache();
+		MediaWikiServices::getInstance()->resetServiceForTesting( 'MagicWordFactory' );
 	}
 
 	/**
-	 * @see Bug 8689
+	 * @see T10689
 	 * @covers Parser::parse
 	 */
 	public function testLongNumericLinesDontKillTheParser() {
@@ -42,7 +43,26 @@ class ExtraParserTest extends MediaWikiTestCase {
 		$title = Title::newFromText( 'Unit test' );
 		$options = ParserOptions::newFromUser( new User() );
 		$this->assertEquals( "<p>$longLine</p>",
-			$this->parser->parse( $longLine, $title, $options )->getText() );
+			$this->parser->parse( $longLine, $title, $options )->getText( [ 'unwrap' => true ] ) );
+	}
+
+	/**
+	 * @covers Parser::braceSubstitution
+	 * @covers SpecialPageFactory::capturePath
+	 */
+	public function testSpecialPageTransclusionRestoresGlobalState() {
+		$text = "{{Special:ApiHelp/help}}";
+		$title = Title::newFromText( 'testSpecialPageTransclusionRestoresGlobalState' );
+		$options = ParserOptions::newFromUser( new User() );
+
+		RequestContext::getMain()->setTitle( $title );
+		RequestContext::getMain()->getWikiPage()->CustomTestProp = true;
+
+		$parsed = $this->parser->parse( $text, $title, $options )->getText();
+		$this->assertContains( 'apihelp-header', $parsed );
+
+		// Verify that this property wasn't wiped out by the parse
+		$this->assertTrue( RequestContext::getMain()->getWikiPage()->CustomTestProp );
 	}
 
 	/**
@@ -54,7 +74,7 @@ class ExtraParserTest extends MediaWikiTestCase {
 		$parserOutput = $this->parser->parse( "Test\n{{Foo}}\n{{Bar}}", $title, $this->options );
 		$this->assertEquals(
 			"<p>Test\nContent of <i>Template:Foo</i>\nContent of <i>Template:Bar</i>\n</p>",
-			$parserOutput->getText()
+			$parserOutput->getText( [ 'unwrap' => true ] )
 		);
 	}
 
@@ -120,11 +140,11 @@ class ExtraParserTest extends MediaWikiTestCase {
 	}
 
 	public static function provideStringsForCleanSigInSig() {
-		return array(
-			array( "{{Foo}} ~~~~", "{{Foo}} " ),
-			array( "~~~", "" ),
-			array( "~~~~~", "" ),
-		);
+		return [
+			[ "{{Foo}} ~~~~", "{{Foo}} " ],
+			[ "~~~", "" ],
+			[ "~~~~~", "" ],
+		];
 	}
 
 	/**
@@ -183,30 +203,28 @@ class ExtraParserTest extends MediaWikiTestCase {
 	 */
 	static function statelessFetchTemplate( $title, $parser = false ) {
 		$text = "Content of ''" . $title->getFullText() . "''";
-		$deps = array();
+		$deps = [];
 
-		return array(
+		return [
 			'text' => $text,
 			'finalTitle' => $title,
-			'deps' => $deps );
+			'deps' => $deps ];
 	}
 
 	/**
-	 * @group Database
 	 * @covers Parser::parse
 	 */
 	public function testTrackingCategory() {
 		$title = Title::newFromText( __FUNCTION__ );
 		$catName = wfMessage( 'broken-file-category' )->inContentLanguage()->text();
 		$cat = Title::makeTitleSafe( NS_CATEGORY, $catName );
-		$expected = array( $cat->getDBkey() );
+		$expected = [ $cat->getDBkey() ];
 		$parserOutput = $this->parser->parse( "[[file:nonexistent]]", $title, $this->options );
 		$result = $parserOutput->getCategoryLinks();
 		$this->assertEquals( $expected, $result );
 	}
 
 	/**
-	 * @group Database
 	 * @covers Parser::parse
 	 */
 	public function testTrackingCategorySpecial() {
@@ -215,5 +233,81 @@ class ExtraParserTest extends MediaWikiTestCase {
 		$parserOutput = $this->parser->parse( "[[file:nonexistent]]", $title, $this->options );
 		$result = $parserOutput->getCategoryLinks();
 		$this->assertEmpty( $result );
+	}
+
+	/**
+	 * @covers Parser::parseLinkParameter
+	 * @dataProvider provideParseLinkParameter
+	 */
+	public function testParseLinkParameter( $input, $expected, $expectedLinks, $desc ) {
+		$this->parser->startExternalParse( Title::newFromText( __FUNCTION__ ),
+			$this->options, Parser::OT_HTML );
+		$output = $this->parser->parseLinkParameter( $input );
+
+		$this->assertEquals( $expected[0], $output[0], "$desc (type)" );
+
+		if ( $expected[0] === 'link-title' ) {
+			$this->assertTrue( $expected[1]->equals( $output[1] ), "$desc (target)" );
+		} else {
+			$this->assertEquals( $expected[1], $output[1], "$desc (target)" );
+		}
+
+		foreach ( $expectedLinks as $func => $expected ) {
+			$output = $this->parser->getOutput()->$func();
+			$this->assertEquals( $expected, $output, "$desc ($func)" );
+		}
+	}
+
+	public static function provideParseLinkParameter() {
+		return [
+			[
+				'',
+				[ 'no-link', false ],
+				[],
+				'Return no link when requested',
+			],
+			[
+				'https://example.com/',
+				[ 'link-url', 'https://example.com/' ],
+				[ 'getExternalLinks' => [ 'https://example.com/' => 1 ] ],
+				'External link',
+			],
+			[
+				'//example.com/',
+				[ 'link-url', '//example.com/' ],
+				[ 'getExternalLinks' => [ '//example.com/' => 1 ] ],
+				'External link',
+			],
+			[
+				'Test',
+				[ 'link-title', Title::newFromText( 'Test' ) ],
+				[ 'getLinks' => [ 0 => [ 'Test' => 0 ] ] ],
+				'Internal link',
+			],
+			[
+				'mw:Test',
+				[ 'link-title', Title::newFromText( 'mw:Test' ) ],
+				[ 'getInterwikiLinks' => [ 'mw' => [ 'Test' => 1 ] ] ],
+				'Internal link (interwiki)',
+			],
+			[
+				'https://',
+				[ null, false ],
+				[],
+				'Invalid link target',
+			],
+			[
+				'<>',
+				[ null, false ],
+				[],
+				'Invalid link target',
+			],
+			[
+				' ',
+				[ null, false ],
+				[],
+				'Invalid link target',
+			],
+		];
 	}
 }

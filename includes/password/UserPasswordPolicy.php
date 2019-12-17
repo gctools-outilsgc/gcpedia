@@ -43,7 +43,7 @@ class UserPasswordPolicy {
 	/**
 	 * @param array $policies
 	 * @param array $checks mapping statement to its checking function. Checking functions are
-	 * called with the policy value for this user, the user object, and the password to check.
+	 *   called with the policy value for this user, the user object, and the password to check.
 	 */
 	public function __construct( array $policies, array $checks ) {
 		if ( !isset( $policies['default'] ) ) {
@@ -64,15 +64,17 @@ class UserPasswordPolicy {
 	}
 
 	/**
-	 * Check if a passwords meets the effective password policy for a User.
-	 * @param User $user who's policy we are checking
+	 * Check if a password meets the effective password policy for a User.
+	 * @param User $user whose policy we are checking
 	 * @param string $password the password to check
-	 * @param string $purpose one of 'login', 'create', 'reset'
 	 * @return Status error to indicate the password didn't meet the policy, or fatal to
-	 *	indicate the user shouldn't be allowed to login.
+	 *   indicate the user shouldn't be allowed to login. The status value will be an array,
+	 *   potentially with the following keys:
+	 *   - forceChange: do not allow the user to login without changing the password if invalid.
+	 *   - suggestChangeOnLogin: prompt for a password change on login if the password is invalid.
 	 */
-	public function checkUserPassword( User $user, $password, $purpose = 'login' ) {
-		$effectivePolicy = $this->getPoliciesForUser( $user, $purpose );
+	public function checkUserPassword( User $user, $password ) {
+		$effectivePolicy = $this->getPoliciesForUser( $user );
 		return $this->checkPolicies(
 			$user,
 			$password,
@@ -82,14 +84,17 @@ class UserPasswordPolicy {
 	}
 
 	/**
-	 * Check if a passwords meets the effective password policy for a User, using a set
+	 * Check if a password meets the effective password policy for a User, using a set
 	 * of groups they may or may not belong to. This function does not use the DB, so can
 	 * be used in the installer.
-	 * @param User $user who's policy we are checking
+	 * @param User $user whose policy we are checking
 	 * @param string $password the password to check
 	 * @param array $groups list of groups to which we assume the user belongs
 	 * @return Status error to indicate the password didn't meet the policy, or fatal to
-	 *	indicate the user shouldn't be allowed to login.
+	 *   indicate the user shouldn't be allowed to login. The status value will be an array,
+	 *   potentially with the following keys:
+	 *   - forceChange: do not allow the user to login without changing the password if invalid.
+	 *   - suggestChangeOnLogin: prompt for a password change on login if the password is invalid.
 	 */
 	public function checkUserPasswordForGroups( User $user, $password, array $groups ) {
 		$effectivePolicy = self::getPoliciesForGroups(
@@ -113,20 +118,49 @@ class UserPasswordPolicy {
 	 * @return Status
 	 */
 	private function checkPolicies( User $user, $password, $policies, $policyCheckFunctions ) {
-		$status = Status::newGood();
-		foreach ( $policies as $policy => $value ) {
+		$status = Status::newGood( [] );
+		$forceChange = false;
+		$suggestChangeOnLogin = false;
+		foreach ( $policies as $policy => $settings ) {
 			if ( !isset( $policyCheckFunctions[$policy] ) ) {
 				throw new DomainException( "Invalid password policy config. No check defined for '$policy'." );
 			}
-			$status->merge(
-				call_user_func(
-					$policyCheckFunctions[$policy],
-					$value,
-					$user,
-					$password
-				)
+			if ( !is_array( $settings ) ) {
+				// legacy format
+				$settings = [ 'value' => $settings ];
+			}
+			if ( !array_key_exists( 'value', $settings ) ) {
+				throw new DomainException( "Invalid password policy config. No value defined for '$policy'." );
+			}
+			$value = $settings['value'];
+			/** @var StatusValue $policyStatus */
+			$policyStatus = call_user_func(
+				$policyCheckFunctions[$policy],
+				$value,
+				$user,
+				$password
 			);
+
+			if ( !$policyStatus->isGood() ) {
+				if ( !empty( $settings['forceChange'] ) ) {
+					$forceChange = true;
+				}
+
+				if ( !empty( $settings['suggestChangeOnLogin'] ) ) {
+					$suggestChangeOnLogin = true;
+				}
+			}
+			$status->merge( $policyStatus );
 		}
+
+		if ( $status->isOK() ) {
+			if ( $forceChange ) {
+				$status->value['forceChange'] = true;
+			} elseif ( $suggestChangeOnLogin ) {
+				$status->value['suggestChangeOnLogin'] = true;
+			}
+		}
+
 		return $status;
 	}
 
@@ -134,20 +168,16 @@ class UserPasswordPolicy {
 	 * Get the policy for a user, based on their group membership. Public so
 	 * UI elements can access and inform the user.
 	 * @param User $user
-	 * @param string $purpose one of 'login', 'create', 'reset'
 	 * @return array the effective policy for $user
 	 */
-	public function getPoliciesForUser( User $user, $purpose = 'login' ) {
-		$effectivePolicy = $this->policies['default'];
-		if ( $purpose !== 'create' ) {
-			$effectivePolicy = self::getPoliciesForGroups(
-				$this->policies,
-				$user->getEffectiveGroups(),
-				$this->policies['default']
-			);
-		}
+	public function getPoliciesForUser( User $user ) {
+		$effectivePolicy = self::getPoliciesForGroups(
+			$this->policies,
+			$user->getEffectiveGroups(),
+			$this->policies['default']
+		);
 
-		Hooks::run( 'PasswordPoliciesForUser', array( $user, &$effectivePolicy, $purpose ) );
+		Hooks::run( 'PasswordPoliciesForUser', [ $user, &$effectivePolicy ] );
 
 		return $effectivePolicy;
 	}
@@ -179,20 +209,28 @@ class UserPasswordPolicy {
 	/**
 	 * Utility function to get a policy that is the most restrictive of $p1 and $p2. For
 	 * simplicity, we setup the policy values so the maximum value is always more restrictive.
+	 * It is also used recursively to merge settings within the same policy.
 	 * @param array $p1
 	 * @param array $p2
 	 * @return array containing the more restrictive values of $p1 and $p2
 	 */
 	public static function maxOfPolicies( array $p1, array $p2 ) {
-		$ret = array();
+		$ret = [];
 		$keys = array_merge( array_keys( $p1 ), array_keys( $p2 ) );
 		foreach ( $keys as $key ) {
 			if ( !isset( $p1[$key] ) ) {
 				$ret[$key] = $p2[$key];
 			} elseif ( !isset( $p2[$key] ) ) {
 				$ret[$key] = $p1[$key];
-			} else {
+			} elseif ( !is_array( $p1[$key] ) && !is_array( $p2[$key] ) ) {
 				$ret[$key] = max( $p1[$key], $p2[$key] );
+			} else {
+				if ( !is_array( $p1[$key] ) ) {
+					$p1[$key] = [ 'value' => $p1[$key] ];
+				} elseif ( !is_array( $p2[$key] ) ) {
+					$p2[$key] = [ 'value' => $p2[$key] ];
+				}
+				$ret[$key] = self::maxOfPolicies( $p1[$key], $p2[$key] );
 			}
 		}
 		return $ret;

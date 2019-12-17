@@ -21,8 +21,6 @@
  * @ingroup Language
  */
 
-require_once __DIR__ . '/../LanguageConverter.php';
-
 /**
  * Conversion script between Latin and Syllabics for Inuktitut.
  * - Syllabics -> lowercase Latin
@@ -30,7 +28,7 @@ require_once __DIR__ . '/../LanguageConverter.php';
  *
  *
  * Based on:
- *   - http://commons.wikimedia.org/wiki/Image:Inuktitut.png
+ *   - https://commons.wikimedia.org/wiki/Image:Inuktitut.png
  *   - LanguageSr.php
  *
  * @ingroup Language
@@ -38,7 +36,7 @@ require_once __DIR__ . '/../LanguageConverter.php';
 class IuConverter extends LanguageConverter {
 	protected $mDoContentConvert;
 
-	public $mToLatin = array(
+	public $mToLatin = [
 		'ᐦ' => 'h', 'ᐃ' => 'i', 'ᐄ' => 'ii', 'ᐅ' => 'u', 'ᐆ' => 'uu', 'ᐊ' => 'a', 'ᐋ' => 'aa',
 		'ᑉ' => 'p', 'ᐱ' => 'pi', 'ᐲ' => 'pii', 'ᐳ' => 'pu', 'ᐴ' => 'puu', 'ᐸ' => 'pa', 'ᐹ' => 'paa',
 		'ᑦ' => 't', 'ᑎ' => 'ti', 'ᑏ' => 'tii', 'ᑐ' => 'tu', 'ᑑ' => 'tuu', 'ᑕ' => 'ta', 'ᑖ' => 'taa',
@@ -57,18 +55,18 @@ class IuConverter extends LanguageConverter {
 		'ᖒ' => 'nguu', 'ᖓ' => 'nga', 'ᖔ' => 'ngaa', 'ᖖ' => 'nng', 'ᙱ' => 'nngi', 'ᙲ' => 'nngii',
 		'ᙳ' => 'nngu', 'ᙴ' => 'nnguu', 'ᙵ' => 'nnga', 'ᙶ' => 'nngaa', 'ᖦ' => 'ɫ', 'ᖠ' => 'ɫi',
 		'ᖡ' => 'ɫii', 'ᖢ' => 'ɫu', 'ᖣ' => 'ɫuu', 'ᖤ' => 'ɫa', 'ᖥ' => 'ɫaa',
-	);
+	];
 
-	public $mUpperToLowerCaseLatin = array(
+	public $mUpperToLowerCaseLatin = [
 		'A' => 'a',	'B' => 'b',	'C' => 'c',	'D' => 'd',	'E' => 'e',
 		'F' => 'f',	'G' => 'g',	'H' => 'h',	'I' => 'i',	'J' => 'j',
 		'K' => 'k',	'L' => 'l',	'M' => 'm',	'N' => 'n',	'O' => 'o',
 		'P' => 'p',	'Q' => 'q',	'R' => 'r',	'S' => 's',	'T' => 't',
 		'U' => 'u',	'V' => 'v',	'W' => 'w',	'X' => 'x',	'Y' => 'y',
 		'Z' => 'z',
-	);
+	];
 
-	public $mToSyllabics = array(
+	public $mToSyllabics = [
 		'h' => 'ᐦ', 'i' => 'ᐃ', 'ii' => 'ᐄ', 'u' => 'ᐅ', 'uu' => 'ᐆ', 'a' => 'ᐊ', 'aa' => 'ᐋ',
 		'p' => 'ᑉ', 'pi' => 'ᐱ', 'pii' => 'ᐲ', 'pu' => 'ᐳ', 'puu' => 'ᐴ', 'pa' => 'ᐸ', 'paa' => 'ᐹ',
 		't' => 'ᑦ', 'ti' => 'ᑎ', 'tii' => 'ᑏ', 'tu' => 'ᑐ', 'tuu' => 'ᑑ', 'ta' => 'ᑕ', 'taa' => 'ᑖ',
@@ -87,53 +85,15 @@ class IuConverter extends LanguageConverter {
 		'nguu' => 'ᖒ', 'nga' => 'ᖓ', 'ngaa' => 'ᖔ', 'nng' => 'ᖖ', 'nngi' => 'ᙱ', 'nngii' => 'ᙲ',
 		'nngu' => 'ᙳ', 'nnguu' => 'ᙴ', 'nnga' => 'ᙵ', 'nngaa' => 'ᙶ', 'ɫ' => 'ᖦ', 'ɫi' => 'ᖠ',
 		'ɫii' => 'ᖡ', 'ɫu' => 'ᖢ', 'ɫuu' => 'ᖣ', 'ɫa' => 'ᖤ', 'ɫaa' => 'ᖥ',
-	);
+	];
 
 	function loadDefaultTables() {
-		$this->mTables = array(
+		$this->mTables = [
 			'lowercase' => new ReplacementArray( $this->mUpperToLowerCaseLatin ),
 			'ike-cans' => new ReplacementArray( $this->mToSyllabics ),
 			'ike-latn' => new ReplacementArray( $this->mToLatin ),
 			'iu' => new ReplacementArray()
-		);
-	}
-
-	/**
-	 * rules should be defined as -{Syllabic | Latin-} -or-
-	 * -{code:text | code:text | ...}-
-	 * update: delete all rule parsing because it's not used
-	 * currently, and just produces a couple of bugs
-	 *
-	 * @param string $rule
-	 * @param array $flags
-	 * @return array
-	 */
-	function parseManualRule( $rule, $flags = array() ) {
-		if ( in_array( 'T', $flags ) ) {
-			return parent::parseManualRule( $rule, $flags );
-		}
-
-		$carray = array();
-		// otherwise ignore all formatting
-		foreach ( $this->mVariants as $v ) {
-			$carray[$v] = $rule;
-		}
-
-		return $carray;
-	}
-
-	/**
-	 * Do not convert content on talk pages
-	 *
-	 * @param string $text
-	 * @param Parser $parser
-	 * @return string
-	 */
-	function parserConvert( $text, &$parser ) {
-		$this->mDoContentConvert = !( is_object( $parser->getTitle() )
-			&& $parser->getTitle()->isTalkPage() );
-
-		return parent::parserConvert( $text, $parser );
+		];
 	}
 
 	/**
@@ -192,19 +152,16 @@ class IuConverter extends LanguageConverter {
  */
 class LanguageIu extends Language {
 	function __construct() {
-		global $wgHooks;
-
 		parent::__construct();
 
-		$variants = array( 'iu', 'ike-cans', 'ike-latn' );
-		$variantfallbacks = array(
+		$variants = [ 'iu', 'ike-cans', 'ike-latn' ];
+		$variantfallbacks = [
 			'iu' => 'ike-cans',
 			'ike-cans' => 'iu',
 			'ike-latn' => 'iu',
-		);
+		];
 
-		$flags = array();
+		$flags = [];
 		$this->mConverter = new IuConverter( $this, 'iu', $variants, $variantfallbacks, $flags );
-		$wgHooks['PageContentSaveComplete'][] = $this->mConverter;
 	}
 }

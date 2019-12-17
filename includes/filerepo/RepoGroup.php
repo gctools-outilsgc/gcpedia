@@ -21,6 +21,8 @@
  * @ingroup FileRepo
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * Prioritized list of file repositories
  *
@@ -61,6 +63,7 @@ class RepoGroup {
 			return self::$instance;
 		}
 		global $wgLocalFileRepo, $wgForeignFileRepos;
+		/** @var array $wgLocalFileRepo */
 		self::$instance = new RepoGroup( $wgLocalFileRepo, $wgForeignFileRepos );
 
 		return self::$instance;
@@ -98,7 +101,7 @@ class RepoGroup {
 	function __construct( $localInfo, $foreignInfo ) {
 		$this->localInfo = $localInfo;
 		$this->foreignInfo = $foreignInfo;
-		$this->cache = new ProcessCacheLRU( self::MAX_CACHE_SIZE );
+		$this->cache = new MapCacheLRU( self::MAX_CACHE_SIZE );
 	}
 
 	/**
@@ -117,32 +120,34 @@ class RepoGroup {
 	 *   latest:         If true, load from the latest available data into File objects
 	 * @return File|bool False if title is not found
 	 */
-	function findFile( $title, $options = array() ) {
+	function findFile( $title, $options = [] ) {
 		if ( !is_array( $options ) ) {
 			// MW 1.15 compat
-			$options = array( 'time' => $options );
+			$options = [ 'time' => $options ];
 		}
 		if ( isset( $options['bypassCache'] ) ) {
 			$options['latest'] = $options['bypassCache']; // b/c
 		}
+		$options += [ 'time' => false ];
 
 		if ( !$this->reposInitialised ) {
 			$this->initialiseRepos();
 		}
+
 		$title = File::normalizeTitle( $title );
 		if ( !$title ) {
 			return false;
 		}
 
 		# Check the cache
+		$dbkey = $title->getDBkey();
+		$timeKey = is_string( $options['time'] ) ? $options['time'] : '';
 		if ( empty( $options['ignoreRedirect'] )
 			&& empty( $options['private'] )
-			&& empty( $options['bypassCache'] )
+			&& empty( $options['latest'] )
 		) {
-			$time = isset( $options['time'] ) ? $options['time'] : '';
-			$dbkey = $title->getDBkey();
-			if ( $this->cache->has( $dbkey, $time, 60 ) ) {
-				return $this->cache->get( $dbkey, $time );
+			if ( $this->cache->hasField( $dbkey, $timeKey, 60 ) ) {
+				return $this->cache->getField( $dbkey, $timeKey );
 			}
 			$useCache = true;
 		} else {
@@ -162,10 +167,10 @@ class RepoGroup {
 			}
 		}
 
-		$image = $image ? $image : false; // type sanity
+		$image = $image instanceof File ? $image : false; // type sanity
 		# Cache file existence or non-existence
 		if ( $useCache && ( !$image || $image->isCacheable() ) ) {
-			$this->cache->set( $dbkey, $time, $image );
+			$this->cache->setField( $dbkey, $timeKey, $image );
 		}
 
 		return $image;
@@ -177,8 +182,8 @@ class RepoGroup {
 	 * @param array $inputItems An array of titles, or an array of findFile() options with
 	 *    the "title" option giving the title. Example:
 	 *
-	 *     $findItem = array( 'title' => $title, 'private' => true );
-	 *     $findBatch = array( $findItem );
+	 *     $findItem = [ 'title' => $title, 'private' => true ];
+	 *     $findBatch = [ $findItem ];
 	 *     $repo->findFiles( $findBatch );
 	 *
 	 *    No title should appear in $items twice, as the result use titles as keys
@@ -193,10 +198,10 @@ class RepoGroup {
 			$this->initialiseRepos();
 		}
 
-		$items = array();
+		$items = [];
 		foreach ( $inputItems as $item ) {
 			if ( !is_array( $item ) ) {
-				$item = array( 'title' => $item );
+				$item = [ 'title' => $item ];
 			}
 			$item['title'] = File::normalizeTitle( $item['title'] );
 			if ( $item['title'] ) {
@@ -251,7 +256,7 @@ class RepoGroup {
 	 * @param array $options Option array, same as findFile()
 	 * @return File|bool File object or false if it is not found
 	 */
-	function findFileFromKey( $hash, $options = array() ) {
+	function findFileFromKey( $hash, $options = [] ) {
 		if ( !$this->reposInitialised ) {
 			$this->initialiseRepos();
 		}
@@ -304,7 +309,7 @@ class RepoGroup {
 		foreach ( $this->foreignRepos as $repo ) {
 			$result = array_merge_recursive( $result, $repo->findBySha1s( $hashes ) );
 		}
-		//sort the merged (and presorted) sublist of each hash
+		// sort the merged (and presorted) sublist of each hash
 		foreach ( $result as $hash => $files ) {
 			usort( $result[$hash], 'File::compare' );
 		}
@@ -315,7 +320,7 @@ class RepoGroup {
 	/**
 	 * Get the repo instance with a given key.
 	 * @param string|int $index
-	 * @return bool|LocalRepo
+	 * @return bool|FileRepo
 	 */
 	function getRepo( $index ) {
 		if ( !$this->reposInitialised ) {
@@ -323,17 +328,14 @@ class RepoGroup {
 		}
 		if ( $index === 'local' ) {
 			return $this->localRepo;
-		} elseif ( isset( $this->foreignRepos[$index] ) ) {
-			return $this->foreignRepos[$index];
-		} else {
-			return false;
 		}
+		return $this->foreignRepos[$index] ?? false;
 	}
 
 	/**
 	 * Get the repo instance by its name
 	 * @param string $name
-	 * @return bool
+	 * @return FileRepo|bool
 	 */
 	function getRepoByName( $name ) {
 		if ( !$this->reposInitialised ) {
@@ -355,7 +357,10 @@ class RepoGroup {
 	 * @return LocalRepo
 	 */
 	function getLocalRepo() {
-		return $this->getRepo( 'local' );
+		/** @var LocalRepo $repo */
+		$repo = $this->getRepo( 'local' );
+
+		return $repo;
 	}
 
 	/**
@@ -366,13 +371,12 @@ class RepoGroup {
 	 * @param array $params Optional additional parameters to pass to the function
 	 * @return bool
 	 */
-	function forEachForeignRepo( $callback, $params = array() ) {
+	function forEachForeignRepo( $callback, $params = [] ) {
 		if ( !$this->reposInitialised ) {
 			$this->initialiseRepos();
 		}
 		foreach ( $this->foreignRepos as $repo ) {
-			$args = array_merge( array( $repo ), $params );
-			if ( call_user_func_array( $callback, $args ) ) {
+			if ( $callback( $repo, ...$params ) ) {
 				return true;
 			}
 		}
@@ -401,7 +405,7 @@ class RepoGroup {
 		$this->reposInitialised = true;
 
 		$this->localRepo = $this->newRepo( $this->localInfo );
-		$this->foreignRepos = array();
+		$this->foreignRepos = [];
 		foreach ( $this->foreignInfo as $key => $info ) {
 			$this->foreignRepos[$key] = $this->newRepo( $info );
 		}
@@ -415,6 +419,9 @@ class RepoGroup {
 	protected function newRepo( $info ) {
 		$class = $info['class'];
 
+		$cache = MediaWikiServices::getInstance()->getMainWANObjectCache();
+		$info['wanCache'] = $cache;
+
 		return new $class( $info );
 	}
 
@@ -422,7 +429,7 @@ class RepoGroup {
 	 * Split a virtual URL into repo, zone and rel parts
 	 * @param string $url
 	 * @throws MWException
-	 * @return array Containing repo, zone and rel
+	 * @return string[] Containing repo, zone and rel
 	 */
 	function splitVirtualUrl( $url ) {
 		if ( substr( $url, 0, 9 ) != 'mwrepo://' ) {
@@ -451,7 +458,9 @@ class RepoGroup {
 
 			return $repo->getFileProps( $fileName );
 		} else {
-			return FSFile::getPropsFromPath( $fileName );
+			$mwProps = new MWFileProps( MediaWiki\MediaWikiServices::getInstance()->getMimeAnalyzer() );
+
+			return $mwProps->getPropsFromPath( $fileName, true );
 		}
 	}
 

@@ -1,9 +1,5 @@
 <?php
 /**
- *
- *
- * Created on Oct 16, 2006
- *
  * Copyright © 2006 Yuri Astrakhan "<Firstname><Lastname>@gmail.com"
  *
  * This program is free software; you can redistribute it and/or modify
@@ -47,39 +43,39 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 	 *
 	 * @var array
 	 */
-	private $pageMap = array();
+	private $pageMap = [];
 	private $resultArr;
 
-	private $redirTitles = array();
+	private $redirTitles = [];
 	private $continueStr = null;
 
 	// output element name, database column field prefix, database table
-	private $backlinksSettings = array(
-		'backlinks' => array(
+	private $backlinksSettings = [
+		'backlinks' => [
 			'code' => 'bl',
 			'prefix' => 'pl',
 			'linktbl' => 'pagelinks',
-			'helpurl' => 'https://www.mediawiki.org/wiki/API:Backlinks',
-		),
-		'embeddedin' => array(
+			'helpurl' => 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Backlinks',
+		],
+		'embeddedin' => [
 			'code' => 'ei',
 			'prefix' => 'tl',
 			'linktbl' => 'templatelinks',
-			'helpurl' => 'https://www.mediawiki.org/wiki/API:Embeddedin',
-		),
-		'imageusage' => array(
+			'helpurl' => 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Embeddedin',
+		],
+		'imageusage' => [
 			'code' => 'iu',
 			'prefix' => 'il',
 			'linktbl' => 'imagelinks',
-			'helpurl' => 'https://www.mediawiki.org/wiki/API:Imageusage',
-		)
-	);
+			'helpurl' => 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Imageusage',
+		]
+	];
 
 	public function __construct( ApiQuery $query, $moduleName ) {
 		$settings = $this->backlinksSettings[$moduleName];
 		$prefix = $settings['prefix'];
 		$code = $settings['code'];
-		$this->resultArr = array();
+		$this->resultArr = [];
 
 		parent::__construct( $query, $moduleName, $code );
 		$this->bl_ns = $prefix . '_namespace';
@@ -92,15 +88,15 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 		$this->hasNS = $moduleName !== 'imageusage';
 		if ( $this->hasNS ) {
 			$this->bl_title = $prefix . '_title';
-			$this->bl_fields = array(
+			$this->bl_fields = [
 				$this->bl_ns,
 				$this->bl_title
-			);
+			];
 		} else {
 			$this->bl_title = $prefix . '_to';
-			$this->bl_fields = array(
+			$this->bl_fields = [
 				$this->bl_title
-			);
+			];
 		}
 	}
 
@@ -121,14 +117,14 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 	 * @return void
 	 */
 	private function runFirstQuery( $resultPageSet = null ) {
-		$this->addTables( array( $this->bl_table, 'page' ) );
+		$this->addTables( [ $this->bl_table, 'page' ] );
 		$this->addWhere( "{$this->bl_from}=page_id" );
 		if ( is_null( $resultPageSet ) ) {
-			$this->addFields( array( 'page_id', 'page_title', 'page_namespace' ) );
+			$this->addFields( [ 'page_id', 'page_title', 'page_namespace' ] );
 		} else {
 			$this->addFields( $resultPageSet->getPageTableFields() );
 		}
-		$this->addFields( array( 'page_is_redirect', 'from_ns' => 'page_namespace' ) );
+		$this->addFields( [ 'page_is_redirect', 'from_ns' => 'page_namespace' ] );
 
 		$this->addWhereFld( $this->bl_title, $this->rootTitle->getDBkey() );
 		if ( $this->hasNS ) {
@@ -138,7 +134,7 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 
 		if ( count( $this->cont ) >= 2 ) {
 			$op = $this->params['dir'] == 'descending' ? '<' : '>';
-			if ( count( $this->params['namespace'] ) > 1 ) {
+			if ( $this->params['namespace'] !== null && count( $this->params['namespace'] ) > 1 ) {
 				$this->addWhere(
 					"{$this->bl_from_ns} $op {$this->cont[0]} OR " .
 					"({$this->bl_from_ns} = {$this->cont[0]} AND " .
@@ -152,15 +148,15 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 		if ( $this->params['filterredir'] == 'redirects' ) {
 			$this->addWhereFld( 'page_is_redirect', 1 );
 		} elseif ( $this->params['filterredir'] == 'nonredirects' && !$this->redirect ) {
-			// bug 22245 - Check for !redirect, as filtering nonredirects, when
+			// T24245 - Check for !redirect, as filtering nonredirects, when
 			// getting what links to them is contradictory
 			$this->addWhereFld( 'page_is_redirect', 0 );
 		}
 
 		$this->addOption( 'LIMIT', $this->params['limit'] + 1 );
 		$sort = ( $this->params['dir'] == 'descending' ? ' DESC' : '' );
-		$orderBy = array();
-		if ( count( $this->params['namespace'] ) > 1 ) {
+		$orderBy = [];
+		if ( $this->params['namespace'] !== null && count( $this->params['namespace'] ) > 1 ) {
 			$orderBy[] = $this->bl_from_ns . $sort;
 		}
 		$orderBy[] = $this->bl_from . $sort;
@@ -191,7 +187,7 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 			}
 
 			if ( is_null( $resultPageSet ) ) {
-				$a = array( 'pageid' => intval( $row->page_id ) );
+				$a = [ 'pageid' => (int)$row->page_id ];
 				ApiQueryBase::addTitleInfo( $a, $t );
 				if ( $row->page_is_redirect ) {
 					$a['redirect'] = true;
@@ -210,25 +206,25 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 	 */
 	private function runSecondQuery( $resultPageSet = null ) {
 		$db = $this->getDB();
-		$this->addTables( array( 'page', $this->bl_table ) );
+		$this->addTables( [ 'page', $this->bl_table ] );
 		$this->addWhere( "{$this->bl_from}=page_id" );
 
 		if ( is_null( $resultPageSet ) ) {
-			$this->addFields( array( 'page_id', 'page_title', 'page_namespace', 'page_is_redirect' ) );
+			$this->addFields( [ 'page_id', 'page_title', 'page_namespace', 'page_is_redirect' ] );
 		} else {
 			$this->addFields( $resultPageSet->getPageTableFields() );
 		}
 
-		$this->addFields( array( $this->bl_title, 'from_ns' => 'page_namespace' ) );
+		$this->addFields( [ $this->bl_title, 'from_ns' => 'page_namespace' ] );
 		if ( $this->hasNS ) {
 			$this->addFields( $this->bl_ns );
 		}
 
 		// We can't use LinkBatch here because $this->hasNS may be false
-		$titleWhere = array();
-		$allRedirNs = array();
-		$allRedirDBkey = array();
-		/** @var $t Title */
+		$titleWhere = [];
+		$allRedirNs = [];
+		$allRedirDBkey = [];
+		/** @var Title $t */
 		foreach ( $this->redirTitles as $t ) {
 			$redirNs = $t->getNamespace();
 			$redirDBkey = $t->getDBkey();
@@ -246,7 +242,7 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 			$where = "{$this->bl_from} $op= {$this->cont[5]}";
 			// Don't bother with namespace, title, or from_namespace if it's
 			// otherwise constant in the where clause.
-			if ( count( $this->params['namespace'] ) > 1 ) {
+			if ( $this->params['namespace'] !== null && count( $this->params['namespace'] ) > 1 ) {
 				$where = "{$this->bl_from_ns} $op {$this->cont[4]} OR " .
 					"({$this->bl_from_ns} = {$this->cont[4]} AND ($where))";
 			}
@@ -269,7 +265,7 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 		}
 
 		$this->addOption( 'LIMIT', $this->params['limit'] + 1 );
-		$orderBy = array();
+		$orderBy = [];
 		$sort = ( $this->params['dir'] == 'descending' ? ' DESC' : '' );
 		// Don't order by namespace/title/from_namespace if it's constant in the WHERE clause
 		if ( $this->hasNS && count( $allRedirNs ) > 1 ) {
@@ -278,12 +274,12 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 		if ( count( $allRedirDBkey ) > 1 ) {
 			$orderBy[] = $this->bl_title . $sort;
 		}
-		if ( count( $this->params['namespace'] ) > 1 ) {
+		if ( $this->params['namespace'] !== null && count( $this->params['namespace'] ) > 1 ) {
 			$orderBy[] = $this->bl_from_ns . $sort;
 		}
 		$orderBy[] = $this->bl_from . $sort;
 		$this->addOption( 'ORDER BY', $orderBy );
-		$this->addOption( 'USE INDEX', array( 'page' => 'PRIMARY' ) );
+		$this->addOption( 'USE INDEX', [ 'page' => 'PRIMARY' ] );
 
 		$res = $this->select( __METHOD__ );
 		$count = 0;
@@ -296,7 +292,7 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 				// Note we must keep the parameters for the first query constant
 				// This may be overridden at a later step
 				$title = $row->{$this->bl_title};
-				$this->continueStr = join( '|', array_slice( $this->cont, 0, 2 ) ) .
+				$this->continueStr = implode( '|', array_slice( $this->cont, 0, 2 ) ) .
 					"|$ns|$title|{$row->from_ns}|{$row->page_id}";
 				break;
 			}
@@ -310,7 +306,7 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 			}
 
 			if ( is_null( $resultPageSet ) ) {
-				$a['pageid'] = intval( $row->page_id );
+				$a['pageid'] = (int)$row->page_id;
 				ApiQueryBase::addTitleInfo( $a, Title::makeTitle( $row->page_namespace, $row->page_title ) );
 				if ( $row->page_is_redirect ) {
 					$a['redirect'] = true;
@@ -340,24 +336,23 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 			$this->params['limit'] = $this->getMain()->canApiHighLimits() ? $botMax : $userMax;
 			$result->addParsedLimit( $this->getModuleName(), $this->params['limit'] );
 		} else {
-			$this->params['limit'] = intval( $this->params['limit'] );
+			$this->params['limit'] = (int)$this->params['limit'];
 			$this->validateLimit( 'limit', $this->params['limit'], 1, $userMax, $botMax );
 		}
 
-		$this->rootTitle = $this->getTitleOrPageId( $this->params )->getTitle();
+		$this->rootTitle = $this->getTitleFromTitleOrPageId( $this->params );
 
 		// only image titles are allowed for the root in imageinfo mode
 		if ( !$this->hasNS && $this->rootTitle->getNamespace() !== NS_FILE ) {
-			$this->dieUsage(
-				"The title for {$this->getModuleName()} query must be a file",
+			$this->dieWithError(
+				[ 'apierror-imageusage-badtitle', $this->getModuleName() ],
 				'bad_image_title'
 			);
 		}
 
 		// Parse and validate continuation parameter
-		$this->cont = array();
+		$this->cont = [];
 		if ( $this->params['continue'] !== null ) {
-			$db = $this->getDB();
 			$cont = explode( '|', $this->params['continue'] );
 
 			switch ( count( $cont ) ) {
@@ -418,12 +413,12 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 		}
 
 		// Fill in any missing fields in case it's needed below
-		$this->cont += array( 0, 0, 0, '', 0, 0, 0 );
+		$this->cont += [ 0, 0, 0, '', 0, 0, 0 ];
 
 		if ( is_null( $resultPageSet ) ) {
 			// Try to add the result data in one go and pray that it fits
 			$code = $this->bl_code;
-			$data = array_map( function ( $arr ) use ( $result, $code ) {
+			$data = array_map( function ( $arr ) use ( $code ) {
 				if ( isset( $arr['redirlinks'] ) ) {
 					$arr['redirlinks'] = array_values( $arr['redirlinks'] );
 					ApiResult::setIndexedTagName( $arr['redirlinks'], $code );
@@ -449,16 +444,16 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 
 					// Add the basic entry without redirlinks first
 					$fit = $result->addValue(
-						array( 'query', $this->getModuleName() ),
-						$idx, array_diff_key( $arr, array( 'redirlinks' => '' ) ) );
+						[ 'query', $this->getModuleName() ],
+						$idx, array_diff_key( $arr, [ 'redirlinks' => '' ] ) );
 					if ( !$fit ) {
-						$this->continueStr = join( '|', array_slice( $this->cont, 0, 6 ) ) .
+						$this->continueStr = implode( '|', array_slice( $this->cont, 0, 6 ) ) .
 							"|$pageID";
 						break;
 					}
 
 					$hasRedirs = false;
-					$redirLinks = isset( $arr['redirlinks'] ) ? (array)$arr['redirlinks'] : array();
+					$redirLinks = isset( $arr['redirlinks'] ) ? (array)$arr['redirlinks'] : [];
 					ksort( $redirLinks );
 					if ( count( $this->cont ) >= 8 && $pageID == $startAt ) {
 						$redirStartAt = $this->cont[7];
@@ -472,10 +467,10 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 						}
 
 						$fit = $result->addValue(
-							array( 'query', $this->getModuleName(), $idx, 'redirlinks' ),
+							[ 'query', $this->getModuleName(), $idx, 'redirlinks' ],
 							null, $redir );
 						if ( !$fit ) {
-							$this->continueStr = join( '|', array_slice( $this->cont, 0, 6 ) ) .
+							$this->continueStr = implode( '|', array_slice( $this->cont, 0, 6 ) ) .
 								"|$pageID|$key";
 							break;
 						}
@@ -483,7 +478,7 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 					}
 					if ( $hasRedirs ) {
 						$result->addIndexedTagName(
-							array( 'query', $this->getModuleName(), $idx, 'redirlinks' ),
+							[ 'query', $this->getModuleName(), $idx, 'redirlinks' ],
 							$this->bl_code );
 					}
 					if ( !$fit ) {
@@ -495,7 +490,7 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 			}
 
 			$result->addIndexedTagName(
-				array( 'query', $this->getModuleName() ),
+				[ 'query', $this->getModuleName() ],
 				$this->bl_code
 			);
 		}
@@ -505,43 +500,43 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 	}
 
 	public function getAllowedParams() {
-		$retval = array(
-			'title' => array(
+		$retval = [
+			'title' => [
 				ApiBase::PARAM_TYPE => 'string',
-			),
-			'pageid' => array(
+			],
+			'pageid' => [
 				ApiBase::PARAM_TYPE => 'integer',
-			),
-			'continue' => array(
+			],
+			'continue' => [
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-continue',
-			),
-			'namespace' => array(
+			],
+			'namespace' => [
 				ApiBase::PARAM_ISMULTI => true,
 				ApiBase::PARAM_TYPE => 'namespace'
-			),
-			'dir' => array(
+			],
+			'dir' => [
 				ApiBase::PARAM_DFLT => 'ascending',
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'ascending',
 					'descending'
-				)
-			),
-			'filterredir' => array(
+				]
+			],
+			'filterredir' => [
 				ApiBase::PARAM_DFLT => 'all',
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'all',
 					'redirects',
 					'nonredirects'
-				)
-			),
-			'limit' => array(
+				]
+			],
+			'limit' => [
 				ApiBase::PARAM_DFLT => 10,
 				ApiBase::PARAM_TYPE => 'limit',
 				ApiBase::PARAM_MIN => 1,
 				ApiBase::PARAM_MAX => ApiBase::LIMIT_BIG1,
 				ApiBase::PARAM_MAX2 => ApiBase::LIMIT_BIG2
-			)
-		);
+			]
+		];
 		if ( $this->getModuleName() == 'embeddedin' ) {
 			return $retval;
 		}
@@ -551,26 +546,26 @@ class ApiQueryBacklinks extends ApiQueryGeneratorBase {
 	}
 
 	protected function getExamplesMessages() {
-		static $examples = array(
-			'backlinks' => array(
+		static $examples = [
+			'backlinks' => [
 				'action=query&list=backlinks&bltitle=Main%20Page'
 					=> 'apihelp-query+backlinks-example-simple',
 				'action=query&generator=backlinks&gbltitle=Main%20Page&prop=info'
 					=> 'apihelp-query+backlinks-example-generator',
-			),
-			'embeddedin' => array(
+			],
+			'embeddedin' => [
 				'action=query&list=embeddedin&eititle=Template:Stub'
 					=> 'apihelp-query+embeddedin-example-simple',
 				'action=query&generator=embeddedin&geititle=Template:Stub&prop=info'
 					=> 'apihelp-query+embeddedin-example-generator',
-			),
-			'imageusage' => array(
+			],
+			'imageusage' => [
 				'action=query&list=imageusage&iutitle=File:Albert%20Einstein%20Head.jpg'
 					=> 'apihelp-query+imageusage-example-simple',
 				'action=query&generator=imageusage&giutitle=File:Albert%20Einstein%20Head.jpg&prop=info'
 					=> 'apihelp-query+imageusage-example-generator',
-			)
-		);
+			]
+		];
 
 		return $examples[$this->getModuleName()];
 	}

@@ -5,14 +5,16 @@
  * @file
  */
 
-/** Tests for MediaWiki languages/classes/LanguageKsh.php */
+/**
+ * @covers LanguageKsh
+ */
 class LanguageKshTest extends LanguageClassesTestCase {
 	/**
 	 * @dataProvider providePlural
 	 * @covers Language::convertPlural
 	 */
 	public function testPlural( $result, $value ) {
-		$forms = array( 'one', 'other', 'zero' );
+		$forms = [ 'one', 'other', 'zero' ];
 		$this->assertEquals( $result, $this->getLang()->convertPlural( $value, $forms ) );
 	}
 
@@ -25,11 +27,11 @@ class LanguageKshTest extends LanguageClassesTestCase {
 	}
 
 	public static function providePlural() {
-		return array(
-			array( 'zero', 0 ),
-			array( 'one', 1 ),
-			array( 'other', 2 ),
-			array( 'other', 200 ),
-		);
+		return [
+			[ 'zero', 0 ],
+			[ 'one', 1 ],
+			[ 'other', 2 ],
+			[ 'other', 200 ],
+		];
 	}
 }

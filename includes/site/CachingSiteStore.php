@@ -24,7 +24,7 @@
  * @file
  * @ingroup Site
  *
- * @license GNU GPL v2+
+ * @license GPL-2.0-or-later
  * @author Jeroen De Dauw < jeroendedauw@gmail.com >
  * @author Katie Filbert < aude.wiki@gmail.com >
  */
@@ -90,7 +90,7 @@ class CachingSiteStore implements SiteStore {
 	private function getCacheKey() {
 		if ( $this->cacheKey === null ) {
 			$type = 'SiteList#' . SiteList::getSerialVersionId();
-			$this->cacheKey = wfMemcKey( "sites/$type" );
+			$this->cacheKey = $this->cache->makeKey( "sites/$type" );
 		}
 
 		return $this->cacheKey;
@@ -142,7 +142,7 @@ class CachingSiteStore implements SiteStore {
 	 * @return bool Success indicator
 	 */
 	public function saveSite( Site $site ) {
-		return $this->saveSites( array( $site ) );
+		return $this->saveSites( [ $site ] );
 	}
 
 	/**

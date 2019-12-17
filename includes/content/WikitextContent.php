@@ -25,6 +25,9 @@
  * @author Daniel Kinzler
  */
 
+use MediaWiki\Logger\LoggerFactory;
+use MediaWiki\MediaWikiServices;
+
 /**
  * Content object for wiki text pages.
  *
@@ -33,12 +36,23 @@
 class WikitextContent extends TextContent {
 	private $redirectTargetAndText = null;
 
+	/**
+	 * @var bool Tracks if the parser set the user-signature flag when creating this content, which
+	 *   would make it expire faster in ApiStashEdit.
+	 */
+	private $hadSignature = false;
+
+	/**
+	 * @var array|null Stack trace of the previous parse
+	 */
+	private $previousParseStackTrace = null;
+
 	public function __construct( $text ) {
 		parent::__construct( $text, CONTENT_MODEL_WIKITEXT );
 	}
 
 	/**
-	 * @param string|number $sectionId
+	 * @param string|int $sectionId
 	 *
 	 * @return Content|bool|null
 	 *
@@ -47,7 +61,7 @@ class WikitextContent extends TextContent {
 	public function getSection( $sectionId ) {
 		global $wgParser;
 
-		$text = $this->getNativeData();
+		$text = $this->getText();
 		$sect = $wgParser->getSection( $text, $sectionId, false );
 
 		if ( $sect === false ) {
@@ -58,7 +72,7 @@ class WikitextContent extends TextContent {
 	}
 
 	/**
-	 * @param string|number|null|bool $sectionId
+	 * @param string|int|null|bool $sectionId
 	 * @param Content $with
 	 * @param string $sectionTitle
 	 *
@@ -68,7 +82,6 @@ class WikitextContent extends TextContent {
 	 * @see Content::replaceSection()
 	 */
 	public function replaceSection( $sectionId, Content $with, $sectionTitle = '' ) {
-
 		$myModelId = $this->getModel();
 		$sectionModelId = $with->getModel();
 
@@ -78,8 +91,8 @@ class WikitextContent extends TextContent {
 				"section uses $sectionModelId." );
 		}
 
-		$oldtext = $this->getNativeData();
-		$text = $with->getNativeData();
+		$oldtext = $this->getText();
+		$text = $with->getText();
 
 		if ( strval( $sectionId ) === '' ) {
 			return $with; # XXX: copy first?
@@ -88,8 +101,8 @@ class WikitextContent extends TextContent {
 		if ( $sectionId === 'new' ) {
 			# Inserting a new section
 			$subject = $sectionTitle ? wfMessage( 'newsectionheaderdefaultlevel' )
-					->rawParams( $sectionTitle )->inContentLanguage()->text() . "\n\n" : '';
-			if ( Hooks::run( 'PlaceNewSection', array( $this, $oldtext, $subject, &$text ) ) ) {
+					->plaintextParams( $sectionTitle )->inContentLanguage()->text() . "\n\n" : '';
+			if ( Hooks::run( 'PlaceNewSection', [ $this, $oldtext, $subject, &$text ] ) ) {
 				$text = strlen( trim( $oldtext ) ) > 0
 					? "{$oldtext}\n\n{$subject}{$text}"
 					: "{$subject}{$text}";
@@ -118,7 +131,7 @@ class WikitextContent extends TextContent {
 		$text = wfMessage( 'newsectionheaderdefaultlevel' )
 			->rawParams( $header )->inContentLanguage()->text();
 		$text .= "\n\n";
-		$text .= $this->getNativeData();
+		$text .= $this->getText();
 
 		return new static( $text );
 	}
@@ -136,11 +149,20 @@ class WikitextContent extends TextContent {
 	public function preSaveTransform( Title $title, User $user, ParserOptions $popts ) {
 		global $wgParser;
 
-		$text = $this->getNativeData();
+		$text = $this->getText();
 		$pst = $wgParser->preSaveTransform( $text, $title, $user, $popts );
-		rtrim( $pst );
 
-		return ( $text === $pst ) ? $this : new static( $pst );
+		if ( $text === $pst ) {
+			return $this;
+		}
+
+		$ret = new static( $pst );
+
+		if ( $wgParser->getOutput()->getFlag( 'user-signature' ) ) {
+			$ret->hadSignature = true;
+		}
+
+		return $ret;
 	}
 
 	/**
@@ -153,10 +175,10 @@ class WikitextContent extends TextContent {
 	 *
 	 * @return Content
 	 */
-	public function preloadTransform( Title $title, ParserOptions $popts, $params = array() ) {
+	public function preloadTransform( Title $title, ParserOptions $popts, $params = [] ) {
 		global $wgParser;
 
-		$text = $this->getNativeData();
+		$text = $this->getText();
 		$plt = $wgParser->getPreloadText( $text, $title, $popts, $params );
 
 		return new static( $plt );
@@ -180,17 +202,17 @@ class WikitextContent extends TextContent {
 
 		if ( $wgMaxRedirects < 1 ) {
 			// redirects are disabled, so quit early
-			$this->redirectTargetAndText = array( null, $this->getNativeData() );
+			$this->redirectTargetAndText = [ null, $this->getText() ];
 			return $this->redirectTargetAndText;
 		}
 
-		$redir = MagicWord::get( 'redirect' );
-		$text = ltrim( $this->getNativeData() );
+		$redir = MediaWikiServices::getInstance()->getMagicWordFactory()->get( 'redirect' );
+		$text = ltrim( $this->getText() );
 		if ( $redir->matchStartAndRemove( $text ) ) {
 			// Extract the first link and see if it's usable
 			// Ensure that it really does come directly after #REDIRECT
 			// Some older redirects included a colon, so don't freak about that!
-			$m = array();
+			$m = [];
 			if ( preg_match( '!^\s*:?\s*\[{2}(.*?)(?:\|.*?)?\]{2}\s*!', $text, $m ) ) {
 				// Strip preceding colon used to "escape" categories, etc.
 				// and URL-decode links
@@ -201,16 +223,16 @@ class WikitextContent extends TextContent {
 				$title = Title::newFromText( $m[1] );
 				// If the title is a redirect to bad special pages or is invalid, return null
 				if ( !$title instanceof Title || !$title->isValidRedirectTarget() ) {
-					$this->redirectTargetAndText = array( null, $this->getNativeData() );
+					$this->redirectTargetAndText = [ null, $this->getText() ];
 					return $this->redirectTargetAndText;
 				}
 
-				$this->redirectTargetAndText = array( $title, substr( $text, strlen( $m[0] ) ) );
+				$this->redirectTargetAndText = [ $title, substr( $text, strlen( $m[0] ) ) ];
 				return $this->redirectTargetAndText;
 			}
 		}
 
-		$this->redirectTargetAndText = array( null, $this->getNativeData() );
+		$this->redirectTargetAndText = [ null, $this->getText() ];
 		return $this->redirectTargetAndText;
 	}
 
@@ -249,7 +271,7 @@ class WikitextContent extends TextContent {
 		# so the regex has to be fairly general
 		$newText = preg_replace( '/ \[ \[  [^\]]*  \] \] /x',
 			'[[' . $target->getFullText() . ']]',
-			$this->getNativeData(), 1 );
+			$this->getText(), 1 );
 
 		return new static( $newText );
 	}
@@ -258,10 +280,10 @@ class WikitextContent extends TextContent {
 	 * Returns true if this content is not a redirect, and this content's text
 	 * is countable according to the criteria defined by $wgArticleCountMethod.
 	 *
-	 * @param bool $hasLinks If it is known whether this content contains
+	 * @param bool|null $hasLinks If it is known whether this content contains
 	 *    links, provide this information here, to avoid redundant parsing to
 	 *    find out (default: null).
-	 * @param Title $title Optional title, defaults to the title from the current main request.
+	 * @param Title|null $title Optional title, defaults to the title from the current main request.
 	 *
 	 * @return bool
 	 */
@@ -272,28 +294,22 @@ class WikitextContent extends TextContent {
 			return false;
 		}
 
-		switch ( $wgArticleCountMethod ) {
-			case 'any':
-				return true;
-			case 'comma':
-				$text = $this->getNativeData();
-				return strpos( $text, ',' ) !== false;
-			case 'link':
-				if ( $hasLinks === null ) { # not known, find out
-					if ( !$title ) {
-						$context = RequestContext::getMain();
-						$title = $context->getTitle();
-					}
-
-					$po = $this->getParserOutput( $title, null, null, false );
-					$links = $po->getLinks();
-					$hasLinks = !empty( $links );
+		if ( $wgArticleCountMethod === 'link' ) {
+			if ( $hasLinks === null ) { # not known, find out
+				if ( !$title ) {
+					$context = RequestContext::getMain();
+					$title = $context->getTitle();
 				}
 
-				return $hasLinks;
+				$po = $this->getParserOutput( $title, null, null, false );
+				$links = $po->getLinks();
+				$hasLinks = !empty( $links );
+			}
+
+			return $hasLinks;
 		}
 
-		return false;
+		return true;
 	}
 
 	/**
@@ -327,6 +343,28 @@ class WikitextContent extends TextContent {
 	) {
 		global $wgParser;
 
+		$stackTrace = ( new RuntimeException() )->getTraceAsString();
+		if ( $this->previousParseStackTrace ) {
+			// NOTE: there may be legitimate changes to re-parse the same WikiText content,
+			// e.g. if predicted revision ID for the REVISIONID magic word mismatched.
+			// But that should be rare.
+			$logger = LoggerFactory::getInstance( 'DuplicateParse' );
+			$logger->debug(
+				__METHOD__ . ': Possibly redundant parse!',
+				[
+					'title' => $title->getPrefixedDBkey(),
+					'rev' => $revId,
+					'options-hash' => $options->optionsHash(
+						ParserOptions::allCacheVaryingOptions(),
+						$title
+					),
+					'trace' => $stackTrace,
+					'previous-trace' => $this->previousParseStackTrace,
+				]
+			);
+		}
+		$this->previousParseStackTrace = $stackTrace;
+
 		list( $redir, $text ) = $this->getRedirectTargetAndText();
 		$output = $wgParser->parse( $text, $title, $options, true, true, $revId );
 
@@ -338,10 +376,15 @@ class WikitextContent extends TextContent {
 				$chain = $this->getRedirectChain();
 				$output->setText(
 					Article::getRedirectHeaderHtml( $title->getPageLanguage(), $chain, false ) .
-					$output->getText()
+					$output->getRawText()
 				);
 				$output->addModuleStyles( 'mediawiki.action.view.redirectPage' );
 			}
+		}
+
+		// Pass along user-signature flag
+		if ( $this->hadSignature ) {
+			$output->setFlag( 'user-signature' );
 		}
 	}
 
@@ -365,7 +408,7 @@ class WikitextContent extends TextContent {
 	 * @see Content::matchMagicWord()
 	 */
 	public function matchMagicWord( MagicWord $word ) {
-		return $word->match( $this->getNativeData() );
+		return $word->match( $this->getText() );
 	}
 
 }

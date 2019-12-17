@@ -26,6 +26,8 @@
  * @see http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd
  */
 
+use MediaWiki\MediaWikiServices;
+
 require_once __DIR__ . '/Maintenance.php';
 
 /**
@@ -89,21 +91,21 @@ class GenerateSitemap extends Maintenance {
 	 *
 	 * @var array
 	 */
-	public $limit = array();
+	public $limit = [];
 
 	/**
 	 * Key => value entries of namespaces and their priorities
 	 *
 	 * @var array
 	 */
-	public $priorities = array();
+	public $priorities = [];
 
 	/**
 	 * A one-dimensional array of namespaces in the wiki
 	 *
 	 * @var array
 	 */
-	public $namespaces = array();
+	public $namespaces = [];
 
 	/**
 	 * When this sitemap batch was generated
@@ -113,7 +115,7 @@ class GenerateSitemap extends Maintenance {
 	public $timestamp;
 
 	/**
-	 * A database slave object
+	 * A database replica DB object
 	 *
 	 * @var object
 	 */
@@ -140,12 +142,9 @@ class GenerateSitemap extends Maintenance {
 	 */
 	private $identifier;
 
-	/**
-	 * Constructor
-	 */
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Creates a sitemap for the site";
+		$this->addDescription( 'Creates a sitemap for the site' );
 		$this->addOption(
 			'fspath',
 			'The file system path to save to, e.g. /tmp/sitemap; defaults to current directory',
@@ -180,12 +179,12 @@ class GenerateSitemap extends Maintenance {
 	public function execute() {
 		$this->setNamespacePriorities();
 		$this->url_limit = 50000;
-		$this->size_limit = pow( 2, 20 ) * 10;
+		$this->size_limit = ( 2 ** 20 ) * 10;
 
 		# Create directory if needed
 		$fspath = $this->getOption( 'fspath', getcwd() );
 		if ( !wfMkdirParents( $fspath, null, __METHOD__ ) ) {
-			$this->error( "Can not create directory $fspath.", 1 );
+			$this->fatalError( "Can not create directory $fspath." );
 		}
 
 		$this->fspath = realpath( $fspath ) . DIRECTORY_SEPARATOR;
@@ -195,8 +194,8 @@ class GenerateSitemap extends Maintenance {
 		}
 		$this->identifier = $this->getOption( 'identifier', wfWikiID() );
 		$this->compress = $this->getOption( 'compress', 'yes' ) !== 'no';
-		$this->skipRedirects = $this->getOption( 'skip-redirects', false ) !== false;
-		$this->dbr = wfGetDB( DB_SLAVE );
+		$this->skipRedirects = $this->hasOption( 'skip-redirects' );
+		$this->dbr = $this->getDB( DB_REPLICA );
 		$this->generateNamespaces();
 		$this->timestamp = wfTimestamp( TS_ISO_8601, wfTimestampNow() );
 		$this->findex = fopen( "{$this->fspath}sitemap-index-{$this->identifier}.xml", 'wb' );
@@ -258,13 +257,13 @@ class GenerateSitemap extends Maintenance {
 		}
 
 		$res = $this->dbr->select( 'page',
-			array( 'page_namespace' ),
-			array(),
+			[ 'page_namespace' ],
+			[],
 			__METHOD__,
-			array(
+			[
 				'GROUP BY' => 'page_namespace',
 				'ORDER BY' => 'page_namespace',
-			)
+			]
 		);
 
 		foreach ( $res as $row ) {
@@ -279,9 +278,7 @@ class GenerateSitemap extends Maintenance {
 	 * @return string
 	 */
 	function priority( $namespace ) {
-		return isset( $this->priorities[$namespace] )
-			? $this->priorities[$namespace]
-			: $this->guessPriority( $namespace );
+		return $this->priorities[$namespace] ?? $this->guessPriority( $namespace );
 	}
 
 	/**
@@ -306,13 +303,13 @@ class GenerateSitemap extends Maintenance {
 	 */
 	function getPageRes( $namespace ) {
 		return $this->dbr->select( 'page',
-			array(
+			[
 				'page_namespace',
 				'page_title',
 				'page_touched',
 				'page_is_redirect'
-			),
-			array( 'page_namespace' => $namespace ),
+			],
+			[ 'page_namespace' => $namespace ],
 			__METHOD__
 		);
 	}
@@ -321,7 +318,7 @@ class GenerateSitemap extends Maintenance {
 	 * Main loop
 	 */
 	public function main() {
-		global $wgContLang;
+		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 
 		fwrite( $this->findex, $this->openIndex() );
 
@@ -332,7 +329,7 @@ class GenerateSitemap extends Maintenance {
 			$length = $this->limit[0];
 			$i = $smcount = 0;
 
-			$fns = $wgContLang->getFormattedNsText( $namespace );
+			$fns = $contLang->getFormattedNsText( $namespace );
 			$this->output( "$namespace ($fns)\n" );
 			$skippedRedirects = 0; // Number of redirects skipped for that namespace
 			foreach ( $res as $row ) {
@@ -363,10 +360,10 @@ class GenerateSitemap extends Maintenance {
 				$length += strlen( $entry );
 				$this->write( $this->file, $entry );
 				// generate pages for language variants
-				if ( $wgContLang->hasVariants() ) {
-					$variants = $wgContLang->getVariants();
+				if ( $contLang->hasVariants() ) {
+					$variants = $contLang->getVariants();
 					foreach ( $variants as $vCode ) {
-						if ( $vCode == $wgContLang->getCode() ) {
+						if ( $vCode == $contLang->getCode() ) {
 							continue; // we don't want default variant
 						}
 						$entry = $this->fileEntry(
@@ -413,7 +410,7 @@ class GenerateSitemap extends Maintenance {
 	/**
 	 * gzwrite() / fwrite() wrapper
 	 *
-	 * @param resource $handle
+	 * @param resource &$handle
 	 * @param string $str
 	 */
 	function write( &$handle, $str ) {
@@ -430,7 +427,7 @@ class GenerateSitemap extends Maintenance {
 	/**
 	 * gzclose() / fclose() wrapper
 	 *
-	 * @param resource $handle
+	 * @param resource &$handle
 	 */
 	function close( &$handle ) {
 		if ( $this->compress ) {
@@ -443,8 +440,8 @@ class GenerateSitemap extends Maintenance {
 	/**
 	 * Get a sitemap filename
 	 *
-	 * @param int $namespace The namespace
-	 * @param int $count The count
+	 * @param int $namespace
+	 * @param int $count
 	 * @return string
 	 */
 	function sitemapFilename( $namespace, $count ) {
@@ -487,9 +484,10 @@ class GenerateSitemap extends Maintenance {
 	 * @return string
 	 */
 	function indexEntry( $filename ) {
-		return
-			"\t<sitemap>\n" .
-			"\t\t<loc>{$this->urlpath}$filename</loc>\n" .
+		return "\t<sitemap>\n" .
+			"\t\t<loc>" . wfGetServerUrl( PROTO_CANONICAL ) .
+				( substr( $this->urlpath, 0, 1 ) === "/" ? "" : "/" ) .
+				"{$this->urlpath}$filename</loc>\n" .
 			"\t\t<lastmod>{$this->timestamp}</lastmod>\n" .
 			"\t</sitemap>\n";
 	}
@@ -521,9 +519,8 @@ class GenerateSitemap extends Maintenance {
 	 * @return string
 	 */
 	function fileEntry( $url, $date, $priority ) {
-		return
-			"\t<url>\n" .
-			// bug 34666: $url may contain bad characters such as ampersands.
+		return "\t<url>\n" .
+			// T36666: $url may contain bad characters such as ampersands.
 			"\t\t<loc>" . htmlspecialchars( $url ) . "</loc>\n" .
 			"\t\t<lastmod>$date</lastmod>\n" .
 			"\t\t<priority>$priority</priority>\n" .
@@ -545,10 +542,10 @@ class GenerateSitemap extends Maintenance {
 	 * @param int $namespace
 	 */
 	function generateLimit( $namespace ) {
-		// bug 17961: make a title with the longest possible URL in this namespace
-		$title = Title::makeTitle( $namespace, str_repeat( "\xf0\xa8\xae\x81", 63 ) . "\xe5\x96\x83" );
+		// T19961: make a title with the longest possible URL in this namespace
+		$title = Title::makeTitle( $namespace, str_repeat( "\u{28B81}", 63 ) . "\u{5583}" );
 
-		$this->limit = array(
+		$this->limit = [
 			strlen( $this->openFile() ),
 			strlen( $this->fileEntry(
 				$title->getCanonicalURL(),
@@ -556,9 +553,9 @@ class GenerateSitemap extends Maintenance {
 				$this->priority( $namespace )
 			) ),
 			strlen( $this->closeFile() )
-		);
+		];
 	}
 }
 
-$maintClass = "GenerateSitemap";
+$maintClass = GenerateSitemap::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

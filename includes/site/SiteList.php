@@ -23,7 +23,7 @@
  * @file
  * @ingroup Site
  *
- * @license GNU GPL v2+
+ * @license GPL-2.0-or-later
  * @author Jeroen De Dauw < jeroendedauw@gmail.com >
  */
 class SiteList extends GenericArrayObject {
@@ -34,7 +34,7 @@ class SiteList extends GenericArrayObject {
 	 *
 	 * @var array Array of integer
 	 */
-	protected $byInternalId = array();
+	protected $byInternalId = [];
 
 	/**
 	 * Global site identifiers pointing to their sites offset value.
@@ -43,7 +43,7 @@ class SiteList extends GenericArrayObject {
 	 *
 	 * @var array Array of string
 	 */
-	protected $byGlobalId = array();
+	protected $byGlobalId = [];
 
 	/**
 	 * Navigational site identifiers alias inter-language prefixes
@@ -53,7 +53,7 @@ class SiteList extends GenericArrayObject {
 	 *
 	 * @var array Array of string
 	 */
-	protected $byNavigationId = array();
+	protected $byNavigationId = [];
 
 	/**
 	 * @see GenericArrayObject::getObjectType
@@ -63,7 +63,7 @@ class SiteList extends GenericArrayObject {
 	 * @return string
 	 */
 	public function getObjectType() {
-		return 'Site';
+		return Site::class;
 	}
 
 	/**
@@ -175,7 +175,7 @@ class SiteList extends GenericArrayObject {
 	 * @return bool
 	 */
 	public function isEmpty() {
-		return $this->byGlobalId === array();
+		return $this->byGlobalId === [];
 	}
 
 	/**
@@ -319,15 +319,15 @@ class SiteList extends GenericArrayObject {
 	 * @return array
 	 */
 	protected function getSerializationData() {
-		//NOTE: When changing the structure, either implement unserialize() to handle the
+		// NOTE: When changing the structure, either implement unserialize() to handle the
 		//      old structure too, or update SERIAL_VERSION_ID to kill any caches.
 		return array_merge(
 			parent::getSerializationData(),
-			array(
+			[
 				'internalIds' => $this->byInternalId,
 				'globalIds' => $this->byGlobalId,
 				'navigationIds' => $this->byNavigationId
-			)
+			]
 		);
 	}
 
@@ -349,10 +349,4 @@ class SiteList extends GenericArrayObject {
 
 		return $serializationData;
 	}
-}
-
-/**
- * @deprecated since 1.21
- */
-class SiteArray extends SiteList {
 }

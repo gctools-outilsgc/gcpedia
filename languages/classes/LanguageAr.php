@@ -30,7 +30,7 @@
 class LanguageAr extends Language {
 
 	/**
-	 * Temporary hack for bug 9413: replace Arabic presentation forms with their
+	 * Temporary hack for T11413: replace Arabic presentation forms with their
 	 * standard equivalents.
 	 *
 	 * @todo FIXME: This is language-specific for now only to avoid the negative
@@ -40,11 +40,13 @@ class LanguageAr extends Language {
 	 *
 	 * @return string
 	 */
-	function normalize( $s ) {
+	public function normalize( $s ) {
 		global $wgFixArabicUnicode;
 		$s = parent::normalize( $s );
 		if ( $wgFixArabicUnicode ) {
-			$s = $this->transformUsingPairFile( 'normalize-ar.ser', $s );
+			$s = $this->transformUsingPairFile( 'normalize-ar.php', $s );
+		} else {
+			wfDeprecated( '$wgFixArabicUnicode = false', '1.33' );
 		}
 		return $s;
 	}

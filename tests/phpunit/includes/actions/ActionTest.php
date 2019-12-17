@@ -1,12 +1,15 @@
 <?php
 
+use MediaWiki\Block\Restriction\PageRestriction;
+
 /**
  * @covers Action
  *
- * @author Thiemo Mättig
- *
  * @group Action
  * @group Database
+ *
+ * @license GPL-2.0-or-later
+ * @author Thiemo Kreuz
  */
 class ActionTest extends MediaWikiTestCase {
 
@@ -14,18 +17,20 @@ class ActionTest extends MediaWikiTestCase {
 		parent::setUp();
 
 		$context = $this->getContext();
-		$this->setMwGlobals( 'wgActions', array(
+		$this->setMwGlobals( 'wgActions', [
 			'null' => null,
 			'disabled' => false,
 			'view' => true,
 			'edit' => true,
-			'revisiondelete' => 'SpecialPageAction',
+			'revisiondelete' => SpecialPageAction::class,
 			'dummy' => true,
+			'access' => 'ControlledAccessDummyAction',
+			'unblock' => 'RequiresUnblockDummyAction',
 			'string' => 'NamedDummyAction',
 			'declared' => 'NonExistingClassName',
-			'callable' => array( $this, 'dummyActionCallback' ),
+			'callable' => [ $this, 'dummyActionCallback' ],
 			'object' => new InstantiatedDummyAction( $context->getWikiPage(), $context ),
-		) );
+		] );
 	}
 
 	private function getPage() {
@@ -33,7 +38,7 @@ class ActionTest extends MediaWikiTestCase {
 	}
 
 	private function getContext( $requestedAction = null ) {
-		$request = new FauxRequest( array( 'action' => $requestedAction ) );
+		$request = new FauxRequest( [ 'action' => $requestedAction ] );
 
 		$context = new DerivativeContext( RequestContext::getMain() );
 		$context->setRequest( $request );
@@ -43,22 +48,22 @@ class ActionTest extends MediaWikiTestCase {
 	}
 
 	public function actionProvider() {
-		return array(
-			array( 'dummy', 'DummyAction' ),
-			array( 'string', 'NamedDummyAction' ),
-			array( 'callable', 'CalledDummyAction' ),
-			array( 'object', 'InstantiatedDummyAction' ),
+		return [
+			[ 'dummy', 'DummyAction' ],
+			[ 'string', 'NamedDummyAction' ],
+			[ 'callable', 'CalledDummyAction' ],
+			[ 'object', 'InstantiatedDummyAction' ],
 
 			// Capitalization is ignored
-			array( 'DUMMY', 'DummyAction' ),
-			array( 'STRING', 'NamedDummyAction' ),
+			[ 'DUMMY', 'DummyAction' ],
+			[ 'STRING', 'NamedDummyAction' ],
 
 			// Null and non-existing values
-			array( 'null', null ),
-			array( 'undeclared', null ),
-			array( '', null ),
-			array( false, null ),
-		);
+			[ 'null', null ],
+			[ 'undeclared', null ],
+			[ '', null ],
+			[ false, null ],
+		];
 	}
 
 	/**
@@ -92,7 +97,7 @@ class ActionTest extends MediaWikiTestCase {
 	}
 
 	public function testGetActionName_editredlinkWorkaround() {
-		// See https://bugzilla.wikimedia.org/show_bug.cgi?id=20966
+		// See https://phabricator.wikimedia.org/T22966
 		$context = $this->getContext( 'editredlink' );
 		$actionName = Action::getActionName( $context );
 
@@ -100,7 +105,7 @@ class ActionTest extends MediaWikiTestCase {
 	}
 
 	public function testGetActionName_historysubmitWorkaround() {
-		// See https://bugzilla.wikimedia.org/show_bug.cgi?id=20966
+		// See https://phabricator.wikimedia.org/T22966
 		$context = $this->getContext( 'historysubmit' );
 		$actionName = Action::getActionName( $context );
 
@@ -108,7 +113,7 @@ class ActionTest extends MediaWikiTestCase {
 	}
 
 	public function testGetActionName_revisiondeleteWorkaround() {
-		// See https://bugzilla.wikimedia.org/show_bug.cgi?id=20966
+		// See https://phabricator.wikimedia.org/T22966
 		$context = $this->getContext( 'historysubmit' );
 		$context->getRequest()->setVal( 'revisiondelete', true );
 		$actionName = Action::getActionName( $context );
@@ -117,7 +122,7 @@ class ActionTest extends MediaWikiTestCase {
 	}
 
 	public function testGetActionName_whenCanNotUseWikiPage_defaultsToView() {
-		$request = new FauxRequest( array( 'action' => 'edit' ) );
+		$request = new FauxRequest( [ 'action' => 'edit' ] );
 		$context = new DerivativeContext( RequestContext::getMain() );
 		$context->setRequest( $request );
 		$actionName = Action::getActionName( $context );
@@ -182,18 +187,69 @@ class ActionTest extends MediaWikiTestCase {
 		return new CalledDummyAction( $context->getWikiPage(), $context );
 	}
 
+	public function testCanExecute() {
+		$user = $this->getTestUser()->getUser();
+		$user->mRights = [ 'access' ];
+		$action = Action::factory( 'access', $this->getPage(), $this->getContext() );
+		$this->assertNull( $action->canExecute( $user ) );
+	}
+
+	public function testCanExecuteNoRight() {
+		$user = $this->getTestUser()->getUser();
+		$user->mRights = [];
+		$action = Action::factory( 'access', $this->getPage(), $this->getContext() );
+
+		try {
+			$action->canExecute( $user );
+		} catch ( Exception $e ) {
+			$this->assertInstanceOf( PermissionsError::class, $e );
+		}
+	}
+
+	public function testCanExecuteRequiresUnblock() {
+		$user = $this->getTestUser()->getUser();
+		$user->mRights = [];
+
+		$page = $this->getExistingTestPage();
+		$action = Action::factory( 'unblock', $page, $this->getContext() );
+
+		$block = new Block( [
+			'address' => $user,
+			'by' => $this->getTestSysop()->getUser()->getId(),
+			'expiry' => 'infinity',
+			'sitewide' => false,
+		] );
+		$block->setRestrictions( [
+			new PageRestriction( 0, $page->getTitle()->getArticleID() ),
+		] );
+
+		$block->insert();
+
+		try {
+			$action->canExecute( $user );
+		} catch ( Exception $e ) {
+			$this->assertInstanceOf( UserBlockedError::class, $e );
+		}
+
+		$block->delete();
+	}
+
 }
 
 class DummyAction extends Action {
 
 	public function getName() {
-		return get_called_class();
+		return static::class;
 	}
 
 	public function show() {
 	}
 
 	public function execute() {
+	}
+
+	public function canExecute( User $user ) {
+		return $this->checkCanExecute( $user );
 	}
 }
 
@@ -204,4 +260,16 @@ class CalledDummyAction extends DummyAction {
 }
 
 class InstantiatedDummyAction extends DummyAction {
+}
+
+class ControlledAccessDummyAction extends DummyAction {
+	public function getRestriction() {
+		return 'access';
+	}
+}
+
+class RequiresUnblockDummyAction extends DummyAction {
+	public function requiresUnblock() {
+		return true;
+	}
 }

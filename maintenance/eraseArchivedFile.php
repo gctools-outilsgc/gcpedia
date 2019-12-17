@@ -19,7 +19,6 @@
  *
  * @file
  * @ingroup Maintenance
- * @author Aaron Schulz
  */
 
 require_once __DIR__ . '/Maintenance.php';
@@ -35,7 +34,7 @@ require_once __DIR__ . '/Maintenance.php';
 class EraseArchivedFile extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Erases traces of deleted files.";
+		$this->addDescription( 'Erases traces of deleted files.' );
 		$this->addOption( 'delete', 'Perform the deletion' );
 		$this->addOption( 'filename', 'File name', false, true );
 		$this->addOption( 'filekey', 'File storage key (with extension) or "*"', true, true );
@@ -51,16 +50,17 @@ class EraseArchivedFile extends Maintenance {
 
 		if ( $filekey === '*' ) { // all versions by name
 			if ( !strlen( $filename ) ) {
-				$this->error( "Missing --filename parameter.", 1 );
+				$this->fatalError( "Missing --filename parameter." );
 			}
 			$afile = false;
 		} else { // specified version
-			$dbw = wfGetDB( DB_MASTER );
-			$row = $dbw->selectRow( 'filearchive', '*',
-				array( 'fa_storage_group' => 'deleted', 'fa_storage_key' => $filekey ),
-				__METHOD__ );
+			$dbw = $this->getDB( DB_MASTER );
+			$fileQuery = ArchivedFile::getQueryInfo();
+			$row = $dbw->selectRow( $fileQuery['tables'], $fileQuery['fields'],
+				[ 'fa_storage_group' => 'deleted', 'fa_storage_key' => $filekey ],
+				__METHOD__, [], $fileQuery['joins'] );
 			if ( !$row ) {
-				$this->error( "No deleted file exists with key '$filekey'.", 1 );
+				$this->fatalError( "No deleted file exists with key '$filekey'." );
 			}
 			$filename = $row->fa_name;
 			$afile = ArchivedFile::newFromRow( $row );
@@ -68,7 +68,7 @@ class EraseArchivedFile extends Maintenance {
 
 		$file = wfLocalFile( $filename );
 		if ( $file->exists() ) {
-			$this->error( "File '$filename' is still a public file, use the delete form.\n", 1 );
+			$this->fatalError( "File '$filename' is still a public file, use the delete form.\n" );
 		}
 
 		$this->output( "Purging all thumbnails for file '$filename'..." );
@@ -85,10 +85,11 @@ class EraseArchivedFile extends Maintenance {
 	}
 
 	protected function scrubAllVersions( $name ) {
-		$dbw = wfGetDB( DB_MASTER );
-		$res = $dbw->select( 'filearchive', '*',
-			array( 'fa_name' => $name, 'fa_storage_group' => 'deleted' ),
-			__METHOD__ );
+		$dbw = $this->getDB( DB_MASTER );
+		$fileQuery = ArchivedFile::getQueryInfo();
+		$res = $dbw->select( $fileQuery['tables'], $fileQuery['fields'],
+			[ 'fa_name' => $name, 'fa_storage_group' => 'deleted' ],
+			__METHOD__, [], $fileQuery['joins'] );
 		foreach ( $res as $row ) {
 			$this->scrubVersion( ArchivedFile::newFromRow( $row ) );
 		}
@@ -101,7 +102,7 @@ class EraseArchivedFile extends Maintenance {
 		$repo = RepoGroup::singleton()->getLocalRepo();
 		$path = $repo->getZonePath( 'deleted' ) . '/' . $repo->getDeletedHashPath( $key ) . $key;
 		if ( $this->hasOption( 'delete' ) ) {
-			$status = $repo->getBackend()->delete( array( 'src' => $path ) );
+			$status = $repo->getBackend()->delete( [ 'src' => $path ] );
 			if ( $status->isOK() ) {
 				$this->output( "Deleted version '$key' ($ts) of file '$name'\n" );
 			} else {
@@ -114,5 +115,5 @@ class EraseArchivedFile extends Maintenance {
 	}
 }
 
-$maintClass = "EraseArchivedFile";
+$maintClass = EraseArchivedFile::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

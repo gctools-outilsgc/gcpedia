@@ -1,9 +1,5 @@
 <?php
 /**
- *
- *
- * Created on Oct 31, 2007
- *
  * Copyright © 2007 Roan Kattouw "<Firstname>.<Lastname>@gmail.com"
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,72 +37,90 @@ class ApiMove extends ApiBase {
 		if ( isset( $params['from'] ) ) {
 			$fromTitle = Title::newFromText( $params['from'] );
 			if ( !$fromTitle || $fromTitle->isExternal() ) {
-				$this->dieUsageMsg( array( 'invalidtitle', $params['from'] ) );
+				$this->dieWithError( [ 'apierror-invalidtitle', wfEscapeWikiText( $params['from'] ) ] );
 			}
 		} elseif ( isset( $params['fromid'] ) ) {
 			$fromTitle = Title::newFromID( $params['fromid'] );
 			if ( !$fromTitle ) {
-				$this->dieUsageMsg( array( 'nosuchpageid', $params['fromid'] ) );
+				$this->dieWithError( [ 'apierror-nosuchpageid', $params['fromid'] ] );
 			}
 		}
 
 		if ( !$fromTitle->exists() ) {
-			$this->dieUsageMsg( 'notanarticle' );
+			$this->dieWithError( 'apierror-missingtitle' );
 		}
 		$fromTalk = $fromTitle->getTalkPage();
 
 		$toTitle = Title::newFromText( $params['to'] );
 		if ( !$toTitle || $toTitle->isExternal() ) {
-			$this->dieUsageMsg( array( 'invalidtitle', $params['to'] ) );
+			$this->dieWithError( [ 'apierror-invalidtitle', wfEscapeWikiText( $params['to'] ) ] );
 		}
-		$toTalk = $toTitle->getTalkPage();
+		$toTalk = $toTitle->getTalkPageIfDefined();
 
 		if ( $toTitle->getNamespace() == NS_FILE
 			&& !RepoGroup::singleton()->getLocalRepo()->findFile( $toTitle )
 			&& wfFindFile( $toTitle )
 		) {
 			if ( !$params['ignorewarnings'] && $user->isAllowed( 'reupload-shared' ) ) {
-				$this->dieUsageMsg( 'sharedfile-exists' );
+				$this->dieWithError( 'apierror-fileexists-sharedrepo-perm' );
 			} elseif ( !$user->isAllowed( 'reupload-shared' ) ) {
-				$this->dieUsageMsg( 'cantoverwrite-sharedfile' );
+				$this->dieWithError( 'apierror-cantoverwrite-sharedfile' );
+			}
+		}
+
+		// Rate limit
+		if ( $user->pingLimiter( 'move' ) ) {
+			$this->dieWithError( 'apierror-ratelimited' );
+		}
+
+		// Check if the user is allowed to add the specified changetags
+		if ( $params['tags'] ) {
+			$ableToTag = ChangeTags::canAddTagsAccompanyingChange( $params['tags'], $user );
+			if ( !$ableToTag->isOK() ) {
+				$this->dieStatus( $ableToTag );
 			}
 		}
 
 		// Move the page
 		$toTitleExists = $toTitle->exists();
-		$status = $this->movePage( $fromTitle, $toTitle, $params['reason'], !$params['noredirect'] );
+		$status = $this->movePage( $fromTitle, $toTitle, $params['reason'], !$params['noredirect'],
+			$params['tags'] ?: [] );
 		if ( !$status->isOK() ) {
+			$user->spreadAnyEditBlock();
 			$this->dieStatus( $status );
 		}
 
-		$r = array(
+		$r = [
 			'from' => $fromTitle->getPrefixedText(),
 			'to' => $toTitle->getPrefixedText(),
 			'reason' => $params['reason']
-		);
+		];
 
-		//NOTE: we assume that if the old title exists, it's because it was re-created as
+		// NOTE: we assume that if the old title exists, it's because it was re-created as
 		// a redirect to the new title. This is not safe, but what we did before was
 		// even worse: we just determined whether a redirect should have been created,
 		// and reported that it was created if it should have, without any checks.
-		// Also note that isRedirect() is unreliable because of bug 37209.
 		$r['redirectcreated'] = $fromTitle->exists();
 
 		$r['moveoverredirect'] = $toTitleExists;
 
 		// Move the talk page
-		if ( $params['movetalk'] && $fromTalk->exists() && !$fromTitle->isTalkPage() ) {
+		if ( $params['movetalk'] && $toTalk && $fromTalk->exists() && !$fromTitle->isTalkPage() ) {
 			$toTalkExists = $toTalk->exists();
-			$status = $this->movePage( $fromTalk, $toTalk, $params['reason'], !$params['noredirect'] );
+			$status = $this->movePage(
+				$fromTalk,
+				$toTalk,
+				$params['reason'],
+				!$params['noredirect'],
+				$params['tags'] ?: []
+			);
 			if ( $status->isOK() ) {
 				$r['talkfrom'] = $fromTalk->getPrefixedText();
 				$r['talkto'] = $toTalk->getPrefixedText();
 				$r['talkmoveoverredirect'] = $toTalkExists;
 			} else {
-				// We're not gonna dieUsage() on failure, since we already changed something
-				$error = $this->getErrorFromStatus( $status );
-				$r['talkmove-error-code'] = $error[0];
-				$r['talkmove-error-info'] = $error[1];
+				// We're not going to dieWithError() on failure, since we already changed something
+				$r['talkmove-errors'] = $this->getErrorFormatter()->arrayFromStatus( $status );
 			}
 		}
 
@@ -114,13 +128,23 @@ class ApiMove extends ApiBase {
 
 		// Move subpages
 		if ( $params['movesubpages'] ) {
-			$r['subpages'] = $this->moveSubpages( $fromTitle, $toTitle,
-				$params['reason'], $params['noredirect'] );
+			$r['subpages'] = $this->moveSubpages(
+				$fromTitle,
+				$toTitle,
+				$params['reason'],
+				$params['noredirect'],
+				$params['tags'] ?: []
+			);
 			ApiResult::setIndexedTagName( $r['subpages'], 'subpage' );
 
 			if ( $params['movetalk'] ) {
-				$r['subpages-talk'] = $this->moveSubpages( $fromTalk, $toTalk,
-					$params['reason'], $params['noredirect'] );
+				$r['subpages-talk'] = $this->moveSubpages(
+					$fromTalk,
+					$toTalk,
+					$params['reason'],
+					$params['noredirect'],
+					$params['tags'] ?: []
+				);
 				ApiResult::setIndexedTagName( $r['subpages-talk'], 'subpage' );
 			}
 		}
@@ -128,12 +152,6 @@ class ApiMove extends ApiBase {
 		$watch = 'preferences';
 		if ( isset( $params['watchlist'] ) ) {
 			$watch = $params['watchlist'];
-		} elseif ( $params['watch'] ) {
-			$watch = 'watch';
-			$this->logFeatureUsage( 'action=move&watch' );
-		} elseif ( $params['unwatch'] ) {
-			$watch = 'unwatch';
-			$this->logFeatureUsage( 'action=move&unwatch' );
 		}
 
 		// Watch pages
@@ -148,26 +166,28 @@ class ApiMove extends ApiBase {
 	 * @param Title $to
 	 * @param string $reason
 	 * @param bool $createRedirect
+	 * @param array $changeTags Applied to the entry in the move log and redirect page revision
 	 * @return Status
 	 */
-	protected function movePage( Title $from, Title $to, $reason, $createRedirect ) {
+	protected function movePage( Title $from, Title $to, $reason, $createRedirect, $changeTags ) {
 		$mp = new MovePage( $from, $to );
 		$valid = $mp->isValidMove();
 		if ( !$valid->isOK() ) {
 			return $valid;
 		}
 
-		$permStatus = $mp->checkPermissions( $this->getUser(), $reason );
+		$user = $this->getUser();
+		$permStatus = $mp->checkPermissions( $user, $reason );
 		if ( !$permStatus->isOK() ) {
 			return $permStatus;
 		}
 
 		// Check suppressredirect permission
-		if ( !$this->getUser()->isAllowed( 'suppressredirect' ) ) {
+		if ( !$user->isAllowed( 'suppressredirect' ) ) {
 			$createRedirect = true;
 		}
 
-		return $mp->move( $this->getUser(), $reason, $createRedirect );
+		return $mp->move( $user, $reason, $createRedirect, $changeTags );
 	}
 
 	/**
@@ -175,21 +195,25 @@ class ApiMove extends ApiBase {
 	 * @param Title $toTitle
 	 * @param string $reason
 	 * @param bool $noredirect
+	 * @param array $changeTags Applied to the entry in the move log and redirect page revisions
 	 * @return array
 	 */
-	public function moveSubpages( $fromTitle, $toTitle, $reason, $noredirect ) {
-		$retval = array();
-		$success = $fromTitle->moveSubpages( $toTitle, true, $reason, !$noredirect );
+	public function moveSubpages( $fromTitle, $toTitle, $reason, $noredirect, $changeTags = [] ) {
+		$retval = [];
+
+		$success = $fromTitle->moveSubpages( $toTitle, true, $reason, !$noredirect, $changeTags );
 		if ( isset( $success[0] ) ) {
-			return array( 'error' => $this->parseMsg( $success ) );
+			$status = $this->errorArrayToStatus( $success );
+			return [ 'errors' => $this->getErrorFormatter()->arrayFromStatus( $status ) ];
 		}
 
 		// At least some pages could be moved
 		// Report each of them separately
 		foreach ( $success as $oldTitle => $newTitle ) {
-			$r = array( 'from' => $oldTitle );
+			$r = [ 'from' => $oldTitle ];
 			if ( is_array( $newTitle ) ) {
-				$r['error'] = $this->parseMsg( reset( $newTitle ) );
+				$status = $this->errorArrayToStatus( $newTitle );
+				$r['errors'] = $this->getErrorFormatter()->arrayFromStatus( $status );
 			} else {
 				// Success
 				$r['to'] = $newTitle;
@@ -209,38 +233,34 @@ class ApiMove extends ApiBase {
 	}
 
 	public function getAllowedParams() {
-		return array(
+		return [
 			'from' => null,
-			'fromid' => array(
+			'fromid' => [
 				ApiBase::PARAM_TYPE => 'integer'
-			),
-			'to' => array(
+			],
+			'to' => [
 				ApiBase::PARAM_TYPE => 'string',
 				ApiBase::PARAM_REQUIRED => true
-			),
+			],
 			'reason' => '',
 			'movetalk' => false,
 			'movesubpages' => false,
 			'noredirect' => false,
-			'watch' => array(
-				ApiBase::PARAM_DFLT => false,
-				ApiBase::PARAM_DEPRECATED => true,
-			),
-			'unwatch' => array(
-				ApiBase::PARAM_DFLT => false,
-				ApiBase::PARAM_DEPRECATED => true,
-			),
-			'watchlist' => array(
+			'watchlist' => [
 				ApiBase::PARAM_DFLT => 'preferences',
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'watch',
 					'unwatch',
 					'preferences',
 					'nochange'
-				),
-			),
-			'ignorewarnings' => false
-		);
+				],
+			],
+			'ignorewarnings' => false,
+			'tags' => [
+				ApiBase::PARAM_TYPE => 'tags',
+				ApiBase::PARAM_ISMULTI => true,
+			],
+		];
 	}
 
 	public function needsToken() {
@@ -248,14 +268,14 @@ class ApiMove extends ApiBase {
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=move&from=Badtitle&to=Goodtitle&token=123ABC&' .
 				'reason=Misspelled%20title&movetalk=&noredirect='
 				=> 'apihelp-move-example-move',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Move';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Move';
 	}
 }

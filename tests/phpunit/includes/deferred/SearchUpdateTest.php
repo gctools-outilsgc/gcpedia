@@ -1,32 +1,23 @@
 <?php
 
-class MockSearch extends SearchEngine {
-	public static $id;
-	public static $title;
-	public static $text;
-
-	public function __construct( $db ) {
-	}
-
-	public function update( $id, $title, $text ) {
-		self::$id = $id;
-		self::$title = $title;
-		self::$text = $text;
-	}
-}
-
 /**
  * @group Search
  */
 class SearchUpdateTest extends MediaWikiTestCase {
 
+	/**
+	 * @var SearchUpdate
+	 */
+	private $su;
+
 	protected function setUp() {
 		parent::setUp();
 		$this->setMwGlobals( 'wgSearchType', 'MockSearch' );
+		$this->su = new SearchUpdate( 0, "" );
 	}
 
 	public function updateText( $text ) {
-		return trim( SearchUpdate::updateText( $text ) );
+		return trim( $this->su->updateText( $text ) );
 	}
 
 	/**
@@ -60,13 +51,13 @@ EOT
 		$this->assertNotEquals(
 			'',
 			$this->updateText( $text ),
-			'Bug 18609'
+			'T20609'
 		);
 	}
 
 	/**
 	 * @covers SearchUpdate::updateText
-	 * Test bug 32712
+	 * Test T34712
 	 * Test if unicode quotes in article links make its search index empty
 	 */
 	public function testUnicodeLinkSearchIndexError() {
@@ -77,5 +68,20 @@ EOT
 			$processed != '',
 			'Link surrounded by unicode quotes should not fail UTF-8 validation'
 		);
+	}
+}
+
+class MockSearch extends SearchEngine {
+	public static $id;
+	public static $title;
+	public static $text;
+
+	public function __construct( $db ) {
+	}
+
+	public function update( $id, $title, $text ) {
+		self::$id = $id;
+		self::$title = $title;
+		self::$text = $text;
 	}
 }

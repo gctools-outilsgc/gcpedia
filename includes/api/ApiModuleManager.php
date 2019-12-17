@@ -1,9 +1,5 @@
 <?php
 /**
- *
- *
- * Created on Dec 27, 2012
- *
  * Copyright © 2012 Yuri Astrakhan "<Firstname><Lastname>@gmail.com"
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,15 +36,15 @@ class ApiModuleManager extends ContextSource {
 	/**
 	 * @var ApiBase[]
 	 */
-	private $mInstances = array();
+	private $mInstances = [];
 	/**
 	 * @var null[]
 	 */
-	private $mGroups = array();
+	private $mGroups = [];
 	/**
 	 * @var array[]
 	 */
-	private $mModules = array();
+	private $mModules = [];
 
 	/**
 	 * Construct new module manager
@@ -81,14 +77,14 @@ class ApiModuleManager extends ContextSource {
 	 *
 	 * @code
 	 *  $modules['foo'] = 'ApiFoo';
-	 *  $modules['bar'] = array(
-	 *      'class' => 'ApiBar',
+	 *  $modules['bar'] = [
+	 *      'class' => ApiBar::class,
 	 *      'factory' => function( $main, $name ) { ... }
-	 *  );
-	 *  $modules['xyzzy'] = array(
-	 *      'class' => 'ApiXyzzy',
-	 *      'factory' => array( 'XyzzyFactory', 'newApiModule' )
-	 *  );
+	 *  ];
+	 *  $modules['xyzzy'] = [
+	 *      'class' => ApiXyzzy::class,
+	 *      'factory' => [ XyzzyFactory::class, 'newApiModule' ]
+	 *  ];
 	 * @endcode
 	 *
 	 * @param array $modules A map of ModuleName => ModuleSpec; The ModuleSpec
@@ -97,11 +93,10 @@ class ApiModuleManager extends ContextSource {
 	 * @param string $group Which group modules belong to (action,format,...)
 	 */
 	public function addModules( array $modules, $group ) {
-
 		foreach ( $modules as $name => $moduleSpec ) {
 			if ( is_array( $moduleSpec ) ) {
 				$class = $moduleSpec['class'];
-				$factory = ( isset( $moduleSpec['factory'] ) ? $moduleSpec['factory'] : null );
+				$factory = ( $moduleSpec['factory'] ?? null );
 			} else {
 				$class = $moduleSpec;
 				$factory = null;
@@ -141,14 +136,14 @@ class ApiModuleManager extends ContextSource {
 		}
 
 		$this->mGroups[$group] = null;
-		$this->mModules[$name] = array( $group, $class, $factory );
+		$this->mModules[$name] = [ $group, $class, $factory ];
 	}
 
 	/**
 	 * Get module instance by name, or instantiate it if it does not exist
 	 *
 	 * @param string $moduleName Module name
-	 * @param string $group Optionally validate that the module is in a specific group
+	 * @param string|null $group Optionally validate that the module is in a specific group
 	 * @param bool $ignoreCache If true, force-creates a new instance and does not cache it
 	 *
 	 * @return ApiBase|null The new module instance, or null if failed
@@ -196,7 +191,9 @@ class ApiModuleManager extends ContextSource {
 			$instance = call_user_func( $factory, $this->mParent, $name );
 
 			if ( !$instance instanceof $class ) {
-				throw new MWException( "The factory function for module $name did not return an instance of $class!" );
+				throw new MWException(
+					"The factory function for module $name did not return an instance of $class!"
+				);
 			}
 		} else {
 			// create instance from class name
@@ -208,14 +205,14 @@ class ApiModuleManager extends ContextSource {
 
 	/**
 	 * Get an array of modules in a specific group or all if no group is set.
-	 * @param string $group Optional group filter
+	 * @param string|null $group Optional group filter
 	 * @return array List of module names
 	 */
 	public function getNames( $group = null ) {
 		if ( $group === null ) {
 			return array_keys( $this->mModules );
 		}
-		$result = array();
+		$result = [];
 		foreach ( $this->mModules as $name => $grpCls ) {
 			if ( $grpCls[0] === $group ) {
 				$result[] = $name;
@@ -227,11 +224,11 @@ class ApiModuleManager extends ContextSource {
 
 	/**
 	 * Create an array of (moduleName => moduleClass) for a specific group or for all.
-	 * @param string $group Name of the group to get or null for all
+	 * @param string|null $group Name of the group to get or null for all
 	 * @return array Name=>class map
 	 */
 	public function getNamesWithClasses( $group = null ) {
-		$result = array();
+		$result = [];
 		foreach ( $this->mModules as $name => $grpCls ) {
 			if ( $group === null || $grpCls[0] === $group ) {
 				$result[$name] = $grpCls[1];
@@ -259,7 +256,7 @@ class ApiModuleManager extends ContextSource {
 	/**
 	 * Returns true if the specific module is defined at all or in a specific group.
 	 * @param string $moduleName Module name
-	 * @param string $group Group name to check against, or null to check all groups,
+	 * @param string|null $group Group name to check against, or null to check all groups,
 	 * @return bool True if defined
 	 */
 	public function isDefined( $moduleName, $group = null ) {
@@ -273,7 +270,7 @@ class ApiModuleManager extends ContextSource {
 	/**
 	 * Returns the group name for the given module
 	 * @param string $moduleName
-	 * @return string Group name or null if missing
+	 * @return string|null Group name or null if missing
 	 */
 	public function getModuleGroup( $moduleName ) {
 		if ( isset( $this->mModules[$moduleName] ) ) {

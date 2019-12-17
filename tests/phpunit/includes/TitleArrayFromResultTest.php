@@ -1,13 +1,15 @@
 <?php
 
 /**
- * @author Adam Shorland
+ * @author Addshore
  * @covers TitleArrayFromResult
  */
-class TitleArrayFromResultTest extends PHPUnit_Framework_TestCase {
+class TitleArrayFromResultTest extends PHPUnit\Framework\TestCase {
+
+	use MediaWikiCoversValidator;
 
 	private function getMockResultWrapper( $row = null, $numRows = 1 ) {
-		$resultWrapper = $this->getMockBuilder( 'ResultWrapper' )
+		$resultWrapper = $this->getMockBuilder( Wikimedia\Rdbms\ResultWrapper::class )
 			->disableOriginalConstructor();
 
 		$resultWrapper = $resultWrapper->getMock();
@@ -59,17 +61,17 @@ class TitleArrayFromResultTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals( $resultWrapper, $object->res );
 		$this->assertSame( 0, $object->key );
-		$this->assertInstanceOf( 'Title', $object->current );
+		$this->assertInstanceOf( Title::class, $object->current );
 		$this->assertEquals( $namespace, $object->current->mNamespace );
 		$this->assertEquals( $title, $object->current->mTextform );
 	}
 
 	public static function provideNumberOfRows() {
-		return array(
-			array( 0 ),
-			array( 1 ),
-			array( 122 ),
-		);
+		return [
+			[ 0 ],
+			[ 1 ],
+			[ 122 ],
+		];
 	}
 
 	/**
@@ -92,16 +94,16 @@ class TitleArrayFromResultTest extends PHPUnit_Framework_TestCase {
 		$title = 'foo';
 		$row = $this->getRowWithTitle( $namespace, $title );
 		$object = $this->getTitleArrayFromResult( $this->getMockResultWrapper( $row ) );
-		$this->assertInstanceOf( 'Title', $object->current() );
+		$this->assertInstanceOf( Title::class, $object->current() );
 		$this->assertEquals( $namespace, $object->current->mNamespace );
 		$this->assertEquals( $title, $object->current->mTextform );
 	}
 
 	public function provideTestValid() {
-		return array(
-			array( $this->getRowWithTitle(), true ),
-			array( false, false ),
-		);
+		return [
+			[ $this->getRowWithTitle(), true ],
+			[ false, false ],
+		];
 	}
 
 	/**
@@ -113,7 +115,7 @@ class TitleArrayFromResultTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals( $expected, $object->valid() );
 	}
 
-	//@todo unit test for key()
-	//@todo unit test for next()
-	//@todo unit test for rewind()
+	// @todo unit test for key()
+	// @todo unit test for next()
+	// @todo unit test for rewind()
 }

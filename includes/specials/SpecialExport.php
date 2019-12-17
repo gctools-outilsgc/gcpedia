@@ -23,6 +23,8 @@
  * @ingroup SpecialPage
  */
 
+use MediaWiki\Logger\LoggerFactory;
+
 /**
  * A special page that allows users to export pages in a XML file
  *
@@ -65,7 +67,10 @@ class SpecialExport extends SpecialPage {
 					 */
 					$catpages = $this->getPagesFromCategory( $t );
 					if ( $catpages ) {
-						$page .= "\n" . implode( "\n", $catpages );
+						if ( $page !== '' ) {
+							$page .= "\n";
+						}
+						$page .= implode( "\n", $catpages );
 					}
 				}
 			}
@@ -93,6 +98,15 @@ class SpecialExport extends SpecialPage {
 			$page = '';
 			$history = '';
 		} elseif ( $request->wasPosted() && $par == '' ) {
+			// Log to see if certain parameters are actually used.
+			// If not, we could deprecate them and do some cleanup, here and in WikiExporter.
+			LoggerFactory::getInstance( 'export' )->debug(
+				'Special:Export POST, dir: [{dir}], offset: [{offset}], limit: [{limit}]', [
+				'dir' => $request->getRawVal( 'dir' ),
+				'offset' => $request->getRawVal( 'offset' ),
+				'limit' => $request->getRawVal( 'limit' ),
+			] );
+
 			$page = $request->getText( 'pages' );
 			$this->curonly = $request->getCheck( 'curonly' );
 			$rawOffset = $request->getVal( 'offset' );
@@ -106,11 +120,11 @@ class SpecialExport extends SpecialPage {
 			$maxHistory = $config->get( 'ExportMaxHistory' );
 			$limit = $request->getInt( 'limit' );
 			$dir = $request->getVal( 'dir' );
-			$history = array(
+			$history = [
 				'dir' => 'asc',
 				'offset' => false,
 				'limit' => $maxHistory,
-			);
+			];
 			$historyCheck = $request->getCheck( 'history' );
 
 			if ( $this->curonly ) {
@@ -165,6 +179,7 @@ class SpecialExport extends SpecialPage {
 			// This should provide safer streaming for pages with history
 			wfResetOutputBuffers();
 			$request->response()->header( "Content-type: application/xml; charset=utf-8" );
+			$request->response()->header( "X-Robots-Tag: noindex,nofollow" );
 
 			if ( $request->getCheck( 'wpDownload' ) ) {
 				// Provide a sane filename suggestion
@@ -186,8 +201,8 @@ class SpecialExport extends SpecialPage {
 			$categoryName = '';
 		}
 
-		$formDescriptor = array(
-			'catname' => array(
+		$formDescriptor = [
+			'catname' => [
 				'type' => 'textwithbutton',
 				'name' => 'catname',
 				'horizontal-label' => true,
@@ -197,11 +212,12 @@ class SpecialExport extends SpecialPage {
 				'buttontype' => 'submit',
 				'buttonname' => 'addcat',
 				'buttondefault' => $this->msg( 'export-addcat' )->text(),
-			),
-		);
+				'hide-if' => [ '===', 'exportall', '1' ],
+			],
+		];
 		if ( $config->get( 'ExportFromNamespaces' ) ) {
-			$formDescriptor += array(
-				'nsindex' => array(
+			$formDescriptor += [
+				'nsindex' => [
 					'type' => 'namespaceselectwithbutton',
 					'default' => $nsindex,
 					'label-message' => 'export-addnstext',
@@ -212,93 +228,95 @@ class SpecialExport extends SpecialPage {
 					'buttontype' => 'submit',
 					'buttonname' => 'addns',
 					'buttondefault' => $this->msg( 'export-addns' )->text(),
-				),
-			);
+					'hide-if' => [ '===', 'exportall', '1' ],
+				],
+			];
 		}
 
 		if ( $config->get( 'ExportAllowAll' ) ) {
-			$formDescriptor += array(
-				'exportall' => array(
+			$formDescriptor += [
+				'exportall' => [
 					'type' => 'check',
 					'label-message' => 'exportall',
 					'name' => 'exportall',
 					'id' => 'exportall',
 					'default' => $request->wasPosted() ? $request->getCheck( 'exportall' ) : false,
-				),
-			);
+				],
+			];
 		}
 
-		$formDescriptor += array(
-			'textarea' => array(
-				'class' => 'HTMLTextAreaField',
+		$formDescriptor += [
+			'textarea' => [
+				'class' => HTMLTextAreaField::class,
 				'name' => 'pages',
+				'label-message' => 'export-manual',
 				'nodata' => true,
-				'cols' => 40,
 				'rows' => 10,
 				'default' => $page,
-			),
-		);
+				'hide-if' => [ '===', 'exportall', '1' ],
+			],
+		];
 
 		if ( $config->get( 'ExportAllowHistory' ) ) {
-			$formDescriptor += array(
-				'curonly' => array(
+			$formDescriptor += [
+				'curonly' => [
 					'type' => 'check',
 					'label-message' => 'exportcuronly',
 					'name' => 'curonly',
 					'id' => 'curonly',
 					'default' => $request->wasPosted() ? $request->getCheck( 'curonly' ) : true,
-				),
-			);
+				],
+			];
 		} else {
 			$out->addWikiMsg( 'exportnohistory' );
 		}
 
-		$formDescriptor += array(
-			'templates' => array(
+		$formDescriptor += [
+			'templates' => [
 				'type' => 'check',
 				'label-message' => 'export-templates',
 				'name' => 'templates',
 				'id' => 'wpExportTemplates',
 				'default' => $request->wasPosted() ? $request->getCheck( 'templates' ) : false,
-			),
-		);
+			],
+		];
 
 		if ( $config->get( 'ExportMaxLinkDepth' ) || $this->userCanOverrideExportDepth() ) {
-			$formDescriptor += array(
-				'pagelink-depth' => array(
+			$formDescriptor += [
+				'pagelink-depth' => [
 					'type' => 'text',
 					'name' => 'pagelink-depth',
 					'id' => 'pagelink-depth',
 					'label-message' => 'export-pagelinks',
 					'default' => '0',
 					'size' => 20,
-				),
-			);
+				],
+			];
 		}
 
-		$formDescriptor += array(
-			'wpDownload' => array(
+		$formDescriptor += [
+			'wpDownload' => [
 				'type' => 'check',
-				'name' =>'wpDownload',
+				'name' => 'wpDownload',
 				'id' => 'wpDownload',
 				'default' => $request->wasPosted() ? $request->getCheck( 'wpDownload' ) : true,
 				'label-message' => 'export-download',
-			),
-		);
+			],
+		];
 
 		if ( $config->get( 'ExportAllowListContributors' ) ) {
-			$formDescriptor += array(
-				'listauthors' => array(
+			$formDescriptor += [
+				'listauthors' => [
 					'type' => 'check',
 					'label-message' => 'exportlistauthors',
 					'default' => $request->wasPosted() ? $request->getCheck( 'listauthors' ) : false,
 					'name' => 'listauthors',
 					'id' => 'listauthors',
-				),
-			);
+				],
+			];
 		}
 
-		$htmlForm = HTMLForm::factory( 'div', $formDescriptor, $this->getContext() );
+		$htmlForm = HTMLForm::factory( 'ooui', $formDescriptor, $this->getContext() );
 		$htmlForm->setSubmitTextMsg( 'export-submit' );
 		$htmlForm->prepareForm()->displayForm( false );
 		$this->addHelpLink( 'Help:Export' );
@@ -321,12 +339,11 @@ class SpecialExport extends SpecialPage {
 	 * @param bool $exportall Whether to export everything
 	 */
 	private function doExport( $page, $history, $list_authors, $exportall ) {
-
 		// If we are grabbing everything, enable full history and ignore the rest
 		if ( $exportall ) {
 			$history = WikiExporter::FULL;
 		} else {
-			$pageSet = array(); // Inverted index of all pages to look up
+			$pageSet = []; // Inverted index of all pages to look up
 
 			// Split up and normalize input
 			foreach ( explode( "\n", $page ) as $pageName ) {
@@ -352,7 +369,7 @@ class SpecialExport extends SpecialPage {
 
 			$pages = array_keys( $pageSet );
 
-			// Normalize titles to the same format and remove dupes, see bug 17374
+			// Normalize titles to the same format and remove dupes, see T19374
 			foreach ( $pages as $k => $v ) {
 				$pages[$k] = str_replace( " ", "_", $v );
 			}
@@ -361,23 +378,9 @@ class SpecialExport extends SpecialPage {
 		}
 
 		/* Ok, let's get to it... */
-		if ( $history == WikiExporter::CURRENT ) {
-			$lb = false;
-			$db = wfGetDB( DB_SLAVE );
-			$buffer = WikiExporter::BUFFER;
-		} else {
-			// Use an unbuffered query; histories may be very long!
-			$lb = wfGetLBFactory()->newMainLB();
-			$db = $lb->getConnection( DB_SLAVE );
-			$buffer = WikiExporter::STREAM;
+		$db = wfGetDB( DB_REPLICA );
 
-			// This might take a while... :D
-			MediaWiki\suppressWarnings();
-			set_time_limit( 0 );
-			MediaWiki\restoreWarnings();
-		}
-
-		$exporter = new WikiExporter( $db, $history, $buffer );
+		$exporter = new WikiExporter( $db, $history );
 		$exporter->list_authors = $list_authors;
 		$exporter->openStream();
 
@@ -385,7 +388,7 @@ class SpecialExport extends SpecialPage {
 			$exporter->allPages();
 		} else {
 			foreach ( $pages as $page ) {
-				#Bug 8824: Only export pages the user can read
+				# T10824: Only export pages the user can read
 				$title = Title::newFromText( $page );
 				if ( is_null( $title ) ) {
 					// @todo Perhaps output an <error> tag or something.
@@ -402,40 +405,30 @@ class SpecialExport extends SpecialPage {
 		}
 
 		$exporter->closeStream();
-
-		if ( $lb ) {
-			$lb->closeAll();
-		}
 	}
 
 	/**
 	 * @param Title $title
-	 * @return array
+	 * @return string[]
 	 */
 	private function getPagesFromCategory( $title ) {
-		global $wgContLang;
+		$maxPages = $this->getConfig()->get( 'ExportPagelistLimit' );
 
 		$name = $title->getDBkey();
 
-		$dbr = wfGetDB( DB_SLAVE );
+		$dbr = wfGetDB( DB_REPLICA );
 		$res = $dbr->select(
-			array( 'page', 'categorylinks' ),
-			array( 'page_namespace', 'page_title' ),
-			array( 'cl_from=page_id', 'cl_to' => $name ),
+			[ 'page', 'categorylinks' ],
+			[ 'page_namespace', 'page_title' ],
+			[ 'cl_from=page_id', 'cl_to' => $name ],
 			__METHOD__,
-			array( 'LIMIT' => '5000' )
+			[ 'LIMIT' => $maxPages ]
 		);
 
-		$pages = array();
+		$pages = [];
 
 		foreach ( $res as $row ) {
-			$n = $row->page_title;
-			if ( $row->page_namespace ) {
-				$ns = $wgContLang->getNsText( $row->page_namespace );
-				$n = $ns . ':' . $n;
-			}
-
-			$pages[] = $n;
+			$pages[] = Title::makeName( $row->page_namespace, $row->page_title );
 		}
 
 		return $pages;
@@ -443,31 +436,24 @@ class SpecialExport extends SpecialPage {
 
 	/**
 	 * @param int $nsindex
-	 * @return array
+	 * @return string[]
 	 */
 	private function getPagesFromNamespace( $nsindex ) {
-		global $wgContLang;
+		$maxPages = $this->getConfig()->get( 'ExportPagelistLimit' );
 
-		$dbr = wfGetDB( DB_SLAVE );
+		$dbr = wfGetDB( DB_REPLICA );
 		$res = $dbr->select(
 			'page',
-			array( 'page_namespace', 'page_title' ),
-			array( 'page_namespace' => $nsindex ),
+			[ 'page_namespace', 'page_title' ],
+			[ 'page_namespace' => $nsindex ],
 			__METHOD__,
-			array( 'LIMIT' => '5000' )
+			[ 'LIMIT' => $maxPages ]
 		);
 
-		$pages = array();
+		$pages = [];
 
 		foreach ( $res as $row ) {
-			$n = $row->page_title;
-
-			if ( $row->page_namespace ) {
-				$ns = $wgContLang->getNsText( $row->page_namespace );
-				$n = $ns . ':' . $n;
-			}
-
-			$pages[] = $n;
+			$pages[] = Title::makeName( $row->page_namespace, $row->page_title );
 		}
 
 		return $pages;
@@ -482,8 +468,8 @@ class SpecialExport extends SpecialPage {
 	private function getTemplates( $inputPages, $pageSet ) {
 		return $this->getLinks( $inputPages, $pageSet,
 			'templatelinks',
-			array( 'namespace' => 'tl_namespace', 'title' => 'tl_title' ),
-			array( 'page_id=tl_from' )
+			[ 'namespace' => 'tl_namespace', 'title' => 'tl_title' ],
+			[ 'page_id=tl_from' ]
 		);
 	}
 
@@ -521,13 +507,11 @@ class SpecialExport extends SpecialPage {
 	 * @return array
 	 */
 	private function getPageLinks( $inputPages, $pageSet, $depth ) {
-		// @codingStandardsIgnoreStart Squiz.WhiteSpace.SemicolonSpacing.Incorrect
 		for ( ; $depth > 0; --$depth ) {
-			// @codingStandardsIgnoreEnd
 			$pageSet = $this->getLinks(
 				$inputPages, $pageSet, 'pagelinks',
-				array( 'namespace' => 'pl_namespace', 'title' => 'pl_title' ),
-				array( 'page_id=pl_from' )
+				[ 'namespace' => 'pl_namespace', 'title' => 'pl_title' ],
+				[ 'page_id=pl_from' ]
 			);
 			$inputPages = array_keys( $pageSet );
 		}
@@ -545,7 +529,7 @@ class SpecialExport extends SpecialPage {
 	 * @return array
 	 */
 	private function getLinks( $inputPages, $pageSet, $table, $fields, $join ) {
-		$dbr = wfGetDB( DB_SLAVE );
+		$dbr = wfGetDB( DB_REPLICA );
 
 		foreach ( $inputPages as $page ) {
 			$title = Title::newFromText( $page );
@@ -555,14 +539,14 @@ class SpecialExport extends SpecialPage {
 				/// @todo FIXME: May or may not be more efficient to batch these
 				///        by namespace when given multiple input pages.
 				$result = $dbr->select(
-					array( 'page', $table ),
+					[ 'page', $table ],
 					$fields,
 					array_merge(
 						$join,
-						array(
+						[
 							'page_namespace' => $title->getNamespace(),
 							'page_title' => $title->getDBkey()
-						)
+						]
 					),
 					__METHOD__
 				);

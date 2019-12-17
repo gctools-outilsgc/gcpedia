@@ -163,11 +163,11 @@ class UserDupes {
 
 	/**
 	 * We don't want anybody to mess with our stuff...
-	 * @access private
+	 * @private
 	 */
 	function lock() {
-		$set = array( 'user', 'revision' );
-		$names = array_map( array( $this, 'lockTable' ), $set );
+		$set = [ 'user', 'revision' ];
+		$names = array_map( [ $this, 'lockTable' ], $set );
 		$tables = implode( ',', $names );
 
 		$this->db->query( "LOCK TABLES $tables", __METHOD__ );
@@ -178,7 +178,7 @@ class UserDupes {
 	}
 
 	/**
-	 * @access private
+	 * @private
 	 */
 	function unlock() {
 		$this->db->query( "UNLOCK TABLES", __METHOD__ );
@@ -187,7 +187,7 @@ class UserDupes {
 	/**
 	 * Grab usernames for which multiple records are present in the database.
 	 * @return array
-	 * @access private
+	 * @private
 	 */
 	function getDupes() {
 		$user = $this->db->tableName( 'user' );
@@ -195,9 +195,9 @@ class UserDupes {
 			"SELECT user_name,COUNT(*) AS n
 				FROM $user
 			GROUP BY user_name
-			  HAVING n > 1", __METHOD__ );
+				HAVING n > 1", __METHOD__ );
 
-		$list = array();
+		$list = [];
 		foreach ( $result as $row ) {
 			$list[] = $row->user_name;
 		}
@@ -211,12 +211,12 @@ class UserDupes {
 	 * for edits. If the dupes have no edits, we can safely remove them.
 	 * @param string $name
 	 * @param bool $doDelete
-	 * @access private
+	 * @private
 	 */
 	function examine( $name, $doDelete ) {
 		$result = $this->db->select( 'user',
-			array( 'user_id' ),
-			array( 'user_name' => $name ),
+			[ 'user_id' ],
+			[ 'user_name' => $name ],
 			__METHOD__ );
 
 		$firstRow = $this->db->fetchObject( $result );
@@ -260,26 +260,26 @@ class UserDupes {
 	 * where it might show up...
 	 * @param int $userid
 	 * @return int
-	 * @access private
+	 * @private
 	 */
 	function editCount( $userid ) {
 		return intval( $this->db->selectField(
 			'revision',
 			'COUNT(*)',
-			array( 'rev_user' => $userid ),
+			[ 'rev_user' => $userid ],
 			__METHOD__ ) );
 	}
 
 	/**
 	 * @param int $from
 	 * @param int $to
-	 * @access private
+	 * @private
 	 */
 	function reassignEdits( $from, $to ) {
 		$this->out( 'reassigning... ' );
 		$this->db->update( 'revision',
-			array( 'rev_user' => $to ),
-			array( 'rev_user' => $from ),
+			[ 'rev_user' => $to ],
+			[ 'rev_user' => $from ],
 			__METHOD__ );
 		$this->out( "ok. " );
 	}
@@ -287,11 +287,11 @@ class UserDupes {
 	/**
 	 * Remove a user account line.
 	 * @param int $userid
-	 * @access private
+	 * @private
 	 */
 	function trimAccount( $userid ) {
 		$this->out( "deleting..." );
-		$this->db->delete( 'user', array( 'user_id' => $userid ), __METHOD__ );
+		$this->db->delete( 'user', [ 'user_id' => $userid ], __METHOD__ );
 		$this->out( " ok" );
 	}
 }

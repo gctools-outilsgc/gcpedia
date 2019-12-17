@@ -1,8 +1,6 @@
 <?php
 /**
- * Created on Jan 29, 2015
- *
- * Copyright © 2015 Brad Jorsch bjorsch@wikimedia.org
+ * Copyright © 2015 Wikimedia Foundation and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +20,8 @@
  * @file
  */
 
+use MediaWiki\Session\Token;
+
 /**
  * @since 1.25
  * @ingroup API
@@ -32,21 +32,27 @@ class ApiCheckToken extends ApiBase {
 		$params = $this->extractRequestParams();
 		$token = $params['token'];
 		$maxage = $params['maxtokenage'];
-		$request = $this->getRequest();
 		$salts = ApiQueryTokens::getTokenTypeSalts();
-		$salt = $salts[$params['type']];
 
-		$res = array();
+		$res = [];
 
-		if ( $this->getUser()->matchEditToken( $token, $salt, $request, $maxage ) ) {
+		$tokenObj = ApiQueryTokens::getToken(
+			$this->getUser(), $this->getRequest()->getSession(), $salts[$params['type']]
+		);
+
+		if ( substr( $token, -strlen( urldecode( Token::SUFFIX ) ) ) === urldecode( Token::SUFFIX ) ) {
+			$this->addWarning( 'apiwarn-checktoken-percentencoding' );
+		}
+
+		if ( $tokenObj->match( $token, $maxage ) ) {
 			$res['result'] = 'valid';
-		} elseif ( $maxage !== null && $this->getUser()->matchEditToken( $token, $salt, $request ) ) {
+		} elseif ( $maxage !== null && $tokenObj->match( $token ) ) {
 			$res['result'] = 'expired';
 		} else {
 			$res['result'] = 'invalid';
 		}
 
-		$ts = User::getEditTokenTimestamp( $token );
+		$ts = Token::getTimestamp( $token );
 		if ( $ts !== null ) {
 			$mwts = new MWTimestamp();
 			$mwts->timestamp->setTimestamp( $ts );
@@ -57,25 +63,26 @@ class ApiCheckToken extends ApiBase {
 	}
 
 	public function getAllowedParams() {
-		return array(
-			'type' => array(
+		return [
+			'type' => [
 				ApiBase::PARAM_TYPE => array_keys( ApiQueryTokens::getTokenTypeSalts() ),
 				ApiBase::PARAM_REQUIRED => true,
-			),
-			'token' => array(
+			],
+			'token' => [
 				ApiBase::PARAM_TYPE => 'string',
 				ApiBase::PARAM_REQUIRED => true,
-			),
-			'maxtokenage' => array(
+				ApiBase::PARAM_SENSITIVE => true,
+			],
+			'maxtokenage' => [
 				ApiBase::PARAM_TYPE => 'integer',
-			),
-		);
+			],
+		];
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=checktoken&type=csrf&token=123ABC'
 				=> 'apihelp-checktoken-example-simple',
-		);
+		];
 	}
 }

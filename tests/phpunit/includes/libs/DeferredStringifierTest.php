@@ -1,39 +1,43 @@
 <?php
 
-class DeferredStringifierTest extends PHPUnit_Framework_TestCase {
+/**
+ * @covers DeferredStringifier
+ */
+class DeferredStringifierTest extends PHPUnit\Framework\TestCase {
+
+	use MediaWikiCoversValidator;
 
 	/**
-	 * @covers DeferredStringifier
 	 * @dataProvider provideToString
 	 */
 	public function testToString( $params, $expected ) {
-		$class = new ReflectionClass( 'DeferredStringifier' );
+		$class = new ReflectionClass( DeferredStringifier::class );
 		$ds = $class->newInstanceArgs( $params );
 		$this->assertEquals( $expected, (string)$ds );
 	}
 
 	public static function provideToString() {
-		return array(
+		return [
 			// No args
-			array(
-				array(
-					function() {
+			[
+				[
+					function () {
 						return 'foo';
 					}
-				),
+				],
 				'foo'
-			),
+			],
 			// Has args
-			array(
-				array(
-					function( $i ) {
+			[
+				[
+					function ( $i ) {
 						return $i;
 					},
 					'bar'
-				),
+				],
 				'bar'
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -41,7 +45,7 @@ class DeferredStringifierTest extends PHPUnit_Framework_TestCase {
 	 * it is never converted to a string
 	 */
 	public function testCallbackNotCalled() {
-		$ds = new DeferredStringifier( function() {
+		$ds = new DeferredStringifier( function () {
 			throw new Exception( 'This should not be reached!' );
 		} );
 		// No exception was thrown

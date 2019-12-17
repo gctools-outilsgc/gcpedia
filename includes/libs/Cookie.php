@@ -58,11 +58,7 @@ class Cookie {
 			$this->expires = strtotime( $attr['expires'] );
 		}
 
-		if ( isset( $attr['path'] ) ) {
-			$this->path = $attr['path'];
-		} else {
-			$this->path = '/';
-		}
+		$this->path = $attr['path'] ?? '/';
 
 		if ( isset( $attr['domain'] ) ) {
 			if ( self::validateCookieDomain( $attr['domain'] ) ) {
@@ -86,7 +82,7 @@ class Cookie {
 	 * not a big problem in practice, but there are test cases)
 	 *
 	 * @param string $domain The domain to validate
-	 * @param string $originDomain (optional) the domain the cookie originates from
+	 * @param string|null $originDomain (optional) the domain the cookie originates from
 	 * @return bool
 	 */
 	public static function validateCookieDomain( $domain, $originDomain = null ) {
@@ -204,88 +200,5 @@ class Cookie {
 	 */
 	protected function isUnExpired() {
 		return $this->isSessionKey || $this->expires > time();
-	}
-}
-
-class CookieJar {
-	private $cookie = array();
-
-	/**
-	 * Set a cookie in the cookie jar. Make sure only one cookie per-name exists.
-	 * @see Cookie::set()
-	 * @param string $name
-	 * @param string $value
-	 * @param array $attr
-	 */
-	public function setCookie( $name, $value, $attr ) {
-		/* cookies: case insensitive, so this should work.
-		 * We'll still send the cookies back in the same case we got them, though.
-		 */
-		$index = strtoupper( $name );
-
-		if ( isset( $this->cookie[$index] ) ) {
-			$this->cookie[$index]->set( $value, $attr );
-		} else {
-			$this->cookie[$index] = new Cookie( $name, $value, $attr );
-		}
-	}
-
-	/**
-	 * @see Cookie::serializeToHttpRequest
-	 * @param string $path
-	 * @param string $domain
-	 * @return string
-	 */
-	public function serializeToHttpRequest( $path, $domain ) {
-		$cookies = array();
-
-		foreach ( $this->cookie as $c ) {
-			$serialized = $c->serializeToHttpRequest( $path, $domain );
-
-			if ( $serialized ) {
-				$cookies[] = $serialized;
-			}
-		}
-
-		return implode( '; ', $cookies );
-	}
-
-	/**
-	 * Parse the content of an Set-Cookie HTTP Response header.
-	 *
-	 * @param string $cookie
-	 * @param string $domain Cookie's domain
-	 * @return null
-	 */
-	public function parseCookieResponseHeader( $cookie, $domain ) {
-		$len = strlen( 'Set-Cookie:' );
-
-		if ( substr_compare( 'Set-Cookie:', $cookie, 0, $len, true ) === 0 ) {
-			$cookie = substr( $cookie, $len );
-		}
-
-		$bit = array_map( 'trim', explode( ';', $cookie ) );
-
-		if ( count( $bit ) >= 1 ) {
-			list( $name, $value ) = explode( '=', array_shift( $bit ), 2 );
-			$attr = array();
-
-			foreach ( $bit as $piece ) {
-				$parts = explode( '=', $piece );
-				if ( count( $parts ) > 1 ) {
-					$attr[strtolower( $parts[0] )] = $parts[1];
-				} else {
-					$attr[strtolower( $parts[0] )] = true;
-				}
-			}
-
-			if ( !isset( $attr['domain'] ) ) {
-				$attr['domain'] = $domain;
-			} elseif ( !Cookie::validateCookieDomain( $attr['domain'], $domain ) ) {
-				return null;
-			}
-
-			$this->setCookie( $name, $value, $attr );
-		}
 	}
 }

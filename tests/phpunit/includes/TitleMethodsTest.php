@@ -1,5 +1,8 @@
 <?php
 
+use MediaWiki\Interwiki\InterwikiLookup;
+use MediaWiki\MediaWikiServices;
+
 /**
  * @group ContentHandler
  * @group Database
@@ -10,73 +13,35 @@
 class TitleMethodsTest extends MediaWikiLangTestCase {
 
 	protected function setUp() {
-		global $wgContLang;
-
 		parent::setUp();
 
 		$this->mergeMwGlobalArrayValue(
 			'wgExtraNamespaces',
-			array(
+			[
 				12302 => 'TEST-JS',
 				12303 => 'TEST-JS_TALK',
-			)
+			]
 		);
 
 		$this->mergeMwGlobalArrayValue(
 			'wgNamespaceContentModels',
-			array(
+			[
 				12302 => CONTENT_MODEL_JAVASCRIPT,
-			)
+			]
 		);
-
-		MWNamespace::getCanonicalNamespaces( true ); # reset namespace cache
-		$wgContLang->resetNamespaces(); # reset namespace cache
-	}
-
-	protected function tearDown() {
-		global $wgContLang;
-
-		parent::tearDown();
-
-		MWNamespace::getCanonicalNamespaces( true ); # reset namespace cache
-		$wgContLang->resetNamespaces(); # reset namespace cache
-	}
-
-	public static function provideEquals() {
-		return array(
-			array( 'Main Page', 'Main Page', true ),
-			array( 'Main Page', 'Not The Main Page', false ),
-			array( 'Main Page', 'Project:Main Page', false ),
-			array( 'File:Example.png', 'Image:Example.png', true ),
-			array( 'Special:Version', 'Special:Version', true ),
-			array( 'Special:Version', 'Special:Recentchanges', false ),
-			array( 'Special:Version', 'Main Page', false ),
-		);
-	}
-
-	/**
-	 * @dataProvider provideEquals
-	 * @covers Title::equals
-	 */
-	public function testEquals( $titleA, $titleB, $expectedBool ) {
-		$titleA = Title::newFromText( $titleA );
-		$titleB = Title::newFromText( $titleB );
-
-		$this->assertEquals( $expectedBool, $titleA->equals( $titleB ) );
-		$this->assertEquals( $expectedBool, $titleB->equals( $titleA ) );
 	}
 
 	public static function provideInNamespace() {
-		return array(
-			array( 'Main Page', NS_MAIN, true ),
-			array( 'Main Page', NS_TALK, false ),
-			array( 'Main Page', NS_USER, false ),
-			array( 'User:Foo', NS_USER, true ),
-			array( 'User:Foo', NS_USER_TALK, false ),
-			array( 'User:Foo', NS_TEMPLATE, false ),
-			array( 'User_talk:Foo', NS_USER_TALK, true ),
-			array( 'User_talk:Foo', NS_USER, false ),
-		);
+		return [
+			[ 'Main Page', NS_MAIN, true ],
+			[ 'Main Page', NS_TALK, false ],
+			[ 'Main Page', NS_USER, false ],
+			[ 'User:Foo', NS_USER, true ],
+			[ 'User:Foo', NS_USER_TALK, false ],
+			[ 'User:Foo', NS_TEMPLATE, false ],
+			[ 'User_talk:Foo', NS_USER_TALK, true ],
+			[ 'User_talk:Foo', NS_USER, false ],
+		];
 	}
 
 	/**
@@ -94,22 +59,22 @@ class TitleMethodsTest extends MediaWikiLangTestCase {
 	public function testInNamespaces() {
 		$mainpage = Title::newFromText( 'Main Page' );
 		$this->assertTrue( $mainpage->inNamespaces( NS_MAIN, NS_USER ) );
-		$this->assertTrue( $mainpage->inNamespaces( array( NS_MAIN, NS_USER ) ) );
-		$this->assertTrue( $mainpage->inNamespaces( array( NS_USER, NS_MAIN ) ) );
-		$this->assertFalse( $mainpage->inNamespaces( array( NS_PROJECT, NS_TEMPLATE ) ) );
+		$this->assertTrue( $mainpage->inNamespaces( [ NS_MAIN, NS_USER ] ) );
+		$this->assertTrue( $mainpage->inNamespaces( [ NS_USER, NS_MAIN ] ) );
+		$this->assertFalse( $mainpage->inNamespaces( [ NS_PROJECT, NS_TEMPLATE ] ) );
 	}
 
 	public static function provideHasSubjectNamespace() {
-		return array(
-			array( 'Main Page', NS_MAIN, true ),
-			array( 'Main Page', NS_TALK, true ),
-			array( 'Main Page', NS_USER, false ),
-			array( 'User:Foo', NS_USER, true ),
-			array( 'User:Foo', NS_USER_TALK, true ),
-			array( 'User:Foo', NS_TEMPLATE, false ),
-			array( 'User_talk:Foo', NS_USER_TALK, true ),
-			array( 'User_talk:Foo', NS_USER, true ),
-		);
+		return [
+			[ 'Main Page', NS_MAIN, true ],
+			[ 'Main Page', NS_TALK, true ],
+			[ 'Main Page', NS_USER, false ],
+			[ 'User:Foo', NS_USER, true ],
+			[ 'User:Foo', NS_USER_TALK, true ],
+			[ 'User:Foo', NS_TEMPLATE, false ],
+			[ 'User_talk:Foo', NS_USER_TALK, true ],
+			[ 'User_talk:Foo', NS_USER, true ],
+		];
 	}
 
 	/**
@@ -122,28 +87,28 @@ class TitleMethodsTest extends MediaWikiLangTestCase {
 	}
 
 	public function dataGetContentModel() {
-		return array(
-			array( 'Help:Foo', CONTENT_MODEL_WIKITEXT ),
-			array( 'Help:Foo.js', CONTENT_MODEL_WIKITEXT ),
-			array( 'Help:Foo/bar.js', CONTENT_MODEL_WIKITEXT ),
-			array( 'User:Foo', CONTENT_MODEL_WIKITEXT ),
-			array( 'User:Foo.js', CONTENT_MODEL_WIKITEXT ),
-			array( 'User:Foo/bar.js', CONTENT_MODEL_JAVASCRIPT ),
-			array( 'User:Foo/bar.css', CONTENT_MODEL_CSS ),
-			array( 'User talk:Foo/bar.css', CONTENT_MODEL_WIKITEXT ),
-			array( 'User:Foo/bar.js.xxx', CONTENT_MODEL_WIKITEXT ),
-			array( 'User:Foo/bar.xxx', CONTENT_MODEL_WIKITEXT ),
-			array( 'MediaWiki:Foo.js', CONTENT_MODEL_JAVASCRIPT ),
-			array( 'MediaWiki:Foo.css', CONTENT_MODEL_CSS ),
-			array( 'MediaWiki:Foo/bar.css', CONTENT_MODEL_CSS ),
-			array( 'MediaWiki:Foo.JS', CONTENT_MODEL_WIKITEXT ),
-			array( 'MediaWiki:Foo.CSS', CONTENT_MODEL_WIKITEXT ),
-			array( 'MediaWiki:Foo.css.xxx', CONTENT_MODEL_WIKITEXT ),
-			array( 'TEST-JS:Foo', CONTENT_MODEL_JAVASCRIPT ),
-			array( 'TEST-JS:Foo.js', CONTENT_MODEL_JAVASCRIPT ),
-			array( 'TEST-JS:Foo/bar.js', CONTENT_MODEL_JAVASCRIPT ),
-			array( 'TEST-JS_TALK:Foo.js', CONTENT_MODEL_WIKITEXT ),
-		);
+		return [
+			[ 'Help:Foo', CONTENT_MODEL_WIKITEXT ],
+			[ 'Help:Foo.js', CONTENT_MODEL_WIKITEXT ],
+			[ 'Help:Foo/bar.js', CONTENT_MODEL_WIKITEXT ],
+			[ 'User:Foo', CONTENT_MODEL_WIKITEXT ],
+			[ 'User:Foo.js', CONTENT_MODEL_WIKITEXT ],
+			[ 'User:Foo/bar.js', CONTENT_MODEL_JAVASCRIPT ],
+			[ 'User:Foo/bar.css', CONTENT_MODEL_CSS ],
+			[ 'User talk:Foo/bar.css', CONTENT_MODEL_WIKITEXT ],
+			[ 'User:Foo/bar.js.xxx', CONTENT_MODEL_WIKITEXT ],
+			[ 'User:Foo/bar.xxx', CONTENT_MODEL_WIKITEXT ],
+			[ 'MediaWiki:Foo.js', CONTENT_MODEL_JAVASCRIPT ],
+			[ 'MediaWiki:Foo.css', CONTENT_MODEL_CSS ],
+			[ 'MediaWiki:Foo/bar.css', CONTENT_MODEL_CSS ],
+			[ 'MediaWiki:Foo.JS', CONTENT_MODEL_WIKITEXT ],
+			[ 'MediaWiki:Foo.CSS', CONTENT_MODEL_WIKITEXT ],
+			[ 'MediaWiki:Foo.css.xxx', CONTENT_MODEL_WIKITEXT ],
+			[ 'TEST-JS:Foo', CONTENT_MODEL_JAVASCRIPT ],
+			[ 'TEST-JS:Foo.js', CONTENT_MODEL_JAVASCRIPT ],
+			[ 'TEST-JS:Foo/bar.js', CONTENT_MODEL_JAVASCRIPT ],
+			[ 'TEST-JS_TALK:Foo.js', CONTENT_MODEL_WIKITEXT ],
+		];
 	}
 
 	/**
@@ -164,129 +129,153 @@ class TitleMethodsTest extends MediaWikiLangTestCase {
 		$this->assertTrue( $title->hasContentModel( $expectedModelId ) );
 	}
 
-	public static function provideIsCssOrJsPage() {
-		return array(
-			array( 'Help:Foo', false ),
-			array( 'Help:Foo.js', false ),
-			array( 'Help:Foo/bar.js', false ),
-			array( 'User:Foo', false ),
-			array( 'User:Foo.js', false ),
-			array( 'User:Foo/bar.js', false ),
-			array( 'User:Foo/bar.css', false ),
-			array( 'User talk:Foo/bar.css', false ),
-			array( 'User:Foo/bar.js.xxx', false ),
-			array( 'User:Foo/bar.xxx', false ),
-			array( 'MediaWiki:Foo.js', true ),
-			array( 'MediaWiki:Foo.css', true ),
-			array( 'MediaWiki:Foo.JS', false ),
-			array( 'MediaWiki:Foo.CSS', false ),
-			array( 'MediaWiki:Foo.css.xxx', false ),
-			array( 'TEST-JS:Foo', false ),
-			array( 'TEST-JS:Foo.js', false ),
-		);
+	public static function provideIsSiteConfigPage() {
+		return [
+			[ 'Help:Foo', false ],
+			[ 'Help:Foo.js', false ],
+			[ 'Help:Foo/bar.js', false ],
+			[ 'User:Foo', false ],
+			[ 'User:Foo.js', false ],
+			[ 'User:Foo/bar.js', false ],
+			[ 'User:Foo/bar.json', false ],
+			[ 'User:Foo/bar.css', false ],
+			[ 'User:Foo/bar.JS', false ],
+			[ 'User:Foo/bar.JSON', false ],
+			[ 'User:Foo/bar.CSS', false ],
+			[ 'User talk:Foo/bar.css', false ],
+			[ 'User:Foo/bar.js.xxx', false ],
+			[ 'User:Foo/bar.xxx', false ],
+			[ 'MediaWiki:Foo.js', true ],
+			[ 'MediaWiki:Foo.json', true ],
+			[ 'MediaWiki:Foo.css', true ],
+			[ 'MediaWiki:Foo.JS', false ],
+			[ 'MediaWiki:Foo.JSON', false ],
+			[ 'MediaWiki:Foo.CSS', false ],
+			[ 'MediaWiki:Foo/bar.css', true ],
+			[ 'MediaWiki:Foo.css.xxx', false ],
+			[ 'TEST-JS:Foo', false ],
+			[ 'TEST-JS:Foo.js', false ],
+		];
 	}
 
 	/**
-	 * @dataProvider provideIsCssOrJsPage
-	 * @covers Title::isCssOrJsPage
+	 * @dataProvider provideIsSiteConfigPage
+	 * @covers Title::isSiteConfigPage
 	 */
-	public function testIsCssOrJsPage( $title, $expectedBool ) {
+	public function testSiteConfigPage( $title, $expectedBool ) {
 		$title = Title::newFromText( $title );
-		$this->assertEquals( $expectedBool, $title->isCssOrJsPage() );
+		$this->assertEquals( $expectedBool, $title->isSiteConfigPage() );
 	}
 
-	public static function provideIsCssJsSubpage() {
-		return array(
-			array( 'Help:Foo', false ),
-			array( 'Help:Foo.js', false ),
-			array( 'Help:Foo/bar.js', false ),
-			array( 'User:Foo', false ),
-			array( 'User:Foo.js', false ),
-			array( 'User:Foo/bar.js', true ),
-			array( 'User:Foo/bar.css', true ),
-			array( 'User talk:Foo/bar.css', false ),
-			array( 'User:Foo/bar.js.xxx', false ),
-			array( 'User:Foo/bar.xxx', false ),
-			array( 'MediaWiki:Foo.js', false ),
-			array( 'User:Foo/bar.JS', false ),
-			array( 'User:Foo/bar.CSS', false ),
-			array( 'TEST-JS:Foo', false ),
-			array( 'TEST-JS:Foo.js', false ),
-		);
+	public static function provideIsUserConfigPage() {
+		return [
+			[ 'Help:Foo', false ],
+			[ 'Help:Foo.js', false ],
+			[ 'Help:Foo/bar.js', false ],
+			[ 'User:Foo', false ],
+			[ 'User:Foo.js', false ],
+			[ 'User:Foo/bar.js', true ],
+			[ 'User:Foo/bar.JS', false ],
+			[ 'User:Foo/bar.json', true ],
+			[ 'User:Foo/bar.JSON', false ],
+			[ 'User:Foo/bar.css', true ],
+			[ 'User:Foo/bar.CSS', false ],
+			[ 'User talk:Foo/bar.css', false ],
+			[ 'User:Foo/bar.js.xxx', false ],
+			[ 'User:Foo/bar.xxx', false ],
+			[ 'MediaWiki:Foo.js', false ],
+			[ 'MediaWiki:Foo.json', false ],
+			[ 'MediaWiki:Foo.css', false ],
+			[ 'MediaWiki:Foo.JS', false ],
+			[ 'MediaWiki:Foo.JSON', false ],
+			[ 'MediaWiki:Foo.CSS', false ],
+			[ 'MediaWiki:Foo.css.xxx', false ],
+			[ 'TEST-JS:Foo', false ],
+			[ 'TEST-JS:Foo.js', false ],
+		];
 	}
 
 	/**
-	 * @dataProvider provideIsCssJsSubpage
-	 * @covers Title::isCssJsSubpage
+	 * @dataProvider provideIsUserConfigPage
+	 * @covers Title::isUserConfigPage
 	 */
-	public function testIsCssJsSubpage( $title, $expectedBool ) {
+	public function testIsUserConfigPage( $title, $expectedBool ) {
 		$title = Title::newFromText( $title );
-		$this->assertEquals( $expectedBool, $title->isCssJsSubpage() );
+		$this->assertEquals( $expectedBool, $title->isUserConfigPage() );
 	}
 
-	public static function provideIsCssSubpage() {
-		return array(
-			array( 'Help:Foo', false ),
-			array( 'Help:Foo.css', false ),
-			array( 'User:Foo', false ),
-			array( 'User:Foo.js', false ),
-			array( 'User:Foo.css', false ),
-			array( 'User:Foo/bar.js', false ),
-			array( 'User:Foo/bar.css', true ),
-		);
+	public static function provideIsUserCssConfigPage() {
+		return [
+			[ 'Help:Foo', false ],
+			[ 'Help:Foo.css', false ],
+			[ 'User:Foo', false ],
+			[ 'User:Foo.js', false ],
+			[ 'User:Foo.json', false ],
+			[ 'User:Foo.css', false ],
+			[ 'User:Foo/bar.js', false ],
+			[ 'User:Foo/bar.json', false ],
+			[ 'User:Foo/bar.css', true ],
+		];
 	}
 
 	/**
-	 * @dataProvider provideIsCssSubpage
-	 * @covers Title::isCssSubpage
+	 * @dataProvider provideIsUserCssConfigPage
+	 * @covers Title::isUserCssConfigPage
 	 */
-	public function testIsCssSubpage( $title, $expectedBool ) {
+	public function testIsUserCssConfigPage( $title, $expectedBool ) {
 		$title = Title::newFromText( $title );
-		$this->assertEquals( $expectedBool, $title->isCssSubpage() );
+		$this->assertEquals( $expectedBool, $title->isUserCssConfigPage() );
 	}
 
-	public static function provideIsJsSubpage() {
-		return array(
-			array( 'Help:Foo', false ),
-			array( 'Help:Foo.css', false ),
-			array( 'User:Foo', false ),
-			array( 'User:Foo.js', false ),
-			array( 'User:Foo.css', false ),
-			array( 'User:Foo/bar.js', true ),
-			array( 'User:Foo/bar.css', false ),
-		);
+	public static function provideIsUserJsConfigPage() {
+		return [
+			[ 'Help:Foo', false ],
+			[ 'Help:Foo.css', false ],
+			[ 'User:Foo', false ],
+			[ 'User:Foo.js', false ],
+			[ 'User:Foo.json', false ],
+			[ 'User:Foo.css', false ],
+			[ 'User:Foo/bar.js', true ],
+			[ 'User:Foo/bar.json', false ],
+			[ 'User:Foo/bar.css', false ],
+		];
 	}
 
 	/**
-	 * @dataProvider provideIsJsSubpage
-	 * @covers Title::isJsSubpage
+	 * @dataProvider provideIsUserJsConfigPage
+	 * @covers Title::isUserJsConfigPage
 	 */
-	public function testIsJsSubpage( $title, $expectedBool ) {
+	public function testIsUserJsConfigPage( $title, $expectedBool ) {
 		$title = Title::newFromText( $title );
-		$this->assertEquals( $expectedBool, $title->isJsSubpage() );
+		$this->assertEquals( $expectedBool, $title->isUserJsConfigPage() );
 	}
 
 	public static function provideIsWikitextPage() {
-		return array(
-			array( 'Help:Foo', true ),
-			array( 'Help:Foo.js', true ),
-			array( 'Help:Foo/bar.js', true ),
-			array( 'User:Foo', true ),
-			array( 'User:Foo.js', true ),
-			array( 'User:Foo/bar.js', false ),
-			array( 'User:Foo/bar.css', false ),
-			array( 'User talk:Foo/bar.css', true ),
-			array( 'User:Foo/bar.js.xxx', true ),
-			array( 'User:Foo/bar.xxx', true ),
-			array( 'MediaWiki:Foo.js', false ),
-			array( 'MediaWiki:Foo.css', false ),
-			array( 'MediaWiki:Foo/bar.css', false ),
-			array( 'User:Foo/bar.JS', true ),
-			array( 'User:Foo/bar.CSS', true ),
-			array( 'TEST-JS:Foo', false ),
-			array( 'TEST-JS:Foo.js', false ),
-			array( 'TEST-JS_TALK:Foo.js', true ),
-		);
+		return [
+			[ 'Help:Foo', true ],
+			[ 'Help:Foo.js', true ],
+			[ 'Help:Foo/bar.js', true ],
+			[ 'User:Foo', true ],
+			[ 'User:Foo.js', true ],
+			[ 'User:Foo/bar.js', false ],
+			[ 'User:Foo/bar.json', false ],
+			[ 'User:Foo/bar.css', false ],
+			[ 'User talk:Foo/bar.css', true ],
+			[ 'User:Foo/bar.js.xxx', true ],
+			[ 'User:Foo/bar.xxx', true ],
+			[ 'MediaWiki:Foo.js', false ],
+			[ 'User:Foo/bar.JS', true ],
+			[ 'User:Foo/bar.JSON', true ],
+			[ 'User:Foo/bar.CSS', true ],
+			[ 'MediaWiki:Foo.json', false ],
+			[ 'MediaWiki:Foo.css', false ],
+			[ 'MediaWiki:Foo.JS', true ],
+			[ 'MediaWiki:Foo.JSON', true ],
+			[ 'MediaWiki:Foo.CSS', true ],
+			[ 'MediaWiki:Foo.css.xxx', true ],
+			[ 'TEST-JS:Foo', false ],
+			[ 'TEST-JS:Foo.js', false ],
+		];
 	}
 
 	/**
@@ -299,13 +288,14 @@ class TitleMethodsTest extends MediaWikiLangTestCase {
 	}
 
 	public static function provideGetOtherPage() {
-		return array(
-			array( 'Main Page', 'Talk:Main Page' ),
-			array( 'Talk:Main Page', 'Main Page' ),
-			array( 'Help:Main Page', 'Help talk:Main Page' ),
-			array( 'Help talk:Main Page', 'Help:Main Page' ),
-			array( 'Special:FooBar', null ),
-		);
+		return [
+			[ 'Main Page', 'Talk:Main Page' ],
+			[ 'Talk:Main Page', 'Main Page' ],
+			[ 'Help:Main Page', 'Help talk:Main Page' ],
+			[ 'Help talk:Main Page', 'Help:Main Page' ],
+			[ 'Special:FooBar', null ],
+			[ 'Media:File.jpg', null ],
+		];
 	}
 
 	/**
@@ -317,15 +307,18 @@ class TitleMethodsTest extends MediaWikiLangTestCase {
 	 */
 	public function testGetOtherPage( $text, $expected ) {
 		if ( $expected === null ) {
-			$this->setExpectedException( 'MWException' );
+			$this->setExpectedException( MWException::class );
 		}
 
 		$title = Title::newFromText( $text );
 		$this->assertEquals( $expected, $title->getOtherPage()->getPrefixedText() );
 	}
 
+	/**
+	 * @covers Title::clearCaches
+	 */
 	public function testClearCaches() {
-		$linkCache = LinkCache::singleton();
+		$linkCache = MediaWikiServices::getInstance()->getLinkCache();
 
 		$title1 = Title::newFromText( 'Foo' );
 		$linkCache->addGoodLinkObj( 23, $title1 );
@@ -335,5 +328,117 @@ class TitleMethodsTest extends MediaWikiLangTestCase {
 		$title2 = Title::newFromText( 'Foo' );
 		$this->assertNotSame( $title1, $title2, 'title cache should be empty' );
 		$this->assertEquals( 0, $linkCache->getGoodLinkID( 'Foo' ), 'link cache should be empty' );
+	}
+
+	public function provideGetLinkURL() {
+		yield 'Simple' => [
+			'/wiki/Goats',
+			NS_MAIN,
+			'Goats'
+		];
+
+		yield 'Fragment' => [
+			'/wiki/Goats#Goatificatiön',
+			NS_MAIN,
+			'Goats',
+			'Goatificatiön'
+		];
+
+		yield 'Unknown interwiki with fragment' => [
+			'https://xx.wiki.test/wiki/xyzzy:Goats#Goatificatiön',
+			NS_MAIN,
+			'Goats',
+			'Goatificatiön',
+			'xyzzy'
+		];
+
+		yield 'Interwiki with fragment' => [
+			'https://acme.test/Goats#Goatificati.C3.B6n',
+			NS_MAIN,
+			'Goats',
+			'Goatificatiön',
+			'acme'
+		];
+
+		yield 'Interwiki with query' => [
+			'https://acme.test/Goats?a=1&b=blank+blank#Goatificati.C3.B6n',
+			NS_MAIN,
+			'Goats',
+			'Goatificatiön',
+			'acme',
+			[
+				'a' => 1,
+				'b' => 'blank blank'
+			]
+		];
+
+		yield 'Local interwiki with fragment' => [
+			'https://yy.wiki.test/wiki/Goats#Goatificatiön',
+			NS_MAIN,
+			'Goats',
+			'Goatificatiön',
+			'yy'
+		];
+	}
+
+	/**
+	 * @dataProvider provideGetLinkURL
+	 *
+	 * @covers Title::getLinkURL
+	 * @covers Title::getFullURL
+	 * @covers Title::getLocalURL
+	 * @covers Title::getFragmentForURL
+	 */
+	public function testGetLinkURL(
+		$expected,
+		$ns,
+		$title,
+		$fragment = '',
+		$interwiki = '',
+		$query = '',
+		$query2 = false,
+		$proto = false
+	) {
+		$this->setMwGlobals( [
+			'wgServer' => 'https://xx.wiki.test',
+			'wgArticlePath' => '/wiki/$1',
+			'wgExternalInterwikiFragmentMode' => 'legacy',
+			'wgFragmentMode' => [ 'html5', 'legacy' ]
+		] );
+
+		$interwikiLookup = $this->getMock( InterwikiLookup::class );
+
+		$interwikiLookup->method( 'fetch' )
+			->willReturnCallback( function ( $interwiki ) {
+				switch ( $interwiki ) {
+					case '':
+						return null;
+					case 'acme':
+						return new Interwiki(
+							'acme',
+							'https://acme.test/$1'
+						);
+					case 'yy':
+						return new Interwiki(
+							'yy',
+							'https://yy.wiki.test/wiki/$1',
+							'/w/api.php',
+							'yywiki',
+							true
+						);
+					default:
+						return false;
+				}
+			} );
+
+		$this->setService( 'InterwikiLookup', $interwikiLookup );
+
+		$title = Title::makeTitle( $ns, $title, $fragment, $interwiki );
+		$this->assertSame( $expected, $title->getLinkURL( $query, $query2, $proto ) );
+	}
+
+	function tearDown() {
+		Title::clearCaches();
+		parent::tearDown();
 	}
 }

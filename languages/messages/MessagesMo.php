@@ -13,9 +13,8 @@
 
 $fallback = 'ro';
 
-$specialPageAliases = array(
-	'CreateAccount'             => array( 'КреареКонт' ),
-	'Preferences'               => array( 'Преферинце' ),
-	'Recentchanges'             => array( 'Модификэрьреченте' ),
-);
-
+$specialPageAliases = [
+	'CreateAccount'             => [ 'КреареКонт' ],
+	'Preferences'               => [ 'Преферинце' ],
+	'Recentchanges'             => [ 'Модификэрьреченте' ],
+];

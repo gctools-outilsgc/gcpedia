@@ -10,13 +10,11 @@ class DiffHistoryBlobTest extends MediaWikiTestCase {
 
 		if ( !function_exists( 'xdiff_string_rabdiff' ) ) {
 			$this->markTestSkipped( 'The version of xdiff extension is lower than 1.5.0' );
-
 			return;
 		}
 	}
 
 	/**
-	 * Test for DiffHistoryBlob::xdiffAdler32()
 	 * @dataProvider provideXdiffAdler32
 	 * @covers DiffHistoryBlob::xdiffAdler32
 	 */
@@ -28,13 +26,19 @@ class DiffHistoryBlobTest extends MediaWikiTestCase {
 			"Hash of " . addcslashes( $input, "\0..\37!@\@\177..\377" ) );
 	}
 
-	public static function provideXdiffAdler32() {
-		return array(
-			array( '', 'Empty string' ),
-			array( "\0", 'Null' ),
-			array( "\0\0\0", "Several nulls" ),
-			array( "Hello", "An ASCII string" ),
-			array( str_repeat( "x", 6000 ), "A string larger than xdiff's NMAX (5552)" )
-		);
+	public function provideXdiffAdler32() {
+		// Hack non-empty early return since PHPUnit expands this provider before running
+		// the setUp() which marks the test as skipped.
+		if ( !function_exists( 'xdiff_string_rabdiff' ) ) {
+			return [ [ '', 'Empty string' ] ];
+		}
+
+		return [
+			[ '', 'Empty string' ],
+			[ "\0", 'Null' ],
+			[ "\0\0\0", "Several nulls" ],
+			[ "Hello", "An ASCII string" ],
+			[ str_repeat( "x", 6000 ), "A string larger than xdiff's NMAX (5552)" ]
+		];
 	}
 }

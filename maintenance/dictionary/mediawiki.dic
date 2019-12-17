@@ -433,7 +433,6 @@ aiff
 aiprop
 airtel
 aisort
-ajaxwatch
 al
 alefsym
 algo
@@ -539,11 +538,8 @@ asctime
 asdf
 aspx
 assert
-astriks
 asymp
 async
-asynccopyuploaddisabled
-asyncdownload
 at
 atend
 atext
@@ -1040,7 +1036,6 @@ csrf
 css
 cssclass
 csslinks
-cssprefs
 cta
 ctime
 ctor
@@ -1327,7 +1322,6 @@ edittoken
 edittools
 editurl
 editusercss
-editusercssjs
 edituserjs
 edoe
 egrave
@@ -1403,7 +1397,6 @@ epcampus
 epcoordinator
 epinstructor
 eponline
-eqiad
 erevoke
 errno
 error
@@ -1799,7 +1792,6 @@ hidepatrolled
 hideredirects
 hiderevision
 hideuser
-hidpi
 highlimit
 highmax
 highuse
@@ -2034,7 +2026,6 @@ isminor
 ismodsince
 ismulti
 isnew
-ispermalink
 isroot
 isself
 isset
@@ -2152,7 +2143,6 @@ lcount
 lcrocker
 ldquo
 le
-leavemessage
 len
 length
 leprop
@@ -2435,7 +2425,6 @@ mkdir
 mms
 mobile
 mobileformat
-mobilelanding
 mobileview
 modified
 modifiedarticleprotection
@@ -3189,7 +3178,7 @@ prefixsearchdisabled
 prefs
 prefsection
 prefsnologintext2
-prefsubmit
+prefcontrol
 preload
 preloads
 preloadtitle
@@ -3315,7 +3304,6 @@ qvalues
 rabdiff
 radic
 radius
-raggett
 raii
 raimond
 random
@@ -3706,7 +3694,6 @@ showredirs
 showreviewed
 showsizediff
 showtoc
-showtoolbar
 showunreviewed
 shtml
 si
@@ -4331,7 +4318,6 @@ useemail
 uselang
 uselivepreview
 usemod
-usemsgcache
 usenewrc
 user
 useragent
@@ -4577,7 +4563,6 @@ wmls
 wmlsc
 wmlscript
 wmlscriptc
-wmnet
 wordcount
 wordprocessingml
 wordwg
@@ -4594,7 +4579,6 @@ wrongpassword
 x
 xanalytics
 xbitmap
-xcache
 xcancel
 xdebug
 xdiff

@@ -1,9 +1,5 @@
 <?php
 /**
- *
- *
- * Created on Jul 9, 2009
- *
  * Copyright © 2009
  *
  * This program is free software; you can redistribute it and/or modify
@@ -50,50 +46,37 @@ class ApiQueryTags extends ApiQueryBase {
 		$limit = $params['limit'];
 		$result = $this->getResult();
 
-		$extensionDefinedTags = array_fill_keys( ChangeTags::listExtensionDefinedTags(), 0 );
+		$softwareDefinedTags = array_fill_keys( ChangeTags::listSoftwareDefinedTags(), 0 );
 		$explicitlyDefinedTags = array_fill_keys( ChangeTags::listExplicitlyDefinedTags(), 0 );
-		$extensionActivatedTags = array_fill_keys( ChangeTags::listExtensionActivatedTags(), 0 );
+		$softwareActivatedTags = array_fill_keys( ChangeTags::listSoftwareActivatedTags(), 0 );
+		$tagStats = ChangeTags::tagUsageStatistics();
 
-		$definedTags = array_merge( $extensionDefinedTags, $explicitlyDefinedTags );
+		$tagHitcounts = array_merge( $softwareDefinedTags, $explicitlyDefinedTags, $tagStats );
+		$tags = array_keys( $tagHitcounts );
 
 		# Fetch defined tags that aren't past the continuation
 		if ( $params['continue'] !== null ) {
 			$cont = $params['continue'];
-			$tags = array_filter( array_keys( $definedTags ), function ( $v ) use ( $cont ) {
+			$tags = array_filter( $tags, function ( $v ) use ( $cont ) {
 				return $v >= $cont;
 			} );
-			$tags = array_fill_keys( $tags, 0 );
-		} else {
-			$tags = $definedTags;
-		}
-
-		# Merge in all used tags
-		$this->addTables( 'change_tag' );
-		$this->addFields( 'ct_tag' );
-		$this->addFields( array( 'hitcount' => $fld_hitcount ? 'COUNT(*)' : '0' ) );
-		$this->addOption( 'LIMIT', $limit + 1 );
-		$this->addOption( 'GROUP BY', 'ct_tag' );
-		$this->addWhereRange( 'ct_tag', 'newer', $params['continue'], null );
-		$res = $this->select( __METHOD__ );
-		foreach ( $res as $row ) {
-			$tags[$row->ct_tag] = (int)$row->hitcount;
 		}
 
 		# Now make sure the array is sorted for proper continuation
-		ksort( $tags );
+		sort( $tags );
 
 		$count = 0;
-		foreach ( $tags as $tagName => $hitcount ) {
+		foreach ( $tags as $tagName ) {
 			if ( ++$count > $limit ) {
 				$this->setContinueEnumParameter( 'continue', $tagName );
 				break;
 			}
 
-			$tag = array();
+			$tag = [];
 			$tag['name'] = $tagName;
 
 			if ( $fld_displayname ) {
-				$tag['displayname'] = ChangeTags::tagDescription( $tagName );
+				$tag['displayname'] = ChangeTags::tagDescription( $tagName, $this );
 			}
 
 			if ( $fld_description ) {
@@ -102,19 +85,20 @@ class ApiQueryTags extends ApiQueryBase {
 			}
 
 			if ( $fld_hitcount ) {
-				$tag['hitcount'] = $hitcount;
+				$tag['hitcount'] = (int)$tagHitcounts[$tagName];
 			}
 
-			$isExtension = isset( $extensionDefinedTags[$tagName] );
+			$isSoftware = isset( $softwareDefinedTags[$tagName] );
 			$isExplicit = isset( $explicitlyDefinedTags[$tagName] );
 
 			if ( $fld_defined ) {
-				$tag['defined'] = $isExtension || $isExplicit;
+				$tag['defined'] = $isSoftware || $isExplicit;
 			}
 
 			if ( $fld_source ) {
-				$tag['source'] = array();
-				if ( $isExtension ) {
+				$tag['source'] = [];
+				if ( $isSoftware ) {
+					// TODO: Can we change this to 'software'?
 					$tag['source'][] = 'extension';
 				}
 				if ( $isExplicit ) {
@@ -123,17 +107,17 @@ class ApiQueryTags extends ApiQueryBase {
 			}
 
 			if ( $fld_active ) {
-				$tag['active'] = $isExplicit || isset( $extensionActivatedTags[$tagName] );
+				$tag['active'] = $isExplicit || isset( $softwareActivatedTags[$tagName] );
 			}
 
-			$fit = $result->addValue( array( 'query', $this->getModuleName() ), null, $tag );
+			$fit = $result->addValue( [ 'query', $this->getModuleName() ], null, $tag );
 			if ( !$fit ) {
 				$this->setContinueEnumParameter( 'continue', $tagName );
 				break;
 			}
 		}
 
-		$result->addIndexedTagName( array( 'query', $this->getModuleName() ), 'tag' );
+		$result->addIndexedTagName( [ 'query', $this->getModuleName() ], 'tag' );
 	}
 
 	public function getCacheMode( $params ) {
@@ -141,42 +125,41 @@ class ApiQueryTags extends ApiQueryBase {
 	}
 
 	public function getAllowedParams() {
-		return array(
-			'continue' => array(
+		return [
+			'continue' => [
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-continue',
-			),
-			'limit' => array(
+			],
+			'limit' => [
 				ApiBase::PARAM_DFLT => 10,
 				ApiBase::PARAM_TYPE => 'limit',
 				ApiBase::PARAM_MIN => 1,
 				ApiBase::PARAM_MAX => ApiBase::LIMIT_BIG1,
 				ApiBase::PARAM_MAX2 => ApiBase::LIMIT_BIG2
-			),
-			'prop' => array(
-				ApiBase::PARAM_DFLT => 'name',
-				ApiBase::PARAM_TYPE => array(
-					'name',
+			],
+			'prop' => [
+				ApiBase::PARAM_DFLT => '',
+				ApiBase::PARAM_TYPE => [
 					'displayname',
 					'description',
 					'hitcount',
 					'defined',
 					'source',
 					'active',
-				),
+				],
 				ApiBase::PARAM_ISMULTI => true,
-				ApiBase::PARAM_HELP_MSG_PER_VALUE => array(),
-			)
-		);
+				ApiBase::PARAM_HELP_MSG_PER_VALUE => [],
+			]
+		];
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=query&list=tags&tgprop=displayname|description|hitcount|defined'
 				=> 'apihelp-query+tags-example-simple',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Tags';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Tags';
 	}
 }

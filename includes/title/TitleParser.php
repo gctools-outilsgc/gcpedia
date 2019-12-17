@@ -18,7 +18,6 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @file
- * @license GPL 2+
  * @author Daniel Kinzler
  */
 
@@ -44,5 +43,5 @@ interface TitleParser {
 	 * @throws MalformedTitleException If the text is not a valid representation of a page title.
 	 * @return TitleValue
 	 */
-	public function parseTitle( $text, $defaultNamespace );
+	public function parseTitle( $text, $defaultNamespace = NS_MAIN );
 }

@@ -1,8 +1,6 @@
 <?php
 
 /**
- * Tests for the Site class.
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -228,28 +226,28 @@ class SiteTest extends MediaWikiTestCase {
 	}
 
 	public static function provideGetPageUrl() {
-		//NOTE: the assumption that the URL is built by replacing $1
+		// NOTE: the assumption that the URL is built by replacing $1
 		//      with the urlencoded version of $page
 		//      is true for Site but not guaranteed for subclasses.
 		//      Subclasses need to override this provider appropriately.
 
-		return array(
-			array( #0
+		return [
+			[ # 0
 				'http://acme.test/TestPath/$1',
 				'Foo',
 				'/TestPath/Foo',
-			),
-			array( #1
+			],
+			[ # 1
 				'http://acme.test/TestScript?x=$1&y=bla',
 				'Foo',
 				'TestScript?x=Foo&y=bla',
-			),
-			array( #2
+			],
+			[ # 2
 				'http://acme.test/TestPath/$1',
 				'foo & bar/xyzzy (quux-shmoox?)',
 				'/TestPath/foo%20%26%20bar%2Fxyzzy%20%28quux-shmoox%3F%29',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -259,7 +257,7 @@ class SiteTest extends MediaWikiTestCase {
 	public function testGetPageUrl( $path, $page, $expected ) {
 		$site = new Site();
 
-		//NOTE: the assumption that getPageUrl is based on getLinkPath
+		// NOTE: the assumption that getPageUrl is based on getLinkPath
 		//      is true for Site but not guaranteed for subclasses.
 		//      Subclasses need to override this test case appropriately.
 		$site->setLinkPath( $path );
@@ -283,12 +281,12 @@ class SiteTest extends MediaWikiTestCase {
 	 * @covers Site::unserialize
 	 */
 	public function testSerialization( Site $site ) {
-		$this->assertInstanceOf( 'Serializable', $site );
+		$this->assertInstanceOf( Serializable::class, $site );
 
 		$serialization = serialize( $site );
 		$newInstance = unserialize( $serialization );
 
-		$this->assertInstanceOf( 'Site', $newInstance );
+		$this->assertInstanceOf( Site::class, $newInstance );
 
 		$this->assertEquals( $serialization, serialize( $newInstance ) );
 	}

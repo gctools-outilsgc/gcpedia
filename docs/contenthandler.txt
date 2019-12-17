@@ -21,10 +21,6 @@ ContentHandler::getDefaultModelFor($title) as follows:
 * The hook ContentHandlerDefaultModelFor may be used to override the page's default model.
 * Pages in NS_MEDIAWIKI and NS_USER default to the CSS or JavaScript model if they end in .css or .js, respectively.
   Pages in NS_MEDIAWIKI default to the wikitext model otherwise.
-* The hook TitleIsCssOrJsPage may be used to force a page to use the CSS or JavaScript model.
-  This is a compatibility feature. The ContentHandlerDefaultModelFor hook should be used instead if possible.
-* The hook TitleIsWikitextPage may be used to force a page to use the wikitext model.
-  This is a compatibility feature. The ContentHandlerDefaultModelFor hook should be used instead if possible.
 * Otherwise, the wikitext model is used.
 
 Note that is currently no mechanism to convert a page from one content model to another, and there is no guarantee that
@@ -96,7 +92,7 @@ used.
 
 Most importantly, the following functions have been deprecated:
 
-* Revisions::getText() and Revisions::getRawText() is deprecated in favor Revisions::getContent()
+* Revisions::getText() is deprecated in favor Revisions::getContent()
 * WikiPage::getText() is deprecated in favor WikiPage::getContent()
 
 Also, the old Article::getContent() (which returns text) is superceded by Article::getContentObject(). However, both
@@ -148,7 +144,8 @@ using a model or format different from the default will result in an error.
 
 There are some new globals that can be used to control the behavior of the ContentHandler facility:
 
-* $wgContentHandlers associates content model IDs with the names of the appropriate ContentHandler subclasses.
+* $wgContentHandlers associates content model IDs with the names of the appropriate ContentHandler subclasses
+  or callbacks that create an instance of the appropriate ContentHandler subclass.
 
 * $wgNamespaceContentModels maps namespace IDs to a content model that should be the default for that namespace.
 

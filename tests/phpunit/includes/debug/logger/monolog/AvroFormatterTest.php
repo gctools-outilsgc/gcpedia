@@ -23,6 +23,9 @@ namespace MediaWiki\Logger\Monolog;
 use MediaWikiTestCase;
 use PHPUnit_Framework_Error_Notice;
 
+/**
+ * @covers \MediaWiki\Logger\Monolog\AvroFormatter
+ */
 class AvroFormatterTest extends MediaWikiTestCase {
 
 	protected function setUp() {
@@ -33,32 +36,41 @@ class AvroFormatterTest extends MediaWikiTestCase {
 	}
 
 	public function testSchemaNotAvailable() {
-		$formatter = new AvroFormatter( array() );
-		$this->setExpectedException( 'PHPUnit_Framework_Error_Notice', "The schema for channel 'marty' is not available" );
-		$formatter->format( array( 'channel' => 'marty' ) );
+		$formatter = new AvroFormatter( [] );
+		$this->setExpectedException(
+			'PHPUnit_Framework_Error_Notice',
+			"The schema for channel 'marty' is not available"
+		);
+		$formatter->format( [ 'channel' => 'marty' ] );
 	}
 
 	public function testSchemaNotAvailableReturnValue() {
-		$formatter = new AvroFormatter( array() );
+		$formatter = new AvroFormatter( [] );
 		$noticeEnabled = PHPUnit_Framework_Error_Notice::$enabled;
 		// disable conversion of notices
 		PHPUnit_Framework_Error_Notice::$enabled = false;
 		// have to keep the user notice from being output
-		wfSuppressWarnings();
-		$res = $formatter->format( array( 'channel' => 'marty' ) );
-		wfRestoreWarnings();
+		\Wikimedia\suppressWarnings();
+		$res = $formatter->format( [ 'channel' => 'marty' ] );
+		\Wikimedia\restoreWarnings();
 		PHPUnit_Framework_Error_Notice::$enabled = $noticeEnabled;
 		$this->assertNull( $res );
 	}
 
 	public function testDoesSomethingWhenSchemaAvailable() {
-		$formatter = new AvroFormatter( array( 'string' => array( 'type' => 'string' ) ) );
-		$res = $formatter->format( array(
+		$formatter = new AvroFormatter( [
+			'string' => [
+				'schema' => [ 'type' => 'string' ],
+				'revision' => 1010101,
+			]
+		] );
+		$res = $formatter->format( [
 			'channel' => 'string',
 			'context' => 'better to be',
-		) );
+		] );
 		$this->assertNotNull( $res );
-		// basically just tell us if avro changes its string encoding
-		$this->assertEquals( base64_decode( 'GGJldHRlciB0byBiZQ==' ), $res );
+		// basically just tell us if avro changes its string encoding, or if
+		// we completely fail to generate a log message.
+		$this->assertEquals( 'AAAAAAAAD2m1GGJldHRlciB0byBiZQ==', base64_encode( $res ) );
 	}
 }

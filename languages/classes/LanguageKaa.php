@@ -54,12 +54,11 @@ class LanguageKaa extends Language {
 	 *
 	 * @return string
 	 */
-	function ucfirst( $string ) {
+	public function ucfirst( $string ) {
 		if ( substr( $string, 0, 1 ) === 'i' ) {
 			return 'İ' . substr( $string, 1 );
-		} else {
-			return parent::ucfirst( $string );
 		}
+		return parent::ucfirst( $string );
 	}
 
 	/**
@@ -72,24 +71,8 @@ class LanguageKaa extends Language {
 	function lcfirst( $string ) {
 		if ( substr( $string, 0, 1 ) === 'I' ) {
 			return 'ı' . substr( $string, 1 );
-		} else {
-			return parent::lcfirst( $string );
 		}
-	}
-
-	/**
-	 * Avoid grouping whole numbers between 0 to 9999
-	 *
-	 * @param string $_
-	 *
-	 * @return string
-	 */
-	function commafy( $_ ) {
-		if ( !preg_match( '/^\d{1,4}$/', $_ ) ) {
-			return strrev( (string)preg_replace( '/(\d{3})(?=\d)(?!\d*\.)/', '$1,', strrev( $_ ) ) );
-		} else {
-			return $_;
-		}
+		return parent::lcfirst( $string );
 	}
 
 }

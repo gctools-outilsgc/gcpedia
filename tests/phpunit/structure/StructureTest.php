@@ -9,13 +9,13 @@ class StructureTest extends MediaWikiTestCase {
 	 * Verify all files that appear to be tests have file names ending in
 	 * Test.  If the file names do not end in Test, they will not be run.
 	 * @group medium
+	 * @coversNothing
 	 */
 	public function testUnitTestFileNamesEndWithTest() {
-		if ( wfIsWindows() ) {
-			$this->markTestSkipped( 'This test does not work on Windows' );
-		}
-		$rootPath = escapeshellarg( __DIR__ . '/..' );
-		$testClassRegex = implode( '|', array(
+		// realpath() also normalizes directory separator on windows for prefix compares
+		$rootPath = realpath( __DIR__ . '/..' );
+		$suitesPath = realpath( __DIR__ . '/../suites/' );
+		$testClassRegex = implode( '|', [
 			'ApiFormatTestBase',
 			'ApiTestCase',
 			'ApiQueryTestBase',
@@ -25,43 +25,40 @@ class StructureTest extends MediaWikiTestCase {
 			'MediaWikiTestCase',
 			'ResourceLoaderTestCase',
 			'PHPUnit_Framework_TestCase',
+			'\\?PHPUnit\\Framework\\TestCase',
+			'TestCase', // \PHPUnit\Framework\TestCase with appropriate use statement
 			'DumpTestCase',
-		) );
-		$testClassRegex = "^class .* extends ($testClassRegex)";
-		$finder = "find $rootPath -name '*.php' '!' -name '*Test.php'" .
-			" | xargs grep -El '$testClassRegex|function suite\('";
+			'SpecialPageTestBase',
+		] );
+		$testClassRegex = "/^class .* extends ($testClassRegex)/m";
 
-		$results = null;
-		$exitCode = null;
-		exec( $finder, $results, $exitCode );
-
-		$this->assertEquals(
-			0,
-			$exitCode,
-			'Verify find/grep command succeeds.'
-		);
+		$results = $this->recurseFiles( $rootPath );
 
 		$results = array_filter(
 			$results,
-			array( $this, 'filterSuites' )
+			function ( $filename ) use ( $testClassRegex, $suitesPath ) {
+				// Remove testUnitTestFileNamesEndWithTest false positives
+				if ( strpos( $filename, $suitesPath ) === 0
+					|| substr( $filename, -8 ) === 'Test.php'
+				) {
+					return false;
+				}
+				$contents = file_get_contents( $filename );
+				return preg_match( $testClassRegex, $contents );
+			}
 		);
-		$strip = strlen( $rootPath ) - 1;
+		$strip = strlen( $rootPath ) + 1;
 		foreach ( $results as $k => $v ) {
 			$results[$k] = substr( $v, $strip );
 		}
 		$this->assertEquals(
-			array(),
+			[],
 			$results,
 			"Unit test file in $rootPath must end with Test."
 		);
 	}
 
-	/**
-	 * Filter to remove testUnitTestFileNamesEndWithTest false positives.
-	 * @param string $filename
-	 * @return bool
-	 */
-	public function filterSuites( $filename ) {
-		return strpos( $filename, __DIR__ . '/../suites/' ) !== 0;
+	private function recurseFiles( $dir ) {
+		return ( new File_Iterator_Facade() )->getFilesAsArray( $dir, [ '.php' ] );
 	}
 }

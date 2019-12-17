@@ -1,7 +1,7 @@
 [gerrit]
 host=gerrit.wikimedia.org
 port=29418
-project=mediawiki/extensions/SimpleSamlAuth.git
-defaultbranch=master
+project=mediawiki/core.git
+track=1
 defaultrebase=0
-
+defaultbranch=REL1_33

@@ -26,8 +26,7 @@ class SkinFallbackTemplate extends BaseTemplate {
 
 		// Filter out skins that aren't installed
 		$possibleSkins = array_filter( $possibleSkins, function ( $skinDir ) use ( $styleDirectory ) {
-			return
-				is_file( "$styleDirectory/$skinDir/skin.json" )
+			return is_file( "$styleDirectory/$skinDir/skin.json" )
 				|| is_file( "$styleDirectory/$skinDir/$skinDir.php" );
 		} );
 
@@ -46,8 +45,8 @@ class SkinFallbackTemplate extends BaseTemplate {
 		$enabledSkins = array_change_key_case( $enabledSkins, CASE_LOWER );
 
 		if ( $installedSkins ) {
-			$skinsInstalledText = array();
-			$skinsInstalledSnippet = array();
+			$skinsInstalledText = [];
+			$skinsInstalledSnippet = [];
 
 			foreach ( $installedSkins as $skin ) {
 				$normalizedKey = strtolower( $skin );
@@ -96,16 +95,13 @@ class SkinFallbackTemplate extends BaseTemplate {
 	 * warning message and page content.
 	 */
 	public function execute() {
-		$this->html( 'headelement' ) ?>
-
-		<div class="warningbox">
-			<?php echo $this->buildHelpfulInformationMessage() ?>
-		</div>
-
+		$this->html( 'headelement' );
+		echo Html::warningBox( $this->buildHelpfulInformationMessage() );
+	?>
 		<form action="<?php $this->text( 'wgScript' ) ?>">
 			<input type="hidden" name="title" value="<?php $this->text( 'searchtitle' ) ?>" />
 			<h3><label for="searchInput"><?php $this->msg( 'search' ) ?></label></h3>
-			<?php echo $this->makeSearchInput( array( "id" => "searchInput" ) ) ?>
+			<?php echo $this->makeSearchInput( [ "id" => "searchInput" ] ) ?>
 			<?php echo $this->makeSearchButton( 'go' ) ?>
 		</form>
 

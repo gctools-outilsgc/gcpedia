@@ -2,8 +2,6 @@
 /**
  * API for MediaWiki 1.17+
  *
- * Created on May 14, 2010
- *
  * Copyright © 2010 Sam Reed
  * Copyright © 2006 Yuri Astrakhan "<Firstname><Lastname>@gmail.com"
  *
@@ -45,21 +43,27 @@ class ApiQueryIWLinks extends ApiQueryBase {
 		$prop = array_flip( (array)$params['prop'] );
 
 		if ( isset( $params['title'] ) && !isset( $params['prefix'] ) ) {
-			$this->dieUsageMsg( array( 'missingparam', 'prefix' ) );
+			$this->dieWithError(
+				[
+					'apierror-invalidparammix-mustusewith',
+					$this->encodeParamName( 'title' ),
+					$this->encodeParamName( 'prefix' ),
+				],
+				'invalidparammix'
+			);
 		}
 
 		// Handle deprecated param
 		$this->requireMaxOneParameter( $params, 'url', 'prop' );
 		if ( $params['url'] ) {
-			$this->logFeatureUsage( 'prop=iwlinks&iwurl' );
-			$prop = array( 'url' => 1 );
+			$prop = [ 'url' => 1 ];
 		}
 
-		$this->addFields( array(
+		$this->addFields( [
 			'iwl_from',
 			'iwl_prefix',
 			'iwl_title'
-		) );
+		] );
 
 		$this->addTables( 'iwlinks' );
 		$this->addWhereFld( 'iwl_from', array_keys( $this->getPageSet()->getGoodTitles() ) );
@@ -69,7 +73,7 @@ class ApiQueryIWLinks extends ApiQueryBase {
 			$this->dieContinueUsageIf( count( $cont ) != 3 );
 			$op = $params['dir'] == 'descending' ? '<' : '>';
 			$db = $this->getDB();
-			$iwlfrom = intval( $cont[0] );
+			$iwlfrom = (int)$cont[0];
 			$iwlprefix = $db->addQuotes( $cont[1] );
 			$iwltitle = $db->addQuotes( $cont[2] );
 			$this->addWhere(
@@ -88,21 +92,21 @@ class ApiQueryIWLinks extends ApiQueryBase {
 				$this->addWhereFld( 'iwl_title', $params['title'] );
 				$this->addOption( 'ORDER BY', 'iwl_from' . $sort );
 			} else {
-				$this->addOption( 'ORDER BY', array(
+				$this->addOption( 'ORDER BY', [
 					'iwl_from' . $sort,
 					'iwl_title' . $sort
-				) );
+				] );
 			}
 		} else {
 			// Don't order by iwl_from if it's constant in the WHERE clause
 			if ( count( $this->getPageSet()->getGoodTitles() ) == 1 ) {
 				$this->addOption( 'ORDER BY', 'iwl_prefix' . $sort );
 			} else {
-				$this->addOption( 'ORDER BY', array(
+				$this->addOption( 'ORDER BY', [
 					'iwl_from' . $sort,
 					'iwl_prefix' . $sort,
 					'iwl_title' . $sort
-				) );
+				] );
 			}
 		}
 
@@ -120,7 +124,7 @@ class ApiQueryIWLinks extends ApiQueryBase {
 				);
 				break;
 			}
-			$entry = array( 'prefix' => $row->iwl_prefix );
+			$entry = [ 'prefix' => $row->iwl_prefix ];
 
 			if ( isset( $prop['url'] ) ) {
 				$title = Title::newFromText( "{$row->iwl_prefix}:{$row->iwl_title}" );
@@ -146,48 +150,48 @@ class ApiQueryIWLinks extends ApiQueryBase {
 	}
 
 	public function getAllowedParams() {
-		return array(
-			'prop' => array(
+		return [
+			'prop' => [
 				ApiBase::PARAM_ISMULTI => true,
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'url',
-				),
-				ApiBase::PARAM_HELP_MSG_PER_VALUE => array(),
-			),
+				],
+				ApiBase::PARAM_HELP_MSG_PER_VALUE => [],
+			],
 			'prefix' => null,
 			'title' => null,
-			'dir' => array(
+			'dir' => [
 				ApiBase::PARAM_DFLT => 'ascending',
-				ApiBase::PARAM_TYPE => array(
+				ApiBase::PARAM_TYPE => [
 					'ascending',
 					'descending'
-				)
-			),
-			'limit' => array(
+				]
+			],
+			'limit' => [
 				ApiBase::PARAM_DFLT => 10,
 				ApiBase::PARAM_TYPE => 'limit',
 				ApiBase::PARAM_MIN => 1,
 				ApiBase::PARAM_MAX => ApiBase::LIMIT_BIG1,
 				ApiBase::PARAM_MAX2 => ApiBase::LIMIT_BIG2
-			),
-			'continue' => array(
+			],
+			'continue' => [
 				ApiBase::PARAM_HELP_MSG => 'api-help-param-continue',
-			),
-			'url' => array(
+			],
+			'url' => [
 				ApiBase::PARAM_DFLT => false,
 				ApiBase::PARAM_DEPRECATED => true,
-			),
-		);
+			],
+		];
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=query&prop=iwlinks&titles=Main%20Page'
 				=> 'apihelp-query+iwlinks-example-simple',
-		);
+		];
 	}
 
 	public function getHelpUrls() {
-		return 'https://www.mediawiki.org/wiki/API:Iwlinks';
+		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/API:Iwlinks';
 	}
 }

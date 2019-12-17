@@ -19,6 +19,8 @@
  * @file
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * @defgroup Actions Action done on pages
  */
@@ -28,13 +30,13 @@
  * are distinct from Special Pages because an action must apply to exactly one page.
  *
  * To add an action in an extension, create a subclass of Action, and add the key to
- * $wgActions.  There is also the deprecated UnknownAction hook
+ * $wgActions.
  *
  * Actions generally fall into two groups: the show-a-form-then-do-something-with-the-input
  * format (protect, delete, move, etc), and the just-do-something format (watch, rollback,
  * patrol, etc). The FormAction and FormlessAction classes represent these two groups.
  */
-abstract class Action {
+abstract class Action implements MessageLocalizer {
 
 	/**
 	 * Page on which we're performing the action
@@ -62,7 +64,7 @@ abstract class Action {
 	 * the action is disabled, or null if it's not recognised
 	 * @param string $action
 	 * @param array $overrides
-	 * @return bool|null|string|callable
+	 * @return bool|null|string|callable|Action
 	 */
 	final private static function getClass( $action, array $overrides ) {
 		global $wgActions;
@@ -88,7 +90,7 @@ abstract class Action {
 	 * @since 1.17
 	 * @param string $action
 	 * @param Page $page
-	 * @param IContextSource $context
+	 * @param IContextSource|null $context
 	 * @return Action|bool|null False if the action is disabled, null
 	 *     if it is not recognised
 	 */
@@ -96,12 +98,14 @@ abstract class Action {
 		$classOrCallable = self::getClass( $action, $page->getActionOverrides() );
 
 		if ( is_string( $classOrCallable ) ) {
-			$obj = new $classOrCallable( $page, $context );
-			return $obj;
+			if ( !class_exists( $classOrCallable ) ) {
+				return false;
+			}
+			return new $classOrCallable( $page, $context );
 		}
 
 		if ( is_callable( $classOrCallable ) ) {
-			return call_user_func_array( $classOrCallable, array( $page, $context ) );
+			return $classOrCallable( $page, $context );
 		}
 
 		return $classOrCallable;
@@ -127,7 +131,7 @@ abstract class Action {
 			$actionName = 'nosuchaction';
 		}
 
-		// Workaround for bug #20966: inability of IE to provide an action dependent
+		// Workaround for T22966: inability of IE to provide an action dependent
 		// on which submit button is clicked.
 		if ( $actionName === 'historysubmit' ) {
 			if ( $request->getBool( 'revisiondelete' ) ) {
@@ -137,7 +141,7 @@ abstract class Action {
 			} else {
 				$actionName = 'view';
 			}
-		} elseif ( $actionName == 'editredlink' ) {
+		} elseif ( $actionName === 'editredlink' ) {
 			$actionName = 'edit';
 		}
 
@@ -148,7 +152,7 @@ abstract class Action {
 			return 'view';
 		}
 
-		$action = Action::factory( $actionName, $context->getWikiPage(), $context );
+		$action = self::factory( $actionName, $context->getWikiPage(), $context );
 		if ( $action instanceof Action ) {
 			return $action->getName();
 		}
@@ -164,7 +168,7 @@ abstract class Action {
 	 * @return bool
 	 */
 	final public static function exists( $name ) {
-		return self::getClass( $name, array() ) !== null;
+		return self::getClass( $name, [] ) !== null;
 	}
 
 	/**
@@ -250,18 +254,16 @@ abstract class Action {
 	 *
 	 * @return Message
 	 */
-	final public function msg() {
+	final public function msg( $key ) {
 		$params = func_get_args();
-		return call_user_func_array( array( $this->getContext(), 'msg' ), $params );
+		return $this->getContext()->msg( ...$params );
 	}
 
 	/**
-	 * Constructor.
-	 *
 	 * Only public since 1.21
 	 *
 	 * @param Page $page
-	 * @param IContextSource $context
+	 * @param IContextSource|null $context
 	 */
 	public function __construct( Page $page, IContextSource $context = null ) {
 		if ( $context === null ) {
@@ -311,9 +313,14 @@ abstract class Action {
 			}
 		}
 
-		if ( $this->requiresUnblock() && $user->isBlocked() ) {
+		// If the action requires an unblock, explicitly check the user's block.
+		if ( $this->requiresUnblock() && $user->isBlockedFrom( $this->getTitle() ) ) {
 			$block = $user->getBlock();
-			throw new UserBlockedError( $block );
+			if ( $block ) {
+				throw new UserBlockedError( $block );
+			}
+
+			throw new PermissionsError( $this->getName(), [ 'badaccess-group0' ] );
 		}
 
 		// This should be checked at the end so that the user won't think the
@@ -351,7 +358,7 @@ abstract class Action {
 	 */
 	protected function setHeaders() {
 		$out = $this->getOutput();
-		$out->setRobotPolicy( "noindex,nofollow" );
+		$out->setRobotPolicy( 'noindex,nofollow' );
 		$out->setPageTitle( $this->getPageTitle() );
 		$out->setSubtitle( $this->getDescription() );
 		$out->setArticleRelated( true );
@@ -370,7 +377,7 @@ abstract class Action {
 	 * Returns the description that goes below the \<h1\> tag
 	 * @since 1.17
 	 *
-	 * @return string
+	 * @return string HTML
 	 */
 	protected function getDescription() {
 		return $this->msg( strtolower( $this->getName() ) )->escaped();
@@ -385,9 +392,8 @@ abstract class Action {
 	 * @since 1.25
 	 */
 	public function addHelpLink( $to, $overrideBaseUrl = false ) {
-		global $wgContLang;
-		$msg = wfMessage( $wgContLang->lc(
-			Action::getActionName( $this->getContext() )
+		$msg = wfMessage( MediaWikiServices::getInstance()->getContentLanguage()->lc(
+			self::getActionName( $this->getContext() )
 			) . '-helppage' );
 
 		if ( !$msg->isDisabled() ) {
@@ -416,5 +422,14 @@ abstract class Action {
 		if ( $this->getRequest()->wasPosted() ) {
 			wfTransactionalTimeLimit();
 		}
+	}
+
+	/**
+	 * Indicates whether this action may perform database writes
+	 * @return bool
+	 * @since 1.27
+	 */
+	public function doesWrites() {
+		return false;
 	}
 }

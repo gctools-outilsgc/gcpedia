@@ -21,16 +21,13 @@
  * @ingroup Language
  */
 
-require_once __DIR__ . '/../LanguageConverter.php';
-require_once __DIR__ . '/LanguageKu_ku.php';
-
 /**
  * Kurdish converter routines
  *
  * @ingroup Language
  */
 class KuConverter extends LanguageConverter {
-	public $mArabicToLatin = array(
+	public $mArabicToLatin = [
 		'ب' => 'b', 'ج' => 'c', 'چ' => 'ç', 'د' => 'd', 'ف' => 'f', 'گ' => 'g', 'ھ' => 'h',
 		'ہ' => 'h', 'ه' => 'h', 'ح' => 'h', 'ژ' => 'j', 'ك' => 'k', 'ک' => 'k', 'ل' => 'l',
 		'م' => 'm', 'ن' => 'n', 'پ' => 'p', 'ق' => 'q', 'ر' => 'r', 'س' => 's', 'ش' => 'ş',
@@ -60,27 +57,27 @@ class KuConverter extends LanguageConverter {
 		'؟' => '?',
 
 		# digits
-		'٠' => '0', # &#x0660;
-		'١' => '1', # &#x0661;
-		'٢' => '2', # &#x0662;
-		'٣' => '3', # &#x0663;
-		'٤' => '4', # &#x0664;
-		'٥' => '5', # &#x0665;
-		'٦' => '6', # &#x0666;
-		'٧' => '7', # &#x0667;
-		'٨' => '8', # &#x0668;
-		'٩' => '9', # &#x0669;
-	);
+		'٠' => '0', # U+0660
+		'١' => '1', # U+0661
+		'٢' => '2', # U+0662
+		'٣' => '3', # U+0663
+		'٤' => '4', # U+0664
+		'٥' => '5', # U+0665
+		'٦' => '6', # U+0666
+		'٧' => '7', # U+0667
+		'٨' => '8', # U+0668
+		'٩' => '9', # U+0669
+	];
 
-	public $mLatinToArabic = array(
+	public $mLatinToArabic = [
 		'b' => 'ب', 'c' => 'ج', 'ç' => 'چ', 'd' => 'د', 'f' => 'ف', 'g' => 'گ',
 		'h' => 'ه', 'j' => 'ژ', 'k' => 'ک', 'l' => 'ل',
 		'm' => 'م', 'n' => 'ن', 'p' => 'پ', 'q' => 'ق', 'r' => 'ر', 's' => 'س', 'ş' => 'ش',
 		't' => 'ت', 'v' => 'ڤ',
 		'x' => 'خ', 'y' => 'ی', 'z' => 'ز',
 
-		'B' => 'ب', 'C' => 'ج', 'Ç' => 'چ', 'D' => 'د', 'F' => 'ف', 'G' => 'گ', 'H' => 'ھ',
-		'H' => 'ہ', 'H' => 'ه', 'H' => 'ح', 'J' => 'ژ', 'K' => 'ك', 'K' => 'ک', 'L' => 'ل',
+		'B' => 'ب', 'C' => 'ج', 'Ç' => 'چ', 'D' => 'د', 'F' => 'ف', 'G' => 'گ',
+		'H' => 'ح', 'J' => 'ژ', 'K' => 'ک', 'L' => 'ل',
 		'M' => 'م', 'N' => 'ن', 'P' => 'پ', 'Q' => 'ق', 'R' => 'ر', 'S' => 'س', 'Ş' => 'ش',
 		'T' => 'ت', 'V' => 'ڤ', 'W' => 'و', 'X' => 'خ',
 		'Y' => 'ی', 'Z' => 'ز',
@@ -133,25 +130,25 @@ class KuConverter extends LanguageConverter {
 
 /*		# deactivated for now, breaks links i.e. in header of Special:Recentchanges :-(
 		# digits
-		'0' => '٠', # &#x0660;
-		'1' => '١', # &#x0661;
-		'2' => '٢', # &#x0662;
-		'3' => '٣', # &#x0663;
-		'4' => '٤', # &#x0664;
-		'5' => '٥', # &#x0665;
-		'6' => '٦', # &#x0666;
-		'7' => '٧', # &#x0667;
-		'8' => '٨', # &#x0668;
-		'9' => '٩', # &#x0669;
+		'0' => '٠', # U+0660
+		'1' => '١', # U+0661
+		'2' => '٢', # U+0662
+		'3' => '٣', # U+0663
+		'4' => '٤', # U+0664
+		'5' => '٥', # U+0665
+		'6' => '٦', # U+0666
+		'7' => '٧', # U+0667
+		'8' => '٨', # U+0668
+		'9' => '٩', # U+0669
 */
-		);
+		];
 
 	function loadDefaultTables() {
-		$this->mTables = array(
+		$this->mTables = [
 			'ku-latn' => new ReplacementArray( $this->mArabicToLatin ),
 			'ku-arab' => new ReplacementArray( $this->mLatinToArabic ),
 			'ku' => new ReplacementArray()
-		);
+		];
 	}
 
 	/**
@@ -195,7 +192,8 @@ class KuConverter extends LanguageConverter {
 		/* From Kazakh interface, maybe we need it later
 		$breaks = '[^\w\x80-\xff]';
 		// regexp for roman numbers
-		$roman = 'M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})';
+		// Lookahead assertion ensures $roman doesn't match the empty string
+		$roman = '(?=[MDCLXVI])M{0,4}(C[DM]|D?C{0,3})(X[LC]|L?X{0,3})(I[VX]|V?I{0,3})';
 		$roman = '';
 
 		$reg = '/^'.$roman.'$|^'.$roman.$breaks.'|'.$breaks.$roman.'$|'.$breaks.$roman.$breaks.'/';
@@ -230,20 +228,18 @@ class KuConverter extends LanguageConverter {
  *
  * @ingroup Language
  */
-class LanguageKu extends LanguageKu_ku {
+class LanguageKu extends Language {
 
 	function __construct() {
-		global $wgHooks;
 		parent::__construct();
 
-		$variants = array( 'ku', 'ku-arab', 'ku-latn' );
-		$variantfallbacks = array(
+		$variants = [ 'ku', 'ku-arab', 'ku-latn' ];
+		$variantfallbacks = [
 			'ku' => 'ku-latn',
 			'ku-arab' => 'ku-latn',
 			'ku-latn' => 'ku-arab',
-		);
+		];
 
 		$this->mConverter = new KuConverter( $this, 'ku', $variants, $variantfallbacks );
-		$wgHooks['PageContentSaveComplete'][] = $this->mConverter;
 	}
 }

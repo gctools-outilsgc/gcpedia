@@ -22,6 +22,7 @@
  */
 
 use MediaWiki\Logger\LoggerFactory;
+use Wikimedia\XMPReader\Reader as XMPReader;
 
 /**
  * Class to deal with reconciling and extracting metadata from bitmap images.
@@ -35,19 +36,19 @@ use MediaWiki\Logger\LoggerFactory;
  */
 class BitmapMetadataHandler {
 	/** @var array */
-	private $metadata = array();
+	private $metadata = [];
 
 	/** @var array Metadata priority */
-	private $metaPriority = array(
-		20 => array( 'other' ),
-		40 => array( 'native' ),
-		60 => array( 'iptc-good-hash', 'iptc-no-hash' ),
-		70 => array( 'xmp-deprecated' ),
-		80 => array( 'xmp-general' ),
-		90 => array( 'xmp-exif' ),
-		100 => array( 'iptc-bad-hash' ),
-		120 => array( 'exif' ),
-	);
+	private $metaPriority = [
+		20 => [ 'other' ],
+		40 => [ 'native' ],
+		60 => [ 'iptc-good-hash', 'iptc-no-hash' ],
+		70 => [ 'xmp-deprecated' ],
+		80 => [ 'xmp-general' ],
+		90 => [ 'xmp-exif' ],
+		100 => [ 'iptc-bad-hash' ],
+		120 => [ 'exif' ],
+	];
 
 	/** @var string */
 	private $iptcType = 'iptc-no-hash';
@@ -122,8 +123,8 @@ class BitmapMetadataHandler {
 	 */
 	function getMetadataArray() {
 		// this seems a bit ugly... This is all so its merged in right order
-		// based on the MWG recomendation.
-		$temp = array();
+		// based on the MWG recommendation.
+		$temp = [];
 		krsort( $this->metaPriority );
 		foreach ( $this->metaPriority as $pri ) {
 			foreach ( $pri as $type ) {
@@ -131,13 +132,13 @@ class BitmapMetadataHandler {
 					// Do some special casing for multilingual values.
 					// Don't discard translations if also as a simple value.
 					foreach ( $this->metadata[$type] as $itemName => $item ) {
-						if ( is_array( $item ) && isset( $item['_type'] ) && $item['_type'] === 'lang' ) {
-							if ( isset( $temp[$itemName] ) && !is_array( $temp[$itemName] ) ) {
-								$default = $temp[$itemName];
-								$temp[$itemName] = $item;
-								$temp[$itemName]['x-default'] = $default;
-								unset( $this->metadata[$type][$itemName] );
-							}
+						if ( is_array( $item ) && isset( $item['_type'] ) && $item['_type'] === 'lang' &&
+							isset( $temp[$itemName] ) && !is_array( $temp[$itemName] )
+						) {
+							$default = $temp[$itemName];
+							$temp[$itemName] = $item;
+							$temp[$itemName]['x-default'] = $default;
+							unset( $this->metadata[$type][$itemName] );
 						}
 					}
 
@@ -160,8 +161,9 @@ class BitmapMetadataHandler {
 		$meta = new self();
 
 		$seg = JpegMetadataExtractor::segmentSplitter( $filename );
+
 		if ( isset( $seg['COM'] ) && isset( $seg['COM'][0] ) ) {
-			$meta->addMetadata( array( 'JPEGFileComment' => $seg['COM'] ), 'native' );
+			$meta->addMetadata( [ 'JPEGFileComment' => $seg['COM'] ], 'native' );
 		}
 		if ( isset( $seg['PSIR'] ) && count( $seg['PSIR'] ) > 0 ) {
 			foreach ( $seg['PSIR'] as $curPSIRValue ) {
@@ -169,7 +171,7 @@ class BitmapMetadataHandler {
 			}
 		}
 		if ( isset( $seg['XMP'] ) && $showXMP ) {
-			$xmp = new XMPReader( LoggerFactory::getInstance( 'XMP' ) );
+			$xmp = new XMPReader( LoggerFactory::getInstance( 'XMP' ), $filename );
 			$xmp->parse( $seg['XMP'] );
 			foreach ( $seg['XMP_ext'] as $xmpExt ) {
 				/* Support for extended xmp in jpeg files
@@ -182,9 +184,8 @@ class BitmapMetadataHandler {
 				$meta->addMetadata( $array, $type );
 			}
 		}
-		if ( isset( $seg['byteOrder'] ) ) {
-			$meta->getExif( $filename, $seg['byteOrder'] );
-		}
+
+		$meta->getExif( $filename, $seg['byteOrder'] ?? 'BE' );
 
 		return $meta->getMetadataArray();
 	}
@@ -205,7 +206,7 @@ class BitmapMetadataHandler {
 		if ( isset( $array['text']['xmp']['x-default'] )
 			&& $array['text']['xmp']['x-default'] !== '' && $showXMP
 		) {
-			$xmp = new XMPReader( LoggerFactory::getInstance( 'XMP' ) );
+			$xmp = new XMPReader( LoggerFactory::getInstance( 'XMP' ), $filename );
 			$xmp->parse( $array['text']['xmp']['x-default'] );
 			$xmpRes = $xmp->getResults();
 			foreach ( $xmpRes as $type => $xmpSection ) {
@@ -230,16 +231,15 @@ class BitmapMetadataHandler {
 	 * @return array Metadata array
 	 */
 	public static function GIF( $filename ) {
-
 		$meta = new self();
 		$baseArray = GIFMetadataExtractor::getMetadata( $filename );
 
 		if ( count( $baseArray['comment'] ) > 0 ) {
-			$meta->addMetadata( array( 'GIFFileComment' => $baseArray['comment'] ), 'native' );
+			$meta->addMetadata( [ 'GIFFileComment' => $baseArray['comment'] ], 'native' );
 		}
 
 		if ( $baseArray['xmp'] !== '' && XMPReader::isSupported() ) {
-			$xmp = new XMPReader( LoggerFactory::getInstance( 'XMP' ) );
+			$xmp = new XMPReader( LoggerFactory::getInstance( 'XMP' ), $filename );
 			$xmp->parse( $baseArray['xmp'] );
 			$xmpRes = $xmp->getResults();
 			foreach ( $xmpRes as $type => $xmpSection ) {
@@ -293,7 +293,7 @@ class BitmapMetadataHandler {
 	 * Read the first 2 bytes of a tiff file to figure out
 	 * Little Endian or Big Endian. Needed for exif stuff.
 	 *
-	 * @param string $filename The filename
+	 * @param string $filename
 	 * @return string 'BE' or 'LE' or false
 	 */
 	static function getTiffByteOrder( $filename ) {

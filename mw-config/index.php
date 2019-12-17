@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable Generic.Arrays.DisallowLongArraySyntax
 /**
  * New version of MediaWiki web-based config/installation
  *
@@ -22,8 +23,9 @@
 
 // Bail on old versions of PHP, or if composer has not been run yet to install
 // dependencies. Using dirname( __FILE__ ) here because __DIR__ is PHP5.3+.
+// phpcs:ignore MediaWiki.Usage.DirUsage.FunctionFound
 require_once dirname( __FILE__ ) . '/../includes/PHPVersionCheck.php';
-wfEntryPointCheck( 'mw-config/index.php' );
+wfEntryPointCheck( 'html', dirname( dirname( $_SERVER['SCRIPT_NAME'] ) ) );
 
 define( 'MW_CONFIG_CALLBACK', 'Installer::overrideConfig' );
 define( 'MEDIAWIKI_INSTALL', true );
@@ -36,13 +38,13 @@ require dirname( __DIR__ ) . '/includes/WebStart.php';
 wfInstallerMain();
 
 function wfInstallerMain() {
-	global $wgRequest, $wgLang, $wgMetaNamespace, $wgCanonicalNamespaceNames;
+	global $wgLang, $wgMetaNamespace, $wgCanonicalNamespaceNames;
+	$request = RequestContext::getMain()->getRequest();
 
-	$installer = InstallerOverrides::getWebInstaller( $wgRequest );
+	$installer = InstallerOverrides::getWebInstaller( $request );
 
 	if ( !$installer->startSession() ) {
-
-		if ( $installer->request->getVal( "css" ) ) {
+		if ( $installer->request->getVal( 'css' ) ) {
 			// Do not display errors on css pages
 			$installer->outputCss();
 			exit;
@@ -61,14 +63,15 @@ function wfInstallerMain() {
 		$session = array();
 	}
 
-	if ( !is_null( $wgRequest->getVal( 'uselang' ) ) ) {
-		$langCode = $wgRequest->getVal( 'uselang' );
+	if ( $request->getCheck( 'uselang' ) ) {
+		$langCode = $request->getVal( 'uselang' );
 	} elseif ( isset( $session['settings']['_UserLang'] ) ) {
 		$langCode = $session['settings']['_UserLang'];
 	} else {
 		$langCode = 'en';
 	}
 	$wgLang = Language::factory( $langCode );
+	RequestContext::getMain()->setLanguage( $wgLang );
 
 	$installer->setParserLanguage( $wgLang );
 
@@ -77,5 +80,4 @@ function wfInstallerMain() {
 	$session = $installer->execute( $session );
 
 	$_SESSION['installData'][$fingerprint] = $session;
-
 }

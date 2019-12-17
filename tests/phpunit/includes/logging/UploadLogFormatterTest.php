@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @covers UploadLogFormatter
+ */
 class UploadLogFormatterTest extends LogFormatterTestCase {
 
 	/**
@@ -8,45 +11,45 @@ class UploadLogFormatterTest extends LogFormatterTestCase {
 	 * Do not change the existing data, just add a new database row
 	 */
 	public static function provideUploadLogDatabaseRows() {
-		return array(
+		return [
 			// Current format
-			array(
-				array(
+			[
+				[
 					'type' => 'upload',
 					'action' => 'upload',
 					'comment' => 'upload comment',
 					'namespace' => NS_FILE,
 					'title' => 'File.png',
-					'params' => array(
+					'params' => [
 						'img_sha1' => 'hash',
 						'img_timestamp' => '20150101000000',
-					),
-				),
-				array(
+					],
+				],
+				[
 					'text' => 'User uploaded File:File.png',
-					'api' => array(
+					'api' => [
 						'img_sha1' => 'hash',
 						'img_timestamp' => '2015-01-01T00:00:00Z',
-					),
-				),
-			),
+					],
+				],
+			],
 
 			// Old format without params
-			array(
-				array(
+			[
+				[
 					'type' => 'upload',
 					'action' => 'upload',
 					'comment' => 'upload comment',
 					'namespace' => NS_FILE,
 					'title' => 'File.png',
-					'params' => array(),
-				),
-				array(
+					'params' => [],
+				],
+				[
 					'text' => 'User uploaded File:File.png',
-					'api' => array(),
-				),
-			),
-		);
+					'api' => [],
+				],
+			],
+		];
 	}
 
 	/**
@@ -62,45 +65,45 @@ class UploadLogFormatterTest extends LogFormatterTestCase {
 	 * Do not change the existing data, just add a new database row
 	 */
 	public static function provideOverwriteLogDatabaseRows() {
-		return array(
+		return [
 			// Current format
-			array(
-				array(
+			[
+				[
 					'type' => 'upload',
 					'action' => 'overwrite',
 					'comment' => 'upload comment',
 					'namespace' => NS_FILE,
 					'title' => 'File.png',
-					'params' => array(
+					'params' => [
 						'img_sha1' => 'hash',
 						'img_timestamp' => '20150101000000',
-					),
-				),
-				array(
+					],
+				],
+				[
 					'text' => 'User uploaded a new version of File:File.png',
-					'api' => array(
+					'api' => [
 						'img_sha1' => 'hash',
 						'img_timestamp' => '2015-01-01T00:00:00Z',
-					),
-				),
-			),
+					],
+				],
+			],
 
 			// Old format without params
-			array(
-				array(
+			[
+				[
 					'type' => 'upload',
 					'action' => 'overwrite',
 					'comment' => 'upload comment',
 					'namespace' => NS_FILE,
 					'title' => 'File.png',
-					'params' => array(),
-				),
-				array(
+					'params' => [],
+				],
+				[
 					'text' => 'User uploaded a new version of File:File.png',
-					'api' => array(),
-				),
-			),
-		);
+					'api' => [],
+				],
+			],
+		];
 	}
 
 	/**
@@ -116,45 +119,45 @@ class UploadLogFormatterTest extends LogFormatterTestCase {
 	 * Do not change the existing data, just add a new database row
 	 */
 	public static function provideRevertLogDatabaseRows() {
-		return array(
+		return [
 			// Current format
-			array(
-				array(
+			[
+				[
 					'type' => 'upload',
 					'action' => 'revert',
 					'comment' => 'upload comment',
 					'namespace' => NS_FILE,
 					'title' => 'File.png',
-					'params' => array(
+					'params' => [
 						'img_sha1' => 'hash',
 						'img_timestamp' => '20150101000000',
-					),
-				),
-				array(
-					'text' => 'User uploaded File:File.png',
-					'api' => array(
+					],
+				],
+				[
+					'text' => 'User reverted File:File.png to an old version',
+					'api' => [
 						'img_sha1' => 'hash',
 						'img_timestamp' => '2015-01-01T00:00:00Z',
-					),
-				),
-			),
+					],
+				],
+			],
 
 			// Old format without params
-			array(
-				array(
+			[
+				[
 					'type' => 'upload',
 					'action' => 'revert',
 					'comment' => 'upload comment',
 					'namespace' => NS_FILE,
 					'title' => 'File.png',
-					'params' => array(),
-				),
-				array(
-					'text' => 'User uploaded File:File.png',
-					'api' => array(),
-				),
-			),
-		);
+					'params' => [],
+				],
+				[
+					'text' => 'User reverted File:File.png to an old version',
+					'api' => [],
+				],
+			],
+		];
 	}
 
 	/**

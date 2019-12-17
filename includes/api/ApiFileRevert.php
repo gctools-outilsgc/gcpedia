@@ -1,9 +1,5 @@
 <?php
 /**
- *
- *
- * Created on March 5, 2011
- *
  * Copyright © 2011 Bryan Tong Minh <Bryan.TongMinh@Gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -45,7 +41,7 @@ class ApiFileRevert extends ApiBase {
 		$this->validateParameters();
 
 		// Check whether we're allowed to revert this file
-		$this->checkPermissions( $this->getUser() );
+		$this->checkTitleUserPermissions( $this->file->getTitle(), [ 'edit', 'upload' ] );
 
 		$sourceUrl = $this->file->getArchiveVirtualUrl( $this->archiveName );
 		$status = $this->file->upload(
@@ -59,32 +55,15 @@ class ApiFileRevert extends ApiBase {
 		);
 
 		if ( $status->isGood() ) {
-			$result = array( 'result' => 'Success' );
+			$result = [ 'result' => 'Success' ];
 		} else {
-			$result = array(
+			$result = [
 				'result' => 'Failure',
 				'errors' => $this->getErrorFormatter()->arrayFromStatus( $status ),
-			);
+			];
 		}
 
 		$this->getResult()->addValue( null, $this->getModuleName(), $result );
-	}
-
-	/**
-	 * Checks that the user has permissions to perform this revert.
-	 * Dies with usage message on inadequate permissions.
-	 * @param User $user The user to check.
-	 */
-	protected function checkPermissions( $user ) {
-		$title = $this->file->getTitle();
-		$permissionErrors = array_merge(
-			$title->getUserPermissionsErrors( 'edit', $user ),
-			$title->getUserPermissionsErrors( 'upload', $user )
-		);
-
-		if ( $permissionErrors ) {
-			$this->dieUsageMsg( $permissionErrors[0] );
-		}
 	}
 
 	/**
@@ -95,21 +74,23 @@ class ApiFileRevert extends ApiBase {
 		// Validate the input title
 		$title = Title::makeTitleSafe( NS_FILE, $this->params['filename'] );
 		if ( is_null( $title ) ) {
-			$this->dieUsageMsg( array( 'invalidtitle', $this->params['filename'] ) );
+			$this->dieWithError(
+				[ 'apierror-invalidtitle', wfEscapeWikiText( $this->params['filename'] ) ]
+			);
 		}
 		$localRepo = RepoGroup::singleton()->getLocalRepo();
 
 		// Check if the file really exists
 		$this->file = $localRepo->newFile( $title );
 		if ( !$this->file->exists() ) {
-			$this->dieUsageMsg( 'notanarticle' );
+			$this->dieWithError( 'apierror-missingtitle' );
 		}
 
 		// Check if the archivename is valid for this file
 		$this->archiveName = $this->params['archivename'];
 		$oldFile = $localRepo->newFromArchiveName( $title, $this->archiveName );
 		if ( !$oldFile->exists() ) {
-			$this->dieUsageMsg( 'filerevert-badversion' );
+			$this->dieWithError( 'filerevert-badversion' );
 		}
 	}
 
@@ -122,19 +103,19 @@ class ApiFileRevert extends ApiBase {
 	}
 
 	public function getAllowedParams() {
-		return array(
-			'filename' => array(
+		return [
+			'filename' => [
 				ApiBase::PARAM_TYPE => 'string',
 				ApiBase::PARAM_REQUIRED => true,
-			),
-			'comment' => array(
+			],
+			'comment' => [
 				ApiBase::PARAM_DFLT => '',
-			),
-			'archivename' => array(
+			],
+			'archivename' => [
 				ApiBase::PARAM_TYPE => 'string',
 				ApiBase::PARAM_REQUIRED => true,
-			),
-		);
+			],
+		];
 	}
 
 	public function needsToken() {
@@ -142,10 +123,10 @@ class ApiFileRevert extends ApiBase {
 	}
 
 	protected function getExamplesMessages() {
-		return array(
+		return [
 			'action=filerevert&filename=Wiki.png&comment=Revert&' .
 				'archivename=20110305152740!Wiki.png&token=123ABC'
 				=> 'apihelp-filerevert-example-revert',
-		);
+		];
 	}
 }

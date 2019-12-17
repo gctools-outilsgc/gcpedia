@@ -4,10 +4,10 @@
 # doxygen (www.doxygen.org) for MediaWiki.
 #
 # Some placeholders have been added for MediaWiki usage:
-# {{OUTPUT_DIRECTORY}}
-# {{CURRENT_VERSION}}
-# {{STRIP_FROM_PATH}}
-# {{INPUT}}
+# OUTPUT_DIRECTORY = {{OUTPUT_DIRECTORY}}
+# CURRENT_VERSION  = {{CURRENT_VERSION}}
+# STRIP_FROM_PATH  = {{STRIP_FROM_PATH}}
+# INPUT            = {{INPUT}}
 #
 # To generate documentation run: php mwdocgen.php --no-extensions
 
@@ -132,7 +132,7 @@ CITE_BIB_FILES         =
 #---------------------------------------------------------------------------
 # Configuration options related to warning and progress messages
 #---------------------------------------------------------------------------
-QUIET                  = NO
+QUIET                  = YES
 WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = YES
 WARN_IF_DOC_ERROR      = YES
@@ -165,26 +165,11 @@ FILE_PATTERNS          = *.c \
                          *.odl \
                          *.cs \
                          *.php \
-                         *.php5 \
                          *.inc \
                          *.m \
                          *.mm \
                          *.dox \
                          *.py \
-                         *.C \
-                         *.CC \
-                         *.C++ \
-                         *.II \
-                         *.I++ \
-                         *.H \
-                         *.HH \
-                         *.H++ \
-                         *.CS \
-                         *.PHP \
-                         *.PHP5 \
-                         *.M \
-                         *.MM \
-                         *.PY \
                          *.txt \
                          README
 RECURSIVE              = YES
@@ -192,7 +177,6 @@ EXCLUDE                = {{EXCLUDE}}
 EXCLUDE_SYMLINKS       = YES
 EXCLUDE_PATTERNS       = LocalSettings.php \
                          AdminSettings.php \
-                         StartProfiler.php \
                          .svn \
                          */.git/* \
                          {{EXCLUDE_PATTERNS}}
@@ -322,8 +306,6 @@ MAN_LINKS              = NO
 #---------------------------------------------------------------------------
 GENERATE_XML           = NO
 XML_OUTPUT             = xml
-XML_SCHEMA             =
-XML_DTD                =
 XML_PROGRAMLISTING     = YES
 #---------------------------------------------------------------------------
 # Configuration options related to the DOCBOOK output

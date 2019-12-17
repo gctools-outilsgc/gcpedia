@@ -37,25 +37,35 @@ class UnusedCategoriesPage extends QueryPage {
 		return $this->msg( 'unusedcategoriestext' )->parseAsBlock();
 	}
 
+	function getOrderFields() {
+		return [ 'title' ];
+	}
+
 	public function getQueryInfo() {
-		return array(
-			'tables' => array( 'page', 'categorylinks' ),
-			'fields' => array(
+		return [
+			'tables' => [ 'page', 'categorylinks', 'page_props' ],
+			'fields' => [
 				'namespace' => 'page_namespace',
 				'title' => 'page_title',
-				'value' => 'page_title'
-			),
-			'conds' => array(
+			],
+			'conds' => [
 				'cl_from IS NULL',
 				'page_namespace' => NS_CATEGORY,
-				'page_is_redirect' => 0
-			),
-			'join_conds' => array( 'categorylinks' => array( 'LEFT JOIN', 'cl_to = page_title' ) )
-		);
+				'page_is_redirect' => 0,
+				'pp_page IS NULL'
+			],
+			'join_conds' => [
+				'categorylinks' => [ 'LEFT JOIN', 'cl_to = page_title' ],
+				'page_props' => [ 'LEFT JOIN', [
+					'page_id = pp_page',
+					'pp_propname' => 'expectunusedcategory'
+				] ]
+			]
+		];
 	}
 
 	/**
-	 * A should come before Z (bug 30907)
+	 * A should come before Z (T32907)
 	 * @return bool
 	 */
 	function sortDescending() {
@@ -70,10 +80,14 @@ class UnusedCategoriesPage extends QueryPage {
 	function formatResult( $skin, $result ) {
 		$title = Title::makeTitle( NS_CATEGORY, $result->title );
 
-		return Linker::link( $title, htmlspecialchars( $title->getText() ) );
+		return $this->getLinkRenderer()->makeLink( $title, $title->getText() );
 	}
 
 	protected function getGroupName() {
 		return 'maintenance';
+	}
+
+	public function preprocessResults( $db, $res ) {
+		$this->executeLBFromResultWrapper( $res );
 	}
 }

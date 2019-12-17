@@ -3,7 +3,7 @@
 require_once dirname( __DIR__ ) . '/includes/upload/UploadFromUrlTest.php';
 
 class UploadFromUrlTestSuite extends PHPUnit_Framework_TestSuite {
-	public $savedGlobals = array();
+	public $savedGlobals = [];
 
 	public static function addTables( &$tables ) {
 		$tables[] = 'user_properties';
@@ -18,33 +18,33 @@ class UploadFromUrlTestSuite extends PHPUnit_Framework_TestSuite {
 	protected function setUp() {
 		global $wgParser, $wgParserConf, $IP, $messageMemc, $wgMemc, $wgUser,
 			$wgLang, $wgOut, $wgRequest, $wgStyleDirectory,
-			$wgParserCacheType, $wgNamespaceAliases, $wgNamespaceProtection,
-			$parserMemc;
+			$wgParserCacheType, $wgNamespaceAliases, $wgNamespaceProtection;
 
-		$tmpGlobals = array();
+		$tmpDir = $this->getNewTempDirectory();
+		$tmpGlobals = [];
 
 		$tmpGlobals['wgScript'] = '/index.php';
 		$tmpGlobals['wgScriptPath'] = '/';
 		$tmpGlobals['wgArticlePath'] = '/wiki/$1';
 		$tmpGlobals['wgStylePath'] = '/skins';
 		$tmpGlobals['wgThumbnailScriptPath'] = false;
-		$tmpGlobals['wgLocalFileRepo'] = array(
-			'class' => 'LocalRepo',
+		$tmpGlobals['wgLocalFileRepo'] = [
+			'class' => LocalRepo::class,
 			'name' => 'local',
 			'url' => 'http://example.com/images',
 			'hashLevels' => 2,
 			'transformVia404' => false,
-			'backend' => new FSFileBackend( array(
+			'backend' => new FSFileBackend( [
 				'name' => 'local-backend',
-				'wikiId' => wfWikiId(),
-				'containerPaths' => array(
-					'local-public' => wfTempDir() . '/test-repo/public',
-					'local-thumb' => wfTempDir() . '/test-repo/thumb',
-					'local-temp' => wfTempDir() . '/test-repo/temp',
-					'local-deleted' => wfTempDir() . '/test-repo/delete',
-				)
-			) ),
-		);
+				'wikiId' => wfWikiID(),
+				'containerPaths' => [
+					'local-public' => "{$tmpDir}/test-repo/public",
+					'local-thumb' => "{$tmpDir}/test-repo/thumb",
+					'local-temp' => "{$tmpDir}/test-repo/temp",
+					'local-deleted' => "{$tmpDir}/test-repo/delete",
+				]
+			] ),
+		];
 		foreach ( $tmpGlobals as $var => $val ) {
 			if ( array_key_exists( $var, $GLOBALS ) ) {
 				$this->savedGlobals[$var] = $GLOBALS[$var];
@@ -60,13 +60,13 @@ class UploadFromUrlTestSuite extends PHPUnit_Framework_TestSuite {
 		DeferredUpdates::clearPendingUpdates();
 		$wgMemc = wfGetMainCache();
 		$messageMemc = wfGetMessageCacheStorage();
-		$parserMemc = wfGetParserCacheStorage();
 
+		RequestContext::resetMain();
+		$context = RequestContext::getMain();
 		$wgUser = new User;
-		$context = new RequestContext;
 		$wgLang = $context->getLanguage();
 		$wgOut = $context->getOutput();
-		$wgParser = new StubObject( 'wgParser', $wgParserConf['class'], array( $wgParserConf ) );
+		$wgParser = new StubObject( 'wgParser', $wgParserConf['class'], [ $wgParserConf ] );
 		$wgRequest = $context->getRequest();
 
 		if ( $wgStyleDirectory === false ) {
@@ -85,115 +85,7 @@ class UploadFromUrlTestSuite extends PHPUnit_Framework_TestSuite {
 		RepoGroup::destroySingleton();
 		FileBackendGroup::destroySingleton();
 
-		$this->teardownUploadDir( $this->uploadDir );
-
 		parent::tearDown();
-	}
-
-	private $uploadDir;
-	private $keepUploads;
-
-	/**
-	 * Remove the dummy uploads directory
-	 * @param string $dir
-	 */
-	private function teardownUploadDir( $dir ) {
-		if ( $this->keepUploads ) {
-			return;
-		}
-
-		// delete the files first, then the dirs.
-		self::deleteFiles(
-			array(
-				"$dir/3/3a/Foobar.jpg",
-				"$dir/thumb/3/3a/Foobar.jpg/180px-Foobar.jpg",
-				"$dir/thumb/3/3a/Foobar.jpg/200px-Foobar.jpg",
-				"$dir/thumb/3/3a/Foobar.jpg/640px-Foobar.jpg",
-				"$dir/thumb/3/3a/Foobar.jpg/120px-Foobar.jpg",
-
-				"$dir/0/09/Bad.jpg",
-			)
-		);
-
-		self::deleteDirs(
-			array(
-				"$dir/3/3a",
-				"$dir/3",
-				"$dir/thumb/6/65",
-				"$dir/thumb/6",
-				"$dir/thumb/3/3a/Foobar.jpg",
-				"$dir/thumb/3/3a",
-				"$dir/thumb/3",
-
-				"$dir/0/09/",
-				"$dir/0/",
-
-				"$dir/thumb",
-				"$dir",
-			)
-		);
-	}
-
-	/**
-	 * Delete the specified files, if they exist.
-	 *
-	 * @param array $files Full paths to files to delete.
-	 */
-	private static function deleteFiles( $files ) {
-		foreach ( $files as $file ) {
-			if ( file_exists( $file ) ) {
-				unlink( $file );
-			}
-		}
-	}
-
-	/**
-	 * Delete the specified directories, if they exist. Must be empty.
-	 *
-	 * @param array $dirs Full paths to directories to delete.
-	 */
-	private static function deleteDirs( $dirs ) {
-		foreach ( $dirs as $dir ) {
-			if ( is_dir( $dir ) ) {
-				rmdir( $dir );
-			}
-		}
-	}
-
-	/**
-	 * Create a dummy uploads directory which will contain a couple
-	 * of files in order to pass existence tests.
-	 *
-	 * @return string The directory
-	 */
-	private function setupUploadDir() {
-		global $IP;
-
-		if ( $this->keepUploads ) {
-			$dir = wfTempDir() . '/mwParser-images';
-
-			if ( is_dir( $dir ) ) {
-				return $dir;
-			}
-		} else {
-			$dir = wfTempDir() . "/mwParser-" . mt_rand() . "-images";
-		}
-
-		wfDebug( "Creating upload directory $dir\n" );
-
-		if ( file_exists( $dir ) ) {
-			wfDebug( "Already exists!\n" );
-
-			return $dir;
-		}
-
-		wfMkdirParents( $dir . '/3/3a', null, __METHOD__ );
-		copy( "$IP/tests/phpunit/data/upload/headbg.jpg", "$dir/3/3a/Foobar.jpg" );
-
-		wfMkdirParents( $dir . '/0/09', null, __METHOD__ );
-		copy( "$IP/tests/phpunit/data/upload/headbg.jpg", "$dir/0/09/Bad.jpg" );
-
-		return $dir;
 	}
 
 	public static function suite() {

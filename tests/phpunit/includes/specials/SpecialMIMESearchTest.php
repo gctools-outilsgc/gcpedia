@@ -1,8 +1,9 @@
 <?php
+
 /**
  * @group Database
+ * @covers MIMEsearchPage
  */
-
 class SpecialMIMESearchTest extends MediaWikiTestCase {
 
 	/** @var MIMEsearchPage */
@@ -37,12 +38,12 @@ class SpecialMIMESearchTest extends MediaWikiTestCase {
 	}
 
 	function providerMimeFiltering() {
-		return array(
-			array( 'image/gif', 'image', 'gif' ),
-			array( 'image/png', 'image', 'png' ),
-			array( 'application/pdf', 'application', 'pdf' ),
-			array( 'image/*', 'image', null ),
-			array( 'multipart/*', 'multipart', null ),
-		);
+		return [
+			[ 'image/gif', 'image', 'gif' ],
+			[ 'image/png', 'image', 'png' ],
+			[ 'application/pdf', 'application', 'pdf' ],
+			[ 'image/*', 'image', null ],
+			[ 'multipart/*', 'multipart', null ],
+		];
 	}
 }

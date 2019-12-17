@@ -23,6 +23,8 @@
  * @ingroup SpecialPage
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * A querypage to list the most wanted categories - implements Special:Wantedcategories
  *
@@ -36,25 +38,25 @@ class WantedCategoriesPage extends WantedQueryPage {
 	}
 
 	function getQueryInfo() {
-		return array(
-			'tables' => array( 'categorylinks', 'page' ),
-			'fields' => array(
+		return [
+			'tables' => [ 'categorylinks', 'page' ],
+			'fields' => [
 				'namespace' => NS_CATEGORY,
 				'title' => 'cl_to',
 				'value' => 'COUNT(*)'
-			),
-			'conds' => array( 'page_title IS NULL' ),
-			'options' => array( 'GROUP BY' => 'cl_to' ),
-			'join_conds' => array( 'page' => array( 'LEFT JOIN',
-				array( 'page_title = cl_to',
-					'page_namespace' => NS_CATEGORY ) ) )
-		);
+			],
+			'conds' => [ 'page_title IS NULL' ],
+			'options' => [ 'GROUP BY' => 'cl_to' ],
+			'join_conds' => [ 'page' => [ 'LEFT JOIN',
+				[ 'page_title = cl_to',
+					'page_namespace' => NS_CATEGORY ] ] ]
+		];
 	}
 
 	function preprocessResults( $db, $res ) {
 		parent::preprocessResults( $db, $res );
 
-		$this->currentCategoryCounts = array();
+		$this->currentCategoryCounts = [];
 
 		if ( !$res->numRows() || !$this->isCached() ) {
 			return;
@@ -63,15 +65,15 @@ class WantedCategoriesPage extends WantedQueryPage {
 		// Fetch (hopefully) up-to-date numbers of pages in each category.
 		// This should be fast enough as we limit the list to a reasonable length.
 
-		$allCategories = array();
+		$allCategories = [];
 		foreach ( $res as $row ) {
 			$allCategories[] = $row->title;
 		}
 
 		$categoryRes = $db->select(
 			'category',
-			array( 'cat_title', 'cat_pages' ),
-			array( 'cat_title' => $allCategories ),
+			[ 'cat_title', 'cat_pages' ],
+			[ 'cat_title' => $allCategories ],
 			__METHOD__
 		);
 		foreach ( $categoryRes as $row ) {
@@ -88,27 +90,21 @@ class WantedCategoriesPage extends WantedQueryPage {
 	 * @return string
 	 */
 	function formatResult( $skin, $result ) {
-		global $wgContLang;
-
 		$nt = Title::makeTitle( $result->namespace, $result->title );
-		$text = htmlspecialchars( $wgContLang->convert( $nt->getText() ) );
+		$text = new HtmlArmor( MediaWikiServices::getInstance()->getContentLanguage()
+			->convert( htmlspecialchars( $nt->getText() ) ) );
 
 		if ( !$this->isCached() ) {
 			// We can assume the freshest data
-			$plink = Linker::link(
+			$plink = $this->getLinkRenderer()->makeBrokenLink(
 				$nt,
-				$text,
-				array(),
-				array(),
-				array( 'broken' )
+				$text
 			);
 			$nlinks = $this->msg( 'nmembers' )->numParams( $result->value )->escaped();
 		} else {
-			$plink = Linker::link( $nt, $text );
+			$plink = $this->getLinkRenderer()->makeLink( $nt, $text );
 
-			$currentValue = isset( $this->currentCategoryCounts[$result->title] )
-				? $this->currentCategoryCounts[$result->title]
-				: 0;
+			$currentValue = $this->currentCategoryCounts[$result->title] ?? 0;
 			$cachedValue = intval( $result->value ); // T76910
 
 			// If the category has been created or emptied since the list was refreshed, strike it

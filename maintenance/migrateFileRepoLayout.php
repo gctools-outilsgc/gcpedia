@@ -33,7 +33,7 @@ require_once __DIR__ . '/Maintenance.php';
 class MigrateFileRepoLayout extends Maintenance {
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Copy files in repo to a different layout.";
+		$this->addDescription( 'Copy files in repo to a different layout.' );
 		$this->addOption( 'oldlayout', "Old layout; one of 'name' or 'sha1'", true, true );
 		$this->addOption( 'newlayout', "New layout; one of 'name' or 'sha1'", true, true );
 		$this->addOption( 'since', "Copy only files from after this timestamp", false, true );
@@ -42,12 +42,12 @@ class MigrateFileRepoLayout extends Maintenance {
 
 	public function execute() {
 		$oldLayout = $this->getOption( 'oldlayout' );
-		if ( !in_array( $oldLayout, array( 'name', 'sha1' ) ) ) {
-			$this->error( "Invalid old layout.", 1 );
+		if ( !in_array( $oldLayout, [ 'name', 'sha1' ] ) ) {
+			$this->fatalError( "Invalid old layout." );
 		}
 		$newLayout = $this->getOption( 'newlayout' );
-		if ( !in_array( $newLayout, array( 'name', 'sha1' ) ) ) {
-			$this->error( "Invalid new layout.", 1 );
+		if ( !in_array( $newLayout, [ 'name', 'sha1' ] ) ) {
+			$this->fatalError( "Invalid new layout." );
 		}
 		$since = $this->getOption( 'since' );
 
@@ -64,28 +64,32 @@ class MigrateFileRepoLayout extends Maintenance {
 		$startTime = wfTimestampNow();
 
 		// Do current and archived versions...
-		$conds = array();
+		$conds = [];
 		if ( $since ) {
 			$conds[] = 'img_timestamp >= ' . $dbw->addQuotes( $dbw->timestamp( $since ) );
 		}
 
-		$batch = array();
+		$batchSize = $this->getBatchSize();
+		$batch = [];
 		$lastName = '';
 		do {
-			$res = $dbw->select( 'image', array( 'img_name', 'img_sha1' ),
-				array_merge( array( 'img_name > ' . $dbw->addQuotes( $lastName ) ), $conds ),
+			$res = $dbw->select( 'image',
+				[ 'img_name', 'img_sha1' ],
+				array_merge( [ 'img_name > ' . $dbw->addQuotes( $lastName ) ], $conds ),
 				__METHOD__,
-				array( 'LIMIT' => $this->mBatchSize, 'ORDER BY' => 'img_name' )
+				[ 'LIMIT' => $batchSize, 'ORDER BY' => 'img_name' ]
 			);
 
 			foreach ( $res as $row ) {
 				$lastName = $row->img_name;
-				$sha1 = $row->img_sha1;
-				if ( !strlen( $sha1 ) ) {
-					$this->error( "Image SHA-1 not set for {$row->img_name}." );
-				} else {
-					$file = $repo->newFile( $row->img_name );
+				/** @var LocalFile $file */
+				$file = $repo->newFile( $row->img_name );
+				// Check in case SHA1 rows are not populated for some files
+				$sha1 = strlen( $row->img_sha1 ) ? $row->img_sha1 : $file->getSha1();
 
+				if ( !strlen( $sha1 ) ) {
+					$this->error( "Image SHA-1 not known for {$row->img_name}." );
+				} else {
 					if ( $oldLayout === 'sha1' ) {
 						$spath = "{$origBase}/{$sha1[0]}/{$sha1[1]}/{$sha1[2]}/{$sha1}";
 					} else {
@@ -98,13 +102,14 @@ class MigrateFileRepoLayout extends Maintenance {
 						$dpath = $file->getPath();
 					}
 
-					$status = $be->prepare( array( 'dir' => dirname( $dpath ) ) );
+					$status = $be->prepare( [
+						'dir' => dirname( $dpath ), 'bypassReadOnly' => 1 ] );
 					if ( !$status->isOK() ) {
-						$this->error( print_r( $status->getErrorsArray(), true ) );
+						$this->error( print_r( $status->getErrors(), true ) );
 					}
 
-					$batch[] = array( 'op' => 'copy', 'overwrite' => true,
-						'src' => $spath, 'dst' => $dpath, 'img' => $row->img_name );
+					$batch[] = [ 'op' => 'copy', 'overwrite' => true,
+						'src' => $spath, 'dst' => $dpath, 'img' => $row->img_name ];
 				}
 
 				foreach ( $file->getHistory() as $ofile ) {
@@ -130,17 +135,18 @@ class MigrateFileRepoLayout extends Maintenance {
 						$dpath = $ofile->getPath();
 					}
 
-					$status = $be->prepare( array( 'dir' => dirname( $dpath ) ) );
+					$status = $be->prepare( [
+						'dir' => dirname( $dpath ), 'bypassReadOnly' => 1 ] );
 					if ( !$status->isOK() ) {
-						$this->error( print_r( $status->getErrorsArray(), true ) );
+						$this->error( print_r( $status->getErrors(), true ) );
 					}
-					$batch[] = array( 'op' => 'copy', 'overwrite' => true,
-						'src' => $spath, 'dst' => $dpath, 'img' => $ofile->getArchiveName() );
+					$batch[] = [ 'op' => 'copy', 'overwrite' => true,
+						'src' => $spath, 'dst' => $dpath, 'img' => $ofile->getArchiveName() ];
 				}
 
-				if ( count( $batch ) >= $this->mBatchSize ) {
+				if ( count( $batch ) >= $batchSize ) {
 					$this->runBatch( $batch, $be );
-					$batch = array();
+					$batch = [];
 				}
 			}
 		} while ( $res->numRows() );
@@ -150,18 +156,18 @@ class MigrateFileRepoLayout extends Maintenance {
 		}
 
 		// Do deleted versions...
-		$conds = array();
+		$conds = [];
 		if ( $since ) {
 			$conds[] = 'fa_deleted_timestamp >= ' . $dbw->addQuotes( $dbw->timestamp( $since ) );
 		}
 
-		$batch = array();
+		$batch = [];
 		$lastId = 0;
 		do {
-			$res = $dbw->select( 'filearchive', array( 'fa_storage_key', 'fa_id', 'fa_name' ),
-				array_merge( array( 'fa_id > ' . $dbw->addQuotes( $lastId ) ), $conds ),
+			$res = $dbw->select( 'filearchive', [ 'fa_storage_key', 'fa_id', 'fa_name' ],
+				array_merge( [ 'fa_id > ' . $dbw->addQuotes( $lastId ) ], $conds ),
 				__METHOD__,
-				array( 'LIMIT' => $this->mBatchSize, 'ORDER BY' => 'fa_id' )
+				[ 'LIMIT' => $batchSize, 'ORDER BY' => 'fa_id' ]
 			);
 
 			foreach ( $res as $row ) {
@@ -187,17 +193,18 @@ class MigrateFileRepoLayout extends Maintenance {
 						'/' . $repo->getDeletedHashPath( $sha1Key ) . $sha1Key;
 				}
 
-				$status = $be->prepare( array( 'dir' => dirname( $dpath ) ) );
+				$status = $be->prepare( [
+					'dir' => dirname( $dpath ), 'bypassReadOnly' => 1 ] );
 				if ( !$status->isOK() ) {
-					$this->error( print_r( $status->getErrorsArray(), true ) );
+					$this->error( print_r( $status->getErrors(), true ) );
 				}
 
-				$batch[] = array( 'op' => 'copy', 'src' => $spath, 'dst' => $dpath,
-					'overwriteSame' => true, 'img' => "(ID {$row->fa_id}) {$row->fa_name}" );
+				$batch[] = [ 'op' => 'copy', 'src' => $spath, 'dst' => $dpath,
+					'overwriteSame' => true, 'img' => "(ID {$row->fa_id}) {$row->fa_name}" ];
 
-				if ( count( $batch ) >= $this->mBatchSize ) {
+				if ( count( $batch ) >= $batchSize ) {
 					$this->runBatch( $batch, $be );
-					$batch = array();
+					$batch = [];
 				}
 			}
 		} while ( $res->numRows() );
@@ -219,14 +226,14 @@ class MigrateFileRepoLayout extends Maintenance {
 			$this->output( "\"{$op['img']}\" (dest: {$op['dst']})\n" );
 		}
 
-		$status = $be->doOperations( $ops );
+		$status = $be->doOperations( $ops, [ 'bypassReadOnly' => 1 ] );
 		if ( !$status->isOK() ) {
-			$this->output( print_r( $status->getErrorsArray(), true ) );
+			$this->output( print_r( $status->getErrors(), true ) );
 		}
 
 		$this->output( "Batch done\n\n" );
 	}
 }
 
-$maintClass = 'MigrateFileRepoLayout';
+$maintClass = MigrateFileRepoLayout::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

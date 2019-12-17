@@ -19,6 +19,8 @@
  * @ingroup Change tagging
  */
 
+use Wikimedia\Rdbms\IDatabase;
+
 /**
  * Stores a list of taggable revisions.
  * @since 1.25
@@ -29,24 +31,22 @@ class ChangeTagsRevisionList extends ChangeTagsList {
 	}
 
 	/**
-	 * @param DatabaseBase $db
+	 * @param IDatabase $db
 	 * @return mixed
 	 */
 	public function doQuery( $db ) {
 		$ids = array_map( 'intval', $this->ids );
-		$queryInfo = array(
-			'tables' => array( 'revision', 'user' ),
-			'fields' => array_merge( Revision::selectFields(), Revision::selectUserFields() ),
-			'conds' => array(
+		$revQuery = Revision::getQueryInfo( [ 'user' ] );
+		$queryInfo = [
+			'tables' => $revQuery['tables'],
+			'fields' => $revQuery['fields'],
+			'conds' => [
 				'rev_page' => $this->title->getArticleID(),
 				'rev_id' => $ids,
-			),
-			'options' => array( 'ORDER BY' => 'rev_id DESC' ),
-			'join_conds' => array(
-				'page' => Revision::pageJoinCond(),
-				'user' => Revision::userJoinCond(),
-			),
-		);
+			],
+			'options' => [ 'ORDER BY' => 'rev_id DESC' ],
+			'join_conds' => $revQuery['joins'],
+		];
 		ChangeTags::modifyDisplayQuery(
 			$queryInfo['tables'],
 			$queryInfo['fields'],
@@ -79,12 +79,8 @@ class ChangeTagsRevisionList extends ChangeTagsList {
 	 * @param User $user
 	 * @return Status
 	 */
-	public function updateChangeTagsOnAll( $tagsToAdd, $tagsToRemove, $params,
-		$reason, $user ) {
-
-		// @codingStandardsIgnoreStart Generic.CodeAnalysis.ForLoopWithTestFunctionCall.NotAllowed
+	public function updateChangeTagsOnAll( $tagsToAdd, $tagsToRemove, $params, $reason, $user ) {
 		for ( $this->reset(); $this->current(); $this->next() ) {
-			// @codingStandardsIgnoreEnd
 			$item = $this->current();
 			$status = ChangeTags::updateTagsWithChecks( $tagsToAdd, $tagsToRemove,
 				null, $item->getId(), null, $params, $reason, $user );

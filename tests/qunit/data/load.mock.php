@@ -22,51 +22,88 @@
  * @author Lupo
  * @since 1.20
  */
+
+// This file doesn't run as part of MediaWiki
+// phpcs:disable MediaWiki.Usage.SuperGlobalsUsage.SuperGlobals
+
 header( 'Content-Type: text/javascript; charset=utf-8' );
 
-require_once __DIR__ . '/../../../includes/json/FormatJson.php';
-require_once __DIR__ . '/../../../includes/Xml.php';
-
-$moduleImplementations = array(
+$moduleImplementations = [
 	'testUsesMissing' => "
 mw.loader.implement( 'testUsesMissing', function () {
-	QUnit.ok( false, 'Module usesMissing script should not run.' );
-	QUnit.start();
+	mw.loader.testFail( 'Module usesMissing script should not run.' );
 }, {}, {});
 ",
 
 	'testUsesNestedMissing' => "
 mw.loader.implement( 'testUsesNestedMissing', function () {
-	QUnit.ok( false, 'Module testUsesNestedMissing script should not run.' );
-	QUnit.start();
+	mw.loader.testFail('Module testUsesNestedMissing script should not run.' );
 }, {}, {});
 ",
 
-	'testSkipped' =>"
+	'testSkipped' => "
 mw.loader.implement( 'testSkipped', function () {
-	QUnit.ok( false, 'Module testSkipped was supposed to be skipped.' );
+	mw.loader.testFail( false, 'Module testSkipped was supposed to be skipped.' );
 }, {}, {});
 ",
 
-	'testNotSkipped' =>"
+	'testNotSkipped' => "
 mw.loader.implement( 'testNotSkipped', function () {}, {}, {});
 ",
 
-	'testUsesSkippable' =>"
+	'testUsesSkippable' => "
 mw.loader.implement( 'testUsesSkippable', function () {}, {}, {});
 ",
-);
+
+	'testUrlInc' => "
+mw.loader.implement( 'testUrlInc', function () {} );
+",
+	'testUrlInc.a' => "
+mw.loader.implement( 'testUrlInc.a', function () {} );
+",
+	'testUrlInc.b' => "
+mw.loader.implement( 'testUrlInc.b', function () {} );
+",
+	'testUrlOrder' => "
+mw.loader.implement( 'testUrlOrder', function () {} );
+",
+	'testUrlOrder.a' => "
+mw.loader.implement( 'testUrlOrder.a', function () {} );
+",
+	'testUrlOrder.b' => "
+mw.loader.implement( 'testUrlOrder.b', function () {} );
+",
+];
 
 $response = '';
 
-// Only support for non-encoded module names, full module names expected
+// Does not support the full behaviour of the real load.php.
+// This only supports dotless module names joined by comma,
+// with the exception of the hardcoded cases for testUrl*.
 if ( isset( $_GET['modules'] ) ) {
-	$modules = explode( ',', $_GET['modules'] );
+	if ( $_GET['modules'] === 'testUrlInc,testUrlIncDump|testUrlInc.a,b' ) {
+		$modules = [ 'testUrlInc', 'testUrlIncDump', 'testUrlInc.a', 'testUrlInc.b' ];
+	} elseif ( $_GET['modules'] === 'testUrlOrder,testUrlOrderDump|testUrlOrder.a,b' ) {
+		$modules = [ 'testUrlOrder', 'testUrlOrderDump', 'testUrlOrder.a', 'testUrlOrder.b' ];
+	} else {
+		$modules = explode( ',', $_GET['modules'] );
+	}
 	foreach ( $modules as $module ) {
 		if ( isset( $moduleImplementations[$module] ) ) {
 			$response .= $moduleImplementations[$module];
+		} elseif ( preg_match( '/^test.*Dump$/', $module ) === 1 ) {
+			$queryModules = $_GET['modules'];
+			$queryVersion = isset( $_GET['version'] ) ? strval( $_GET['version'] ) : null;
+			$response .= 'mw.loader.implement( ' . json_encode( $module )
+				. ', function ( $, jQuery, require, module ) {'
+				. 'module.exports.query = { '
+				. 'modules: ' . json_encode( $queryModules ) . ','
+				. 'version: ' . json_encode( $queryVersion )
+				. ' };'
+				. '} );';
 		} else {
-			$response .= Xml::encodeJsCall( 'mw.loader.state', array( $module, 'missing' ), true );
+			// Default
+			$response .= 'mw.loader.state(' . json_encode( [ $module => 'missing' ] ) . ');' . "\n";
 		}
 	}
 }

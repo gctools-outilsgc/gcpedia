@@ -1,0 +1,64 @@
+[submodule "CiteThisPage"]
+	path = extensions/CiteThisPage
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/CiteThisPage
+	branch = REL1_33
+[submodule "CodeEditor"]
+	path = extensions/CodeEditor
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/CodeEditor
+	branch = REL1_33
+[submodule "ConfirmEdit"]
+	path = extensions/ConfirmEdit
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/ConfirmEdit
+	branch = REL1_33
+[submodule "Interwiki"]
+	path = extensions/Interwiki
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/Interwiki
+	branch = REL1_33
+[submodule "LocalisationUpdate"]
+	path = extensions/LocalisationUpdate
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/LocalisationUpdate
+	branch = REL1_33
+[submodule "MultimediaViewer"]
+	path = extensions/MultimediaViewer
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/MultimediaViewer
+	branch = REL1_33
+[submodule "Nuke"]
+	path = extensions/Nuke
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/Nuke
+	branch = REL1_33
+[submodule "OATHAuth"]
+	path = extensions/OATHAuth
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/OATHAuth
+	branch = REL1_33
+[submodule "PdfHandler"]
+	path = extensions/PdfHandler
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/PdfHandler
+	branch = REL1_33
+[submodule "Poem"]
+	path = extensions/Poem
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/Poem
+	branch = REL1_33
+[submodule "SpamBlacklist"]
+	path = extensions/SpamBlacklist
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/SpamBlacklist
+	branch = REL1_33
+[submodule "SyntaxHighlight_GeSHi"]
+	path = extensions/SyntaxHighlight_GeSHi
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/SyntaxHighlight_GeSHi
+	branch = REL1_33
+[submodule "TitleBlacklist"]
+	path = extensions/TitleBlacklist
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/TitleBlacklist
+	branch = REL1_33
+[submodule "MonoBook"]
+	path = skins/MonoBook
+	url = https://gerrit.wikimedia.org/r/mediawiki/skins/MonoBook
+	branch = REL1_33
+[submodule "Timeless"]
+	path = skins/Timeless
+	url = https://gerrit.wikimedia.org/r/mediawiki/skins/Timeless
+	branch = REL1_33
+[submodule "vendor"]
+	path = vendor
+	url = https://gerrit.wikimedia.org/r/mediawiki/vendor
+	branch = REL1_33
