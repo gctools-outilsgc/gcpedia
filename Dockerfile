@@ -21,7 +21,7 @@ RUN apk --no-cache add \
   php7-curl \
   git \
   curl
-RUN mkdir /app && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN mkdir /app && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --version=1.10.19 --filename=composer
 WORKDIR /app
 COPY . /app/
 
