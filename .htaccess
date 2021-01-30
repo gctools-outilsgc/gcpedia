@@ -5,3 +5,6 @@ RewriteRule ^(.*)$ %{DOCUMENT_ROOT}/index.php
 
 php_value upload_max_filesize 32M
 php_value post_max_size 32M
+
+EnableSendfile On
+EnableMMAP On
