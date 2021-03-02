@@ -92,13 +92,6 @@ ENV MEDIAWIKI_MAJOR_VERSION 1.35
 ENV MEDIAWIKI_VERSION 1.35.1
 
 # MediaWiki setup
-RUN curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz" -o mediawiki.tar.gz \
-	&& echo "${MEDIAWIKI_SHA512} *mediawiki.tar.gz" | sha512sum -c - \
-	&& tar -xz --strip-components=1 -f mediawiki.tar.gz \
-	&& rm mediawiki.tar.gz \
-&& chown -R apache:apache extensions skins cache images
-
-# MediaWiki setup
 RUN set -eux; \
 	apk add --no-cache --virtual .fetch-deps \
 		bzip2 \
@@ -119,7 +112,7 @@ RUN set -eux; \
 	tar -x --strip-components=1 -f mediawiki.tar.gz; \
 	gpgconf --kill all; \
 	rm -r "$GNUPGHOME" mediawiki.tar.gz.sig mediawiki.tar.gz; \
-	chown -R www-data:www-data extensions skins cache images; \
+	chown -R apache:apache extensions skins cache images; \
 	\
 	apk del .fetch-deps
 
