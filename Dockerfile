@@ -1,5 +1,5 @@
 # First stage, install composer and its dependencies and fetch vendor files and submodules
-FROM alpine:3.7
+FROM alpine:3.13
 RUN apk update
 RUN apk --no-cache add \
   php7 \
@@ -36,7 +36,7 @@ RUN cd /app/extensions/PluggableAuth && composer install --no-dev
 RUN rm -rf .git/
 
 # Second stage, build usable container
-FROM alpine:3.7
+FROM alpine:3.13
 LABEL maintainer="Ilia Salem"
 RUN \
   apk --no-cache add \
@@ -73,7 +73,7 @@ RUN \
   && sed -i '/DocumentRoot "\/var\/www\/localhost\/htdocs"/c\DocumentRoot "\/var\/www\/html\/docker_gcpedia"' /etc/apache2/httpd.conf \
   && sed -i '/Options Indexes FollowSymLinks/c\\' /etc/apache2/httpd.conf \
   && sed -i '/AllowOverride None/c\\' /etc/apache2/httpd.conf \
-  && sed -i '/Options Indexes FollowSymLinks/c\\' /etc/apache2/httpd.conf \
+  && sed -i '/AllowEncodedSlashes NoDecode/c\\' /etc/apache2/httpd.conf \
   && sed -i '/<Directory "\/var\/www\/localhost\/htdocs">/c\<Directory "\/var\/www\/html\/docker_gcpedia">\nDirectoryIndex index.php\nOptions FollowSymLinks MultiViews\nAllowOverride All\nOrder allow,deny\nallow from all\n' /etc/apache2/httpd.conf
 
 RUN { \
@@ -88,10 +88,8 @@ RUN { \
 WORKDIR /var/www/html/docker_gcpedia
 
 # Version
-ENV MEDIAWIKI_MAJOR_VERSION 1.31
-ENV MEDIAWIKI_BRANCH REL1_31
-ENV MEDIAWIKI_VERSION 1.31.1
-ENV MEDIAWIKI_SHA512 ee49649cc37d0a7d45a7c6d90c822c2a595df290be2b5bf085affbec3318768700a458a6e5b5b7e437651400b9641424429d6d304f870c22ec63fae86ffc5152
+ENV MEDIAWIKI_MAJOR_VERSION 1.35
+ENV MEDIAWIKI_VERSION 1.35.1
 
 # MediaWiki setup
 RUN curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz" -o mediawiki.tar.gz \
@@ -99,6 +97,31 @@ RUN curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSIO
 	&& tar -xz --strip-components=1 -f mediawiki.tar.gz \
 	&& rm mediawiki.tar.gz \
 && chown -R apache:apache extensions skins cache images
+
+# MediaWiki setup
+RUN set -eux; \
+	apk add --no-cache --virtual .fetch-deps \
+		bzip2 \
+		gnupg \
+	; \
+	\
+	curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz" -o mediawiki.tar.gz; \
+	curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz.sig" -o mediawiki.tar.gz.sig; \
+	export GNUPGHOME="$(mktemp -d)"; \
+# gpg key from https://www.mediawiki.org/keys/keys.txt
+	gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys \
+		D7D6767D135A514BEB86E9BA75682B08E8A3FEC4 \
+		441276E9CCD15F44F6D97D18C119E1A64D70938E \
+		F7F780D82EBFB8A56556E7EE82403E59F9F8CD79 \
+		1D98867E82982C8FE0ABC25F9B69B3109D3BB7B0 \
+	; \
+	gpg --batch --verify mediawiki.tar.gz.sig mediawiki.tar.gz; \
+	tar -x --strip-components=1 -f mediawiki.tar.gz; \
+	gpgconf --kill all; \
+	rm -r "$GNUPGHOME" mediawiki.tar.gz.sig mediawiki.tar.gz; \
+	chown -R www-data:www-data extensions skins cache images; \
+	\
+	apk del .fetch-deps
 
 COPY --from=0 /app/ /var/www/html/docker_gcpedia/
 
