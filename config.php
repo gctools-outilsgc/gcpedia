@@ -43,7 +43,7 @@ $wgGroupPermissions["sysop"]["emailupdate"] = true;
 require_once "$IP/extensions/MagicNoNumberedHeadings/MagicNoNumberedHeadings.php";
 require_once "$IP/extensions/MagicNumberedHeadings/MagicNumberedHeadings.php";
 
-require_once "$IP/extensions/UniversalLanguageSelector/UniversalLanguageSelector.php";
+wfLoadExtension( "UniversalLanguageSelector" );
 $wgULSGeoService = false;
 
 wfLoadExtension( "WikiEditor" );
@@ -71,34 +71,7 @@ wfLoadExtension( "ImageMap" );
 $wgImageMapAllowExternalLinks = false;    // allowing this seems like a bad idea
 wfLoadExtension( "InputBox" );
 wfLoadExtension( "Lingo" );
-
-
-
-/** Visual Editor configuration START **/
 wfLoadExtension( "VisualEditor" );
-
-// Enable by default for everybody
-$wgDefaultUserOptions["visualeditor-enable"] = 1;
-
-// Don"t allow users to disable it
-$wgHiddenPrefs[] = "visualeditor-enable";
-
-// Parsoid link
-$wgVirtualRestConfig["modules"]["parsoid"] = array(
-  // URL to the Parsoid instance
-  // Use port 8142 if you use the Debian package
-  "url" => "localhost:8000",
-  // Parsoid "domain", see below (optional)
-  "domain" => "localhost",
-  // Parsoid "prefix", see below (optional)
-  //"prefix" => "gcwiki"
-);
-// List of skins VisualEditor integration supports
-$wgVisualEditorSupportedSkins = array( "vector" );
-// Namespaces to enable VisualEditor in
-$wgVisualEditorNamespaces =  array( NS_MAIN, NS_USER, NS_PROJECT );
-
-/** Visual Editor configuration END **/
 
 // pdf rendering service
 wfLoadExtension("ElectronPdfService");
@@ -120,10 +93,9 @@ $wgDLPMaxCacheTime = 60*60*24;          // How long to cache pages in seconds
 wfLoadExtension( "LookupUser" );
 $wgGroupPermissions['sysop']['lookupuser'] = true;
 
-
-require_once "$IP/extensions/CategoryTree/CategoryTree.php";
+wfLoadExtension( "CategoryTree" );
 wfLoadExtension("CSS");
-require_once("$IP/extensions/EditUser/EditUser.php");
+wfLoadExtension("EditUser");
 $wgGroupPermissions['bureaucrat']['edituser'] = true;
 $wgGroupPermissions['sysop']['edituser-exempt'] = true;
 
@@ -133,9 +105,6 @@ wfLoadExtension("RSS");
 $wgRSSUrlWhitelist = array("*");
 $wgRSSUrlNumberOfAllowedRedirects = 1;
 
-require_once("$IP/extensions/EmailUpdate/EmailUpdate.php");
-$wgGroupPermissions['sysop']['emailupdate'] = true;
-
 require_once( "$IP/extensions/Multilang/multilang.php" );
 
 wfLoadExtension("MobileFrontend");
@@ -144,12 +113,12 @@ $wgMFAutodetectMobileView = true;
 require_once("$IP/extensions/GC_Messages/GC_Messages.php");
 
 # Add a "My Favorites" link to the personal URLs area:
-require_once("$IP/extensions/Favorites/Favorites.php");
+wfLoadExtension("Favorites");
 $wgFavoritesPersonalURL = true;
 # Add a Star icon for selecting favorites:
 $wgUseIconFavorite = true;
 
-require_once( "$IP/extensions/ReplaceText/ReplaceText.php" );
+wfLoadExtension( "ReplaceText" );
 $wgGroupPermissions['bureaucrat']['replacetext'] = true;
 
 wfLoadExtension( "UserMerge" );
@@ -159,11 +128,11 @@ $wgUserMergeUnmergeable = array( 'sysop', 'awesomeusers' );
 #$wgShowSQLErrors = true;
 #$wgShowExceptionDetails = true;
 
-require_once "$IP/extensions/IframePage/IframePage.php";
+wfLoadExtension( "IframePage" );
 $wgIframePageSrc= array( 'GCcollab' => 'https://gccollab.ca/', 'YouTube' => 'https://www.youtube.com/embed/' );
 $wgIframePageAllowPath = true;
 
-require_once "$IP/extensions/Nuke/Nuke.php";
+wfLoadExtension( "Nuke" );
 $wgGroupPermissions['sysop']['nuke'] = true;
 
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
