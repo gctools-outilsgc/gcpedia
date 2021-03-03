@@ -71,17 +71,6 @@ services:
 #      - OAUTH=true
 #      - USESAML=false
 
-  # ###########################################################################
-  # The parsoid container for the VisualEditor.
-  # Will be available to gcpedia at parsoid:8142
-  # ###########################################################################
-  parsoid:
-    #build:
-    #  context: .
-    #  dockerfile: Dockerfile.parsoid
-    image: phanoix/parsoid:latest
-    ports:
-      - 8142:8000
 
   # ###########################################################################
   # The Electron render service container for the ElectronPdfService Extension.
