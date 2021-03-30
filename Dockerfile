@@ -27,7 +27,6 @@ COPY . /app/
 
 RUN git submodule init
 RUN git submodule update --recursive --init
-RUN rm -rf extensions/VisualEditor
 ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG COMPOSER_NO_INTERACTION=1
 RUN cd /app/extensions/OpenIDConnect && composer install --no-dev
