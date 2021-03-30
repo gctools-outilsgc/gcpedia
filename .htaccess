@@ -1,8 +1,3 @@
-RewriteEngine On
-RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-f
-RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-d
-RewriteRule ^(.*)$ %{DOCUMENT_ROOT}/index.php
-
 php_value upload_max_filesize 32M
 php_value post_max_size 32M
 
