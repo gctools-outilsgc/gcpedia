@@ -4,7 +4,10 @@ $wgArticlePath = "/$1";
 
 wfLoadSkin( 'Vector' );
 $wgLocaltimezone = "America/Montreal";
-$wgLogo = "";
+
+$wgLogo = '';
+$wgFavicon = "/skins/Vector/resources/skins.vector.styles/images/collab/mini_wiki_icon.png";
+$wgLogos = [ '1x' =>  ''];
 
 $wgNamespacesWithSubpages[NS_MAIN] = true;
   
