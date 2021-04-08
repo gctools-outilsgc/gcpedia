@@ -40,8 +40,6 @@ if (!defined('MEDIAWIKI')) {
   die("This requires the MediaWiki enviroment.");
 }
 
-use MediaWiki\MediaWikiServices;
-
 $wgExtensionCredits['parserhook'][] = array(
   'path' => __FILE__,
   'name' => 'MagicNoNumberedHeadings',
