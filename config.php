@@ -41,8 +41,6 @@ $wgRightsIcon = "https://i.creativecommons.org/l/by/4.0/88x31.png";
 ////  extensions
 wfLoadExtension( "ParserFunctions" );
 
-require_once "$IP/extensions/EmailUpdate/EmailUpdate.php";
-$wgGroupPermissions["sysop"]["emailupdate"] = true;
 require_once "$IP/extensions/MagicNoNumberedHeadings/MagicNoNumberedHeadings.php";
 require_once "$IP/extensions/MagicNumberedHeadings/MagicNumberedHeadings.php";
 
@@ -56,12 +54,6 @@ $wgDefaultUserOptions["usebetatoolbar-cgd"] = 0;
 $wgDefaultUserOptions["wikieditor-preview"] = 0;
 
 wfLoadExtension( "Cite" );
-wfLoadExtension( "DeletePagesForGood" );
-$wgGroupPermissions["*"]         ["deleteperm"] = false;
-$wgGroupPermissions["user"]      ["deleteperm"] = false;
-$wgGroupPermissions["bureaucrat"]["deleteperm"] = true;
-$wgGroupPermissions["sysop"]     ["deleteperm"] = false;
-$wgGroupPermissions["IMadmin"]   ["deleteperm"] = true;
 $wgGroupPermissions["IMadmin"]   ["delete"] = true;
 $wgGroupPermissions["IMadmin"]   ["undelete"] = true;
 
