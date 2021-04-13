@@ -1,4 +1,7 @@
 <?php
+
+use MediaWiki\MediaWikiServices;
+
 class TreeAndMenu {
 
 	public static $instance = null;
@@ -11,34 +14,22 @@ class TreeAndMenu {
 		define( 'TREEANDMENU_TREE', 1 );
 		define( 'TREEANDMENU_MENU', 2 );
 		self::$instance = new self();
-		$wgExtensionFunctions[] = array( self::$instance, 'setup' );
+		$wgExtensionFunctions[] = [self::$instance, 'setup'];
 	}
 
 	/**
 	 * Called at extension setup time, install hooks and module resources
 	 */
 	public function setup() {
-		global $wgOut, $wgParser, $wgExtensionAssetsPath, $wgAutoloadClasses, $IP, $wgResourceModules;
+		global $wgOut;
 
 		// Add parser hooks
-		$wgParser->setFunctionHook( 'tree', array( $this, 'expandTree' ) );
-		$wgParser->setFunctionHook( 'menu', array( $this, 'expandMenu' ) );
+		$parser = MediaWikiServices::getInstance()->getParser();
+		$parser->setFunctionHook( 'tree', [$this, 'expandTree'] );
+		$parser->setFunctionHook( 'menu', [$this, 'expandMenu'] );
 
-		// This gets the remote path even if it's a symlink (MW1.25+)
-		$path = $wgExtensionAssetsPath . str_replace( "$IP/extensions", '', dirname( $wgAutoloadClasses[__CLASS__] ) );
-
-		// Fancytree script and styles
-		$wgResourceModules['ext.fancytree']['localBasePath'] = __DIR__ . '/fancytree';
-		$wgResourceModules['ext.fancytree']['remoteExtPath'] = "$path/fancytree";
-		$wgOut->addModules( 'ext.fancytree' );
-		$wgOut->addStyle( "$path/fancytree/fancytree.css" );
-		$wgOut->addJsConfigVars( 'fancytree_path', "$path/fancytree" );
-
-		// Suckerfish menu script and styles
-		$wgResourceModules['ext.suckerfish']['localBasePath'] = __DIR__ . '/suckerfish';
-		$wgResourceModules['ext.suckerfish']['remoteExtPath'] = "$path/suckerfish";
-		$wgOut->addModules( 'ext.suckerfish' );
-		$wgOut->addStyle( "$path/suckerfish/suckerfish.css" );
+		// Scripts and styles
+		$wgOut->addModules( 'ext.treeandmenu' );
 	}
 
 	/**
@@ -68,8 +59,8 @@ class TreeAndMenu {
 		$bullets = array_pop( $args );
 
 		// Convert other args (except class, id, root) into named opts to pass to JS (JSON values are allowed, name-only treated as bool)
-		$opts = array();
-		$atts = array();
+		$opts = [];
+		$atts = [];
 		foreach( $args as $arg ) {
 			if( preg_match( '/^(\\w+?)\\s*=\\s*(.+)$/s', $arg, $m ) ) {
 				if( $m[1] == 'class' || $m[1] == 'id' || $m[1] == 'root' ) $atts[$m[1]] = $m[2];
@@ -80,7 +71,7 @@ class TreeAndMenu {
 		// If the $wgTreeAndMenuPersistIfId global is set and an ID is present, add the persist extension
 		if( array_key_exists( 'id', $atts ) && $wgTreeAndMenuPersistIfId ) {
 			if( array_key_exists( 'extensions', $opts ) ) $opts['extensions'][] = 'persist';
-			else $opts['extensions'] = array( 'persist' );
+			else $opts['extensions'] = ['persist'];
 		}
 
 		// Sanitise the bullet structure (remove empty lines and empty bullets)
@@ -94,12 +85,15 @@ class TreeAndMenu {
 		}
 
 		// Parse the bullets to HTML
-		$html = $parser->parse( $bullets, $parser->getTitle(), $parser->getOptions(), true, false )->getText();
+		$opt = $parser->getOptions();
+		$html = $parser->parse( $bullets, $parser->getTitle(), $opt, true, false )->getText(
+			[ 'unwrap' => true ]
+		);
 
 		// Determine the class and id attributes
 		$class = $type == TREEANDMENU_TREE ? 'fancytree' : 'suckerfish';
-		if( array_key_exists( 'class', $atts ) ) $class .= ' ' . $atts['class'];
-		$id = array_key_exists( 'id', $atts ) ? ' id="' . $atts['id'] . '"' : '';
+		if( array_key_exists( 'class', $atts ) ) $class .= ' ' . Sanitizer::escapeClass( $atts['class'] );
+		$id = array_key_exists( 'id', $atts ) ? ' id="' . Sanitizer::escapeClass( $atts['id'] ) . '"' : '';
 
 		// If its a tree, we need to add some code to the ul structure
 		if( $type == TREEANDMENU_TREE ) {
@@ -107,9 +101,12 @@ class TreeAndMenu {
 			// Mark the structure as tree data, wrap in an unclosable top level if root arg passed (and parse root content)
 			$tree = '<ul id="treeData" style="display:none">';
 			if( array_key_exists( 'root', $atts ) ) {
-				$root = $parser->parse( $atts['root'], $parser->getTitle(), $parser->getOptions(), false, false )->getText();
+				$root = $parser->parse( $atts['root'], $parser->getTitle(), $parser->getOptions(), false, false )->getText(
+					[ 'unwrap' => true ]
+				);
+				$root = $parser->stripOuterParagraph( $root );
 				$html = $tree . '<li class="root">' . $root . $html . '</li></ul>';
-				$opts['minExpandLevel'] = 2;
+				if( !array_key_exists( 'minExpandLevel', $opts ) ) $opts['minExpandLevel'] = 2;
 			} else $html = preg_replace( '|<ul>|', $tree, $html, 1 );
 
 			// Replace any json: markup in nodes into the li
@@ -130,6 +127,41 @@ class TreeAndMenu {
 		// Append script to prepare this tree or menu if page is already loaded
 		$html .= "<script type=\"$wgJsMimeType\">if('prepareTAM' in window) window.prepareTAM();</script>";
 
-		return array( $html, 'isHTML' => true, 'noparse' => true );
+		return [$html, 'isHTML' => true, 'noparse' => true];
+	}
+
+	/**
+	 * @param Skin $skin
+	 * @param array $bar
+	 */
+	public static function onSkinBuildSidebar( $skin, &$bar ) {
+		global $wgTreeAndMenuSidebarMenuPage, $wgTreeAndMenuSidebarMenuHeading;
+		if( $wgTreeAndMenuSidebarMenuPage ) {
+			$title = Title::newFromText( $wgTreeAndMenuSidebarMenuPage );
+			if( $title && $title->exists() && !$skin->getOutput()->getTitle()->equals( $title ) ) {
+				$html = self::getTreeHtmlFromPage( $title, $skin->getOutput() );
+				$bar[ $wgTreeAndMenuSidebarMenuHeading ? $wgTreeAndMenuSidebarMenuHeading : 'Outline' ] = $html;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * @param Title $title
+	 * @param OutputPage $out
+	 *
+	 * @return string
+	 * @throws MWException
+	 */
+	protected static function getTreeHtmlFromPage( $title, $out ) {
+		$content = WikiPage::newFromID( $title->getArticleID() )->getContent();
+		if( is_object( $content ) ) $content = $content->getWikitextForTransclusion();
+		// For 1.32+
+		if( method_exists( $out, 'parseAsContent' ) ) {
+			$html = $out->parseAsContent( $content );
+		} else {
+			$html = $out->parse( $content );
+		}
+		return $html;
 	}
 }

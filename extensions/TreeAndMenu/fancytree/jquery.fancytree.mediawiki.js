@@ -22,8 +22,8 @@
 		if(typeof(title) === 'undefined') title = mw.config.get('wgTitle');
 		this.visit(function(node) {
 			var nt = $('<div />').html(node.title);
-			nt = $('a:first', nt).attr('title');
-			if(nt == title) {
+			nt = $('a:first', nt);
+			if( nt.attr('title') === title || nt.hasClass('mw-selflink') ) {
 				node.makeVisible({ noAnimation: true, noEvents: true, scrollIntoView: false });
 				node.setActive({ noEvents: true });
 				return false;

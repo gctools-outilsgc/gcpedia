@@ -34,6 +34,8 @@
  * @author Purodha Blissenbach
  */
 
+use MediaWiki\MediaWikiServices;
+
 if (!defined('MEDIAWIKI')) {
   die("This requires the MediaWiki enviroment.");
 }
@@ -69,7 +71,7 @@ function MagicNoNumberedHeadingsMagicWordwgVariableIDs(&$wgVariableIDs)
 
 function MagicNoNumberedHeadingsInternalParseBeforeLinks(&$parser, &$text, &$stripState)
 {
-        if (MagicWord::get( 'MAG_NONUMBEREDHEADINGS' )->matchAndRemove( $text ) )
+        if (MediaWikiServices::getInstance()->getMagicWordFactory()->get( 'MAG_NONUMBEREDHEADINGS' )->matchAndRemove( $text ) )
         {
                 $parser->mOptions->setNumberHeadings(false);
         }

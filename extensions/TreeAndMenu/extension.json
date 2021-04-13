@@ -1,6 +1,6 @@
 {
 	"name": "TreeAndMenu",
-	"version": "4.2.0, 2015-06-21",
+	"version": "4.2.4, 2019-11-20",
 	"author": ["[http://www.organicdesign.co.nz/aran Aran Dunkley]"],
 	"url": "http://www.mediawiki.org/wiki/Extension:TreeAndMenu",
 	"descriptionmsg": "treeandmenu-desc",
@@ -8,7 +8,9 @@
 	"type": "parserhook",
 	"callback": "TreeAndMenu::onRegistration",
 	"config": {
-		"TreeAndMenuPersistIfId": false,           "@": "Makes trees with id attributes have persistent state"
+		"TreeAndMenuPersistIfId": false,           "@": "Makes trees with id attributes have persistent state",
+		"TreeAndMenuSidebarMenuPage": false,           "@": "Specify menu page to be used as a sidebar menu",
+		"TreeAndMenuSidebarMenuHeading": false,           "@": "Specify the heading line for sidebar menu"
 	},
 	"AutoloadClasses": {
 		"TreeAndMenu": "TreeAndMenu_body.php"
@@ -19,29 +21,31 @@
 	"MessagesDirs": {
 		"TreeAndMenu": ["i18n"]
 	},
+	"Hooks": {
+		"SkinBuildSidebar": [
+			"TreeAndMenu::onSkinBuildSidebar"
+		]
+	},
 	"ResourceModules": {
-		"ext.fancytree": {
+		"ext.treeandmenu": {
+			"styles": ["fancytree/fancytree.css", "suckerfish/suckerfish.css"],
 			"scripts": [
-				"jquery.fancytree.js",
-				"jquery.fancytree.persist.js",
-				"jquery.fancytree.mediawiki.js",
-				"fancytree.js"
+				"fancytree/jquery.fancytree.js",
+				"fancytree/jquery.fancytree.persist.js",
+				"fancytree/jquery.fancytree.mediawiki.js",
+				"fancytree/fancytree.js",
+				"suckerfish/suckerfish.js"
 			],
 			"dependencies": [
-				"jquery.ui.core",
-				"jquery.ui.widget",
-				"jquery.effects.blind",
-				"jquery.cookie"
+				"jquery.ui",
+				"jquery.cookie",
+				"jquery.client"
 			]
-		},
-		"ext.suckerfish": {
-			"scripts": ["suckerfish.js"],
-			"dependencies": ["jquery.client"]
 		}
 	},
-	"@": "The paths will be populated later as it needs be calculated",
 	"ResourceFileModulePaths": {
 		"localBasePath": "",
-		"remoteExtPath": ""
-	}
+		"remoteExtPath": "TreeAndMenu"
+	},
+	"manifest_version": 1
 }

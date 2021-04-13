@@ -54,6 +54,6 @@ $(document).ready(function(){
 });
 
 // Preload the tree icons and loader
-var path = mw.config.get('fancytree_path');
+var path = mw.config.get('wgExtensionAssetsPath') + '/TreeAndMenu/fancytree';
 (new Image()).src = path + '/loading.gif';
 (new Image()).src = path + '/icons.gif';

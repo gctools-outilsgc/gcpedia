@@ -41,7 +41,7 @@ function renderMultilang($input, $argv=array(), $parser) {
 	// The parser cache needs to be disabled as the page output is
 	// depending from user settings without any change in the page
 	// wiki source code
-	$parser->disableCache();
+	$parser->getOutput()->updateCacheExpiry(0);
 
 	// wether we use browser or user setting for language detection
 	if ($wgMultilangUseBrowserLanguage == true)

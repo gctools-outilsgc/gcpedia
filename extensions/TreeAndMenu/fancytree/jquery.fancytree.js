@@ -1026,7 +1026,7 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 		return this.load(discard);
 	},
 	/**
-	 * Load all children of a lazy node if neccessary. The *expanded* state is maintained.
+	 * Load all children of a lazy node if necessary. The *expanded* state is maintained.
 	 * @param {boolean} [forceReload=false] Pass true to discard any existing nodes before.
 	 * @returns {$.Promise}
 	 */
@@ -1057,7 +1057,7 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 		}
 		return res;
 	},
-	/** Expand all parents and optionally scroll into visible area as neccessary.
+	/** Expand all parents and optionally scroll into visible area as necessary.
 	 * Promise is resolved, when lazy loading and animations are done.
 	 * @param {object} [opts] passed to `setExpanded()`.
 	 *     Defaults to {noAnimation: false, noEvents: false, scrollIntoView: true}
@@ -1353,7 +1353,7 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 	 * to display this node in its current state.<br>
 	 * Note:
 	 * <ul>
-	 * <li>It should only be neccessary to call this method after the node object
+	 * <li>It should only be necessary to call this method after the node object
 	 *     was modified by direct access to its properties, because the common
 	 *     API methods (node.setTitle(), moveTo(), addChildren(), remove(), ...)
 	 *     already handle this.
