@@ -111,7 +111,7 @@ require_once("$IP/extensions/GC_Messages/GC_Messages.php");
 wfLoadExtension("Favorites");
 $wgFavoritesPersonalURL = true;
 # Add a Star icon for selecting favorites:
-$wgUseIconFavorite = true;
+$wgUseIconFavorite = false;
 
 wfLoadExtension( "ReplaceText" );
 $wgGroupPermissions['bureaucrat']['replacetext'] = true;
