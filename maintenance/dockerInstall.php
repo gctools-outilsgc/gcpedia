@@ -30,7 +30,7 @@ $etmp = error_reporting(E_ERROR);     // don't need all the connection errors...
 do{
   echo ".";
   sleep(1); // wait for the db container
-  $dbconnect = mysqli_connect($dbhost, 'wiki', 'gcpedia');
+  $dbconnect = mysqli_connect($dbhost, $dbuser, $dbpass);
 }while(!$dbconnect);
 
 echo "Connected!";
