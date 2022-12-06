@@ -12,7 +12,7 @@ if (!$enabled) {
 
 // environment variables from docker-compose
 $dbhost = (getenv('DBHOST') != '') ? getenv('DBHOST') : 'gcpedia-db';
-$dbuser = (getenv('DBNAME') != '') ? getenv('DBNAME') : 'wiki';
+$dbname = (getenv('DBNAME') != '') ? getenv('DBNAME') : 'wiki';
 $dbuser = (getenv('DBUSER') != '') ? getenv('DBUSER') : 'wiki';
 $dbpass = (getenv('DBPASS') != '') ? getenv('DBPASS') : 'gcpedia';
 $host = (getenv('HOST') != '') ? getenv('HOST') : 'localhost';
@@ -39,7 +39,7 @@ error_reporting($etmp);     // revert error reporting to default
 
 // first run regular cli install script
 shell_exec("php /var/www/html/maintenance/install.php --confpath=/var/www/html/ \
- --dbserver={$dbhost} --dbtype=mysql --dbuser={$dbuser} --dbpass={$dbpass} --dbname=wiki \
+ --dbserver={$dbhost} --dbtype=mysql --dbuser={$dbuser} --dbpass={$dbpass} --dbname={$dbname} \
  --scriptpath='' --server='http://{$host}{$port}' --lang=en  \
  --pass=adminpassword 'GCpedia' 'admin' ");
 echo "basic setup complete\n";
