@@ -12,8 +12,9 @@ if (!$enabled) {
 
 // environment variables from docker-compose
 $dbhost = (getenv('DBHOST') != '') ? getenv('DBHOST') : 'gcpedia-db';
+$dbuser = (getenv('DBNAME') != '') ? getenv('DBNAME') : 'wiki';
 $dbuser = (getenv('DBUSER') != '') ? getenv('DBUSER') : 'wiki';
-$dbpass = (getenv('DBPASS') != '') ? getenv('DBPASS') : 'gcpedia-db';
+$dbpass = (getenv('DBPASS') != '') ? getenv('DBPASS') : 'gcpedia';
 $host = (getenv('HOST') != '') ? getenv('HOST') : 'localhost';
 $port = (getenv('PORT') != '') ? ":".getenv('PORT') : '';
 $saml = (getenv('USESAML') != '') ? getenv('USESAML') : false;
