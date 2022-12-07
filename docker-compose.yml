@@ -4,13 +4,13 @@ services:
   # The GCpedia container.  Will be accessible at http://wiki.gccollab.dev
   # ###########################################################################
   gcpedia:
-  #  change 
-  #  build: .
-    image: phanoix/gcpedia
+    build: .
+  #  image: phanoix/gcpedia
     ports:
       - 80:80
       - 443:443
     volumes:
+    # uncomment the line below if you're working on the modified vector skin
     #  - ./skins:/var/www/html/skins
       - ./extensions:/var/www/html/extensions
       - ./images:/var/www/html/images
