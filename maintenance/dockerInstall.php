@@ -12,6 +12,9 @@ if (!$enabled) {
 
 // environment variables from docker-compose
 $dbhost = (getenv('DBHOST') != '') ? getenv('DBHOST') : 'gcpedia-db';
+$dbname = (getenv('DBNAME') != '') ? getenv('DBNAME') : 'wiki';
+$dbuser = (getenv('DBUSER') != '') ? getenv('DBUSER') : 'wiki';
+$dbpass = (getenv('DBPASS') != '') ? getenv('DBPASS') : 'gcpedia';
 $host = (getenv('HOST') != '') ? getenv('HOST') : 'localhost';
 $port = (getenv('PORT') != '') ? ":".getenv('PORT') : '';
 $saml = (getenv('USESAML') != '') ? getenv('USESAML') : false;
@@ -27,7 +30,7 @@ $etmp = error_reporting(E_ERROR);     // don't need all the connection errors...
 do{
   echo ".";
   sleep(1); // wait for the db container
-  $dbconnect = mysqli_connect($dbhost, 'wiki', 'gcpedia');
+  $dbconnect = mysqli_connect($dbhost, $dbuser, $dbpass);
 }while(!$dbconnect);
 
 echo "Connected!";
@@ -36,7 +39,7 @@ error_reporting($etmp);     // revert error reporting to default
 
 // first run regular cli install script
 shell_exec("php /var/www/html/maintenance/install.php --confpath=/var/www/html/ \
- --dbserver={$dbhost} --dbtype=mysql --dbuser=wiki --dbpass=gcpedia --dbname=wiki \
+ --dbserver={$dbhost} --dbtype=mysql --dbuser={$dbuser} --dbpass={$dbpass} --dbname={$dbname} \
  --scriptpath='' --server='http://{$host}{$port}' --lang=en  \
  --pass=adminpassword 'GCpedia' 'admin' ");
 echo "basic setup complete\n";
