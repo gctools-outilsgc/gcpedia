@@ -66,6 +66,7 @@ services:
       - DOCKER=1
       - DBHOST=gcpedia-db
       - HOST=wiki.local
+      - PROTOCOL=http
       - PORT=
       - OPENID=
 #      - OAUTH=true
