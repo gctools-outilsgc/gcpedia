@@ -220,6 +220,55 @@ resource file_share 'Microsoft.Storage/storageAccounts/fileServices/shares@2022-
   }
 }
 
+/**
+*   pdf service
+*/
+resource webAppPDF 'Microsoft.Web/sites@2022-03-01' = {
+  name: '${appName}pdf'
+  location: location
+  kind: 'app,linux,container'
+  properties: {
+    serverFarmId: empty(planID) ? servicePlan.id : planID
+    siteConfig: {
+      linuxFxVersion: 'DOCKER|msokk/electron-render-service:1.0.0'
+      appSettings: [
+        {
+          name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
+          value: 'false'
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_URL'
+          value: 'https://index.docker.io'
+        }
+        {
+          name: 'RENDERER_ACCESS_KEY'
+          value: 'supersecret!'
+        }
+        {
+          name: 'WINDOW_WIDTH'
+          value: '1024' 
+        }
+        {
+          name: 'WINDOW_HEIGHT'
+          value: '768' 
+        }
+        {
+          name: 'PORT'
+          value: '3000'
+        }
+        {
+          name: 'TIMEOUT'
+          value: '30'
+        }
+        {
+          name: 'CONCURRENCY'
+          value: '1'
+        }
+      ]
+    }
+  }
+}
+
 
 /*
 **** Vnet + subnet ****
