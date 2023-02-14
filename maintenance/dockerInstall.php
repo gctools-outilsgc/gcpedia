@@ -15,6 +15,7 @@ $dbhost = (getenv('DBHOST') != '') ? getenv('DBHOST') : 'gcpedia-db';
 $dbname = (getenv('DBNAME') != '') ? getenv('DBNAME') : 'wiki';
 $dbuser = (getenv('DBUSER') != '') ? getenv('DBUSER') : 'wiki';
 $dbpass = (getenv('DBPASS') != '') ? getenv('DBPASS') : 'gcpedia';
+$dbtype = (getenv('DBTYPE') != '') ? getenv('DBTYPE') : 'mysql';
 $host = (getenv('HOST') != '') ? getenv('HOST') : 'localhost';
 $port = (getenv('PORT') != '' && getenv('PORT') != '80') ? ":".getenv('PORT') : '';
 $protocol = (getenv('PROTOCOL') != '') ? getenv('PROTOCOL') : 'https';
@@ -40,7 +41,7 @@ error_reporting($etmp);     // revert error reporting to default
 
 // first run regular cli install script
 shell_exec("php /var/www/html/maintenance/install.php --confpath=/var/www/html/ \
- --dbserver={$dbhost} --dbtype=mysql --dbuser={$dbuser} --dbpass={$dbpass} --dbname={$dbname} \
+ --dbserver={$dbhost} --dbtype={$dbtype} --dbuser={$dbuser} --dbpass={$dbpass} --dbname={$dbname} \
  --scriptpath='' --server='{$protocol}://{$host}{$port}' --lang=en  \
  --pass=adminpassword 'GCpedia' 'admin' ");
 echo "basic setup complete\n";
