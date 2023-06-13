@@ -1,0 +1,8 @@
+{
+    "@metadata": {
+        "authors": [
+            "L' &eacute;quipe GC Hackathon"
+        ]
+    },
+    "rasw-desc": "Permet d'inclure une fen&ecirc;tre contenant les nouvelles pages et les pages mises &agrave; jour en utilisant l'&eacute;tiquette <code>&lt;RASW/&gt;</code>. Pour n'inclure qu'une cat&eacute;gorie, utilisez" <code>&lt;RASW category=''categoryname''/&gt;</code> "
+}

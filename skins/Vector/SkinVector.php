@@ -65,6 +65,7 @@ class SkinVector extends SkinTemplate {
 $out->addHeadItem( 'gcpcss',
 			'<link rel="stylesheet" href="' . $wgScriptPath . '/skins/Vector/GCWeb/css/gcpedia.css">
 			 <link rel="stylesheet" href="' . $wgScriptPath . '/skins/Vector/GCWeb/css/theme.css">
+			 <link rel="stylesheet" href="' . $wgScriptPath . '/skins/Vector/GCWeb/css/rcb.css">
 			 <link href="' . $wgScriptPath . '/skins/Vector/GCWeb/assets/favicon.ico" rel="icon" type="image/x-icon">'
 		);
 		$out->addModules( array( 'skins.vector.js' ) );
