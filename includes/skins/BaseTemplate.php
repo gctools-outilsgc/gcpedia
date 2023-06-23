@@ -62,11 +62,13 @@ abstract class BaseTemplate extends QuickTemplate {
 			$toolbox['info']['id'] = 't-info';
 		}
 		//stats link
-		if ( isset( $this->data['nav_urls']['info'] ) && $this->data['nav_urls']['info'] ) {
-			$toolbox['ga-stats'] = array( 'href' => '',
-											'text'	=> $this->msg( 'statistics' )->text());
-			$toolbox['ga-stats']['id'] = 'g-stats';
-		}
+                if ( isset( $this->data['nav_urls']['info'] ) && $this->data['nav_urls']['info'] ) {
+                        $toolbox['ga-stats'] = array(
+                                'href' => 'http://stats.gctools-outilsgc.ca/gcpedia?URL-search='.$this->getSkin()->getTitle()->getText(),
+                                'text' => wfMsg( 'statistics' ),
+                                'title' => wfMsg( 'statistics-desc' )
+                        );
+                }
 		if ( isset( $this->data['nav_urls']['recentchangeslinked'] )
 			&& $this->data['nav_urls']['recentchangeslinked']
 		) {
