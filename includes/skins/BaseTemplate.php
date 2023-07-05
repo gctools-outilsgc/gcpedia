@@ -61,6 +61,7 @@ abstract class BaseTemplate extends QuickTemplate {
 			$toolbox['info'] = $this->data['nav_urls']['info'];
 			$toolbox['info']['id'] = 't-info';
 		}
+		/*
 		//stats link
                 if ( isset( $this->data['nav_urls']['info'] ) && $this->data['nav_urls']['info'] ) {
                         $toolbox['ga-stats'] = array(
@@ -69,6 +70,7 @@ abstract class BaseTemplate extends QuickTemplate {
                                 'title' => wfMsg( 'statistics-desc' )
                         );
                 }
+		*/
 		if ( isset( $this->data['nav_urls']['recentchangeslinked'] )
 			&& $this->data['nav_urls']['recentchangeslinked']
 		) {
