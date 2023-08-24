@@ -37,7 +37,7 @@ RUN rm -rf .git/
 
 
 # Second stage, build usable container
-FROM mediawiki:1.35.2
+FROM mediawiki:1.40.0
 LABEL maintainer="Ilia Salem"
 
 WORKDIR /var/www/html/
