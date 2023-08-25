@@ -93,7 +93,7 @@ wfLoadExtension("EditUser");
 $wgGroupPermissions['bureaucrat']['edituser'] = true;
 $wgGroupPermissions['sysop']['edituser-exempt'] = true;
 
-require_once( "$IP/extensions/CategoryWatch/CategoryWatch.php" );
+wfLoadExtension( 'CategoryWatch' );
 
 wfLoadExtension("RSS");
 $wgRSSUrlWhitelist = array("*");
