@@ -57,7 +57,6 @@ wfLoadExtension( "Cite" );
 $wgGroupPermissions["IMadmin"]   ["delete"] = true;
 $wgGroupPermissions["IMadmin"]   ["undelete"] = true;
 
-wfLoadExtension( "Renameuser" );
 wfLoadExtension( "CharInsert" );
 wfLoadExtension( "TreeAndMenu" );
 wfLoadExtension( "InputBox" );
