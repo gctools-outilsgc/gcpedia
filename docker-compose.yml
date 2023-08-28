@@ -40,6 +40,7 @@ services:
       - /var/www/html/extensions/SpamBlacklist
       - /var/www/html/extensions/ElectronPdfService
       - /var/www/html/extensions/CategoryTree
+      - /var/www/html/extensions/CategoryWatch
       - /var/www/html/extensions/EditUser
       - /var/www/html/extensions/LookupUser
       - /var/www/html/extensions/ReplaceText
