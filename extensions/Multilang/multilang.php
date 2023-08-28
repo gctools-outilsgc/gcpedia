@@ -30,8 +30,8 @@ $wgExtensionCredits['parserhook'][] = array(
 
 
 function wfMultilang() {
-        global $wgParser;
-        $wgParser->setHook("multilang","renderMultilang");
+        $parser = \MediaWiki\MediaWikiServices::getInstance()->getParser();
+        $parser->setHook("multilang","renderMultilang");
 }
 
 
