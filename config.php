@@ -107,10 +107,10 @@ $wgMFAutodetectMobileView = true;
 require_once("$IP/extensions/GC_Messages/GC_Messages.php");
 
 # Add a "My Favorites" link to the personal URLs area:
-wfLoadExtension("Favorites");
-$wgFavoritesPersonalURL = true;
+#wfLoadExtension("Favorites");
+#$wgFavoritesPersonalURL = true;
 # Add a Star icon for selecting favorites:
-$wgUseIconFavorite = false;
+#$wgUseIconFavorite = false;
 
 wfLoadExtension( "ReplaceText" );
 $wgGroupPermissions['bureaucrat']['replacetext'] = true;
