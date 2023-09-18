@@ -59,6 +59,7 @@ services:
       - /var/www/html/extensions/Favorites
       - /var/www/html/extensions/PluggableAuth
       - /var/www/html/extensions/OpenIDConnect
+      - /var/www/html/extensions/PdfBook
     links:
       - gcpedia-db
     depends_on:
