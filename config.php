@@ -68,9 +68,11 @@ wfLoadExtension( "Lingo" );
 wfLoadExtension( "VisualEditor" );
 
 // pdf rendering service
-wfLoadExtension("ElectronPdfService");
-$wgElectronPdfServiceRESTbaseURL = 'https://pdf.gccollab.ca/pdf?accessKey=secret&url=https://wiki.gccollab.ca/';
-
+#wfLoadExtension("ElectronPdfService");
+#$wgElectronPdfServiceRESTbaseURL = 'https://pdf.gccollab.ca/pdf?accessKey=secret&url=https://wiki.gccollab.ca/';
+wfLoadExtension( 'PdfBook' );
+$wgPdfBookTab = false;
+$wgPdfBookDownload = false;
 
 wfLoadExtension("intersection");
 # Configuration variables. Warning: These use DLP instead of DPL

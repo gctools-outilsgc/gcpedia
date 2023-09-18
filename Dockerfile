@@ -40,6 +40,8 @@ RUN rm -rf .git/
 FROM mediawiki:1.40.0
 LABEL maintainer="Ilia Salem"
 
+RUN apt-get update && apt install -y htmldoc
+
 WORKDIR /var/www/html/
 COPY --from=0 /app/ /var/www/html/
 

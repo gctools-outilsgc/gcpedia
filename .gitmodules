@@ -90,3 +90,6 @@
 	path = skins/Vector
 	url = https://github.com/gctools-outilsgc/mediawiki-skins-Vector.git
 	branch = REL1_40
+[submodule "extensions/PdfBook"]
+	path = extensions/PdfBook
+	url = https://github.com/debtcompliance/PdfBook.git
