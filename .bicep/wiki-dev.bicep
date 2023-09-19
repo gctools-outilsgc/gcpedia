@@ -75,6 +75,10 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
           value: '1'
         }
         {
+          name: 'INIT'
+          value: 'wiki'
+        }
+        {
           name: 'DBHOST'
           value: '${dbserver.name}.mariadb.database.azure.com' 
         }
