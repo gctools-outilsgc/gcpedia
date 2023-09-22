@@ -119,7 +119,7 @@ resource app_vnet 'Microsoft.Web/sites/networkConfig@2020-06-01' = {
   name: 'virtualNetwork'
   parent: webApp
   properties: {
-    subnetResourceId: !empty(subnetID) ? subnetID : subnet.id
+    subnetResourceId: empty(subnetID) ? subnet.id : subnetID
   }
 }
 
@@ -157,7 +157,7 @@ resource AllowSubnet 'Microsoft.DBforMariaDB/servers/virtualNetworkRules@2018-06
   parent: dbserver
   name: 'AllowSubnet'
   properties: {
-    virtualNetworkSubnetId: !empty(subnetID) ? subnetID : subnet.id
+    virtualNetworkSubnetId: empty(subnetID) ? subnet.id : subnetID
     ignoreMissingVnetServiceEndpoint: false
   }
 }
@@ -288,7 +288,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-08-01' = if (empty(subnetI
   }
 }
 
-resource subnet 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = {
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = if (empty(subnetID)) {
   name: 'dev'
   parent: vnet
   properties: {
