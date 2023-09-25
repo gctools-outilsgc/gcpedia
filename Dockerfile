@@ -42,6 +42,7 @@ LABEL maintainer="Ilia Salem"
 
 WORKDIR /var/www/html/
 COPY --from=0 /app/ /var/www/html/
+COPY ./docker/LocalSettings.php.docker /var/www/html/LocalSettings.php
 
 # for automated install
 #RUN chown www-data:www-data /var/www/html/
