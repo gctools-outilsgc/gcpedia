@@ -85,7 +85,7 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'DBUSER'
-          value: 'wiki@${dbserver.name}' 
+          value: 'wiki' 
         }
         {
           name: 'DBPASS'
