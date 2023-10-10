@@ -81,7 +81,7 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'DBHOST'
-          value: '${dbserver.name}.mariadb.database.azure.com' 
+          value: '${dbserver.properties.fullyQualifiedDomainName}'
         }
         {
           name: 'DBUSER'
@@ -111,16 +111,6 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
         }
       }
     }
-  }
-}
-
-
-// vnet connection
-resource app_vnet 'Microsoft.Web/sites/networkConfig@2020-06-01' = {
-  name: 'virtualNetwork'
-  parent: webApp
-  properties: {
-    subnetResourceId: empty(subnetID) ? subnet.id : subnetID
   }
 }
 
