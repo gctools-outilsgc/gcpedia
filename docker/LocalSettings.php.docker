@@ -59,6 +59,7 @@ $wgDBserver = (getenv('DBHOST') != '') ? getenv('DBHOST') : 'gcpedia-db';
 $wgDBname = (getenv('DBNAME') != '') ? getenv('DBNAME') : 'wiki';
 $wgDBuser = (getenv('DBUSER') != '') ? getenv('DBUSER') : 'wiki';
 $wgDBpassword = (getenv('DBPASS') != '') ? getenv('DBPASS') : 'gcpedia';
+$wgDBssl = (getenv('DBSSL') != '') ? getenv('DBSSL') : 'false';
 
 # MySQL specific settings
 $wgDBprefix = "";
