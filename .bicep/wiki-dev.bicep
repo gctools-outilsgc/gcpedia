@@ -59,6 +59,7 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
   kind: 'app,linux,container'
   properties: {
     serverFarmId: empty(planID) ? servicePlan.id : planID
+    virtualNetworkSubnetId: subnet.id
     siteConfig: {
       linuxFxVersion: linuxFxVersion
       appSettings: [
@@ -80,11 +81,11 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'DBHOST'
-          value: '${dbserver.name}.mariadb.database.azure.com' 
+          value: '${dbserver.properties.fullyQualifiedDomainName}'
         }
         {
           name: 'DBUSER'
-          value: 'wiki@${dbserver.name}' 
+          value: 'wiki' 
         }
         {
           name: 'DBPASS'
@@ -114,55 +115,30 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
 }
 
 
-// vnet connection
-resource app_vnet 'Microsoft.Web/sites/networkConfig@2020-06-01' = {
-  name: 'virtualNetwork'
-  parent: webApp
-  properties: {
-    subnetResourceId: empty(subnetID) ? subnet.id : subnetID
-  }
-}
-
-
 
 /*
 **** DB + config ****
 */
-resource dbserver 'Microsoft.DBforMariaDB/servers@2018-06-01' = {
+resource dbserver 'Microsoft.DBforMySQL/flexibleServers@2023-06-30' = {
   location: location
   name: dbName
   sku: {
-    name: 'GP_Gen5_2'
-    tier: 'GeneralPurpose'
-    capacity: 2
-    size: string(5120)
-    family: 'Gen5'
+    name: 'Standard_B1ms'
+    tier: 'Burstable'
   }
   properties: {
     createMode: 'Default'
-    version: '10.3'
+    version: '8.0.21'
     administratorLogin: 'wiki'
     administratorLoginPassword: dbpassword
-    storageProfile: {
-      storageMB: 5120
-      storageAutogrow: 'Enabled'
-      backupRetentionDays: 7
-      geoRedundantBackup: 'Disabled'
+    storage: {
+      storageSizeGB: 20
+      autoGrow: 'Enabled'
     }
-    sslEnforcement: 'Disabled'
   }
 }
 
-resource AllowSubnet 'Microsoft.DBforMariaDB/servers/virtualNetworkRules@2018-06-01' = {
-  parent: dbserver
-  name: 'AllowSubnet'
-  properties: {
-    virtualNetworkSubnetId: empty(subnetID) ? subnet.id : subnetID
-    ignoreMissingVnetServiceEndpoint: false
-  }
-}
-
-resource database 'Microsoft.DBforMariaDB/servers/databases@2018-06-01' = {
+resource database 'Microsoft.DBforMySQL/flexibleServers/databases@2023-06-30' = {
   parent: dbserver
   name: 'wiki_test'
   properties: {
@@ -310,6 +286,89 @@ resource subnet 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = if (emp
   dependsOn: [
     vnet
   ]
+}
+
+
+resource subnetDB 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = if (empty(subnetID)) {
+  name: 'devdb'
+  parent: vnet
+  properties: {
+    addressPrefix: '10.0.1.0/24'
+    serviceEndpoints: endpoints
+    delegations: []
+    privateEndpointNetworkPolicies: 'Enabled'
+    privateLinkServiceNetworkPolicies: 'Enabled'
+  }
+  dependsOn: [
+    vnet
+  ]
+}
+
+/*
+** private endpoint stuff
+*/
+
+resource privateDnsZones_privatelink_mysql 'Microsoft.Network/privateDnsZones@2018-09-01' = if (empty(subnetID)) {
+  name: 'privatelink.mysql.database.azure.com'
+  location: 'global'
+}
+
+resource privateDnsZones_privatelink_mysql_record 'Microsoft.Network/privateDnsZones/A@2018-09-01' = if (empty(subnetID)) {
+  parent: privateDnsZones_privatelink_mysql
+  name: dbName
+  properties: {
+    ttl: 10
+    aRecords: [
+      {
+        ipv4Address: '10.0.1.4'
+      }
+    ]
+  }
+}
+
+resource privateDnsZones_CNAME_privatelink_mysql 'Microsoft.Network/privateDnsZones/CNAME@2018-09-01' = if (empty(subnetID)) {
+  parent: privateDnsZones_privatelink_mysql
+  name: 'wiki-dev'
+  properties: {
+    ttl: 3600
+    cnameRecord: {
+      cname: '${dbName}.privatelink.mysql.database.azure.com'
+    }
+  }
+}
+
+resource vnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = if (empty(subnetID)) {
+  name: uniqueString(vnet.id)
+  location: 'global'
+  parent: privateDnsZones_privatelink_mysql
+  properties: {
+    registrationEnabled: false
+    virtualNetwork: {
+      id: vnet.id
+    }
+  }
+}
+
+resource dbPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-04-01' = if (empty(subnetID)) {
+  name: 'wiki-endpoint'
+  location: location
+  properties: {
+    privateLinkServiceConnections: [
+      {
+        name: 'wiki-endpoint'
+        properties: {
+          privateLinkServiceId: dbserver.id
+          groupIds: [
+            'mysqlServer'
+          ]
+        }
+      }
+    ]
+    subnet: {
+      id: subnetDB.id
+    }
+
+  }
 }
 
 /*
