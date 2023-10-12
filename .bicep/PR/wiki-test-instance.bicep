@@ -17,7 +17,7 @@ param containerSHA string = ''
 
 param acrName string = 'wikitestacr'
 
-var DATAROOT = '/wiki_data_test_mount/'
+var DATAROOT = '/var/www/html/images/'
 
 var imageRepoName = toLower('wiki_${prNumber}')
 var linuxFxVersion = empty(containerSHA) ? 'DOCKER|${acrName}.azurecr.io/${imageRepoName}:${containerTag}' : 'DOCKER|${acrName}.azurecr.io/${imageRepoName}@sha256:${containerSHA}'
