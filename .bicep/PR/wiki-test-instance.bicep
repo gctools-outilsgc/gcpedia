@@ -23,9 +23,8 @@ var imageRepoName = toLower('wiki_${prNumber}')
 var linuxFxVersion = empty(containerSHA) ? 'DOCKER|${acrName}.azurecr.io/${imageRepoName}:${containerTag}' : 'DOCKER|${acrName}.azurecr.io/${imageRepoName}@sha256:${containerSHA}'
 
 var appName = 'gcwiki-dev-${prNumber}'
-var dbName = 'gcwiki-dev-db-${prNumber}'
 var nodash_nounderscore_tag = replace(replace(prNumber, '-', ''), '_', '')
-var storagePrefix = toLower( (length(nodash_nounderscore_tag)) > 15 ? substring('devgcwiki${nodash_nounderscore_tag}', 0, 24) : 'devgcwiki${nodash_nounderscore_tag}' )
+var storagePrefix = toLower( (length(nodash_nounderscore_tag)) > 17 ? substring('devgcwiki${nodash_nounderscore_tag}', 0, 24) : 'devgcwiki${nodash_nounderscore_tag}' )
 
 
 /*
@@ -75,10 +74,6 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
         {
           name: 'DBNAME'
           value: prNumber
-        }
-        {
-          name: 'DATAROOT'
-          value: DATAROOT
         }
         {
           name: 'HOST'
@@ -176,7 +171,7 @@ resource storageAccountFiles 'Microsoft.Storage/storageAccounts/fileServices@202
 
 resource file_share 'Microsoft.Storage/storageAccounts/fileServices/shares@2022-05-01' = {
   parent: storageAccountFiles
-  name: 'c-test-files'
+  name: 'w-test-files'
   properties: {
     accessTier: 'TransactionOptimized'
     shareQuota: 5120
