@@ -21,7 +21,7 @@ module wiki './wiki-test-instance.bicep' = {
   scope: resourceGroup(testRG.name)
   params: {
     containerTag: containerTag
-    prNumber: 'PR-${prNumber}'
+    prName: 'PR-${prNumber}'
     subnetID: subnetID
     planID: planID
     dbServerRG: dbServerRG
