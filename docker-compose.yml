@@ -68,6 +68,8 @@ services:
       - HOST=wiki.local
       - PROTOCOL=http
       - PORT=
+      - INIT=wiki
+      - DBSSL=0
       - OPENID=
 #      - OAUTH=true
 #      - USESAML=false
