@@ -1,6 +1,6 @@
 
 trigger:  # Trigger the pipeline only when a PR is merged into master branch
-- master
+- main
 
 pr:
 - none
