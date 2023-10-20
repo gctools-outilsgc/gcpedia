@@ -143,3 +143,5 @@ wfLoadSkin( 'Vector' );
 
 $GAaccount = (getenv('GAACCOUNT') != '') ? getenv('GAACCOUNT') : 'UA-xxxxxxx-x';
 include('./config.php');
+
+if (getenv('DEBUG') === 'true') $wgShowExceptionDetails = true;
