@@ -2,7 +2,7 @@ trigger:  # don't trigger outside PRs
 - none
 
 pr:  # Trigger the pipeline only for PRs targeting master branch
-- master
+- main
 
 
 variables:
