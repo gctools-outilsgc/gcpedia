@@ -9,7 +9,7 @@ variables:
   imageRepository: 'wiki'
   location: 'canadacentral'
   RGtemplateFile: '.bicep/PR/test-instance-setup.bicep'
-  commentStringWiki: 'Wiki test instance up at:'  # String used for PR comment to provide link to review site
+  commentStringGCWiki: 'GCWiki test instance up at:'  # String used for PR comment to provide link to review site
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -50,10 +50,7 @@ jobs:
       ACR_NAME: $(acrName)
 
   - bash: |
-      TEST=$(curl -L https://api.github.com/repos/gctools-outilsgc/gcpedia/issues/$PR/comments | grep -c "${{ variables.commentString }}")
-      curl -L https://api.github.com/repos/gctools-outilsgc/gcpedia/issues/$PR/comments | grep -c "${{ variables.commentString }}"
-      echo "${{ variables.commentString }}"
-      echo $TEST
+      TEST=$(curl -L https://api.github.com/repos/gctools-outilsgc/gcpedia/issues/$PR/comments | grep -c "${{ variables.commentStringGCWiki }}")
       echo "##vso[task.setvariable variable=commentExists]$TEST"
       echo "Comments found about the test instance already in the PR: $TEST"
     displayName: Check for comment in PR
@@ -65,6 +62,6 @@ jobs:
       gitHubConnection: $(github_connection)
       repositoryName: $(Build.Repository.Name)
       id: $(System.PullRequest.PullRequestNumber)
-      comment: '$(commentStringWiki) https://gcwiki-dev-pr-$(System.PullRequest.PullRequestNumber).azurewebsites.net/'
+      comment: '$(commentStringGCWiki) https://gcwiki-dev-pr-$(System.PullRequest.PullRequestNumber).azurewebsites.net/'
     condition: and(succeeded(), eq(variables['commentExists'], '0'))
     displayName: Post a comment to PR with link to review site
