@@ -30,12 +30,12 @@ $wgExtensionCredits['parserhook'][] = array(
 
 
 function wfMultilang() {
-        global $wgParser;
-        $wgParser->setHook("multilang","renderMultilang");
+        $parser = \MediaWiki\MediaWikiServices::getInstance()->getParser();
+        $parser->setHook("multilang","renderMultilang");
 }
 
 
-function renderMultilang($input, $argv=array(), $parser) {
+function renderMultilang($input, array $argv, Parser $parser, PPFrame $frame) {
 	global $wgLang, $wgLanguageCode, $wgMultilangUseBrowserLanguage;
 
 	// The parser cache needs to be disabled as the page output is

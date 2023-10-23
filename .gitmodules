@@ -1,88 +1,95 @@
 [submodule "skins/CologneBlue"]
 	path = skins/CologneBlue
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/skins/CologneBlue
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/skins/CologneBlue
+	branch = REL1_40
 [submodule "skins/Modern"]
 	path = skins/Modern
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/skins/Modern
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/skins/Modern
+	branch = REL1_40
 [submodule "skins/MonoBook"]
 	path = skins/MonoBook
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/skins/MonoBook
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/skins/MonoBook
+	branch = REL1_40
 [submodule "extensions/ElectronPdfService"]
 	path = extensions/ElectronPdfService
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/ElectronPdfService
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/ElectronPdfService
+	branch = REL1_40
 [submodule "extensions/EditUser"]
 	path = extensions/EditUser
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/EditUser
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/EditUser
+	branch = REL1_40
 [submodule "extensions/LookupUser"]
 	path = extensions/LookupUser
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/LookupUser
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/LookupUser
+	branch = REL1_40
 [submodule "extensions/UserMerge"]
 	path = extensions/UserMerge
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/UserMerge
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/UserMerge
+	branch = REL1_40
 [submodule "extensions/CharInsert"]
 	path = extensions/CharInsert
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/CharInsert
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/CharInsert
+	branch = REL1_40
 [submodule "extensions/CSS"]
 	path = extensions/CSS
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/CSS
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/CSS
+	branch = REL1_40
 [submodule "extensions/intersection"]
 	path = extensions/intersection
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/intersection
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/intersection
+	branch = REL1_40
 [submodule "extensions/RSS"]
 	path = extensions/RSS
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/RSS
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/RSS
+	branch = REL1_40
 [submodule "extensions/UniversalLanguageSelector"]
 	path = extensions/UniversalLanguageSelector
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/UniversalLanguageSelector
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/UniversalLanguageSelector
+	branch = REL1_40
 [submodule "extensions/MobileFrontend"]
 	path = extensions/MobileFrontend
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/MobileFrontend
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/MobileFrontend
+	branch = REL1_40
 [submodule "skins/MinervaNeue"]
 	path = skins/MinervaNeue
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/skins/MinervaNeue
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/skins/MinervaNeue
+	branch = REL1_40
 [submodule "extensions/IframePage"]
 	path = extensions/IframePage
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/IframePage
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/IframePage
+	branch = REL1_40
 [submodule "extensions/googleAnalytics"]
 	path = extensions/googleAnalytics
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/googleAnalytics
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/googleAnalytics
+	branch = REL1_40
 [submodule "extensions/Lingo"]
 	path = extensions/Lingo
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/Lingo
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/Lingo
+	branch = REL1_40
 [submodule "extensions/DeletePagesForGood"]
 	path = extensions/DeletePagesForGood
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/DeletePagesForGood
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/DeletePagesForGood
+	branch = REL1_40
 [submodule "extensions/Favorites"]
 	path = extensions/Favorites
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/Favorites
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/Favorites
+	branch = REL1_40
 [submodule "extensions/PluggableAuth"]
 	path = extensions/PluggableAuth
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/PluggableAuth
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/PluggableAuth
+	branch = REL1_40
 [submodule "extensions/OpenIDConnect"]
 	path = extensions/OpenIDConnect
-	url = https://gerrit.wikimedia.org/r/p/mediawiki/extensions/OpenIDConnect
-	branch = REL1_35
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/OpenIDConnect
+	branch = REL1_40
+[submodule "extensions/CategoryWatch"]
+	path = extensions/CategoryWatch
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/CategoryWatch
+	branch = REL1_40
 [submodule "skins/Vector"]
 	path = skins/Vector
 	url = https://github.com/gctools-outilsgc/mediawiki-skins-Vector.git
-	branch = REL1_35
+	branch = REL1_40
+[submodule "extensions/PdfBook"]
+	path = extensions/PdfBook
+	url = https://github.com/debtcompliance/PdfBook.git

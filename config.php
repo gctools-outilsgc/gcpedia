@@ -57,7 +57,6 @@ wfLoadExtension( "Cite" );
 $wgGroupPermissions["IMadmin"]   ["delete"] = true;
 $wgGroupPermissions["IMadmin"]   ["undelete"] = true;
 
-wfLoadExtension( "Renameuser" );
 wfLoadExtension( "CharInsert" );
 wfLoadExtension( "TreeAndMenu" );
 wfLoadExtension( "InputBox" );
@@ -69,9 +68,11 @@ wfLoadExtension( "Lingo" );
 wfLoadExtension( "VisualEditor" );
 
 // pdf rendering service
-wfLoadExtension("ElectronPdfService");
-$wgElectronPdfServiceRESTbaseURL = 'https://pdf.gccollab.ca/pdf?accessKey=secret&url=https://wiki.gccollab.ca/';
-
+#wfLoadExtension("ElectronPdfService");
+#$wgElectronPdfServiceRESTbaseURL = 'https://pdf.gccollab.ca/pdf?accessKey=secret&url=https://wiki.gccollab.ca/';
+wfLoadExtension( 'PdfBook' );
+$wgPdfBookTab = false;
+$wgPdfBookDownload = false;
 
 wfLoadExtension("intersection");
 # Configuration variables. Warning: These use DLP instead of DPL
@@ -94,7 +95,7 @@ wfLoadExtension("EditUser");
 $wgGroupPermissions['bureaucrat']['edituser'] = true;
 $wgGroupPermissions['sysop']['edituser-exempt'] = true;
 
-require_once( "$IP/extensions/CategoryWatch/CategoryWatch.php" );
+wfLoadExtension( 'CategoryWatch' );
 
 wfLoadExtension("RSS");
 $wgRSSUrlWhitelist = array("*");
@@ -108,10 +109,10 @@ $wgMFAutodetectMobileView = true;
 require_once("$IP/extensions/GC_Messages/GC_Messages.php");
 
 # Add a "My Favorites" link to the personal URLs area:
-wfLoadExtension("Favorites");
-$wgFavoritesPersonalURL = true;
+#wfLoadExtension("Favorites");
+#$wgFavoritesPersonalURL = true;
 # Add a Star icon for selecting favorites:
-$wgUseIconFavorite = false;
+#$wgUseIconFavorite = false;
 
 wfLoadExtension( "ReplaceText" );
 $wgGroupPermissions['bureaucrat']['replacetext'] = true;
