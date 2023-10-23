@@ -37,7 +37,7 @@ RUN rm -rf .git/
 
 
 # Second stage, build usable container
-FROM mediawiki:1.40.0
+FROM mediawiki:1.40.1
 LABEL maintainer="Ilia Salem"
 
 RUN apt-get update && apt install -y htmldoc
