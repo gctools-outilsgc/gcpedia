@@ -14,13 +14,16 @@
 		]
 	},
 	"ResourceModules": {
-		"ext.skintweaksgcwiki.style": {
+		"ext.skintweaksgcwiki.styles": {
 			"styles": "css/skintweaksgcwiki.css"
 		}
 	},
 	"ResourceFileModulePaths": {
 		"localBasePath": "resources",
 		"remoteExtPath": "SkinTweaksGCwiki/resources"
+	},
+	"AutoloadClasses": {
+		"SkinTweaksGCwikiHooks": "SkinTweaksGCwikiHooks.php"
 	},
 	"Hooks": {
 		"SkinBuildSidebar": "SkinTweaksGCwikiHooks::onSkinBuildSidebar",

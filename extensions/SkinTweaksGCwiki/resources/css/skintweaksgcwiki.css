@@ -24,3 +24,21 @@ div#mw-head {
     text-decoration: none;
     color:white;
 }
+
+
+
+#p-zz-gctools{
+    list-style:none; 
+    padding:5px; 
+    margin: 0 auto; 
+    font-weight:bold;
+}
+#gt-acc::before{
+    content: '';
+    margin-right: 3px;
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    background-image: url( ../images/mini_wiki_icon.png );
+    background-size: 25px;
+}
