@@ -7,7 +7,14 @@ $wgLocaltimezone = "America/Montreal";
 
 $wgLogo = '';
 $wgFavicon = "/skins/Vector/resources/skins.vector.styles/images/collab/mini_wiki_icon.png";
-$wgLogos = [ '1x' =>  ''];
+$wgLogos = [ 
+    '1x' =>  'extensions/SkinTweaksGCwiki/resources/images/collab_logo_en_1x.png',
+    'variants' => [
+		'fr' => [
+            '1x' => "extensions/SkinTweaksGCwiki/resources/images/collab_logo_fr_1x.png",
+        ],
+    ],
+];
 
 $wgNamespacesWithSubpages[NS_MAIN] = true;
   
