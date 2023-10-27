@@ -59,11 +59,6 @@ class SkinTweaksGCwikiHooks {
         return true;
     }
 
-    public static function onSkinAfterContent( &$data, Skin $skin ) { 
-        error_log( "BLABLABLA........" . $data );
-        return true;
-    }
-
 }
 
 
