@@ -50,12 +50,21 @@ class SkinTweaksGCwikiHooks {
     }
 
     public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
+        $out->addModuleStyles( [ 'ext.skintweaksgcwiki.styles' ] );
+        return true;
+    }
+
+
+    public static function onAfterFinalPageOutput( $output ) {
         $fipHeader = '<div class="collab-fip-header" style="height:35px; clear:both; background-color:white;">
 		<object type="image/svg+xml" tabindex="-1" role="img" data="extensions/SkinTweaksGCwiki/resources/images/sig-alt-en.svg" aria-label="Symbol of the Government of Canada" style="height:25px; float:left; padding:5px 10px;"></object>
-	</div>';
-
-        $out->prependHTML($fipHeader);
-        $out->addModuleStyles( [ 'ext.skintweaksgcwiki.styles' ] );
+	</div>
+        <div id="app-brand-name"  style="background:#6D4E86; position:absolute; top:2px; clear:both; float:left; font-size:24px; color:white; padding:8px 59px 6px 62px;"><span style="font-weight:600">GC</span>wiki</div>';
+	
+        $out = ob_get_clean();
+        // change final html in $out
+        ob_start();
+        echo $fipHeader . $out;
         return true;
     }
 
