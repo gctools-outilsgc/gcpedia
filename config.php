@@ -6,7 +6,7 @@ wfLoadSkin( 'Vector' );
 $wgLocaltimezone = "America/Montreal";
 
 $wgLogo = '';
-$wgFavicon = "/skins/Vector/resources/skins.vector.styles/images/collab/mini_wiki_icon.png";
+$wgFavicon = "extensions/SkinTweaksGCwiki/resources/images/mini_wiki_icon.png";
 $wgLogos = [ 
     '1x' =>  'extensions/SkinTweaksGCwiki/resources/images/collab_logo_en_1x.png',
     'variants' => [
@@ -137,6 +137,8 @@ $wgIframePageAllowPath = true;
 
 wfLoadExtension( "Nuke" );
 $wgGroupPermissions['sysop']['nuke'] = true;
+
+wfLoadExtension( "SkinTweaksGCwiki" );
 
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
 $wgGoogleAnalyticsAccount = $GAaccount;
