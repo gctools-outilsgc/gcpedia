@@ -28,7 +28,8 @@
 	"Hooks": {
 		"SkinBuildSidebar": "SkinTweaksGCwikiHooks::onSkinBuildSidebar",
 		"SkinAfterPortlet": "SkinTweaksGCwikiHooks::onSkinAfterPortlet",
-		"BeforePageDisplay": "SkinTweaksGCwikiHooks::onBeforePageDisplay"
+		"BeforePageDisplay": "SkinTweaksGCwikiHooks::onBeforePageDisplay",
+		"AfterFinalPageOutput": "SkinTweaksGCwikiHooks::onAfterFinalPageOutput"
 	},
 	"manifest_version": 2
 }
