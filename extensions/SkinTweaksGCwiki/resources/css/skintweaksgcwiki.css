@@ -9,6 +9,9 @@ div#mw-head {
 	outline: -webkit-focus-ring-color auto 1px !important;
 }
 
+.vector-legacy-sidebar#mw-panel{
+    top:90px;
+}
 
 
 #app-brand-name:before{
@@ -32,6 +35,7 @@ div#mw-head {
     padding:5px; 
     margin: 0 auto; 
     font-weight:bold;
+    font-size: 13px;
 }
 #gt-acc::before{
     content: '';
@@ -40,5 +44,23 @@ div#mw-head {
     width: 25px;
     height: 25px;
     background-image: url( ../images/mini_wiki_icon.png );
+    background-size: 25px;
+}
+#gt-gcc::before{
+    content: '';
+    margin-right: 3px;
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    background-image: url( ../images/mini_collab_icon.png );
+    background-size: 25px;
+}
+#gt-mess::before{
+    content: '';
+    margin-right: 3px;
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    background-image: url( ../images/message_icon.png );
     background-size: 25px;
 }
