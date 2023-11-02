@@ -27,7 +27,6 @@
 	},
 	"Hooks": {
 		"SkinBuildSidebar": "SkinTweaksGCwikiHooks::onSkinBuildSidebar",
-		"SkinAfterPortlet": "SkinTweaksGCwikiHooks::onSkinAfterPortlet",
 		"BeforePageDisplay": "SkinTweaksGCwikiHooks::onBeforePageDisplay",
 		"AfterFinalPageOutput": "SkinTweaksGCwikiHooks::onAfterFinalPageOutput"
 	},
