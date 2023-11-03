@@ -34,21 +34,6 @@ class SkinTweaksGCwikiHooks {
 	}
 
 
-    public static function onSkinAfterPortlet( $skin, $portletName, &$html ) {
-        if ($portletName === "gctools"){
-            $html = <<< EOT
-            <nav>
-                <ul id="tool-links" class="" style="list-style:none; padding:5px; margin: 0 auto; font-weight:bold;">
-                    <li style="float:left; margin: 3px 2%;"><a href="https://account-compte.gccollab.ca" style="color:#6b5088;"><span><img style="width:25px; display:inline-block; margin-right:3px;" src="extensions/SkinTweaksGCwiki/resources/images/mini_wiki_icon.png" alt=""></span>{$skin->msg( 'wet:baraccount' )}</a></li>
-                    <li style="float:left; margin: 3px 2%;"><a href="https://gccollab.ca/" style="color:#6b5088;"><span><img style="width:25px; display:inline-block; margin-right:3px;" src="extensions/SkinTweaksGCwiki/resources/images/mini_collab_icon.png" alt=""></span>GCcollab</a></li>
-                    <li style="float:left; margin: 3px 2%;"><a href="https://message.gccollab.ca/" style="color:#6b5088;"><span><img style="width:25px; display:inline-block; margin-right:3px;" src="extensions/SkinTweaksGCwiki/resources/images/message_icon.png" alt=""></span>GCmessage</a></li>
-                </ul>
-            </nav>
-            EOT;
-        }
-        return true;
-    }
-
     public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
         $out->addModuleStyles( [ 'ext.skintweaksgcwiki.styles' ] );
         return true;
