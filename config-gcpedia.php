@@ -5,6 +5,8 @@ $wgArticlePath = "/$1";
 wfLoadSkin( 'Vector' );
 $wgLocaltimezone = "America/Montreal";
 
+$wgSitename = "GCpedia";
+
 $wgLogo = '';
 $wgFavicon = "extensions/SkinTweaksGCpedia/resources/images/mini_gcpedia_icon.png";
 $wgLogos = [ 
@@ -127,9 +129,6 @@ $wgGroupPermissions['bureaucrat']['replacetext'] = true;
 wfLoadExtension( "UserMerge" );
 $wgGroupPermissions['sysop']['usermerge'] = true;
 $wgUserMergeUnmergeable = array( 'sysop', 'awesomeusers' );
- 
-#$wgShowSQLErrors = true;
-#$wgShowExceptionDetails = true;
 
 wfLoadExtension( "IframePage" );
 $wgIframePageSrc= array( 'GCcollab' => 'https://gccollab.ca/', 'YouTube' => 'https://www.youtube.com/embed/' );
@@ -143,3 +142,37 @@ wfLoadExtension( "SkinTweaksGCpedia" );
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
 $wgGoogleAnalyticsAccount = $GAaccount;
 
+
+
+
+require_once "$IP/extensions/GC_tcDisclaimer/GC_tcDisclaimer.php";
+require_once "$IP/extensions/ROTedits/ROTedits.php";
+require_once "$IP/extensions/awards/awards.php";
+
+wfLoadExtension( "AJAXPoll" );
+wfLoadExtension( "AjaxShowEditors" );
+
+wfLoadExtension( "MsCalendar" );
+
+wfLoadExtension( "RandomImage" );
+/* ????
+
+NewUserPage ? - maintain or drop
+
+customUserCreateForm ? - unmaintained for a long time
+
+
+mwSimpleSamlAuth ? unmaintained, used for gcconnex - based simple login
+
+
+***video players***
+FramedVideo
+
+*/
+
+
+
+
+
+#$wgShowSQLErrors = true;
+#$wgShowExceptionDetails = true;
