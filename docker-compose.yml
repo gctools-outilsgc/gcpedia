@@ -60,6 +60,10 @@ services:
       - /var/www/html/extensions/PluggableAuth
       - /var/www/html/extensions/OpenIDConnect
       - /var/www/html/extensions/PdfBook
+      - /var/www/html/extensions/AJAXPoll
+      - /var/www/html/extensions/AjaxShowEditors
+      - /var/www/html/extensions/MsCalendar
+      - /var/www/html/extensions/RandomImage
     links:
       - gcpedia-db
     depends_on:
@@ -73,6 +77,8 @@ services:
       - INIT=wiki
       - DBSSL=0
       - OPENID=
+      - SITE=gcpedia
+      - DEBUG=true
 #      - OAUTH=true
 #      - USESAML=false
 
