@@ -4,6 +4,7 @@
  * 
  * 
  */
+ use MediaWiki\MediaWikiServices;
 
 if ( !defined('MEDIAWIKI') ) {
         echo <<<EOT
@@ -68,28 +69,34 @@ function lastaccept( $lastdate ) {
  * @author Ilia Salem
  */
 function showDisclaimer( &$out ) {
-	global $wgUser, $wgTitle, $wgLang, $wgOut, $wgScriptPath;
+	global $wgTitle, $wgLang, $wgOut, $wgScriptPath;
+	$user = RequestContext::getMain()->getUser();
 	//$out->setHTMLTitle('GCpedia Disclaimer');
-	$userID = $wgUser->getId();
+	$userID = $user->getId();
 	$timeout = true;
-	$dbw = wfGetDB( DB_MASTER );
+
+	$dbProvider = MediaWikiServices::getInstance()->getDBLoadBalancerFactory();
+	$dbr = $dbProvider->getReplicaDatabase();
 	
 	# select user from table
-	$queryString = "SELECT * FROM `tc_accepted` WHERE user_id = \"$userID\"";
-	$result = $dbw->query($queryString);
+#	$queryString = "SELECT * FROM `tc_accepted` WHERE user_id = \"$userID\"";
 	
 	 try{
-		$row = $dbw->fetchRow( $result );
-		if(count($row)>1)
+		$result = $dbr->newSelectQueryBuilder()
+			->select( ['date'] )
+			->from( 'tc_accepted' )
+			->where( [ 'user_id' => $userID ] )
+			->caller( __METHOD__ )->fetchRow();;
+		if($result)
 		{
-			$timeout = lastaccept( $row[2] );
+			$timeout = lastaccept( $result->date );
 		}
 	} catch( Exception $e ) {
 		$row = array(0);
 		# create table
 	}
 
-if( $wgUser->isLoggedIn() ) {
+if( $user->getId() ) {
 
 	if ($timeout and strpos( $wgTitle, 'Special:ConfirmEmail' ) === false and  strcasecmp( $wgTitle, 'Special:UserLogin' ) != 0 and strcasecmp( $wgTitle, 'GCPEDIA:Terms and conditions of use' ) != 0 and strcasecmp( $wgTitle, 'GCPEDIA:Conditions d\'utilisation' ) != 0 and strcasecmp( $wgTitle, 'Help:Code of Conduct') != 0 and strcasecmp( $wgTitle, 'GCPEDIA:Privacy notice' ) != 0 and strcasecmp( $wgTitle, 'Avis de confidentialité' ) != 0 ) {
 	
@@ -156,7 +163,7 @@ if( $wgUser->isLoggedIn() ) {
 					clear:both;
 					">
 					<?php ?>
-					<h2 nstyle="font-size:133%; background-color: #ac1a2f; color: white; padding-left:7px;"><?php if ( $wgLang->getCode() == 'en' ) echo "Welcome"; else echo "Bienvenue";?>, <?php if ( $wgUser->getRealName() != '' ) echo $wgUser->getRealName(); else echo $wgUser->getName(); ?></h1>
+					<h2 nstyle="font-size:133%; background-color: #ac1a2f; color: white; padding-left:7px;"><?php if ( $wgLang->getCode() == 'en' ) echo "Welcome"; else echo "Bienvenue";?>, <?php if ( $user->getRealName() != '' ) echo $user->getRealName(); else echo $user->getName(); ?></h1>
 					<ul style="float: right;">
 						<li> <a href='<?php echo $fullURL . "?setlang="
 						. ( ( $wgLang->getCode() == 'en' ) ? fr : en ) . "'>"
@@ -217,8 +224,8 @@ if( $wgUser->isLoggedIn() ) {
 						disabled='disabled' onclick="mw.loader.using( 'mediawiki.api', function () {
 			( new mw.Api() ).get( {
 				action: 'addaccepted',
-				username: '<?php echo str_ireplace( "'", "-*-", $wgUser->getName() ); ?>',
-				userid: <?php echo $wgUser->getId(); ?>,
+				username: '<?php echo str_ireplace( "'", "-*-", $user->getName() ); ?>',
+				userid: <?php echo $user->getId(); ?>,
 			} ).done( function ( data ) {
 					location.reload(true);
 			} );
@@ -336,10 +343,11 @@ function generateTermsHTML( $lang ){
  * @author Matthew April
  */
 function emailCheck() {
-	global $wgRequest, $wgUser, $wgTitle, $wgEnableEmail, $wgEmailAuthentication, $wgTitle, $wgParser, $wgLang;
+	global $wgRequest, $wgTitle, $wgEnableEmail, $wgEmailAuthentication, $wgTitle, $wgParser, $wgLang;
+	$user = RequestContext::getMain()->getUser();
 	
 	# init vars
-	$currentEmail = $wgUser->getEmail();
+	$currentEmail = $user->getEmail();
 	$action = $wgTitle->getLocalUrl();
 	$emailOption = $wgRequest->getVal( 'EmailUpdate' );
 	$err = "";
@@ -361,9 +369,9 @@ function emailCheck() {
 				onclick=\"mw.loader.using( 'mediawiki.api', function () {
 					( new mw.Api() ).get( {
 						action: 'updateemail',
-						userId: {$wgUser->getId()},
+						userId: {$user->getId()},
 						newEmail: newEmail.value,
-						language: '{$wgLang->getCode()}',
+						language: '{$user->getCode()}',
 					} ).done( function ( data ) {
 						document.getElementById('confmessage').innerHTML = data.updateemail;
 						document.getElementById('email-curr').innerHTML = newEmail.value;
@@ -397,7 +405,7 @@ class disclaimerHead extends QuickTemplate {
 		$action = $wgRequest->getText( 'action' );
 
 		//suppress warnings to prevent notices about missing indexes in $this->data
-		wfSuppressWarnings();
+		Wikimedia\AtEase\AtEase::suppressWarnings();
 		?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="<?php $this->text('xhtmldefaultnamespace') ?>" <?php 
 	foreach($this->data['xhtmlnamespaces'] as $tag => $ns) {
