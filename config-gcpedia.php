@@ -137,7 +137,8 @@ $wgIframePageAllowPath = true;
 wfLoadExtension( "Nuke" );
 $wgGroupPermissions['sysop']['nuke'] = true;
 
-wfLoadExtension( "SkinTweaksGCpedia" );
+// activate when it's ready
+#wfLoadExtension( "SkinTweaksGCpedia" );
 
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
 $wgGoogleAnalyticsAccount = $GAaccount;
@@ -145,16 +146,15 @@ $wgGoogleAnalyticsAccount = $GAaccount;
 
 
 
-require_once "$IP/extensions/GC_tcDisclaimer/GC_tcDisclaimer.php";
-require_once "$IP/extensions/ROTedits/ROTedits.php";
+require_once "$IP/extensions/GC_tcDisclaimer/disclaimer.php";
+#require_once "$IP/extensions/ROTedits/ROTedits.php";
 require_once "$IP/extensions/awards/awards.php";
 
 wfLoadExtension( "AJAXPoll" );
 wfLoadExtension( "AjaxShowEditors" );
-
 wfLoadExtension( "MsCalendar" );
-
 wfLoadExtension( "RandomImage" );
+
 /* ????
 
 NewUserPage ? - maintain or drop
