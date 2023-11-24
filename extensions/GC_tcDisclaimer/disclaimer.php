@@ -68,7 +68,7 @@ function lastaccept( $lastdate ) {
  * 
  * @author Ilia Salem
  */
-function showDisclaimer( &$out ) {
+function showDisclaimer( OutputPage $out, Skin $skin ) {
 	global $wgTitle, $wgLang, $wgOut, $wgScriptPath;
 	$user = RequestContext::getMain()->getUser();
 	//$out->setHTMLTitle('GCpedia Disclaimer');
@@ -166,12 +166,12 @@ if( $user->getId() ) {
 					<h2 nstyle="font-size:133%; background-color: #ac1a2f; color: white; padding-left:7px;"><?php if ( $wgLang->getCode() == 'en' ) echo "Welcome"; else echo "Bienvenue";?>, <?php if ( $user->getRealName() != '' ) echo $user->getRealName(); else echo $user->getName(); ?></h1>
 					<ul style="float: right;">
 						<li> <a href='<?php echo $fullURL . "?setlang="
-						. ( ( $wgLang->getCode() == 'en' ) ? fr : en ) . "'>"
-						. wfMsg( 'emailupdate-language' ); ?></a> </li>
+						. ( ( $wgLang->getCode() == 'en' ) ? "fr" : "en" ) . "'>"
+						. $skin->msg( 'emailupdate-language' ); ?></a> </li>
 					</ul>
 					<br />
 					<!-- Instructions -->
-					<p style="padding-left:7px;"> <?php echo wfMsg( 'disclaimer-instruc' ); ?> </p>
+					<p style="padding-left:7px;"> <?php echo $skin->msg( 'disclaimer-instruc' ); ?> </p>
 					
 					<br />
 				</div>
@@ -185,9 +185,9 @@ if( $user->getId() ) {
 					">
 					
 					<p>
-						<b><?php echo wfMsg ( 'disclaimer-step-1' ); ?></b> 
+						<b><?php echo $skin->msg( 'disclaimer-step-1' ); ?></b> 
 						<br /> <br />
-						<?php echo wfMsg ( 'disclaimer-step-2-desc' ); ?>
+						<?php echo $skin->msg( 'disclaimer-step-2-desc' ); ?>
 					</p>
 					
 					<ul>
@@ -205,9 +205,9 @@ if( $user->getId() ) {
 						width:40%;
 					">
 					<p> 
-						<b> <?php echo wfMsg ( 'disclaimer-step-2' ); ?> </b>
+						<b> <?php echo $skin->msg( 'disclaimer-step-2' ); ?> </b>
 						<br />
-						<?php echo emailCheck(); ?>
+						<?php echo emailCheck( $skin ); ?>
 					</p>
 					<br />
 					</div>
@@ -220,7 +220,7 @@ if( $user->getId() ) {
 					">
 					<!-- Submit -->
 					<input class="proceeddisabled" style='margin: 4px 0 3px 9px;' name='proceed' type='button' id='proceed'
-						value="<?php echo wfMsg('disclaimer-submit'); ?>"
+						value="<?php echo $skin->msg('disclaimer-submit'); ?>"
 						disabled='disabled' onclick="mw.loader.using( 'mediawiki.api', function () {
 			( new mw.Api() ).get( {
 				action: 'addaccepted',
@@ -232,7 +232,7 @@ if( $user->getId() ) {
 		} );"
 					/>
 					
-					<p style="text-align: right;"> <?php echo wfMsg('emailupdate-help'); ?> </p>
+					<p style="text-align: right;"> <?php echo $skin->msg('emailupdate-help'); ?> </p>
 					
 				</div>
 		</div>
@@ -250,21 +250,21 @@ if( $user->getId() ) {
 		document.getElementById('terms').style.display='none';">X</div>
 		<?php */ ?>
 
-		<center><h1><?php echo wfMsg("disclaimer-terms-head"); ?></h1></center>
+		<center><h1><?php echo $skin->msg("disclaimer-terms-head"); ?></h1></center>
 		<br />
 		
-		<?php echo generateTermsHTML( $wgLang->getCode() );//wfMsg("disclaimer-terms-page"); ?>
+		<?php echo generateTermsHTML( $wgLang->getCode() );//$skin->msg("disclaimer-terms-page"); ?>
 		<?php // echo '<iframe src="http://192.168.0.100/gcwiki120-Mo/index.php/GCPEDIA:Terms_and_conditions_of_use" width=100% height=80%></iframe>'; ?>
 
 		<br />
 
 		<center>
-		<input type="button" id="btnCloseTerms" value=<?php echo wfMsg("disclaimer-close-terms-txt"); ?>
+		<input type="button" id="btnCloseTerms" value=<?php echo $skin->msg("disclaimer-close-terms-txt"); ?>
 		class="terms_button terms_button_close"
 		onclick="
 		document.getElementById('terms').style.display='none';">
 
-		<input type="button" id="btnAcceptTerms" value=<?php echo wfMsg("disclaimer-accept-terms-txt"); ?>
+		<input type="button" id="btnAcceptTerms" value=<?php echo $skin->msg("disclaimer-accept-terms-txt"); ?>
 		class="terms_button"
 		onclick="
 		document.getElementById('accept').checked = true;
@@ -342,7 +342,7 @@ function generateTermsHTML( $lang ){
  * 
  * @author Matthew April
  */
-function emailCheck() {
+function emailCheck( $skin ) {
 	global $wgRequest, $wgTitle, $wgEnableEmail, $wgEmailAuthentication, $wgTitle, $wgParser, $wgLang;
 	$user = RequestContext::getMain()->getUser();
 	
@@ -355,23 +355,23 @@ function emailCheck() {
 	$confmessage = "";	//confirmation email notification message (blank if not sent)
 
 	# form output
-	$out .= "<div style='float: left; width: 40%; border-right: 1px solid black; clear:none; margin-right: 7px; padding: 3px 7px 5px;'>". wfMsg('emailupdate-current') . " <div id='email-curr'><b>$currentEmail</b></div> <br/><br />
+	$out .= "<div style='float: left; width: 40%; border-right: 1px solid black; clear:none; margin-right: 7px; padding: 3px 7px 5px;'>". $skin->msg('emailupdate-current') . " <div id='email-curr'><b>$currentEmail</b></div> <br/><br />
 			<input type='checkbox' name='emailcheck' id='emailcheck' onclick=\"getChecked(); if (document.getElementById('emailcheck').checked){ document.getElementById('lblemail').className=''; document.getElementById('emailupdateform').style.display = 'none'; } else{ document.getElementById('lblemail').className='checkboxRequired'; document.getElementById('emailupdateform').style.display = 'block'; }
-					\" /> <label class=\"checkboxRequired\" id='lblemail' for='emailcheck'>" . wfMsg('emailupdate-confirm-address') . "</label><br /></div>";
+					\" /> <label class=\"checkboxRequired\" id='lblemail' for='emailcheck'>" . $skin->msg('emailupdate-confirm-address') . "</label><br /></div>";
 	
 	$out .= "<div id='emailupdateform' style='float: left; width:55%; margin-bottom:1px;'><form>
 				<input type='hidden' id='outdateEmail' name='EmailUpdate' value='outdated' CHECKED>
-				<label for='newEmail'>" . wfMsg('emailupdate-update') . "
+				<label for='newEmail'>" . $skin->msg('emailupdate-update') . "
 				<input type='text' name='newEmail' size='30' value='' /></label>
 					<br/>
 					<br/>
-				<input type='button' name='submit' value='". wfMsg('emailupdate-submit') ."' 
+				<input type='button' name='submit' value='". $skin->msg('emailupdate-submit') ."' 
 				onclick=\"mw.loader.using( 'mediawiki.api', function () {
 					( new mw.Api() ).get( {
 						action: 'updateemail',
 						userId: {$user->getId()},
 						newEmail: newEmail.value,
-						language: '{$user->getCode()}',
+						language: '{$wgLang->getCode()}',
 					} ).done( function ( data ) {
 						document.getElementById('confmessage').innerHTML = data.updateemail;
 						document.getElementById('email-curr').innerHTML = newEmail.value;

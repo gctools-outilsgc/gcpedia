@@ -146,6 +146,7 @@ $wgGoogleAnalyticsAccount = $GAaccount;
 
 
 
+require_once "$IP/extensions/EmailUpdate/EmailUpdate.php";
 require_once "$IP/extensions/GC_tcDisclaimer/disclaimer.php";
 #require_once "$IP/extensions/ROTedits/ROTedits.php";
 require_once "$IP/extensions/awards/awards.php";
