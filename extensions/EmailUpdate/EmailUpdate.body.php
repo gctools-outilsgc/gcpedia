@@ -7,6 +7,8 @@
  * @author Matthew.April <Matthew.JApril@gmail.com>
  *
  */
+use MediaWiki\MediaWikiServices;
+
 class EmailUpdate extends SpecialPage {
 	
 		
@@ -22,11 +24,12 @@ class EmailUpdate extends SpecialPage {
 	 * @return returns true on execution, false on bad permission
 	 */
 	function execute( $par ) {
-		global $wgRequest, $wgParser, $wgUser;
+		global $wgRequest, $wgParser;
 		
 		$output = $this->getOutput();
+		$user = RequestContext::getMain()->getUser();
 
-		if( !$wgUser->isAllowed( 'emailupdate' ) ) {
+		if( !$user->isAllowed( 'emailupdate' ) ) {
 			$output->showPermissionsErrorPage( ['emailupdate'] );
 			return false;
 		}
@@ -52,7 +55,7 @@ class EmailUpdate extends SpecialPage {
 			if( isset( $userName ) ) { //should always be set, check anyway
 				
 				
-				$userId = User::idFromName( $userName );
+				$userId = User::newFromName( $userName )->getId();
 				
 				if( isset( $userId ) && $userId != 0 ) {
 				# user exists
@@ -276,9 +279,11 @@ class EmailUpdate extends SpecialPage {
 	 * @return true on completion
 	 */
 	function emailUpdateToolbox( $template ) {
-		global $wgTitle, $wgUser;
+		global $wgTitle;
+
+		$user = RequestContext::getMain()->getUser();
 		
-		if( !$wgUser->isAllowed( 'emailupdate' ) ) {
+		if( !$user->isAllowed( 'emailupdate' ) ) {
 			return false;
 		}
 		
