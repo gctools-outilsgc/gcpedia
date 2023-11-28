@@ -10,7 +10,7 @@
 class EmailUpdate extends SpecialPage {
 	
 		
-	function EmailUpdate() {
+	public function __construct() {
 		parent::__construct('EmailUpdate','emailupdate');
 	}
 	
@@ -22,14 +22,16 @@ class EmailUpdate extends SpecialPage {
 	 * @return returns true on execution, false on bad permission
 	 */
 	function execute( $par ) {
-		global $wgRequest, $wgOut, $wgParser, $wgUser;
+		global $wgRequest, $wgParser, $wgUser;
 		
+		$output = $this->getOutput();
+
 		if( !$wgUser->isAllowed( 'emailupdate' ) ) {
-			$wgOut->permissionRequired( 'emailupdate' );
+			$output->showPermissionsErrorPage( ['emailupdate'] );
 			return false;
 		}
 		
-		$wgOut->setPagetitle('Email Update'); //i18n
+		$output->setPagetitle('Email Update'); //i18n
 		$posted = $wgRequest->wasPosted();
 		$out = "";
 		
@@ -74,9 +76,9 @@ class EmailUpdate extends SpecialPage {
 					
 					if( isset( $res ) ) {
 						if( $res === true ) {
-							$out .= "<div class='successbox'>". wfMsg('emailupdate-success') ."</div>";
+							$out .= "<div class='successbox'>". $this->msg('emailupdate-success') ."</div>";
 						} elseif( $res === false) {
-							$out .= "<div class='error'>". wfMsgExt( 'invalidemailaddress', 'parseinline' ) ."</div>";
+							$out .= "<div class='error'>". $this->msg( 'invalidemailaddress', 'parseinline' ) ."</div>";
 						} else {
 							$out .= "<div class='error'>". $res ."</div>";
 						}
@@ -85,7 +87,7 @@ class EmailUpdate extends SpecialPage {
 					
 				} else {
 				# user does not exist
-					$err = wfMsgHtml('emailupdate-notfound');
+					$err = $this->msg('emailupdate-notfound');
 					$out .= "<div class='error'>" . $err . "</div>";
 				}
 				
@@ -99,7 +101,7 @@ class EmailUpdate extends SpecialPage {
 		
 		}
 		
-		$wgOut->addHTML( $out );
+		$output->addHTML( $out );
 		
 		return true;
 		
@@ -116,8 +118,8 @@ class EmailUpdate extends SpecialPage {
 		global $wgTitle;
 	
 		$action = htmlspecialchars( $wgTitle->getLocalUrl() ); //form submit
-		$usernameLabel = wfMsgHtml('emailupdate-username');
-		$searchButton = wfMsgHtml('search');
+		$usernameLabel = $this->msg('emailupdate-username');
+		$searchButton = $this->msg('search');
 		
 		$form = "<br />
 				<form method='POST' action='$action'>
@@ -221,7 +223,7 @@ class EmailUpdate extends SpecialPage {
 		global $wgEnableEmail, $wgEmailAuthentication;
 		
 		if( !$wgEnableEmail ) {
-			return wfMsg('Email functionality is not enabled'); //i18n
+			return $this->msg('Email functionality is not enabled'); //i18n
 		}
 		
 		$oldEmail = $user->mEmail;
@@ -242,7 +244,7 @@ class EmailUpdate extends SpecialPage {
 					# send confirmation email
 					$result = $user->sendConfirmationMail();
 					if( $result->isOK() ) { //test me
-						return wfMsg( 'mailerror', htmlspecialchars( $result->getMessage() ) );
+						return $this->msg( 'mailerror', htmlspecialchars( $result->getMessage() ) );
 					}
 					
 				} else {
@@ -256,9 +258,9 @@ class EmailUpdate extends SpecialPage {
 		} else {
 			# get error
 			if( $newEmail == $oldEmail ) {
-				return wfMsg('emailupdate-duplicate-error');
+				return $this->msg('emailupdate-duplicate-error');
 			} else {
-				return wfMsg('invalidemailaddress');
+				return $this->msg('invalidemailaddress');
 			}
 			
 		}
@@ -295,6 +297,10 @@ class EmailUpdate extends SpecialPage {
 		}
 		
 		return true;
+	}
+
+	protected function getGroupName() {
+		return 'users';
 	}
 	
 }

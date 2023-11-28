@@ -25,8 +25,8 @@ $wgAutoloadClasses['EmailUpdate'] = $dir . 'EmailUpdate.body.php';
 $wgExtensionMessagesFiles['EmailUpdate'] = $dir . 'EmailUpdate.i18n.php';
 
 # toolbox hook
-$emailUpdate = new EmailUpdate;
-$wgHooks['SkinTemplateToolboxEnd'][] = array( $emailUpdate, 'emailUpdateToolbox' );
+#$emailUpdate = new EmailUpdate;
+#$wgHooks['SkinTemplateToolboxEnd'][] = array( $emailUpdate, 'emailUpdateToolbox' );
 
 # special page
 $wgSpecialPages['EmailUpdate'] = 'EmailUpdate';
