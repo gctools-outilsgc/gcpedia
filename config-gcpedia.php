@@ -150,8 +150,6 @@ require_once "$IP/extensions/EmailUpdate/EmailUpdate.php";
 $wgGroupPermissions['*']['emailupdate'] = false;
 $wgGroupPermissions['sysop']['emailupdate'] = true;
 
-require_once "$IP/extensions/GC_tcDisclaimer/disclaimer.php";
-#require_once "$IP/extensions/ROTedits/ROTedits.php";
 require_once "$IP/extensions/awards/awards.php";
 
 wfLoadExtension( "AJAXPoll" );
@@ -173,10 +171,3 @@ mwSimpleSamlAuth ? unmaintained, used for gcconnex - based simple login
 FramedVideo
 
 */
-
-
-
-
-
-#$wgShowSQLErrors = true;
-#$wgShowExceptionDetails = true;
