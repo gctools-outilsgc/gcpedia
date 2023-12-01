@@ -7,6 +7,7 @@
  * Author: Ilia Salem
  * updated for MW1.26
  */
+use MediaWiki\MediaWikiServices;
  
 class findUsernameAJAX extends ApiBase
 {
@@ -37,22 +38,24 @@ class findUsernameAJAX extends ApiBase
 
 		global $wgLang;
 		$output = "";
-		$dbr = wfGetDB( DB_SLAVE ); 
-		
-		// count the number of occurances of email - disabled, to be used later if necessary
-		/*$queryc = "SELECT count(*) FROM " .$dbr->tableName('user') ." WHERE user_email = \"". $q ."\"";
 
-		$resultc = $dbr->doQuery($queryc);
-		$rowc = $dbr->fetchRow($resultc);*/
-		$emailQuery = $dbr->addQuotes($emailInput);
+		if ( !Sanitizer::validateEmail( $emailInput ) ){
+			$this->getResult()->addValue( null, $this->getModuleName(), "418" );
+			return 1;
+		}
+		
+		$dbProvider = MediaWikiServices::getInstance()->getDBLoadBalancerFactory();
+		$dbr = $dbProvider->getReplicaDatabase();
 		
 		// find and return the FIRST username associated with the email
-		$result = $dbr->select( $dbr->tableName('user'), 'user_name', 'user_email = ' . $emailQuery, __METHOD__, array() );
-		
-		$row = $dbr->fetchRow($result);
+		$row = $dbr->newSelectQueryBuilder()
+		->select( ['user_name'] )
+		->from( 'user' )
+		->where( [ 'user_email' => $emailInput ] )
+		->caller( __METHOD__ )->fetchRow();
 		
 		if($row){
-			$output = $row[0];
+			$output = $row->user_name;
 		}else{
 			if($wgLang->getCode() == 'fr') {
 				$output = "Nom d'utilisateur n'existe pas"; // Translated; verify
