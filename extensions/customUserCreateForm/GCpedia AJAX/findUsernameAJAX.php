@@ -5,7 +5,7 @@
  * 		php file for ajax
  * 
  * Author: Ilia Salem
- * updated for MW1.26
+ * updated for MW1.40
  */
 use MediaWiki\MediaWikiServices;
  

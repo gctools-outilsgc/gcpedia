@@ -12,6 +12,7 @@
  *
  * @author Matthew April <Matthew.April@tbs-sct.gc.ca>, Ilia Salem
  */
+use MediaWiki\MediaWikiServices;
 
 class generateUsernameAJAX extends ApiBase
 {
@@ -53,17 +54,24 @@ class generateUsernameAJAX extends ApiBase
 				echo "> Invalid domain";
 				return "";
 			}
+			if ( !Sanitizer::validateEmail( $email ) ){
+				$this->getResult()->addValue( null, $this->getModuleName(), "418" );
+				return 1;
+			}
 			
-			$dbr = wfGetDB( DB_SLAVE );
-			$emailQuery = $dbr->addQuotes($email);
-			
-			#count number of emails
-			$emailrow = $dbr->select( $dbr->tableName('user'), 'user_email', 'user_email = "' . $emailQuery . '"', __METHOD__, array() );
+			$dbProvider = MediaWikiServices::getInstance()->getDBLoadBalancerFactory();
+			$dbr = $dbProvider->getReplicaDatabase();
+
+			$emailrow = $dbr->newSelectQueryBuilder()
+			->select( ['count(*) as emails'] )
+			->from( 'user' )
+			->where( [ 'user_email' => $email ] )
+			->caller( __METHOD__ )->fetchRow();
 			
 			#check if email in use
-			if ( $emailrow->numRows() > 0 ) {
+			if ( $emailrow->emails > 0 ) {
 				# NOTE: the '>' character is used to make the username invalid.
-				$this->getResult()->addValue( null, $this->getModuleName(), "> " . wfMsg('email-in-use') ); //translate this
+				$this->getResult()->addValue( null, $this->getModuleName(), "> " . $this->msg('email-in-use') ); //translate this
 				return "";
 			}
 
@@ -84,12 +92,12 @@ class generateUsernameAJAX extends ApiBase
 			}
 			
 			#check if username exists and increment it
-			if ( User::idFromName($usrname) != null ){
+			if ( User::newFromName($usrname)->getId() != null ){
 				$unamePostfix = 0;
 				do {
 					$unamePostfix++;
 					$uname = $usrname . $unamePostfix;
-				} while ( User::idFromName($uname) != null );
+				} while ( User::newFromName($uname)->getId() != null );
 				
 			}else{
 				#username is available
