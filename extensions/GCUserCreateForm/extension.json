@@ -1,0 +1,36 @@
+{
+	"name": "GCUserCreateForm",
+	"version": "1.0",
+	"author": "GCtools",
+	"url": "https://github.com/gctools-outilsgc/gcpedia",
+	"descriptionmsg": "gcusercreateform-desc",
+	"type": "other",
+	"requires": {
+		"MediaWiki": ">= 1.40.0"
+	},
+	"MessagesDirs": {
+		"GCUserCreateForm": [
+			"i18n"
+		]
+	},
+	"ResourceModules": {
+		"ext.gcusercreateform.styles": {
+			"styles": "css/gcusercreateform.css"
+		},
+		"ext.gcusercreateform.scripts": {
+			"scripts": "js/gcusercreateform.js"
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "resources",
+		"remoteExtPath": "GCUserCreateForm/resources"
+	},
+	"AutoloadClasses": {
+		"GCUserCreateForm": "GCUserCreateFormHooks.php"
+	},
+	"Hooks": {
+		"AuthChangeFormFields": "GCUserCreateForm::onAuthChangeFormFields",
+		"BeforePageDisplay": "GCUserCreateForm::onBeforePageDisplay"
+	},
+	"manifest_version": 2
+}

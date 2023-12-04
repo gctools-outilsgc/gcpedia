@@ -1,0 +1,20 @@
+{
+    "mandatory": "All fields are mandatory",
+    "validgcemail": "Valid Government of Canada email account",
+    "validgcemailnote": "Note: If your government domain is not listed, choose \"Other...\" and input it manually",
+    "email-example": "",
+    "accountname": "Your GCPEDIA user name (system-generated, based on your Government of Canada email account)",
+    "password-text": "Ensure the two passwords match",
+    "terms-conditions": "I awknowledge and accept the terms and conditions of use.",
+    "completeallfields": "All fields must be properly completed before an account can be created.",
+    "forgotusername": "Forgot your GCpedia login details?",
+    "forgotusername-text1": "Forgot your GCpedia username? ",
+    "forgotusername-text1-2": "Type in your GCpedia-associated email address below.",
+    "forgotusername-text2": "If found, your Username will be displayed in the Username field above.",
+    "enteremail": "Enter your email :",
+    "findusername": "Find username",
+    "categorywatch-emailprefs": "E-mail me when a category on my watchlist is changed",
+    "email-in-use": "E-mail already in use",
+    "ssotitle": "GC2.0 Tools Simplified Sign-on",
+    "ssobody": "Use the GC2.0 Tools Simplified Sign-on to log in to GCpedia and GCconnex simultaneously."
+}

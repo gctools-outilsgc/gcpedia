@@ -152,7 +152,7 @@ $wgGroupPermissions['sysop']['emailupdate'] = true;
 
 require_once "$IP/extensions/awards/awards.php";
 
-require_once "$IP/extensions/customUserCreateForm/customUserCreateForm.php";
+wfLoadExtension( "GCUserCreateForm" );
 
 wfLoadExtension( "AJAXPoll" );
 wfLoadExtension( "AjaxShowEditors" );
