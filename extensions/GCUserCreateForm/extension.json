@@ -26,7 +26,11 @@
 		"remoteExtPath": "GCUserCreateForm/resources"
 	},
 	"AutoloadClasses": {
-		"GCUserCreateForm": "GCUserCreateFormHooks.php"
+		"GCUserCreateForm": "GCUserCreateFormHooks.php",
+		"characterFilterAJAX": "src/api/charFilterAJAX.php",
+		"domainSelector": "src/api/DomainSelector.php",
+		"findUsernameAJAX": "src/api/findUsernameAJAX.php",
+		"generateUsernameAJAX": "src/api/generateUsernameAJAX.php"
 	},
 	"Hooks": {
 		"AuthChangeFormFields": "GCUserCreateForm::onAuthChangeFormFields",
