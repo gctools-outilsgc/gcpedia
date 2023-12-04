@@ -25,6 +25,12 @@
 		"localBasePath": "resources",
 		"remoteExtPath": "GCUserCreateForm/resources"
 	},
+	"APIModules": {
+		"characterfilterajax": "characterFilterAJAX",
+		"domainselector": "domainSelector",
+		"findusernameajax": "findUsernameAJAX",
+		"generateusernameajax": "generateUsernameAJAX"
+	},
 	"AutoloadClasses": {
 		"GCUserCreateForm": "GCUserCreateFormHooks.php",
 		"characterFilterAJAX": "src/api/charFilterAJAX.php",
