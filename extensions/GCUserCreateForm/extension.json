@@ -14,10 +14,10 @@
 		]
 	},
 	"ResourceModules": {
-		"ext.gcusercreateform.styles": {
+		"ext.gcusercreateform.create.styles": {
 			"styles": "css/gcusercreateform.css"
 		},
-		"ext.gcusercreateform.scripts": {
+		"ext.gcusercreateform.create.scripts": {
 			"scripts": "js/gcusercreateform.js"
 		}
 	},

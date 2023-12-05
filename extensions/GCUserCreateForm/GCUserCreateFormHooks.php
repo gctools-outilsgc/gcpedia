@@ -16,11 +16,11 @@ class GCUserCreateForm {
 
     public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
         if ( $out->getPageTitle() == $skin->msg("createaccount") ){
-            $out->addModuleStyles( [ 'ext.skintweaksgcwiki.styles' ] );
-            $out->addModules( [ 'ext.skintweaksgcwiki.scripts' ] );
+            $out->addModuleStyles( [ 'ext.gcusercreateform.create.styles' ] );
+            $out->addModules( [ 'ext.gcusercreateform.create.scripts' ] );
         }
         else if ( $out->getPageTitle() == $skin->msg("login") ){
-            $out->addModules( [ 'ext.skintweaksgcwiki.styles', 'ext.skintweaksgcwiki.scripts' ] );
+            $out->addModules( [ 'ext.gcusercreateform.styles', 'ext.gcusercreateform.scripts' ] );
         }
 
         return;
@@ -32,7 +32,7 @@ class GCUserCreateForm {
 
         $email_domain = [
             'type' => 'select',
-            'options' => ['@test1' => '@test1', 1 => '@dev.gccollab.ca']
+            'options' => ['test1.local' => 'test1.local', 'dev.gccollab.ca' => 'dev.gccollab.ca']
         ];
         $email_name = [
             'type' => 'text'
