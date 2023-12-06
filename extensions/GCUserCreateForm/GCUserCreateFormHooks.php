@@ -30,9 +30,25 @@ class GCUserCreateForm {
 
     private static function customizeCreateForm( &$formDescriptor ){
 
+        include("src/domains/DomainList.php");
+        $domain_options = [];
+
+
+        foreach($domainList as $emailDomain) {
+            # check for first option in dropdown
+            if($emailDomain == 'institution.gc.ca') {
+                # example domain
+                $domain_options[$emailDomain] = 'example';
+                $domain_options['htmlform-selectorother-other'] = "other";
+            } else {
+                # valid domains
+                $domain_options[$emailDomain] = $emailDomain;
+            }
+        }
+
         $email_domain = [
             'type' => 'select',
-            'options' => ['test1.local' => 'test1.local', 'dev.gccollab.ca' => 'dev.gccollab.ca']
+            'options' => $domain_options
         ];
         $email_name = [
             'type' => 'text'
