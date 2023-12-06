@@ -39,7 +39,7 @@ class GCUserCreateForm {
             if($emailDomain == 'institution.gc.ca') {
                 # example domain
                 $domain_options[$emailDomain] = 'example';
-                $domain_options['htmlform-selectorother-other'] = "other";
+                $domain_options[ wfMessage('htmlform-selectorother-other') . '..'] = "other";
             } else {
                 # valid domains
                 $domain_options[$emailDomain] = $emailDomain;
@@ -48,6 +48,7 @@ class GCUserCreateForm {
 
         $email_domain = [
             'type' => 'select',
+            'required' => false,
             'options' => $domain_options
         ];
         $email_name = [

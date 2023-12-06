@@ -37,45 +37,50 @@ $( '#mw-input-wpemailname' )[0].addEventListener( "blur", (event) => {
 
 
 $( '#mw-input-wpemaildomain' )[0].addEventListener( "change", (event) => {
-    const EmailName = document.getElementById('mw-input-wpemailname');
     const EmailDomain = document.getElementById('mw-input-wpemaildomain');
 
-    if(this.value == 'other') {
+    if(EmailDomain.value == 'other') {
         mw.loader.using( 'mediawiki.api', function () {
             ( new mw.Api() ).get( {
                 action: 'insertdomainselector',
             } ).done( function ( data ) {
-                document.getElementById('domainWrapper').innerHTML = data.insertdomainselector;
+                EmailDomain.parentElement.innerHTML = data.insertdomainselector;
             } );
         } );
         
-    } else if (this.value == 'example') {
-        wpName.value = '';
-        wpEmail.value = '';
+    } else if (EmailDomain.value == 'example') {
+        document.getElementById('wpName2').value = '';
+        document.getElementById('wpEmail').value = '';
 
-    } else {
-        var emailName = EmailName.value.replace(/ /g, '');
-        if ( emailName != '' ){
-            var email = emailName + '@' + EmailDomain.value;
-            mw.loader.using( 'mediawiki.api', function () {
-                ( new mw.Api() ).get( {
-                    action: 'characterfilterajax',
-                    emailinput: email,
-                } ).done( function ( data ) {
-                    document.getElementById('wpEmail').value = data.characterfilterajax;
-                } );
-            } );
-            
-            mw.loader.using( 'mediawiki.api', function () {
-                ( new mw.Api() ).get( {
-                    action: 'generateusernameajax',
-                    emailinput: email,
-                } ).done( function ( data ) {
-                    document.getElementById('wpName2').value = data.generateusernameajax.replace(/^\s+|\s+$/g,'');
-                } );
-            } );
-        }
-    }
+    } else 
+        customCreateDomainUpdate();
 },
 true,
 );
+
+function customCreateDomainUpdate(){
+    const EmailName = document.getElementById('mw-input-wpemailname');
+    const EmailDomain = document.getElementById('mw-input-wpemaildomain');
+    const emailName = EmailName.value.replace(/ /g, '');
+
+    if ( emailName != '' ){
+        var email = emailName + '@' + EmailDomain.value;
+        mw.loader.using( 'mediawiki.api', function () {
+            ( new mw.Api() ).get( {
+                action: 'characterfilterajax',
+                emailinput: email,
+            } ).done( function ( data ) {
+                document.getElementById('wpEmail').value = data.characterfilterajax;
+            } );
+        } );
+        
+        mw.loader.using( 'mediawiki.api', function () {
+            ( new mw.Api() ).get( {
+                action: 'generateusernameajax',
+                emailinput: email,
+            } ).done( function ( data ) {
+                document.getElementById('wpName2').value = data.generateusernameajax.replace(/^\s+|\s+$/g,'');
+            } );
+        } );
+    }
+}
