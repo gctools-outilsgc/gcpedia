@@ -38,16 +38,11 @@ $( '#mw-input-wpemailname' )[0].addEventListener( "blur", (event) => {
 
 $( '#mw-input-wpemaildomain' )[0].addEventListener( "change", (event) => {
     const EmailDomain = document.getElementById('mw-input-wpemaildomain');
+    const EmailDomainText = document.getElementById('mw-input-wpemaildomaintext');
 
     if(EmailDomain.value == 'other') {
-        mw.loader.using( 'mediawiki.api', function () {
-            ( new mw.Api() ).get( {
-                action: 'insertdomainselector',
-            } ).done( function ( data ) {
-                EmailDomain.parentElement.innerHTML = data.insertdomainselector;
-            } );
-        } );
-        
+        EmailDomain.parentElement.parentElement.style = "display: none;";
+        EmailDomainText.style = "display: block;";
     } else if (EmailDomain.value == 'example') {
         document.getElementById('wpName2').value = '';
         document.getElementById('wpEmail').value = '';
@@ -57,10 +52,15 @@ $( '#mw-input-wpemaildomain' )[0].addEventListener( "change", (event) => {
 },
 true,
 );
-
-function customCreateDomainUpdate(){
+$( '#mw-input-wpemaildomaintext' )[0].addEventListener( "blur", (event) => {
     const EmailName = document.getElementById('mw-input-wpemailname');
-    const EmailDomain = document.getElementById('mw-input-wpemaildomain');
+    const EmailDomain = document.getElementById('mw-input-wpemaildomaintext');
+    customCreateDomainUpdate( EmailName, EmailDomain );
+},
+true,
+);
+
+function customCreateDomainUpdate( EmailName, EmailDomain ){
     const emailName = EmailName.value.replace(/ /g, '');
 
     if ( emailName != '' ){

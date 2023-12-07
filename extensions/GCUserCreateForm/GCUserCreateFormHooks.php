@@ -54,12 +54,17 @@ class GCUserCreateForm {
         $email_name = [
             'type' => 'text'
         ];
+        $email_domain_text = [
+            'type' => 'text'
+        ];
 
+        // re-order and add custom field
         $formDescriptor = [
             'statusarea' => $formDescriptor['statusarea'],
             'email' => $formDescriptor['email'],
             'emailname' => $email_name,
             'emaildomain' => $email_domain,
+            'emaildomaintext' => $email_domain_text,
             'username' => $formDescriptor['username'],
             'password' => $formDescriptor['password'],
             'retype' => $formDescriptor['retype'],
