@@ -37,6 +37,7 @@ $( '#mw-input-wpemailname' )[0].addEventListener( "blur", (event) => {
 
 
 $( '#mw-input-wpemaildomain' )[0].addEventListener( "change", (event) => {
+    const EmailName = document.getElementById('mw-input-wpemailname');
     const EmailDomain = document.getElementById('mw-input-wpemaildomain');
     const EmailDomainText = document.getElementById('mw-input-wpemaildomaintext');
 
@@ -48,14 +49,14 @@ $( '#mw-input-wpemaildomain' )[0].addEventListener( "change", (event) => {
         document.getElementById('wpEmail').value = '';
 
     } else 
-        customCreateDomainUpdate();
+        customCreateDomainUpdate( EmailName, EmailDomain );
 },
 true,
 );
 $( '#mw-input-wpemaildomaintext' )[0].addEventListener( "blur", (event) => {
     const EmailName = document.getElementById('mw-input-wpemailname');
-    const EmailDomain = document.getElementById('mw-input-wpemaildomaintext');
-    customCreateDomainUpdate( EmailName, EmailDomain );
+    const EmailDomainText = document.getElementById('mw-input-wpemaildomaintext');
+    customCreateDomainUpdate( EmailName, EmailDomainText );
 },
 true,
 );

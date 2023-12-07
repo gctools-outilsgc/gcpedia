@@ -46,16 +46,24 @@ class GCUserCreateForm {
             }
         }
 
+        $email_name = [
+            'type' => 'text',
+            'required' => false,
+            'section' => 'custom-create-email-input'
+        ];
+        
         $email_domain = [
             'type' => 'select',
+            'hide-if'  => ['===', 'emaildomain', 'other'],
             'required' => false,
+            'section' => 'custom-create-email-input',
             'options' => $domain_options
         ];
-        $email_name = [
-            'type' => 'text'
-        ];
         $email_domain_text = [
-            'type' => 'text'
+            'type' => 'text',
+            'hide-if'  => ['!==', 'emaildomain', 'other'],
+            'required' => false,
+            'section' => 'custom-create-email-input'
         ];
 
         // re-order and add custom field

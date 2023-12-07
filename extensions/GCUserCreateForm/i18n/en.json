@@ -16,5 +16,6 @@
     "categorywatch-emailprefs": "E-mail me when a category on my watchlist is changed",
     "email-in-use": "E-mail already in use",
     "ssotitle": "GC2.0 Tools Simplified Sign-on",
-    "ssobody": "Use the GC2.0 Tools Simplified Sign-on to log in to GCpedia and GCconnex simultaneously."
+    "ssobody": "Use the GC2.0 Tools Simplified Sign-on to log in to GCpedia and GCconnex simultaneously.",
+    "custom-create-email-input": "Email"
 }

@@ -1,2 +1,17 @@
 
 
+#mw-input-wpemailname{
+    margin-right: 5%;
+    float: left;
+    width: 40%;
+}
+
+#mw-input-wpemaildomaintext{
+    display: none;
+    float: left;
+    width: 40%;
+}
+#mw-input-wpemaildomain{
+    float: left;
+    width: 40%;
+}

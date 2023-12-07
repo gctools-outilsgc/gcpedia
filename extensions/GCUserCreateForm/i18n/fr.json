@@ -16,5 +16,6 @@
     "email-in-use":  "Courriel déjà utilise",
     "password-text": "Assurez-vous que les deux mots de passe sont identiques",
     "ssotitle": "Connexion simplifiée pour les Outils GC2.0",
-    "ssobody": "Utilisez la Connexion simplifiée pour les Outils GC2.0 pour vous connecter à GCpédia et GCconnex simultanément."
+    "ssobody": "Utilisez la Connexion simplifiée pour les Outils GC2.0 pour vous connecter à GCpédia et GCconnex simultanément.",
+    "custom-create-email-input": "Courriel"
 }
