@@ -49,20 +49,20 @@ class GCUserCreateForm {
         $email_name = [
             'type' => 'text',
             'required' => false,
-            'section' => 'custom-create-email-input'
+            'section' => 'validgcemail'
         ];
         
         $email_domain = [
             'type' => 'select',
             'required' => false,
-            'section' => 'custom-create-email-input',
+            'section' => 'validgcemail',
             'options' => $domain_options
         ];
         $email_domain_text = [
             'type' => 'text',
             'hide-if'  => ['!==', 'emaildomain', 'other'],
             'required' => false,
-            'section' => 'custom-create-email-input'
+            'section' => 'validgcemail'
         ];
 
         // re-order and add custom field
@@ -79,6 +79,7 @@ class GCUserCreateForm {
             'createaccount' => $formDescriptor['createaccount']
         ];
         $formDescriptor['username']['readonly'] = true;
+        $formDescriptor['username']['label-message'] = 'accountname';
         $formDescriptor['email']['required'] = true;
         $formDescriptor['email']['type'] = 'hidden';
     }
