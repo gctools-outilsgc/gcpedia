@@ -54,7 +54,6 @@ class GCUserCreateForm {
         
         $email_domain = [
             'type' => 'select',
-            'hide-if'  => ['===', 'emaildomain', 'other'],
             'required' => false,
             'section' => 'custom-create-email-input',
             'options' => $domain_options

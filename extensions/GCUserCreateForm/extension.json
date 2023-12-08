@@ -27,7 +27,6 @@
 	},
 	"APIModules": {
 		"characterfilterajax": "characterFilterAJAX",
-		"insertdomainselector": "domainSelector",
 		"findusernameajax": "findUsernameAJAX",
 		"generateusernameajax": "generateUsernameAJAX"
 	},

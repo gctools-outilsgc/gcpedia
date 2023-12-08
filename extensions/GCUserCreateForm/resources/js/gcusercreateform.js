@@ -3,10 +3,10 @@ $( '#mw-input-wpemailname' )[0].addEventListener( "blur", (event) => {
     const EmailName = document.getElementById('mw-input-wpemailname');
     const EmailDomain = document.getElementById('mw-input-wpemaildomain');
 
-    var emailName = EmailName.value.replace(/ /g, '');
-    if ( emailName != '' && EmailDomain.value != 'example' && EmailDomain.value != ''){
+    var emailNameText = EmailName.value.replace(/ /g, '');
+    if ( emailNameText != '' && EmailDomain.value != 'example' && EmailDomain.value != ''){
 
-            var email = emailName + '@' + EmailDomain.value;
+            var email = emailNameText + '@' + EmailDomain.value;
             mw.loader.using( 'mediawiki.api', function () {
                 ( new mw.Api() ).get( {
                     action: 'characterfilterajax',
@@ -53,6 +53,7 @@ $( '#mw-input-wpemaildomain' )[0].addEventListener( "change", (event) => {
 },
 true,
 );
+
 $( '#mw-input-wpemaildomaintext' )[0].addEventListener( "blur", (event) => {
     const EmailName = document.getElementById('mw-input-wpemailname');
     const EmailDomainText = document.getElementById('mw-input-wpemaildomaintext');
@@ -62,10 +63,10 @@ true,
 );
 
 function customCreateDomainUpdate( EmailName, EmailDomain ){
-    const emailName = EmailName.value.replace(/ /g, '');
+    const emailNameText = EmailName.value.replace(/ /g, '');
 
-    if ( emailName != '' ){
-        var email = emailName + '@' + EmailDomain.value;
+    if ( emailNameText != '' ){
+        var email = emailNameText + '@' + EmailDomain.value;
         mw.loader.using( 'mediawiki.api', function () {
             ( new mw.Api() ).get( {
                 action: 'characterfilterajax',
