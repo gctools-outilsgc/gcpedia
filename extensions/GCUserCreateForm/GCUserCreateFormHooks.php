@@ -51,6 +51,13 @@ class GCUserCreateForm {
             'required' => false,
             'section' => 'validgcemail'
         ];
+        $email_symbol = [
+            'type' => 'info',
+            'default' => '@',
+            'raw' => true,
+            'section' => 'validgcemail',
+            'cssclass' => 'mw-input-email-symbol'
+        ];
         
         $email_domain = [
             'type' => 'select',
@@ -81,6 +88,7 @@ class GCUserCreateForm {
             'statusarea' => $formDescriptor['statusarea'],
             'email' => $formDescriptor['email'],
             'emailname' => $email_name,
+            'email_symbol' => $email_symbol,
             'emaildomain' => $email_domain,
             'emaildomaintext' => $email_domain_text,
             'username' => $formDescriptor['username'],
