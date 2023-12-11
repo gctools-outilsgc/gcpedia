@@ -5,7 +5,7 @@
     "email-example": "",
     "accountname": "Your GCPEDIA user name (system-generated, based on your Government of Canada email account)",
     "password-text": "Ensure the two passwords match",
-    "terms-conditions-message": "Please review the <b><u>[[GCPEDIA:Terms_and_conditions_of_use]]</u></b>",
+    "terms-conditions-message": "Please review the <b><u>[[GCPEDIA:Terms_and_conditions_of_use | Terms and conditions of use]]</u></b>",
     "terms-conditions-check": "I awknowledge and accept the terms and conditions of use.",
     "completeallfields": "All fields must be properly completed before an account can be created.",
     "forgotusername": "Forgot your GCpedia login details?",
@@ -18,5 +18,11 @@
     "email-in-use": "E-mail already in use",
     "ssotitle": "GC2.0 Tools Simplified Sign-on",
     "ssobody": "Use the GC2.0 Tools Simplified Sign-on to log in to GCpedia and GCconnex simultaneously.",
-    "custom-create-email-input": "Email"
+    "custom-create-email-input": "Email",
+    "registration-help-section-head": "Frequently asked questions about creating an account",
+    "registration-help-section-link1": "[http://www.gcpedia.gc.ca/wiki/Help:Frequently_asked_questions_about_creating_an_account#I.E2.80.99ve_created_my_account._What_happens_next.3F  I've created my account. What happens next?]",
+    "registration-help-section-link2": "[http://www.gcpedia.gc.ca/wiki/Help:Frequently_asked_questions_about_creating_an_account#I_did_not_receive_the_email_confirming_that_my_account_has_been_created._What_should_I_do.3F  I did not receive the email confirming that my account has been created. What should I do?]",
+    "registration-help-section-link3": "[http://www.gcpedia.gc.ca/wiki/Help:Frequently_asked_questions_about_creating_an_account#_Why_do_I_have_to_provide_my_Government_of_Canada_email_account_information.3F  Why do I have to provide my Government of Canada email account information?]",
+    "registration-help-section-link4": "[http://www.gcpedia.gc.ca/wiki/Help:Frequently_asked_questions_about_creating_an_account#_Why_does_GCPEDIA_create_my_user_name_for_me.3F  Why does GCPEDIA create my user name for me?]",
+    "registration-help-section-contactus": "For more information or assistance, please [[Help | contact us]]"
 }

@@ -18,5 +18,11 @@
     "password-text": "Assurez-vous que les deux mots de passe sont identiques",
     "ssotitle": "Connexion simplifiée pour les Outils GC2.0",
     "ssobody": "Utilisez la Connexion simplifiée pour les Outils GC2.0 pour vous connecter à GCpédia et GCconnex simultanément.",
-    "custom-create-email-input": "Courriel"
+    "custom-create-email-input": "Courriel",
+    "registration-help-section-head": "Foire aux questions sur la création d'un compte",
+    "registration-help-section-link1": "[http://www.gcpedia.gc.ca/wiki/Aide:_Foire_aux_questions_sur_la_création_d&#146un_compte#J.E2.80.99ai_cr.C3.A9.C3.A9_mon_compte._Quelles_sont_les_.C3.A9tapes_suivantes.3F  J'ai créé mon compte. Quelles sont les étapes suivantes?]",
+    "registration-help-section-link2": "[http://www.gcpedia.gc.ca/wiki/Aide:_Foire_aux_questions_sur_la_cr&#233ation_d&#146un_compte#Je_n.E2.80.99ai_pas_re.C3.A7u_le_courriel_confirmant_la_cr.C3.A9ation_de_mon_compte._Que_dois-je_faire.3F  Je n'ai pas reçu de confirmation par courrier électronique que mon compte fut créé.  Que dois-je faire?]",
+    "registration-help-section-link3": "[http://www.gcpedia.gc.ca/wiki/Aide:_Foire_aux_questions_sur_la_cr&#233ation_d&#146un_compte#Pourquoi_dois-je_fournir_des_renseignements_sur_mon_compte_courriel_du_gouvernement_du_Canada.3F  Pourquoi dois-je fournir des renseignements sur mon compte courriel du gouvernement du Canada?]",
+    "registration-help-section-link4": "[http://www.gcpedia.gc.ca/wiki/Aide:_Foire_aux_questions_sur_la_cr&#233ation_d&#146un_compte#Pourquoi_GCPEDIA_cr.C3.A9e-t-il_lui-m.C3.AAme_mon_nom_d.E2.80.99utilisateur.3F  Pourquoi GCPEDIA crée-t-il lui-même mon nom d'utilisateur?]",
+    "registration-help-section-contactus": "Si vous désirez des précisions ou de l'aide, veuillez[[Aide | communiquer avec nous]]"
 }

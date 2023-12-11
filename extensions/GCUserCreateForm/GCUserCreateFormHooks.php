@@ -59,6 +59,11 @@ class GCUserCreateForm {
             'cssclass' => 'mw-input-email-symbol'
         ];
         
+        $email_domain_note = [
+            'type' => 'info',
+            'default' => wfMessage('validgcemailnote'),
+            'section' => 'validgcemail'
+        ];
         $email_domain = [
             'type' => 'select',
             'required' => false,
@@ -83,9 +88,31 @@ class GCUserCreateForm {
             'required' => true
         ];
 
+        $heading = wfMessage('registration-help-section-head');
+        $link1 = wfMessage('registration-help-section-link1');
+        $link2 = wfMessage('registration-help-section-link2');
+        $link3 = wfMessage('registration-help-section-link3');
+        $link4 = wfMessage('registration-help-section-link4');
+        $contactus = wfMessage('registration-help-section-contactus');
+        $registration_help_section = [
+            'type' => 'info',
+            'default' => "<br /> <h2 id='registration-faq-head'> $heading </h2>
+    <ul>
+		<li>$link1</li>
+		<li>$link2</li>
+		<li>$link3</li>
+		<li>$link4</li>
+	</ul>
+	<br />
+	$contactus.
+            ",
+            'raw' => true
+        ];
+
         // re-order and add custom field
         $formDescriptor = [
             'statusarea' => $formDescriptor['statusarea'],
+            'email_domain_note' => $email_domain_note,
             'email' => $formDescriptor['email'],
             'emailname' => $email_name,
             'email_symbol' => $email_symbol,
@@ -97,10 +124,12 @@ class GCUserCreateForm {
             'realname' => $formDescriptor['realname'],
             'terms_message' => $terms_message,
             'terms_checkbox' => $terms_checkbox,
-            'createaccount' => $formDescriptor['createaccount']
+            'createaccount' => $formDescriptor['createaccount'],
+            'registration_help_section' => $registration_help_section
         ];
         $formDescriptor['username']['readonly'] = true;
         $formDescriptor['username']['label-message'] = 'accountname';
+        $formDescriptor['username']['placeholder-message'] = null;
         $formDescriptor['email']['required'] = true;
         $formDescriptor['email']['type'] = 'hidden';
     }
