@@ -65,6 +65,17 @@ class GCUserCreateForm {
             'section' => 'validgcemail'
         ];
 
+        $terms_message = [
+            'type' => 'info',
+            'default' => wfMessage('terms-conditions-message'),
+            'raw' => true
+        ];
+        $terms_checkbox = [
+            'type' => 'check',
+            'label-message' => 'terms-conditions-check',
+            'required' => true
+        ];
+
         // re-order and add custom field
         $formDescriptor = [
             'statusarea' => $formDescriptor['statusarea'],
@@ -76,6 +87,8 @@ class GCUserCreateForm {
             'password' => $formDescriptor['password'],
             'retype' => $formDescriptor['retype'],
             'realname' => $formDescriptor['realname'],
+            'terms_message' => $terms_message,
+            'terms_checkbox' => $terms_checkbox,
             'createaccount' => $formDescriptor['createaccount']
         ];
         $formDescriptor['username']['readonly'] = true;
