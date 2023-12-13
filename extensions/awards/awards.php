@@ -5,6 +5,8 @@
  *
  */
 
+use MediaWiki\MediaWikiServices;
+
 $wgHooks['ParserBeforeInternalParse'][] = 'award';
 
 // medal templates
@@ -117,20 +119,19 @@ function generateAwards( $usename, &$text )
 
 	$awoptions['test'] = 'testing';
 	
-	$dbr = wfGetDB( DB_SLAVE );
-	$queryString = "SELECT user_editcount FROM `user` WHERE `user_name` = \"".$usename ."\"";
-	$result = $dbr->query($queryString);
+	$dbProvider = MediaWikiServices::getInstance()->getDBLoadBalancerFactory();
+	$dbr = $dbProvider->getReplicaDatabase();
+	$result = $dbr->newSelectQueryBuilder()
+				->select( ['user_editcount'] )
+				->from( 'user' )
+				->where( [ 'user_name' => $usename ] )
+				->caller( __METHOD__ )->fetchRow();;
 	
-	//Make sure user exists
-	if($result != false)
-	{
-		$row = $dbr->fetchRow($result);
+
+	// Make sure user exists and has edits.
+	if( $result != false && $result->user_editcount != 0 ){
 		
-		//make sure user has edits.
-		if($row[0] != 0)
-		{
-		
-		$editcount = $row[0];
+		$editcount = $result->user_editcount;
 		
 		// Medals
 		$text = str_ireplace( $acode, $medal[calculateAwards( $usename, $editcount, $awoptions )], $text );
@@ -146,7 +147,6 @@ function generateAwards( $usename, &$text )
 
 		// Gnomejutsu / badge user boxes
 		$text = str_ireplace( "<gnomejutsu-ub>", $badgebox[calculateAwards( $usename, $editcount, $awoptions )], $text );
-		}
 	}
 }
 

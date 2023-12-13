@@ -1,0 +1,48 @@
+{
+	"name": "GCUserCreateForm",
+	"version": "1.0",
+	"author": "GCtools",
+	"url": "https://github.com/gctools-outilsgc/gcpedia",
+	"descriptionmsg": "gcusercreateform-desc",
+	"type": "other",
+	"requires": {
+		"MediaWiki": ">= 1.40.0"
+	},
+	"MessagesDirs": {
+		"GCUserCreateForm": [
+			"i18n"
+		]
+	},
+	"ResourceModules": {
+		"ext.gcusercreateform.create.styles": {
+			"styles": "css/gcusercreateform.css"
+		},
+		"ext.gcusercreateform.create.scripts": {
+			"scripts": "js/gcusercreateform.js"
+		},
+		"ext.gcusercreateform.login.scripts": {
+			"scripts": "js/gcuserloginform.js"
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "resources",
+		"remoteExtPath": "GCUserCreateForm/resources"
+	},
+	"APIModules": {
+		"characterfilterajax": "characterFilterAJAX",
+		"findusernameajax": "findUsernameAJAX",
+		"generateusernameajax": "generateUsernameAJAX"
+	},
+	"AutoloadClasses": {
+		"GCUserCreateForm": "GCUserCreateFormHooks.php",
+		"characterFilterAJAX": "src/api/charFilterAJAX.php",
+		"domainSelector": "src/api/DomainSelector.php",
+		"findUsernameAJAX": "src/api/findUsernameAJAX.php",
+		"generateUsernameAJAX": "src/api/generateUsernameAJAX.php"
+	},
+	"Hooks": {
+		"AuthChangeFormFields": "GCUserCreateForm::onAuthChangeFormFields",
+		"BeforePageDisplay": "GCUserCreateForm::onBeforePageDisplay"
+	},
+	"manifest_version": 2
+}

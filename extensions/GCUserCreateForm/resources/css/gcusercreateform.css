@@ -1,0 +1,29 @@
+
+#userlogin2{
+    width: 440px;
+}
+
+#mw-input-wpemailname{
+    float: left;
+    width: 40%;
+}
+.mw-input-email-symbol div{
+    margin: 7px 1% 2px 2%;;
+    float: left;
+    width: 4%;
+}
+
+#mw-input-wpemaildomaintext{
+    float: left;
+    width: 40%;
+}
+#mw-input-wpemaildomain{
+    float: left;
+    width: 40%;
+    position: relative;
+    top: 3px;
+}
+
+#registration-faq-head{
+    font-size: medium;
+}
