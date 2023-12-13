@@ -7,8 +7,6 @@ class GCUserCreateForm {
     public static function onAuthChangeFormFields($requests, $fieldInfo, &$formDescriptor, $action) {
         if ( $action === AuthManager::ACTION_CREATE ) 
             GCUserCreateForm::customizeCreateForm( $formDescriptor );
-        else if ( $action === AuthManager::ACTION_LOGIN )
-            GCUserCreateForm::customizeLoginForm( $formDescriptor );
 
         return;
     }
@@ -20,7 +18,8 @@ class GCUserCreateForm {
             $out->addModules( [ 'ext.gcusercreateform.create.scripts' ] );
         }
         else if ( $out->getPageTitle() == $skin->msg("login") ){
-            $out->addModules( [ 'ext.gcusercreateform.styles', 'ext.gcusercreateform.scripts' ] );
+            $out->addModules( [ 'ext.gcusercreateform.login.scripts' ] );
+            $out->addHTML( GCUserCreateForm::customLoginFindUsernameHTML($skin) );
         }
 
         return;
@@ -133,7 +132,14 @@ class GCUserCreateForm {
         $formDescriptor['email']['required'] = true;
         $formDescriptor['email']['type'] = 'hidden';
     }
-    
-    private static function customizeLoginForm( &$formDescriptor ){
+
+    private static function customLoginFindUsernameHTML( $skin ){
+        return "<br /><br />
+            <b>" . wfMessage('forgotusername-text1'). "</b>" . wfMessage('forgotusername-text1-2') . " <br /> " .
+            wfMessage('forgotusername-text2') . " <br />
+            <label for='byEmail'>" . wfMessage('enteremail') . "</label>
+            <input type='text' name='byEmail' id='byEmail'>
+            <input type='button' value=\"" . wfMessage('findusername') . "\"name='findUser' id='findUser'> <br /><br />" . 
+            wfMessage('registration-help-section-contactus');
     }
 }

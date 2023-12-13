@@ -19,6 +19,9 @@
 		},
 		"ext.gcusercreateform.create.scripts": {
 			"scripts": "js/gcusercreateform.js"
+		},
+		"ext.gcusercreateform.login.scripts": {
+			"scripts": "js/gcuserloginform.js"
 		}
 	},
 	"ResourceFileModulePaths": {
