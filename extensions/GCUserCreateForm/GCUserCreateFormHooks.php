@@ -1,10 +1,18 @@
 <?php
 
 use MediaWiki\Auth\AuthManager;
+use MediaWiki\MediaWikiServices;
+
 
 class GCUserCreateForm {
 
     public static function onAuthChangeFormFields($requests, $fieldInfo, &$formDescriptor, $action) {
+		$user = RequestContext::getMain()->getUser();
+        if ($user->getId() > 0){
+            $formDescriptor = [ 'info' => [ 'type' => 'info', 'default' => wfMessage('gcusercreate-loggedin') ] ];
+            return;
+        }
+
         if ( $action === AuthManager::ACTION_CREATE ) 
             GCUserCreateForm::customizeCreateForm( $formDescriptor );
 
