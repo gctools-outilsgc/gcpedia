@@ -66,7 +66,7 @@ jobs:
       gitHubConnection: $(github_connection)
       repositoryName: $(Build.Repository.Name)
       id: $(System.PullRequest.PullRequestNumber)
-      comment: '$(commentStringGCWiki) https://gcwiki-dev-pr-$(System.PullRequest.PullRequestNumber).azurewebsites.net/ \n
+      comment: '$(commentStringGCWiki) https://gcwiki-dev-pr-$(System.PullRequest.PullRequestNumber).azurewebsites.net/ \r\n
                 $(commentStringGCPedia) https://gcpedia-dev-pr-$(System.PullRequest.PullRequestNumber).azurewebsites.net/ '
     condition: and(succeeded(), eq(variables['commentExists'], '0'))
     displayName: Post a comment to PR with link to review site
