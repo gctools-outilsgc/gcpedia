@@ -17,12 +17,17 @@ param containerSHA string = ''
 
 param acrName string = 'wikitestacr'
 
+@allowed([
+  'gcpedia', 'gcwiki'
+])
+param siteType string = 'gcwiki'
+
 var DATAROOT = '/var/www/html/images/'
 
 var imageRepoName = toLower('wiki_${prName}')
 var linuxFxVersion = empty(containerSHA) ? 'DOCKER|${acrName}.azurecr.io/${imageRepoName}:${containerTag}' : 'DOCKER|${acrName}.azurecr.io/${imageRepoName}@sha256:${containerSHA}'
 
-var appName = 'gcwiki-dev-${prName}'
+var appName = '${siteType}-dev-${prName}'
 var dbName = 'wiki-${prName}'
 var nodash_nounderscore_tag = replace(replace(prName, '-', ''), '_', '')
 var storagePrefix = toLower( (length(nodash_nounderscore_tag)) > 17 ? substring('devgcwiki${nodash_nounderscore_tag}', 0, 24) : 'devgcwiki${nodash_nounderscore_tag}' )
@@ -58,7 +63,11 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'INIT'
-          value: 'gcwiki'
+          value: 'true'
+        }
+        {
+          name: 'SITE'
+          value: siteType
         }
         {
           name: 'DBHOST'

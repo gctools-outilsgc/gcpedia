@@ -9,6 +9,9 @@ param subnetID string
 param planID string
 param acrName string = 'wikitestacr'
 
+@allowed(['gcpedia', 'gcwiki'])
+param siteType string = 'gcwiki'
+
 param location string = 'Canada Central'
 
 resource testRG 'Microsoft.Resources/resourceGroups@2021-01-01' = {
@@ -28,5 +31,6 @@ module wiki './wiki-test-instance.bicep' = {
     dbServerName: dbServerName
     dbServerPass: dbServerPass
     acrName: acrName
+    siteType: siteType
   }
 }
