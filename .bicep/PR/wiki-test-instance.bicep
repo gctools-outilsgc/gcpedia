@@ -28,7 +28,7 @@ var imageRepoName = toLower('wiki_${prName}')
 var linuxFxVersion = empty(containerSHA) ? 'DOCKER|${acrName}.azurecr.io/${imageRepoName}:${containerTag}' : 'DOCKER|${acrName}.azurecr.io/${imageRepoName}@sha256:${containerSHA}'
 
 var appName = '${siteType}-dev-${prName}'
-var dbName = 'wiki-${prName}'
+var dbName = '${siteType}-${prName}'
 var nodash_nounderscore_tag = replace(replace(prName, '-', ''), '_', '')
 var storagePrefix = toLower( (length(nodash_nounderscore_tag)) > 17 ? substring('devgcwiki${nodash_nounderscore_tag}', 0, 24) : 'devgcwiki${nodash_nounderscore_tag}' )
 
