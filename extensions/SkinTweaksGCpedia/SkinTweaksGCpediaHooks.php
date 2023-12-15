@@ -17,7 +17,9 @@ class SkinTweaksGCwikiHooks {
 
     public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
         $out->addModuleStyles( [ 'ext.skintweaksgcwiki.styles' ] );
-        return true;
+        addMetaTags( $out, $skin );
+        
+        return;
     }
 
 
@@ -31,6 +33,32 @@ class SkinTweaksGCwikiHooks {
         return true;
     }
 
+
+
+
+
+    public function addMetaTags( OutputPage $out, Skin $skin ) {
+		$title = $skin->getTitle();
+		
+		$category_array = $out->getCategories();
+		$category_string = (is_array($category_array)) ? implode(",", $category_array) : '';
+		$timestamp = $out->getRevisionTimestamp();
+		$timestamp = preg_replace( '/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/', "$1-$2-$3 $4:$5:$6", $timestamp);
+		$language = $_GET['setlang'];
+		$namespace = $title->getNsText();
+		
+		if (!$language) $language = 'en';
+		
+		$out->addMeta( 'platform', 'gcpedia' );
+		$out->addMeta( 'dcterms.language', $language );
+		$out->addMeta( 'dcterms.title', $this->getTitle() );
+		$out->addMeta( 'dcterms.type', $namespace );
+		$out->addMeta( 'dcterms.modified', $timestamp );
+		$out->addMeta( 'dcterms.description', strip_tags($out->mBodytext) );
+
+		if ( $title->inNamespace(NS_USER) )
+			$out->addMeta( 'dcterms.keywords', str_replace( '.', ' ', $title->getRootText() ) );
+	}
 }
 
 
