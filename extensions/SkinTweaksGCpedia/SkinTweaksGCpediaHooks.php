@@ -17,7 +17,7 @@ class SkinTweaksGCpediaHooks {
 
     public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
         $out->addModuleStyles( [ 'ext.skintweaksgcpedia.styles' ] );
-        addMetaTags( $out, $skin );
+        SkinTweaksGCpediaHooks::addMetaTags( $out, $skin );
 
         return;
     }
@@ -37,7 +37,7 @@ class SkinTweaksGCpediaHooks {
 
 
 
-    public function addMetaTags( OutputPage $out, Skin $skin ) {
+    public static function addMetaTags( OutputPage $out, Skin $skin ) {
 		$title = $skin->getTitle();
 		
 		$category_array = $out->getCategories();
@@ -51,7 +51,7 @@ class SkinTweaksGCpediaHooks {
 		
 		$out->addMeta( 'platform', 'gcpedia' );
 		$out->addMeta( 'dcterms.language', $language );
-		$out->addMeta( 'dcterms.title', $this->getTitle() );
+		$out->addMeta( 'dcterms.title', $title->getFullText() );
 		$out->addMeta( 'dcterms.type', $namespace );
 		$out->addMeta( 'dcterms.modified', $timestamp );
 		$out->addMeta( 'dcterms.description', strip_tags($out->mBodytext) );
