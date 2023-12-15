@@ -138,7 +138,7 @@ wfLoadExtension( "Nuke" );
 $wgGroupPermissions['sysop']['nuke'] = true;
 
 // activate when it's ready
-#wfLoadExtension( "SkinTweaksGCpedia" );
+wfLoadExtension( "SkinTweaksGCpedia" );
 
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
 $wgGoogleAnalyticsAccount = $GAaccount;
@@ -160,14 +160,6 @@ wfLoadExtension( "MsCalendar" );
 wfLoadExtension( "RandomImage" );
 
 /* ????
-
-NewUserPage ? - maintain or drop
-
-customUserCreateForm ? - unmaintained for a long time
-
-
-mwSimpleSamlAuth ? unmaintained, used for gcconnex - based simple login
-
 
 ***video players***
 FramedVideo
