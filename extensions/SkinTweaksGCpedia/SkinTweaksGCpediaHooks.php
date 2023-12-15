@@ -4,7 +4,7 @@
  * article or inline rules.
  */
 
-class SkinTweaksGCwikiHooks {
+class SkinTweaksGCpediaHooks {
 	/**
 	 * @param Skin $skin
 	 * @param &$bar
@@ -16,9 +16,9 @@ class SkinTweaksGCwikiHooks {
 
 
     public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
-        $out->addModuleStyles( [ 'ext.skintweaksgcwiki.styles' ] );
+        $out->addModuleStyles( [ 'ext.skintweaksgcpedia.styles' ] );
         addMetaTags( $out, $skin );
-        
+
         return;
     }
 
