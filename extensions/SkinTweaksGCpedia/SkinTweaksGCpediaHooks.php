@@ -43,11 +43,9 @@ class SkinTweaksGCpediaHooks {
 		$category_array = $out->getCategories();
 		$category_string = (is_array($category_array)) ? implode(",", $category_array) : '';
 		$timestamp = $out->getRevisionTimestamp();
-		$timestamp = preg_replace( '/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/', "$1-$2-$3 $4:$5:$6", $timestamp);
-		$language = $_GET['setlang'];
+		$timestamp = isset($timestamp) ? preg_replace( '/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/', "$1-$2-$3 $4:$5:$6", $timestamp) : '';
+		$language =  $_GET['uselang'] ?? $_GET['setlang'] ?? 'en';
 		$namespace = $title->getNsText();
-		
-		if (!$language) $language = 'en';
 		
 		$out->addMeta( 'platform', 'gcpedia' );
 		$out->addMeta( 'dcterms.language', $language );
