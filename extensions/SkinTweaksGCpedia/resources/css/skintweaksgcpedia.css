@@ -1,3 +1,12 @@
+div#mw-head {
+	top: 45px;
+}
+
+.vector-legacy-sidebar#mw-panel{
+    top:90px;
+}
+
+
 .btn-primary{
 	color:#fff;
 	background-color:#46055C !important;

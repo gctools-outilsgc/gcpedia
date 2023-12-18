@@ -1,5 +1,7 @@
 {
     "skintweaksgcpedia-desc": "Some UI changes for gcpedia",
     "gctools": "GCtools",
-    "sidebar-actions": "Actions / Tools"
+    "sidebar-actions": "Actions / Tools",
+    "wet:gcdirectoryLink": "http://gcdirectory-gcannuaire.gc.ca/en/GCD/?pgid=002",
+	"topbar:langlink": "<a lang='fr' href='?setlang=fr&uselang=fr'>Français</a>"
 }

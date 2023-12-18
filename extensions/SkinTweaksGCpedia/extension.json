@@ -15,7 +15,7 @@
 	},
 	"ResourceModules": {
 		"ext.skintweaksgcpedia.styles": {
-			"styles": "css/skintweaksgcpedia.css"
+			"styles": ["css/skintweaksgcpedia.css", "css/wet4.css"]
 		}
 	},
 	"ResourceFileModulePaths": {
