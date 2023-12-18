@@ -10,7 +10,16 @@ class SkinTweaksGCpediaHooks {
 	 * @param &$bar
 	 * @return bool true
 	 */
-	public static function onSkinBuildSidebar( Skin $skin, &$bar ) {
+	public static function onSidebarBeforeOutput( Skin $skin, &$bar ) {
+		$actions = [];
+        foreach ( array( 'upload', 'specialpages' ) as $action ) {
+			if( isset($bar['TOOLBOX'][$action]) ){
+				$actions[$action] = $bar['TOOLBOX'][$action];
+				unset($bar['TOOLBOX'][$action]);
+			}
+		}
+		$bar['sidebar-actions'] = $actions;
+
 		return;
 	}
 
