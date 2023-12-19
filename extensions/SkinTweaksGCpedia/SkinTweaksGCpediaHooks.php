@@ -33,6 +33,15 @@ class SkinTweaksGCpediaHooks {
 
 
     public static function onAfterFinalPageOutput( $output ) {
+		$langMessages = [
+			"gcpedia" => wfMessage('gcpedia')->text(),
+			"wet:gcdirectoryLink" => wfMessage('wet:gcdirectoryLink')->text(),
+			"wet:barDirectory" => wfMessage('wet:barDirectory')->text(),
+			"wet:gcintranetLink" => wfMessage('wet:gcintranetLink')->text(),
+			"wet:gcconnexLink" => wfMessage('wet:gcconnexLink')->text(),
+			"wet:gccollabLink" => wfMessage('wet:gccollabLink')->text(),
+			"topbar:langlink" => wfMessage('topbar:langlink')->text(),
+		];
 		$searchbox = SkinTweaksGCpediaHooks::outputSearch();
         $fipHeader = <<<EOT
 <header role="banner">
@@ -42,7 +51,7 @@ class SkinTweaksGCpediaHooks {
                 <div class="col-lg-2 col-md-2 col-xs-7">
                     <div class="app-name">
                     <a href="">
-                        <span><span class="bold-gc">GCpédia</span>
+                        <span><span class="bold-gc">{$langMessages['gcpedia']}</span>
                     </a>
                     </div>
                     
@@ -51,25 +60,25 @@ class SkinTweaksGCpediaHooks {
                     <ul id="tool-link" class="pull-left list-unstyled mrgn-bttm-0">
 
 						<li class="pull-left tool-link">
-                        	<a href="wfMessage('wet:gcdirectoryLink')">
-                            <span class="bold-gc">GC</span>wfMessage('wet:barDirectory')</a>
+                        	<a href="{$langMessages['wet:gcdirectoryLink']}">
+                            <span class="bold-gc">GC</span>{$langMessages['wet:barDirectory']}</a>
 
                     	</li>
 
 	                    <li class="pull-left tool-link">
-	                        <a href="wfMessage('wet:gcintranetLink')">
+	                        <a href="{$langMessages['wet:gcintranetLink']}">
 	                        <span class="bold-gc">GC</span>intranet</a>
 	                        
 	                    </li>
 
 	                    <li class="pull-left tool-link">
-	                        <a href="wfMessage('wet:gcconnexLink')">
+	                        <a href="{$langMessages['wet:gcconnexLink']}">
 	                        <span class="bold-gc">GC</span>connex</a>
 	                        
 	                    </li>
                         
                         <li class="pull-left tool-link">
-	                        <a href="wfMessage('wet:gccollabLink')">
+	                        <a href="{$langMessages['wet:gccollabLink']}">
 	                        <span class="bold-gc">GC</span>collab</a>
 	                        
 	                    </li>
@@ -80,7 +89,7 @@ class SkinTweaksGCpediaHooks {
                 <div id="wb-lng" class="visible-md visible-lg text-right col-sm-1">
                 	<div class="col-md-12">
                 		<ul class="list-inline margin-bottom-none">
-                			<li>wfMessage('topbar:langlink')</li>
+                			<li>{$langMessages['topbar:langlink']}</li>
                 		</ul>
                 	</div>
                 </div>
@@ -134,6 +143,8 @@ EOT;
       $lang3Code = 'fra';
     else
       $lang3Code = 'eng';
+
+	$searchBoxPlaceholder = wfMessage( 'searchsuggest-search-tools' );
     
 	return <<<EOT
 	   <div class="col-sm-5 col-lg-3 col-md-4 col-xs-5 text-right"><section id="wb-srch" class="text-right">
@@ -141,7 +152,7 @@ EOT;
 <form action="http://intranet.canada.ca/search-recherche/query-recherche-$lang3Code.aspx" method="get" name="cse-search-box" role="search" class="form-inline">
 <div class="form-group">
 <label for="wb-srch-q" class="wb-inv">Search website</label>
-<input id="search" list="wb-srch-q-ac" class="wb-srch-q form-control" name="q" type="search" value="" size="21" maxlength="150" placeholder="wfMessage( 'searchsuggest-search-tools' )">
+<input id="search" list="wb-srch-q-ac" class="wb-srch-q form-control" name="q" type="search" value="" size="21" maxlength="150" placeholder="$searchBoxPlaceholder">
 <datalist id="wb-srch-q-ac">
 <!--[if lte IE 9]><select><![endif]-->
 <!--[if lte IE 9]></select><![endif]-->

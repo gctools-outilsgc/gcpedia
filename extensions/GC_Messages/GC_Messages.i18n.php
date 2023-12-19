@@ -4346,12 +4346,6 @@ Otherwise, you can use the easy form below. Your comment will be added to the pa
 'wikieditor-toolbar-tool-math' => 'Add formula',
 'wikieditor-toolbar-tool-comment' => 'Hidden Comment',
 
-"wet:gcintranetLink" => "http://intranet.canada.ca/index-eng.asp?utm_source=gcpedia&utm_medium=gctools-banner&utm_campaign=generic",
-"wet:gcconnexLink" => "http://gcconnex.gc.ca/",
-"wet:gccollabLink" => "https://gccollab.ca/",
-"wet:barDirectory" => "directory",
-"wet:gcdirectoryLink" => "http://gcdirectory-gcannuaire.gc.ca/en/GCD/?pgid=002",
-"topbar:langlink" => "<a lang='fr' href='?setlang=fr&uselang=fr'>Français</a>",
 "placeholder:firstlastname" => "Firstname.Lastname",
 	
 );
@@ -8179,11 +8173,5 @@ Sinon, vous pouvez utiliser le formulaire simplifié ci-dessous. Votre commentai
 'wikieditor-toolbar-tool-math' => 'Ajouter formule',
 'wikieditor-toolbar-tool-comment' => 'Commentaire caché',
 
-"wet:gcintranetLink" => "http://intranet.canada.ca/index-fra.asp?utm_source=gcpedia&utm_medium=gctools-banner&utm_campaign=generic",
-"wet:gcconnexLink" => "http://gcconnex.gc.ca/",
-"wet:gccollabLink" => "https://gccollab.ca/",
-"wet:barDirectory" => "annuaire",
-"wet:gcdirectoryLink" => "http://gcannuaire-gcdirectory.gc.ca/fr/GCA/?pgid=002",
-"topbar:langlink" => "<a lang='en' href='?setlang=en&uselang=en'>English</a>",
 "placeholder:firstlastname" => "Prénom.Nom",
 );
