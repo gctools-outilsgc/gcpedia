@@ -50,7 +50,7 @@ class SkinTweaksGCpediaHooks {
             <div class="row">
                 <div class="col-lg-2 col-md-2 col-xs-7">
                     <div class="app-name">
-                    <a href="">
+                    <a href="/">
                         <span><span class="bold-gc">{$langMessages['gcpedia']}</span>
                     </a>
                     </div>
