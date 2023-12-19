@@ -101,12 +101,30 @@ class SkinTweaksGCpediaHooks {
 </header>
 		
 EOT;
+
+$fipFooter = <<<EOT
+<div style="clear:both"></div>
+<footer id="wb-info" class="visible-sm visible-md visible-lg wb-navcurr wb-navcurr-inited" role="contentinfo">
+<div class="brand">
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-xs-6 visible-sm visible-xs tofpg">
+				<a href="#content">Top of Page <span class="glyphicon glyphicon-chevron-up"></span></a>
+			</div>
+			<div class="col-xs-6 col-md-12 text-right">
+				<object type="image/svg+xml" tabindex="-1" role="img" data="extensions/SkinTweaksGCpedia/resources/images/wmms-alt.svg" aria-label="Symbol of the Government of Canada"></object>
+			</div>
+		</div>
+	</div>
+</div>
+</footer>
+EOT;
 	
         $out = ob_get_clean();
         // change final html in $out
         ob_start();
-        echo $fipHeader . $out;
-        return true;
+        echo $fipHeader . $out . $fipFooter;
+        return;
     }
 
 

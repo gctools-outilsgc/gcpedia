@@ -43,9 +43,9 @@ $wgGroupPermissions['sysop']['deleterevision'] = true;
 $wgVectorUseIconWatch = false;
 
 $wgRightsPage = "wiki:Copyright";
-$wgRightsUrl = "http://creativecommons.org/licenses/by/4.0/";
-$wgRightsText = "Creative Commons Attribution 4.0 International License";
-$wgRightsIcon = "https://i.creativecommons.org/l/by/4.0/88x31.png";
+$wgRightsUrl = "https://www.gcpedia.gc.ca";
+$wgRightsText = "Symbol of the Government of Canada";
+$wgRightsIcon = "extensions/SkinTweaksGCpedia/resources/images/wmms-alt.svg";
 
 ////  extensions
 wfLoadExtension( "ParserFunctions" );
