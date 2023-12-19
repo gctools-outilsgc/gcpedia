@@ -6,6 +6,10 @@ div#mw-head {
     top:90px;
 }
 
+#p-logo a{
+    height: 190px !important;
+}
+
 
 .btn-primary{
 	color:#fff;

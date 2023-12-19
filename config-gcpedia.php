@@ -8,12 +8,12 @@ $wgLocaltimezone = "America/Montreal";
 $wgSitename = "GCpedia";
 
 $wgLogo = '';
-$wgFavicon = "extensions/SkinTweaksGCpedia/resources/images/mini_gcpedia_icon.png";
+$wgFavicon = "extensions/SkinTweaksGCpedia/resources/images/favicon.ico";
 $wgLogos = [ 
-    '1x' =>  'extensions/SkinTweaksGCpedia/resources/images/gcpedia_logo_en_1x.png',
+    '1x' =>  'extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Eng.png',
     'variants' => [
 		'fr' => [
-            '1x' => "extensions/SkinTweaksGCwiki/resources/images/gcpedia_logo_fr_1x.png",
+            '1x' => "extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Fra.png",
         ],
     ],
 ];
