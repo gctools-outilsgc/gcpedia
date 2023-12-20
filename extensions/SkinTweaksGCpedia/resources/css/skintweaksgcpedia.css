@@ -9,6 +9,9 @@ div#mw-head {
 #p-logo a{
     height: 190px !important;
 }
+#p-navigation{
+    margin-top: 30px;
+}
 
 
 .btn-primary{
