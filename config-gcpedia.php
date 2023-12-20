@@ -42,10 +42,19 @@ $wgGroupPermissions['sysop']['deleterevision'] = true;
 
 $wgVectorUseIconWatch = false;
 
-$wgRightsPage = "wiki:Copyright";
-$wgRightsUrl = "https://www.gcpedia.gc.ca";
-$wgRightsText = "Symbol of the Government of Canada";
-$wgRightsIcon = "extensions/SkinTweaksGCpedia/resources/images/wmms-alt.svg";
+$wgFooterIcons = [
+	"copyright" => [null],
+	"poweredby" => [null],
+    "canada-fip" => [
+        "footer" => [
+            "src" => "extensions/SkinTweaksGCpedia/resources/images/wmms-alt.svg",
+            "url" => null,
+            "alt" => "Symbol of the Government of Canada",
+            "width" => 186,
+            "height" => 40
+        ]
+    ]
+];
 
 ////  extensions
 wfLoadExtension( "ParserFunctions" );

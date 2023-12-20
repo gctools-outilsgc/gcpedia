@@ -123,7 +123,7 @@ EOT;
         $out = ob_get_clean();
         // change final html in $out
         ob_start();
-        echo $fipHeader . $out . $fipFooter;
+        echo $fipHeader . $out;
         return;
     }
 
