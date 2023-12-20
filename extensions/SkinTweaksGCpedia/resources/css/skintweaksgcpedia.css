@@ -3,7 +3,7 @@ div#mw-head {
 }
 
 .vector-legacy-sidebar#mw-panel{
-    top:90px;
+    top:60px;
 }
 
 #p-logo a{
@@ -13,13 +13,13 @@ div#mw-head {
 
 .btn-primary{
 	color:#fff;
-	background-color:#46055C !important;
+	background-color:#1F1F72 !important;
 }
 #wb-info .brand {
     border-top: 4px solid #46055C ;
 }
 #app-brand {
-    background-color: #720396;
+    background-color: #1C507F;
     color: #fff;
     min-height: 45px;
 }
@@ -27,7 +27,7 @@ div#mw-head {
     font-size: 1.6em;
     padding-top: 5px;
     padding-left: 20px;
-    background-color: #46055C;
+    background-color: #1F1F72;
     min-height: 45px;
     max-width: 165px;
     margin-left: -15px;
@@ -42,7 +42,7 @@ div#mw-head {
     height: 0;
     border-top: 22.5px solid transparent;
     border-bottom: 22.5px solid transparent;
-    border-left: 20px solid #46055C;
+    border-left: 20px solid #1F1F72;
     clear: both;
 }
 #app-brand a {
@@ -103,4 +103,33 @@ div#mw-head {
 }
 .tools-navigator-menu li a{
     color:black;   
+}
+.tool-link{
+    font-size:16px;
+    padding:11px 0 0 20px;
+}
+
+.tool-link:hover{
+    text-decoration: underline;
+}
+
+.tool-link-icon{
+    width: 25px;
+    margin:0 2px 3px 0;
+
+}
+
+/*Share to GCconnex action*/
+
+.gccon-share{
+    font-size:0.85em;
+    margin-right:8px;
+    margin-top: 7px;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid #047177;
+    padding:4px 7px;
+    border-radius: 4px;
+    
 }
