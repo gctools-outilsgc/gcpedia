@@ -44,7 +44,7 @@ class SkinTweaksGCwikiHooks {
         $fipHeader = '<div class="collab-fip-header" style="height:35px; clear:both; background-color:white;">
 		<object type="image/svg+xml" tabindex="-1" role="img" data="extensions/SkinTweaksGCwiki/resources/images/sig-alt-en.svg" aria-label="Symbol of the Government of Canada" style="height:25px; float:left; padding:5px 10px;"></object>
 	</div>
-        <div id="app-brand-name"  style="background:#6D4E86; position:absolute; top:37px; z-index:1; clear:both; float:left; font-size:24px; color:white; padding:8px 59px 6px 62px;"><span style="font-weight:600">GC</span>wiki</div>';
+        <div id="app-brand-name"><span style="font-weight:600">GC</span>wiki</div>';
 	
         $out = ob_get_clean();
         // change final html in $out
