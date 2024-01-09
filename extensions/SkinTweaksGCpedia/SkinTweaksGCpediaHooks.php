@@ -121,9 +121,11 @@ $fipFooter = <<<EOT
 EOT;
 	
         $out = ob_get_clean();
+
+        $topOfBody = stripos( $out, ">", stripos($out, "<body") );
         // change final html in $out
         ob_start();
-        echo $fipHeader . $out;
+        echo substr( $out, 0, $topOfBody + 1) . $fipHeader . substr( $out, $topOfBody + 1);
         return;
     }
 
