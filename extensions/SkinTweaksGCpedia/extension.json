@@ -21,7 +21,12 @@
 				"wet:lang3Code",
 				"searchsuggest-search-tools",
 				"pedia",
-				"wet:gcdirectoryLink"
+				"wet:gcdirectoryLink",
+				"wet:barDirectory",
+				"wet:gcintranetLink",
+				"wet:gcconnexLink",
+				"wet:gccollabLink",
+				"topbar:langlink"
 			]
 		}
 	},

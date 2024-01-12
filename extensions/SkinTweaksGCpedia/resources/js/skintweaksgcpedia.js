@@ -1,14 +1,19 @@
 function addTopBar(){
-    var newDiv = document.createElement('div');
-
     const mw = window.mw;
     const lang = {
         "lang3Code": mw.msg( 'wet:lang3Code' ),
         "searchBoxPlaceholder": mw.msg( 'searchsuggest-search-tools' ),
         "pedia": mw.msg( 'pedia' ),
         "gcdirectoryLink": mw.msg( 'wet:gcdirectoryLink' ),
-        "barDirectory": "Directory",
+        "barDirectory": mw.msg( 'wet:barDirectory' ),
+        "gcintranetLink": mw.msg( 'wet:gcintranetLink' ),
+        "gcconnexLink": mw.msg( 'wet:gcconnexLink' ),
+        "gccollabLink": mw.msg( 'wet:gccollabLink' ),
+        "langlink": mw.msg( 'topbar:langlink' )
     }
+
+    var header = document.createElement('header');
+    header.role = "banner"
 
     // the federated search form
     const searchbox = "<div class='col-sm-5 col-lg-3 col-md-4 col-xs-5 text-right'><section id='wb-srch' class='text-right'> \
@@ -32,8 +37,7 @@ function addTopBar(){
     </form> \
     </section></div>";
     
-    newDiv.innerHTML = "<header role='banner'> \
-<div id='app-brand'> \
+    header.innerHTML = "<div id='app-brand'> \
     <div class='container-fluid'> \
         <div class='row'> \
             <div class='col-lg-2 col-md-2 col-xs-7'> \
@@ -50,15 +54,15 @@ function addTopBar(){
                         <span class='bold-gc'>GC</span>" + lang.barDirectory + "</a> \
                     </li> \
                     <li class='pull-left tool-link'> \
-                        <a href='{$langMessages[wet:gcintranetLink]}'> \
+                        <a href='" + lang.gcintranetLink + "'> \
                         <span class='bold-gc'>GC</span>intranet</a> \
                     </li> \
                     <li class='pull-left tool-link'> \
-                        <a href='{$langMessages[wet:gcconnexLink]}'> \
+                        <a href='" + lang.gcconnexLink + "'> \
                         <span class='bold-gc'>GC</span>connex</a> \
                     </li> \
                     <li class='pull-left tool-link'> \
-                        <a href='{$langMessages[wet:gccollabLink]}'> \
+                        <a href='" + lang.gccollabLink + "'> \
                         <span class='bold-gc'>GC</span>collab</a> \
                     </li> \
                 </ul> \
@@ -66,17 +70,16 @@ function addTopBar(){
             <div id='wb-lng' class='visible-md visible-lg text-right col-sm-1'> \
                 <div class='col-md-12'> \
                     <ul class='list-inline margin-bottom-none'> \
-                        <li>{$langMessages[topbar:langlink]}</li> \
+                        <li>" + lang.langlink + "</li> \
                     </ul> \
                 </div> \
             </div> \
             " + searchbox + "\
         </div> \
     </div> \
-</div> \
-</header>";
+</div>";
     
-    document.body.insertBefore(newDiv, document.body.firstChild);
+    document.body.insertBefore(header, document.body.firstChild);
 }
 
 addTopBar();
