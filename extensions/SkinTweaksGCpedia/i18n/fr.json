@@ -1,7 +1,8 @@
 {
+    "wet:lang3Code": "fra",
     "skintweaksgcpedia-desc": "Quelques changements de l'IU pour gcpedia",
     "gctools": "outilsGC",
-    "gcpedia": "GCpédia",
+    "pedia": "pédia",
     "sidebar-actions": "Actions / Outils",
     "wet:gcintranetLink": "http://intranet.canada.ca/index-fra.asp?utm_source=gcpedia&utm_medium=gctools-banner&utm_campaign=generic",
     "wet:gcconnexLink": "http://gcconnex.gc.ca/",

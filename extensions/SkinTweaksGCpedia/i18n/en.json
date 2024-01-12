@@ -1,7 +1,8 @@
 {
+    "wet:lang3Code": "eng",
     "skintweaksgcpedia-desc": "Some UI changes for gcpedia",
     "gctools": "GCtools",
-    "gcpedia": "GCpedia",
+    "pedia": "pedia",
     "sidebar-actions": "Actions / Tools",
     "wet:gcintranetLink": "http://intranet.canada.ca/index-eng.asp?utm_source=gcpedia&utm_medium=gctools-banner&utm_campaign=generic",
     "wet:gcconnexLink": "http://gcconnex.gc.ca/",

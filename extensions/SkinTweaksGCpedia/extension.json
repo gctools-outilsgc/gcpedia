@@ -14,8 +14,15 @@
 		]
 	},
 	"ResourceModules": {
-		"ext.skintweaksgcpedia.styles": {
-			"styles": ["css/skintweaksgcpedia.css", "css/wet4.css"]
+		"ext.skintweaksgcpedia": {
+			"styles": ["css/skintweaksgcpedia.css", "css/wet4.css"],
+			"scripts": ["js/skintweaksgcpedia.js"],
+			"messages": [
+				"wet:lang3Code",
+				"searchsuggest-search-tools",
+				"pedia",
+				"wet:gcdirectoryLink"
+			]
 		}
 	},
 	"ResourceFileModulePaths": {
@@ -27,8 +34,7 @@
 	},
 	"Hooks": {
 		"SidebarBeforeOutput": "SkinTweaksGCpediaHooks::onSidebarBeforeOutput",
-		"BeforePageDisplay": "SkinTweaksGCpediaHooks::onBeforePageDisplay",
-		"AfterFinalPageOutput": "SkinTweaksGCpediaHooks::onAfterFinalPageOutput"
+		"BeforePageDisplay": "SkinTweaksGCpediaHooks::onBeforePageDisplay"
 	},
 	"manifest_version": 2
 }
