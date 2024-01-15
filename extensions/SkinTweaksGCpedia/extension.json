@@ -1,0 +1,45 @@
+{
+	"name": "SkinTweaksGCpedia",
+	"version": "1.0",
+	"author": "GCtools",
+	"url": "https://github.com/gctools-outilsgc/gcpedia",
+	"descriptionmsg": "skintweaksgcpedia-desc",
+	"type": "other",
+	"requires": {
+		"MediaWiki": ">= 1.40.0"
+	},
+	"MessagesDirs": {
+		"SkinTweaksGCpedia": [
+			"i18n"
+		]
+	},
+	"ResourceModules": {
+		"ext.skintweaksgcpedia": {
+			"styles": ["css/skintweaksgcpedia.css", "css/wet4.css"],
+			"scripts": ["js/skintweaksgcpedia.js"],
+			"messages": [
+				"wet:lang3Code",
+				"searchsuggest-search-tools",
+				"pedia",
+				"wet:gcdirectoryLink",
+				"wet:barDirectory",
+				"wet:gcintranetLink",
+				"wet:gcconnexLink",
+				"wet:gccollabLink",
+				"topbar:langlink"
+			]
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "resources",
+		"remoteExtPath": "SkinTweaksGCpedia/resources"
+	},
+	"AutoloadClasses": {
+		"SkinTweaksGCpediaHooks": "SkinTweaksGCpediaHooks.php"
+	},
+	"Hooks": {
+		"SidebarBeforeOutput": "SkinTweaksGCpediaHooks::onSidebarBeforeOutput",
+		"BeforePageDisplay": "SkinTweaksGCpediaHooks::onBeforePageDisplay"
+	},
+	"manifest_version": 2
+}

@@ -8,12 +8,12 @@ $wgLocaltimezone = "America/Montreal";
 $wgSitename = "GCpedia";
 
 $wgLogo = '';
-$wgFavicon = "extensions/SkinTweaksGCpedia/resources/images/mini_gcpedia_icon.png";
+$wgFavicon = "extensions/SkinTweaksGCpedia/resources/images/favicon.ico";
 $wgLogos = [ 
-    '1x' =>  'extensions/SkinTweaksGCpedia/resources/images/gcpedia_logo_en_1x.png',
+    '1x' =>  'extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Eng.png',
     'variants' => [
 		'fr' => [
-            '1x' => "extensions/SkinTweaksGCwiki/resources/images/gcpedia_logo_fr_1x.png",
+            '1x' => "extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Fra.png",
         ],
     ],
 ];
@@ -42,10 +42,19 @@ $wgGroupPermissions['sysop']['deleterevision'] = true;
 
 $wgVectorUseIconWatch = false;
 
-$wgRightsPage = "wiki:Copyright";
-$wgRightsUrl = "http://creativecommons.org/licenses/by/4.0/";
-$wgRightsText = "Creative Commons Attribution 4.0 International License";
-$wgRightsIcon = "https://i.creativecommons.org/l/by/4.0/88x31.png";
+$wgFooterIcons = [
+	"copyright" => [null],
+	"poweredby" => [null],
+    "canada-fip" => [
+        "footer" => [
+            "src" => "extensions/SkinTweaksGCpedia/resources/images/wmms-alt.svg",
+            "url" => null,
+            "alt" => "Symbol of the Government of Canada",
+            "width" => 186,
+            "height" => 40
+        ]
+    ]
+];
 
 ////  extensions
 wfLoadExtension( "ParserFunctions" );
@@ -138,7 +147,7 @@ wfLoadExtension( "Nuke" );
 $wgGroupPermissions['sysop']['nuke'] = true;
 
 // activate when it's ready
-#wfLoadExtension( "SkinTweaksGCpedia" );
+wfLoadExtension( "SkinTweaksGCpedia" );
 
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
 $wgGoogleAnalyticsAccount = $GAaccount;
@@ -160,14 +169,6 @@ wfLoadExtension( "MsCalendar" );
 wfLoadExtension( "RandomImage" );
 
 /* ????
-
-NewUserPage ? - maintain or drop
-
-customUserCreateForm ? - unmaintained for a long time
-
-
-mwSimpleSamlAuth ? unmaintained, used for gcconnex - based simple login
-
 
 ***video players***
 FramedVideo

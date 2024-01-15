@@ -1,0 +1,14 @@
+{
+    "wet:lang3Code": "fra",
+    "skintweaksgcpedia-desc": "Quelques changements de l'IU pour gcpedia",
+    "gctools": "outilsGC",
+    "pedia": "pédia",
+    "sidebar-actions": "Actions / Outils",
+    "wet:gcintranetLink": "http://intranet.canada.ca/index-fra.asp?utm_source=gcpedia&utm_medium=gctools-banner&utm_campaign=generic",
+    "wet:gcconnexLink": "http://gcconnex.gc.ca/",
+    "wet:gccollabLink": "https://gccollab.ca/",
+    "wet:barDirectory": "annuaire",
+    "wet:gcdirectoryLink": "http://gcannuaire-gcdirectory.gc.ca/fr/GCA/?pgid=002",
+    "topbar:langlink": "<a lang='en' href='?setlang=en&uselang=en'>English</a>",
+	"searchsuggest-search-tools": "Recherche sur les OutilsGC"
+}
