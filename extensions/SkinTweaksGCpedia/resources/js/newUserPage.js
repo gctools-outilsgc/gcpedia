@@ -13,12 +13,14 @@ function newUserPage(){
                 .get({
                     action: "query",
                     titles: newPage,
+                    prop: "deletedrevisions",
                     format: "json",
                 })
                 .done(function (data) {
                     var page = data.query.pages;
                     var pageId = Object.keys(page)[0];
-                    resolve(pageId !== "-1"); // -1 indicates the page does not exist
+                    var pageProperties = Object.keys(page[pageId]);
+                    resolve(pageId !== "-1" || pageProperties.includes("deletedrevisions") ); // -1 indicates the page does not exist
                 })
                 .fail(function (error) {
                     reject(error);
