@@ -14,8 +14,9 @@
 		]
 	},
 	"ResourceModules": {
-		"ext.skintweaksgcwiki.styles": {
-			"styles": "css/skintweaksgcwiki.css"
+		"ext.skintweaksgcwiki": {
+			"styles": "css/skintweaksgcwiki.css",
+			"scripts": "js/skintweaksgcwiki.js"
 		}
 	},
 	"ResourceFileModulePaths": {
@@ -27,8 +28,7 @@
 	},
 	"Hooks": {
 		"SkinBuildSidebar": "SkinTweaksGCwikiHooks::onSkinBuildSidebar",
-		"BeforePageDisplay": "SkinTweaksGCwikiHooks::onBeforePageDisplay",
-		"AfterFinalPageOutput": "SkinTweaksGCwikiHooks::onAfterFinalPageOutput"
+		"BeforePageDisplay": "SkinTweaksGCwikiHooks::onBeforePageDisplay"
 	},
 	"manifest_version": 2
 }

@@ -13,6 +13,11 @@ div#mw-head {
     top:90px;
 }
 
+#collab-fip-header{
+    height:35px;
+    clear:both;
+    background-color:white;
+}
 #app-brand-name{
     background:#6D4E86; 
     position:absolute; 
