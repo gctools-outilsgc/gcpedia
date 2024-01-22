@@ -9,6 +9,6 @@
     "wet:gccollabLink": "https://gccollab.ca/",
     "wet:barDirectory": "annuaire",
     "wet:gcdirectoryLink": "http://gcannuaire-gcdirectory.gc.ca/fr/GCA/?pgid=002",
-    "topbar:langlink": "<a lang='en' href='?setlang=en&uselang=en'>English</a>",
+    "topbar:langlink": "<a lang='en' id='header-lang-toggle' href=''>English</a>",
 	"searchsuggest-search-tools": "Recherche sur les OutilsGC"
 }

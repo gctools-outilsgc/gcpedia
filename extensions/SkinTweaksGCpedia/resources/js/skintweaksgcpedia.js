@@ -80,6 +80,13 @@ function addTopBar(){
 </div>";
     
     document.body.insertBefore(header, document.body.firstChild);
+
+
+    $('#header-lang-toggle').on( 'click', (Event) =>
+        mw.loader.using(['ext.uls.common']).then(function() {
+            mw.uls.changeLanguage( Event.target.lang );
+        })
+    );
 }
 
 addTopBar();
