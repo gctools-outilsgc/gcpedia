@@ -26,7 +26,9 @@
 				"wet:gcintranetLink",
 				"wet:gcconnexLink",
 				"wet:gccollabLink",
-				"topbar:langlink"
+				"topbar:langlink",
+				"newuserpage-notification-title",
+				"newuserpage-notification"
 			]
 		}
 	},

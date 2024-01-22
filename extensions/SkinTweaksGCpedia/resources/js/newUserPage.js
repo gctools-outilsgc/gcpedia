@@ -41,14 +41,10 @@ function newUserPage(){
                     if (data && data.edit && data.edit.result === "Success") {
                         var link = window.location.protocol + '//' + window.location.host + '/' + newPage;
 
-                        var lang = mw.config.wgUserLanguage;
                         var messageNode = document.createElement("div");
-                        messageNode.innerHTML =
-                        lang === "fr"
-                            ? "Votre nouvelle page utilisateur a été créée avec succès. Modifiez-la <a href='" + link + "'>ici</a>"
-                            : 'Your new user page has been created successfully. Edit it <a href="' + link + '">here</a>';
+                        messageNode.innerHTML = mw.msg("newuserpage-notification", link);
                         mw.notify(messageNode, {
-                            title: lang === "fr" ? "Page utilisateur créée" : "User page Created",
+                            title: mw.msg("newuserpage-notification-title"),
                             autoHide: false,
                         });
                     } else {
