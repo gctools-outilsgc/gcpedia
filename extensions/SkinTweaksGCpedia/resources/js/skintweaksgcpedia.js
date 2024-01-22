@@ -82,11 +82,12 @@ function addTopBar(){
     document.body.insertBefore(header, document.body.firstChild);
 
 
-    $('#header-lang-toggle').on( 'click', (Event) =>
+    $('#header-lang-toggle').on( 'click', (Event) => {
+        Event.preventDefault();
         mw.loader.using(['ext.uls.common']).then(function() {
             mw.uls.changeLanguage( Event.target.lang );
         })
-    );
+    });
 }
 
 addTopBar();
