@@ -51,6 +51,9 @@ class SkinTweaksGCpediaHooks {
 
 		if ( $title->inNamespace(NS_USER) )
 			$out->addMeta( 'dcterms.keywords', str_replace( '.', ' ', $title->getRootText() ) );
+	    
+		if ( $out->getPageTitle() == $skin->msg("listusers") )
+			$out->setRobotPolicy( 'noindex,follow' );
 	}
 
 }
