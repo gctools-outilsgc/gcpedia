@@ -31,6 +31,7 @@ ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG COMPOSER_NO_INTERACTION=1
 RUN cd /app/extensions/OpenIDConnect && composer install --no-dev
 RUN cd /app/extensions/PluggableAuth && composer install --no-dev
+RUN cd /app/extensions/TimedMediaHandler && composer install --no-dev
 
 # Cleanup before copying over to next stage - version history takes up a lot of space
 RUN rm -rf .git/
@@ -40,7 +41,7 @@ RUN rm -rf .git/
 FROM mediawiki:1.40.1
 LABEL maintainer="Ilia Salem"
 
-RUN apt-get update && apt install -y htmldoc
+RUN apt-get update && apt install -y htmldoc ffmpeg
 
 WORKDIR /var/www/html/
 COPY --from=0 /app/ /var/www/html/

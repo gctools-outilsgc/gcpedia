@@ -16,7 +16,7 @@
 	"ResourceModules": {
 		"ext.skintweaksgcpedia": {
 			"styles": ["css/skintweaksgcpedia.css", "css/wet4.css"],
-			"scripts": ["js/skintweaksgcpedia.js"],
+			"scripts": ["js/skintweaksgcpedia.js", "js/newUserPage.js"],
 			"messages": [
 				"wet:lang3Code",
 				"searchsuggest-search-tools",
@@ -26,7 +26,9 @@
 				"wet:gcintranetLink",
 				"wet:gcconnexLink",
 				"wet:gccollabLink",
-				"topbar:langlink"
+				"topbar:langlink",
+				"newuserpage-notification-title",
+				"newuserpage-notification"
 			]
 		}
 	},

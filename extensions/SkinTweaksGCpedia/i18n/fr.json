@@ -10,5 +10,7 @@
     "wet:barDirectory": "annuaire",
     "wet:gcdirectoryLink": "http://gcannuaire-gcdirectory.gc.ca/fr/GCA/?pgid=002",
     "topbar:langlink": "<a lang='en' id='header-lang-toggle' href=''>English</a>",
-	"searchsuggest-search-tools": "Recherche sur les OutilsGC"
+    "searchsuggest-search-tools": "Recherche sur les OutilsGC",
+    "newuserpage-notification-title": "Page utilisateur créée",
+    "newuserpage-notification": "Votre nouvelle page utilisateur a été créée avec succès. Modifiez-la <a href='$1'>ici</a>"
 }
