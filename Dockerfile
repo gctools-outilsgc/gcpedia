@@ -31,6 +31,7 @@ ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG COMPOSER_NO_INTERACTION=1
 RUN cd /app/extensions/OpenIDConnect && composer install --no-dev
 RUN cd /app/extensions/PluggableAuth && composer install --no-dev
+RUN cd /app/extensions/TimedMediaHandler && composer install --no-dev
 
 # Cleanup before copying over to next stage - version history takes up a lot of space
 RUN rm -rf .git/
