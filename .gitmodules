@@ -105,3 +105,6 @@
 [submodule "extensions/RandomImage"]
 	path = extensions/RandomImage
 	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/RandomImage
+[submodule "extensions/TimedMediaHandler"]
+	path = extensions/TimedMediaHandler
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/TimedMediaHandler
