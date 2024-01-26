@@ -9,8 +9,8 @@
     "wet:gccollabLink": "https://gccollab.ca/",
     "wet:barDirectory": "directory",
     "wet:gcdirectoryLink": "http://gcdirectory-gcannuaire.gc.ca/en/GCD/?pgid=002",
-    "topbar:langlink": "<a lang='fr' href='?setlang=fr&uselang=fr'>Français</a>",
-	"searchsuggest-search-tools": "Search GCTools",
+    "topbar:langlink": "<a lang='fr' id='header-lang-toggle' href=''>Français</a>",
+    "searchsuggest-search-tools": "Search GCTools",
     "newuserpage-notification-title": "User page Created",
     "newuserpage-notification": "Your new user page has been created successfully. Edit it <a href='$1'>here</a>"
 }
