@@ -1,6 +1,6 @@
 function newUserPage(){
 
-    var newPageContents = "{{subst:NewUserPage}}"; // Replace with your content
+    var newPageContents = "{{subst:MediaWiki:Userpage}}"; // Replace with your content
     var mw = window.mw;
 
     function checkForUserPage(newPage) {
