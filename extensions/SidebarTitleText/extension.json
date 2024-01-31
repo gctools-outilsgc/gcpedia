@@ -1,0 +1,23 @@
+{
+	"name": "SidebarTitleText",
+	"version": "1.0",
+	"author": "GCtools",
+	"url": "https://github.com/gctools-outilsgc/gcpedia",
+	"descriptionmsg": "sidebartitletext-desc",
+	"type": "other",
+	"requires": {
+		"MediaWiki": ">= 1.40.0"
+	},
+	"MessagesDirs": {
+		"SidebarTitleText": [
+			"i18n"
+		]
+	},
+	"AutoloadClasses": {
+		"SidebarTitleTextHooks": "SidebarTitleTextHooks.php"
+	},
+	"Hooks": {
+		"SkinBuildSidebar": "SidebarTitleTextHooks::onSkinBuildSidebar"
+	},
+	"manifest_version": 2
+}
