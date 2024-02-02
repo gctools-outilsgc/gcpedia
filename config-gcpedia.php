@@ -1,6 +1,10 @@
 <?php
 
-$wgArticlePath = "/$1";
+$wgScriptPath       = "/gcwiki";
+$wgArticlePath      = '/wiki/$1';
+$wgUsePathInfo = true;
+$wgUploadPath = "$wgScriptPath/images";
+$wgResourceBasePath = $wgScriptPath;
 
 wfLoadSkin( 'Vector' );
 $wgLocaltimezone = "America/Montreal";
