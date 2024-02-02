@@ -27,7 +27,7 @@ $wgSitename = "Dev wiki instance";
 ## (like /w/index.php/Page_title to /wiki/Page_title) please see:
 ## https://www.mediawiki.org/wiki/Manual:Short_URL
 $wgScriptPath = (getenv('SCRIPT_PATH') != '') ? getenv('SCRIPT_PATH') : "";
-$wgArticlePath = (getenv('ARTICLE_PATH') != '') ? getenv('ARTICLE_PATH') : $wgArticlePath;
+$wgArticlePath = (getenv('ARTICLE_PATH') != '') ? getenv('ARTICLE_PATH') : "/$1";
 
 ## The protocol and server name to use in fully-qualified URLs
 $host = (getenv('HOST') != '') ? getenv('HOST') : 'localhost';
