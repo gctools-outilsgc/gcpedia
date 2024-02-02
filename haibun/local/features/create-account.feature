@@ -17,10 +17,9 @@ Feature: Account Creation Workflow on Wiki
     then click by text "Create account"
     input <username> for Institution email
 
-  We have to wiggle a bit to get the form to recognize the name and institution have been entered, so it populates the username field.
+  We have to pause a bit to get the form to recognize the name and institution have been entered, so it will populate the username field.
 
     pause for 1s
-    blur Institution email
     Press "Tab"
     Type "c"
     input <password> for Password
