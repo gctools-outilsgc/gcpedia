@@ -1,0 +1,25 @@
+{
+    "name": "gcwikis-e2e-tests",
+    "version": "1.36.0",
+    "description": "e2e tests for gc wikis",
+    "engines": {
+      "node": ">=18"
+    },
+    "scripts": {
+      "test": "HAIBUN_O_A11YSTEPPER_STORAGE=StorageFS HAIBUN_O_OUTREVIEWS_STORAGE=StorageFS HAIBUN_KEY=test HAIBUN_TRACE=true HAIBUN_O_WEBPLAYWRIGHT_STORAGE=StorageFS HAIBUN_O_WEBPLAYWRIGHT_CAPTURE_VIDEO=true haibun-cli local",
+      "publish": "HAIBUN_O_OUTREVIEWS_PUBLISH_ROOT=./reviews HAIBUN_O_OUTREVIEWS_STORAGE=StorageFS HAIBUN_O_OUTREVIEWS_PUBLISH_STORAGE=StorageFS haibun-cli --config publish/local publish"
+    },
+    "license": "ISC",
+    "dependencies": {
+      "@haibun/cli": "^1.36.0",
+      "@haibun/core": "^1.36.0",
+      "@haibun/domain-storage": "^1.36.0",
+      "@haibun/domain-webpage": "^1.36.0",
+      "@haibun/out-review": "1.36.0",
+      "@haibun/out-xunit": "^1.36.0",
+      "@haibun/storage-fs": "^1.36.0",
+      "@haibun/web-playwright": "^1.36.0",
+      "@haibun/web-accessibility-axe": "^1.36.0"
+    }
+  }
+
