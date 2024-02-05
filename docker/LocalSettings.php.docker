@@ -29,9 +29,9 @@ $wgSitename = "Dev wiki instance";
 $wgScriptPath = "";
 
 ## The protocol and server name to use in fully-qualified URLs
-$host = (getenv('HOST') != '') ? getenv('HOST') : 'localhost';
-$port = (getenv('PORT') != '' && getenv('PORT') != '80') ? ":".getenv('PORT') : '';
-$protocol = (getenv('PROTOCOL') != '') ? getenv('PROTOCOL') : 'https';
+$host = (getenv('WIKI_HOST') != '') ? getenv('WIKI_HOST') : 'localhost';
+$port = (getenv('WIKI_PORT') != '' && getenv('WIKI_PORT') != '80') ? ":".getenv('WIKI_PORT') : '';
+$protocol = (getenv('WIKI_PROTOCOL') != '') ? getenv('WIKI_PROTOCOL') : 'https';
 $wgServer = "{$protocol}://{$host}{$port}";
 
 ## The URL path to static resources (images, scripts, etc.)
@@ -147,7 +147,7 @@ if ( getenv('SITE') == 'gcpedia' )
 else
 	include('./config.php');
 
-if (getenv('DEBUG') === 'true') {
+if (getenv('WIKI_DEBUG') === 'true') {
 	$wgShowExceptionDetails = true;
 	$wgSitename = "Dev wiki instance - DEBUG mode";
 }

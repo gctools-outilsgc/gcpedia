@@ -96,7 +96,7 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
           value: 'wiki_test'
         }
         {
-          name: 'HOST'
+          name: 'WIKI_HOST'
           value: '${appName}.azurewebsites.net'
         }
       ]
