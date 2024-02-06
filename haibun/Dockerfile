@@ -1,8 +1,5 @@
 FROM mcr.microsoft.com/playwright:v1.40.1-focal
 
-RUN apt update
-RUN apt install -y iputils-ping telnet
-
 WORKDIR /app
 
 COPY . .

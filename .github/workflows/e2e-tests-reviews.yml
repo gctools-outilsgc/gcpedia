@@ -44,7 +44,7 @@ jobs:
 
       - name: wait for it to start
         run: |
-          npx -y wait-on --log --timeout 30000 http-get://localhost:80
+          sleep 20
       
       - name: run e2e tests from Dockerfile
         run: |
