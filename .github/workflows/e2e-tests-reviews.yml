@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - e2e-tests-reviews
+      - add-e2e-tests
   pull_request:
 
 permissions:
