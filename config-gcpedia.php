@@ -72,8 +72,15 @@ $wgDefaultUserOptions["usebetatoolbar-cgd"] = 0;
 $wgDefaultUserOptions["wikieditor-preview"] = 0;
 
 wfLoadExtension( "Cite" );
-$wgGroupPermissions["IMadmin"]   ["delete"] = true;
-$wgGroupPermissions["IMadmin"]   ["undelete"] = true;
+
+wfLoadExtension( 'DeletePagesForGood' );
+$wgGroupPermissions['*']         ['deleteperm'] = false;
+$wgGroupPermissions['user']      ['deleteperm'] = false;
+$wgGroupPermissions['bureaucrat']['deleteperm'] = true;
+$wgGroupPermissions['sysop']     ['deleteperm'] = false;
+$wgGroupPermissions['IMadmin']   ['deleteperm'] = true;
+$wgGroupPermissions['IMadmin']   ['delete'] = true;
+$wgGroupPermissions['IMadmin']   ['undelete'] = true;
 
 wfLoadExtension( "CharInsert" );
 wfLoadExtension( "TreeAndMenu" );
