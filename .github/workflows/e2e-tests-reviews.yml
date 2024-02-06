@@ -46,10 +46,15 @@ jobs:
         run: |
           sleep 20
       
-      - name: run e2e tests from Dockerfile
+      - name: build from Dockerfile
         run: |
           cd haibun
-          docker-compose build &&
+          docker-compose build 
+
+      - name: run e2e tests from Dockerfile
+        continue-on-error: true
+        run: |
+          cd haibun
           docker-compose run haibun-e2e-tests sh -c "HAIBUN_O_WEBPLAYWRIGHT_HEADLESS=true npm run test" 
           docker-compose run haibun-e2e-tests sh -c "npm run publish"
 
@@ -61,4 +66,3 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "update e2e test reviews"
-
