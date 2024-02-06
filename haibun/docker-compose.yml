@@ -1,0 +1,13 @@
+version: '3.8'
+
+networks:
+  default:
+    external:
+      name: gcpedia_default
+
+services:
+  haibun-e2e-tests:
+    build: .
+    volumes:
+      - ./reviews:/app/reviews
+      - ./capture:/app/capture
