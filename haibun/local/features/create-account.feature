@@ -8,11 +8,10 @@ Feature: Account Creation Workflow on Wiki
 
     When I have a valid random username <username>
     When I have a valid random password <password>
-    concat "User:" and <username> as User page
 
   Go to the create account page, and fill it in, starting with the gc institution.
 
-    go to the "http://wiki.local/Main_Page" webpage
+    go to the Main page webpage
     resize window to 1400x1100
     then click by text "Create account"
     input <username> for Institution email
@@ -36,4 +35,4 @@ Feature: Account Creation Workflow on Wiki
 
   Confirm we're on the new user page.
 
-    URI case insensitively matches User page
+    URI starts with User page
