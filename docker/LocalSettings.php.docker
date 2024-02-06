@@ -47,8 +47,17 @@ $wgLogos = [ '1x' => "$wgResourceBasePath/resources/assets/wiki.png" ];
 $wgEnableEmail = true;
 $wgEnableUserEmail = true; # UPO
 
-$wgEmergencyContact = "apache@wiki.local";
-$wgPasswordSender = "apache@wiki.local";
+## smtp authentication
+$wgPasswordSender = (getenv('WIKI_PASSWORDSENDER') != '') ? getenv('WIKI_PASSWORDSENDER') : '';
+if (getenv('WIKI_SMTP_HOST')){
+	$wgSMTP = array(
+	'host'     => getenv('WIKI_SMTP_HOST'), // could also be an IP address. Where the SMTP server is located
+	'port'     => getenv('WIKI_SMTP_PORT'),                 // Port to use when connecting to the SMTP server
+	'auth'     => getenv('WIKI_SMTP_AUTH'),               // Should we use SMTP authentication (true or false)
+	'username' => getenv('WIKI_SMTP_USERNAME'),     // Username to use for SMTP authentication (if being used)
+	'password' => getenv('WIKI_SMTP_PASSWORD')
+	);
+}
 
 $wgEnotifUserTalk = false; # UPO
 $wgEnotifWatchlist = false; # UPO
