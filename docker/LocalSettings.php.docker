@@ -26,7 +26,8 @@ $wgSitename = "Dev wiki instance";
 ## For more information on customizing the URLs
 ## (like /w/index.php/Page_title to /wiki/Page_title) please see:
 ## https://www.mediawiki.org/wiki/Manual:Short_URL
-$wgScriptPath = "";
+$wgScriptPath = (getenv('SCRIPT_PATH') != '') ? getenv('SCRIPT_PATH') : "";
+$wgArticlePath = (getenv('ARTICLE_PATH') != '') ? getenv('ARTICLE_PATH') : "/$1";
 
 ## The protocol and server name to use in fully-qualified URLs
 $host = (getenv('WIKI_HOST') != '') ? getenv('WIKI_HOST') : 'localhost';
@@ -46,8 +47,17 @@ $wgLogos = [ '1x' => "$wgResourceBasePath/resources/assets/wiki.png" ];
 $wgEnableEmail = true;
 $wgEnableUserEmail = true; # UPO
 
-$wgEmergencyContact = "apache@wiki.local";
-$wgPasswordSender = "apache@wiki.local";
+## smtp authentication
+$wgPasswordSender = (getenv('WIKI_PASSWORDSENDER') != '') ? getenv('WIKI_PASSWORDSENDER') : '';
+if (getenv('WIKI_SMTP_HOST')){
+	$wgSMTP = array(
+	'host'     => getenv('WIKI_SMTP_HOST'), // could also be an IP address. Where the SMTP server is located
+	'port'     => getenv('WIKI_SMTP_PORT'),                 // Port to use when connecting to the SMTP server
+	'auth'     => getenv('WIKI_SMTP_AUTH'),               // Should we use SMTP authentication (true or false)
+	'username' => getenv('WIKI_SMTP_USERNAME'),     // Username to use for SMTP authentication (if being used)
+	'password' => getenv('WIKI_SMTP_PASSWORD')
+	);
+}
 
 $wgEnotifUserTalk = false; # UPO
 $wgEnotifWatchlist = false; # UPO
@@ -72,12 +82,10 @@ $wgDBTableOptions = "ENGINE=InnoDB, DEFAULT CHARSET=binary";
 $wgSharedTables[] = "actor";
 
 ## Shared memory settings
-$wgMainCacheType = CACHE_ACCEL;
-$wgMemCachedServers = [];
+$wgMainCacheType = (getenv('CACHE_TYPE') == 'CACHE_MEMCACHED') ? CACHE_MEMCACHED : CACHE_ACCEL;
 
 ## To enable image uploads, make sure the 'images' directory
 ## is writable, then set this to true:
-$wgEnableUploads = false;
 $wgUseImageMagick = true;
 $wgImageMagickConvertCommand = "/usr/bin/convert";
 
@@ -109,10 +117,6 @@ $wgSecretKey = (getenv('SECRETKEY') != '') ? getenv('SECRETKEY') : 'Secret123';
 
 # Changing this will log out all existing sessions.
 $wgAuthenticationTokenVersion = "1";
-
-# Site upgrade key. Must be set to a string (default provided) to turn on the
-# web installer while LocalSettings.php is in place
-$wgUpgradeKey = (getenv('UPGRADEKEY') != '') ? getenv('UPGRADEKEY') : 'Secret321';
 
 ## For attaching licensing metadata to pages, and displaying an
 ## appropriate copyright notice / icon. GNU Free Documentation
