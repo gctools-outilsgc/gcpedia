@@ -56,11 +56,15 @@ jobs:
           cd haibun
           npm ci
 
-      - name: run e2e tests and publish
+      - name: run e2e tests
         continue-on-error: true
         run: |
           cd haibun
           npm run docker-test
+
+      - name: run e2e tests and publish
+        run: |
+          cd haibun
           npm run publish
 
       - name: Add reviews
