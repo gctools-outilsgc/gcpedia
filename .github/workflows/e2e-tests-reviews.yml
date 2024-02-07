@@ -44,7 +44,8 @@ jobs:
 
       - name: wait for it to start
         run: |
-          npx wait-on tcp:`./gcpedia-docker-address.sh`:80
+          docker network ls
+          npx -y wait-on tcp:`./haibun/gcpedia-docker-address.sh`:80
       
       - name: run e2e tests and publish
         continue-on-error: true
