@@ -44,7 +44,6 @@ jobs:
 
       - name: wait for it to start
         run: |
-          docker network inspect gcpedia_default
           npx -y wait-on tcp:`./haibun/gcpedia-docker-address.sh`:80
 
       - name: playwright install
