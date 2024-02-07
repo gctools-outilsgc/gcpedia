@@ -44,23 +44,19 @@ jobs:
 
       - name: wait for it to start
         run: |
-          sleep 20
+          npx wait-on tcp`gcpedia-address.sh`:80
       
-      - name: build from Dockerfile
-        run: |
-          cd haibun
-          docker-compose build 
-
-      - name: run e2e tests from Dockerfile
+      - name: run e2e tests and publish
         continue-on-error: true
         run: |
           cd haibun
-          docker-compose run haibun-e2e-tests sh -c "HAIBUN_O_WEBPLAYWRIGHT_HEADLESS=true npm run test" 
-          docker-compose run haibun-e2e-tests sh -c "npm run publish"
+          npm run docker-test
+          npm run publish
 
       - name: Add reviews
         run: |
           cd haibun
+          find reviews
           git add ./reviews/
 
       - uses: stefanzweifel/git-auto-commit-action@v5
