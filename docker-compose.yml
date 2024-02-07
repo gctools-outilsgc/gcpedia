@@ -82,10 +82,6 @@ services:
       - DEBUG=true
 #      - OAUTH=true
 #      - USESAML=false
-    networks:
-      default:
-        aliases:
-          - wiki.local
 
   # ###########################################################################
   # The Electron render service container for the ElectronPdfService Extension.
