@@ -1,3 +1,1 @@
-#!/usr/bin/env bash
-
-docker inspect --format='{{.NetworkSettings.Networks.gcpedia_default.IPAddress}}' gcpedia-gcpedia-1
+docker network inspect gcpedia_default | node -e "process.stdin.resume();process.stdin.setEncoding('utf8');let data='';process.stdin.on('data', chunk => data += chunk);process.stdin.on('end', () => {const containers = Object.values(JSON.parse(data)[0].Containers || {}).filter(c => !c.Name.match(/db/)); containers.forEach(c => console.log(c.IPv4Address.replace(/\/.*/, '')));});"

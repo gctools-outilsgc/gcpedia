@@ -44,9 +44,14 @@ jobs:
 
       - name: wait for it to start
         run: |
-          docker network ls
+          docker network inspect gcpedia_default
           npx -y wait-on tcp:`./haibun/gcpedia-docker-address.sh`:80
       
+      - name: install haibun dependencies
+        run: |
+          cd haibun
+          npm ci
+
       - name: run e2e tests and publish
         continue-on-error: true
         run: |
