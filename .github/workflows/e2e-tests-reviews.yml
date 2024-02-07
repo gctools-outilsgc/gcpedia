@@ -44,7 +44,7 @@ jobs:
 
       - name: wait for it to start
         run: |
-          npx wait-on tcp`gcpedia-address.sh`:80
+          npx wait-on tcp:`./gcpedia-docker-address.sh`:80
       
       - name: run e2e tests and publish
         continue-on-error: true
@@ -56,7 +56,6 @@ jobs:
       - name: Add reviews
         run: |
           cd haibun
-          find reviews
           git add ./reviews/
 
       - uses: stefanzweifel/git-auto-commit-action@v5
