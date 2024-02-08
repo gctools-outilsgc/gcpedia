@@ -16,8 +16,8 @@
                   {
                     "ok": true,
                     "name": "feature",
-                    "start": 0.267945794,
-                    "end": 0.268038537
+                    "start": 0.258824941,
+                    "end": 0.258907476
                   }
                 ],
                 "seq": 1
@@ -30,8 +30,8 @@
                   {
                     "ok": true,
                     "name": "scenario",
-                    "start": 0.268599763,
-                    "end": 0.268663491
+                    "start": 0.25945561,
+                    "end": 0.259519951
                   }
                 ],
                 "seq": 2
@@ -44,8 +44,8 @@
                   {
                     "ok": true,
                     "name": "gotoPage",
-                    "start": 0.269274249,
-                    "end": 3.345717729
+                    "start": 0.260122988,
+                    "end": 2.091783183
                   }
                 ],
                 "seq": 3
@@ -58,8 +58,8 @@
                   {
                     "ok": true,
                     "name": "clickByText",
-                    "start": 3.346945777,
-                    "end": 3.641031142
+                    "start": 2.092688245,
+                    "end": 2.373565102
                   }
                 ],
                 "seq": 4
@@ -94,7 +94,7 @@
                               "orientationAngle": 0,
                               "orientationType": "landscape-primary"
                             },
-                            "timestamp": "2024-02-08T19:16:45.548Z",
+                            "timestamp": "2024-02-08T19:22:44.508Z",
                             "url": "http://wiki.local/index.php?title=Special:CreateAccount&returnto=Main+Page",
                             "toolOptions": {
                               "reporter": "v1"
@@ -16382,8 +16382,8 @@
                       }
                     },
                     "name": "checkA11yRuntime",
-                    "start": 3.641846963,
-                    "end": 4.296180015
+                    "start": 2.374173871,
+                    "end": 2.999080914
                   }
                 ],
                 "seq": 5
@@ -16402,8 +16402,8 @@
                   {
                     "ok": true,
                     "name": "feature",
-                    "start": 4.757216974,
-                    "end": 4.757244064
+                    "start": 3.464812404,
+                    "end": 3.46484258
                   }
                 ],
                 "seq": 1
@@ -16416,8 +16416,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.757838532,
-                    "end": 4.757937226
+                    "start": 3.465425731,
+                    "end": 3.46552151
                   }
                 ],
                 "seq": 2
@@ -16430,8 +16430,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.75851371,
-                    "end": 4.758561149
+                    "start": 3.4660457190000002,
+                    "end": 3.466092918
                   }
                 ],
                 "seq": 3
@@ -16444,8 +16444,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.759108769,
-                    "end": 4.759152671
+                    "start": 3.466615264,
+                    "end": 3.466659407
                   }
                 ],
                 "seq": 4
@@ -16458,8 +16458,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.759690754,
-                    "end": 4.759826156
+                    "start": 3.467182094,
+                    "end": 3.467322537
                   }
                 ],
                 "seq": 5
@@ -16472,8 +16472,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.760326688,
-                    "end": 4.760394274
+                    "start": 3.467807974,
+                    "end": 3.467866583
                   }
                 ],
                 "seq": 6
@@ -16486,8 +16486,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.760929782,
-                    "end": 4.760969005
+                    "start": 3.468411222,
+                    "end": 3.468449974
                   }
                 ],
                 "seq": 7
@@ -16500,8 +16500,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.761520824,
-                    "end": 4.761634115
+                    "start": 3.468983912,
+                    "end": 3.4691390220000002
                   }
                 ],
                 "seq": 8
@@ -16514,8 +16514,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.762149866,
-                    "end": 4.762287061
+                    "start": 3.469662341,
+                    "end": 3.469798265
                   }
                 ],
                 "seq": 9
@@ -16528,8 +16528,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.762856462,
-                    "end": 4.762905484
+                    "start": 3.4703202810000002,
+                    "end": 3.470368591
                   }
                 ],
                 "seq": 10
@@ -16542,8 +16542,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.763512845,
-                    "end": 4.763548572
+                    "start": 3.470901948,
+                    "end": 3.470939799
                   }
                 ],
                 "seq": 11
@@ -16556,8 +16556,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.764215274,
-                    "end": 4.764256602
+                    "start": 3.471474278,
+                    "end": 3.471510296
                   }
                 ],
                 "seq": 12
@@ -16570,8 +16570,8 @@
                   {
                     "ok": true,
                     "name": "scenario",
-                    "start": 4.764832335,
-                    "end": 4.764851891
+                    "start": 3.47207434,
+                    "end": 3.472090981
                   }
                 ],
                 "seq": 13
@@ -16584,8 +16584,8 @@
                   {
                     "ok": true,
                     "name": "prose",
-                    "start": 4.765470894,
-                    "end": 4.765529333
+                    "start": 3.472651259,
+                    "end": 3.472712934
                   }
                 ],
                 "seq": 14
@@ -16598,8 +16598,8 @@
                   {
                     "ok": true,
                     "name": "hasRandomUsername",
-                    "start": 4.7661378370000005,
-                    "end": 4.7663625960000005
+                    "start": 3.473289602,
+                    "end": 3.473519191
                   }
                 ],
                 "seq": 15
@@ -16612,8 +16612,8 @@
                   {
                     "ok": true,
                     "name": "hasRandomPassword",
-                    "start": 4.767027375,
-                    "end": 4.767128133
+                    "start": 3.474039234,
+                    "end": 3.4741415350000002
                   }
                 ],
                 "seq": 16
@@ -16626,8 +16626,8 @@
                   {
                     "ok": true,
                     "name": "prose",
-                    "start": 4.767731026,
-                    "end": 4.767745443
+                    "start": 3.474660385,
+                    "end": 3.474676355
                   }
                 ],
                 "seq": 17
@@ -16640,8 +16640,8 @@
                   {
                     "ok": true,
                     "name": "gotoPage",
-                    "start": 4.7682921910000005,
-                    "end": 5.373257269
+                    "start": 3.475216555,
+                    "end": 4.049549455
                   }
                 ],
                 "seq": 18
@@ -16654,8 +16654,8 @@
                   {
                     "ok": true,
                     "name": "resizeWindow",
-                    "start": 5.374030931,
-                    "end": 5.439563497
+                    "start": 4.050226741,
+                    "end": 4.115288376
                   }
                 ],
                 "seq": 19
@@ -16668,8 +16668,8 @@
                   {
                     "ok": true,
                     "name": "clickByText",
-                    "start": 5.440513968,
-                    "end": 5.623586345
+                    "start": 4.116446571,
+                    "end": 4.30152257
                   }
                 ],
                 "seq": 20
@@ -16682,8 +16682,8 @@
                   {
                     "ok": true,
                     "name": "inputVariable",
-                    "start": 5.624710346,
-                    "end": 5.716387077
+                    "start": 4.302154601,
+                    "end": 4.387480822
                   }
                 ],
                 "seq": 21
@@ -16696,8 +16696,8 @@
                   {
                     "ok": true,
                     "name": "prose",
-                    "start": 5.718324176,
-                    "end": 5.718360985
+                    "start": 4.388720731,
+                    "end": 4.388750747
                   }
                 ],
                 "seq": 22
@@ -16710,8 +16710,8 @@
                   {
                     "ok": true,
                     "name": "pauseSeconds",
-                    "start": 5.720083805,
-                    "end": 6.720229203
+                    "start": 4.389656309,
+                    "end": 5.389976546
                   }
                 ],
                 "seq": 23
@@ -16724,8 +16724,8 @@
                   {
                     "ok": true,
                     "name": "press",
-                    "start": 6.721279751,
-                    "end": 6.7292160899999995
+                    "start": 5.390823299,
+                    "end": 5.399620882
                   }
                 ],
                 "seq": 24
@@ -16738,8 +16738,8 @@
                   {
                     "ok": true,
                     "name": "type",
-                    "start": 6.72974209,
-                    "end": 6.742248237
+                    "start": 5.400073839,
+                    "end": 5.411177482
                   }
                 ],
                 "seq": 25
@@ -16752,8 +16752,8 @@
                   {
                     "ok": true,
                     "name": "inputVariable",
-                    "start": 6.743400825,
-                    "end": 6.79682748
+                    "start": 5.411790298,
+                    "end": 5.471191613
                   }
                 ],
                 "seq": 26
@@ -16766,8 +16766,8 @@
                   {
                     "ok": true,
                     "name": "inputVariable",
-                    "start": 6.797538906,
-                    "end": 6.819237546
+                    "start": 5.471845075,
+                    "end": 5.490287154
                   }
                 ],
                 "seq": 27
@@ -16780,8 +16780,8 @@
                   {
                     "ok": true,
                     "name": "inputVariable",
-                    "start": 6.81995342,
-                    "end": 6.847207829
+                    "start": 5.490872468,
+                    "end": 5.51629195
                   }
                 ],
                 "seq": 28
@@ -16794,8 +16794,8 @@
                   {
                     "ok": true,
                     "name": "clickCheckbox",
-                    "start": 6.847799541,
-                    "end": 6.90721709
+                    "start": 5.517642535,
+                    "end": 5.585395188
                   }
                 ],
                 "seq": 29
@@ -16808,8 +16808,8 @@
                   {
                     "ok": true,
                     "name": "clickOn",
-                    "start": 6.910295714,
-                    "end": 7.213226394
+                    "start": 5.585962528,
+                    "end": 5.867811603
                   }
                 ],
                 "seq": 30
@@ -16822,8 +16822,8 @@
                   {
                     "ok": true,
                     "name": "prose",
-                    "start": 7.215226654,
-                    "end": 7.215276547
+                    "start": 5.868450889,
+                    "end": 5.868476516
                   }
                 ],
                 "seq": 31
@@ -16836,8 +16836,8 @@
                   {
                     "ok": true,
                     "name": "prose",
-                    "start": 7.215819479,
-                    "end": 7.215837593
+                    "start": 5.869003361,
+                    "end": 5.869017407
                   }
                 ],
                 "seq": 32
@@ -16850,8 +16850,8 @@
                   {
                     "ok": true,
                     "name": "seeTextIn",
-                    "start": 7.216325451,
-                    "end": 8.023785842
+                    "start": 5.869561975,
+                    "end": 6.68202695
                   }
                 ],
                 "seq": 33
@@ -16864,8 +16864,8 @@
                   {
                     "ok": true,
                     "name": "clickQuoted",
-                    "start": 8.024338869,
-                    "end": 8.433623163
+                    "start": 6.683154548,
+                    "end": 7.070711154
                   }
                 ],
                 "seq": 34
@@ -16878,8 +16878,8 @@
                   {
                     "ok": true,
                     "name": "prose",
-                    "start": 8.434142541,
-                    "end": 8.434165714
+                    "start": 7.071316466,
+                    "end": 7.071359516
                   }
                 ],
                 "seq": 35
@@ -16892,8 +16892,8 @@
                   {
                     "ok": true,
                     "name": "URIStartsWith",
-                    "start": 8.434563636,
-                    "end": 8.436320276
+                    "start": 7.071867997,
+                    "end": 7.073424546
                   }
                 ],
                 "seq": 36
@@ -16933,8 +16933,8 @@
             "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
             "http://wiki.local/Main_Page": "http://wiki.local/Main_Page",
             "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
-            "__cred_username": "rnd_s8jxjy_1lowyf",
-            "__cred_password": "testpass_1KS75C"
+            "__cred_username": "rnd_s8jxtx_jxmux",
+            "__cred_password": "testpass_U7IHK"
           },
           "trace": true
         },
@@ -16965,8 +16965,8 @@
             "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
             "http://wiki.local/Main_Page": "http://wiki.local/Main_Page",
             "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
-            "__cred_username": "rnd_s8jxjy_1lowyf",
-            "__cred_password": "testpass_1KS75C"
+            "__cred_username": "rnd_s8jxtx_jxmux",
+            "__cred_password": "testpass_U7IHK"
           },
           "context": "world [object Object]"
         },
@@ -17010,8 +17010,8 @@
           "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
           "http://wiki.local/Main_Page": "http://wiki.local/Main_Page",
           "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
-          "__cred_username": "rnd_s8jxjy_1lowyf",
-          "__cred_password": "testpass_1KS75C"
+          "__cred_username": "rnd_s8jxtx_jxmux",
+          "__cred_password": "testpass_U7IHK"
         },
         "context": "world [object Object]"
       },
@@ -17030,8 +17030,8 @@
                   {
                     "ok": true,
                     "name": "feature",
-                    "start": 0.267945794,
-                    "end": 0.268038537
+                    "start": 0.258824941,
+                    "end": 0.258907476
                   }
                 ],
                 "seq": 1
@@ -17044,8 +17044,8 @@
                   {
                     "ok": true,
                     "name": "scenario",
-                    "start": 0.268599763,
-                    "end": 0.268663491
+                    "start": 0.25945561,
+                    "end": 0.259519951
                   }
                 ],
                 "seq": 2
@@ -17058,8 +17058,8 @@
                   {
                     "ok": true,
                     "name": "gotoPage",
-                    "start": 0.269274249,
-                    "end": 3.345717729
+                    "start": 0.260122988,
+                    "end": 2.091783183
                   }
                 ],
                 "seq": 3
@@ -17072,8 +17072,8 @@
                   {
                     "ok": true,
                     "name": "clickByText",
-                    "start": 3.346945777,
-                    "end": 3.641031142
+                    "start": 2.092688245,
+                    "end": 2.373565102
                   }
                 ],
                 "seq": 4
@@ -17108,7 +17108,7 @@
                               "orientationAngle": 0,
                               "orientationType": "landscape-primary"
                             },
-                            "timestamp": "2024-02-08T19:16:45.548Z",
+                            "timestamp": "2024-02-08T19:22:44.508Z",
                             "url": "http://wiki.local/index.php?title=Special:CreateAccount&returnto=Main+Page",
                             "toolOptions": {
                               "reporter": "v1"
@@ -33396,8 +33396,8 @@
                       }
                     },
                     "name": "checkA11yRuntime",
-                    "start": 3.641846963,
-                    "end": 4.296180015
+                    "start": 2.374173871,
+                    "end": 2.999080914
                   }
                 ],
                 "seq": 5
@@ -33416,8 +33416,8 @@
                   {
                     "ok": true,
                     "name": "feature",
-                    "start": 4.757216974,
-                    "end": 4.757244064
+                    "start": 3.464812404,
+                    "end": 3.46484258
                   }
                 ],
                 "seq": 1
@@ -33430,8 +33430,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.757838532,
-                    "end": 4.757937226
+                    "start": 3.465425731,
+                    "end": 3.46552151
                   }
                 ],
                 "seq": 2
@@ -33444,8 +33444,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.75851371,
-                    "end": 4.758561149
+                    "start": 3.4660457190000002,
+                    "end": 3.466092918
                   }
                 ],
                 "seq": 3
@@ -33458,8 +33458,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.759108769,
-                    "end": 4.759152671
+                    "start": 3.466615264,
+                    "end": 3.466659407
                   }
                 ],
                 "seq": 4
@@ -33472,8 +33472,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.759690754,
-                    "end": 4.759826156
+                    "start": 3.467182094,
+                    "end": 3.467322537
                   }
                 ],
                 "seq": 5
@@ -33486,8 +33486,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.760326688,
-                    "end": 4.760394274
+                    "start": 3.467807974,
+                    "end": 3.467866583
                   }
                 ],
                 "seq": 6
@@ -33500,8 +33500,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.760929782,
-                    "end": 4.760969005
+                    "start": 3.468411222,
+                    "end": 3.468449974
                   }
                 ],
                 "seq": 7
@@ -33514,8 +33514,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.761520824,
-                    "end": 4.761634115
+                    "start": 3.468983912,
+                    "end": 3.4691390220000002
                   }
                 ],
                 "seq": 8
@@ -33528,8 +33528,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.762149866,
-                    "end": 4.762287061
+                    "start": 3.469662341,
+                    "end": 3.469798265
                   }
                 ],
                 "seq": 9
@@ -33542,8 +33542,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.762856462,
-                    "end": 4.762905484
+                    "start": 3.4703202810000002,
+                    "end": 3.470368591
                   }
                 ],
                 "seq": 10
@@ -33556,8 +33556,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.763512845,
-                    "end": 4.763548572
+                    "start": 3.470901948,
+                    "end": 3.470939799
                   }
                 ],
                 "seq": 11
@@ -33570,8 +33570,8 @@
                   {
                     "ok": true,
                     "name": "set",
-                    "start": 4.764215274,
-                    "end": 4.764256602
+                    "start": 3.471474278,
+                    "end": 3.471510296
                   }
                 ],
                 "seq": 12
@@ -33584,8 +33584,8 @@
                   {
                     "ok": true,
                     "name": "scenario",
-                    "start": 4.764832335,
-                    "end": 4.764851891
+                    "start": 3.47207434,
+                    "end": 3.472090981
                   }
                 ],
                 "seq": 13
@@ -33598,8 +33598,8 @@
                   {
                     "ok": true,
                     "name": "prose",
-                    "start": 4.765470894,
-                    "end": 4.765529333
+                    "start": 3.472651259,
+                    "end": 3.472712934
                   }
                 ],
                 "seq": 14
@@ -33612,8 +33612,8 @@
                   {
                     "ok": true,
                     "name": "hasRandomUsername",
-                    "start": 4.7661378370000005,
-                    "end": 4.7663625960000005
+                    "start": 3.473289602,
+                    "end": 3.473519191
                   }
                 ],
                 "seq": 15
@@ -33626,8 +33626,8 @@
                   {
                     "ok": true,
                     "name": "hasRandomPassword",
-                    "start": 4.767027375,
-                    "end": 4.767128133
+                    "start": 3.474039234,
+                    "end": 3.4741415350000002
                   }
                 ],
                 "seq": 16
@@ -33640,8 +33640,8 @@
                   {
                     "ok": true,
                     "name": "prose",
-                    "start": 4.767731026,
-                    "end": 4.767745443
+                    "start": 3.474660385,
+                    "end": 3.474676355
                   }
                 ],
                 "seq": 17
@@ -33654,8 +33654,8 @@
                   {
                     "ok": true,
                     "name": "gotoPage",
-                    "start": 4.7682921910000005,
-                    "end": 5.373257269
+                    "start": 3.475216555,
+                    "end": 4.049549455
                   }
                 ],
                 "seq": 18
@@ -33668,8 +33668,8 @@
                   {
                     "ok": true,
                     "name": "resizeWindow",
-                    "start": 5.374030931,
-                    "end": 5.439563497
+                    "start": 4.050226741,
+                    "end": 4.115288376
                   }
                 ],
                 "seq": 19
@@ -33682,8 +33682,8 @@
                   {
                     "ok": true,
                     "name": "clickByText",
-                    "start": 5.440513968,
-                    "end": 5.623586345
+                    "start": 4.116446571,
+                    "end": 4.30152257
                   }
                 ],
                 "seq": 20
@@ -33696,8 +33696,8 @@
                   {
                     "ok": true,
                     "name": "inputVariable",
-                    "start": 5.624710346,
-                    "end": 5.716387077
+                    "start": 4.302154601,
+                    "end": 4.387480822
                   }
                 ],
                 "seq": 21
@@ -33710,8 +33710,8 @@
                   {
                     "ok": true,
                     "name": "prose",
-                    "start": 5.718324176,
-                    "end": 5.718360985
+                    "start": 4.388720731,
+                    "end": 4.388750747
                   }
                 ],
                 "seq": 22
@@ -33724,8 +33724,8 @@
                   {
                     "ok": true,
                     "name": "pauseSeconds",
-                    "start": 5.720083805,
-                    "end": 6.720229203
+                    "start": 4.389656309,
+                    "end": 5.389976546
                   }
                 ],
                 "seq": 23
@@ -33738,8 +33738,8 @@
                   {
                     "ok": true,
                     "name": "press",
-                    "start": 6.721279751,
-                    "end": 6.7292160899999995
+                    "start": 5.390823299,
+                    "end": 5.399620882
                   }
                 ],
                 "seq": 24
@@ -33752,8 +33752,8 @@
                   {
                     "ok": true,
                     "name": "type",
-                    "start": 6.72974209,
-                    "end": 6.742248237
+                    "start": 5.400073839,
+                    "end": 5.411177482
                   }
                 ],
                 "seq": 25
@@ -33766,8 +33766,8 @@
                   {
                     "ok": true,
                     "name": "inputVariable",
-                    "start": 6.743400825,
-                    "end": 6.79682748
+                    "start": 5.411790298,
+                    "end": 5.471191613
                   }
                 ],
                 "seq": 26
@@ -33780,8 +33780,8 @@
                   {
                     "ok": true,
                     "name": "inputVariable",
-                    "start": 6.797538906,
-                    "end": 6.819237546
+                    "start": 5.471845075,
+                    "end": 5.490287154
                   }
                 ],
                 "seq": 27
@@ -33794,8 +33794,8 @@
                   {
                     "ok": true,
                     "name": "inputVariable",
-                    "start": 6.81995342,
-                    "end": 6.847207829
+                    "start": 5.490872468,
+                    "end": 5.51629195
                   }
                 ],
                 "seq": 28
@@ -33808,8 +33808,8 @@
                   {
                     "ok": true,
                     "name": "clickCheckbox",
-                    "start": 6.847799541,
-                    "end": 6.90721709
+                    "start": 5.517642535,
+                    "end": 5.585395188
                   }
                 ],
                 "seq": 29
@@ -33822,8 +33822,8 @@
                   {
                     "ok": true,
                     "name": "clickOn",
-                    "start": 6.910295714,
-                    "end": 7.213226394
+                    "start": 5.585962528,
+                    "end": 5.867811603
                   }
                 ],
                 "seq": 30
@@ -33836,8 +33836,8 @@
                   {
                     "ok": true,
                     "name": "prose",
-                    "start": 7.215226654,
-                    "end": 7.215276547
+                    "start": 5.868450889,
+                    "end": 5.868476516
                   }
                 ],
                 "seq": 31
@@ -33850,8 +33850,8 @@
                   {
                     "ok": true,
                     "name": "prose",
-                    "start": 7.215819479,
-                    "end": 7.215837593
+                    "start": 5.869003361,
+                    "end": 5.869017407
                   }
                 ],
                 "seq": 32
@@ -33864,8 +33864,8 @@
                   {
                     "ok": true,
                     "name": "seeTextIn",
-                    "start": 7.216325451,
-                    "end": 8.023785842
+                    "start": 5.869561975,
+                    "end": 6.68202695
                   }
                 ],
                 "seq": 33
@@ -33878,8 +33878,8 @@
                   {
                     "ok": true,
                     "name": "clickQuoted",
-                    "start": 8.024338869,
-                    "end": 8.433623163
+                    "start": 6.683154548,
+                    "end": 7.070711154
                   }
                 ],
                 "seq": 34
@@ -33892,8 +33892,8 @@
                   {
                     "ok": true,
                     "name": "prose",
-                    "start": 8.434142541,
-                    "end": 8.434165714
+                    "start": 7.071316466,
+                    "end": 7.071359516
                   }
                 ],
                 "seq": 35
@@ -33906,8 +33906,8 @@
                   {
                     "ok": true,
                     "name": "URIStartsWith",
-                    "start": 8.434563636,
-                    "end": 8.436320276
+                    "start": 7.071867997,
+                    "end": 7.073424546
                   }
                 ],
                 "seq": 36
@@ -33947,8 +33947,8 @@
             "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
             "http://wiki.local/Main_Page": "http://wiki.local/Main_Page",
             "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
-            "__cred_username": "rnd_s8jxjy_1lowyf",
-            "__cred_password": "testpass_1KS75C"
+            "__cred_username": "rnd_s8jxtx_jxmux",
+            "__cred_password": "testpass_U7IHK"
           },
           "trace": true
         },
@@ -33979,8 +33979,8 @@
             "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
             "http://wiki.local/Main_Page": "http://wiki.local/Main_Page",
             "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
-            "__cred_username": "rnd_s8jxjy_1lowyf",
-            "__cred_password": "testpass_1KS75C"
+            "__cred_username": "rnd_s8jxtx_jxmux",
+            "__cred_password": "testpass_U7IHK"
           },
           "context": "world [object Object]"
         },
@@ -34029,14 +34029,14 @@
           "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
           "http://wiki.local/Main_Page": "http://wiki.local/Main_Page",
           "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
-          "__cred_username": "rnd_s8jxjy_1lowyf",
-          "__cred_password": "testpass_1KS75C"
+          "__cred_username": "rnd_s8jxtx_jxmux",
+          "__cred_password": "testpass_U7IHK"
         },
         "trace": true
       },
-      "runStart": 337,
-      "runDuration": 8,
-      "fromStart": 8.484211869
+      "runStart": 652,
+      "runDuration": 7,
+      "fromStart": 7.11703439
     }
   ]
 }

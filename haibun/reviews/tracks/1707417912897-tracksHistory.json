@@ -1,9 +1,0 @@
-{
-  "$schema": "https://raw.githubusercontent.com/withhaibun/schemas/main/schemas/FoundHistories.json#1.36.0",
-  "meta": {
-    "date": 1707417912945,
-    "ok": 0,
-    "fail": 0
-  },
-  "histories": {}
-}
