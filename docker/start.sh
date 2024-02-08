@@ -5,31 +5,27 @@ is_mysql_reachable() {
   dbuser="${MYSQL_USER:-wiki}"
   dbpass="${MYSQL_PASSWORD:-gcpedia}"
 
-  # Ensure required environment variables are set
-  if [[ -z "${DBHOST}" || -z "${dbuser}" || -z "${dbpass}" ]]; then
-    echo "Error: Required environment variables (DBHOST, dbuser, dbpass) are not set."
-    return 1
-  fi
-
   retries=5
   timeout=5
 
   for i in {1..$retries}; do
-    echo "Checking MySQL server connection... ($i/$retries)"
-    if mysqladmin ping -h "${DBHOST}" -u "${dbuser}" -p "${dbpass}" &> /dev/null; then
-      echo "MySQL server at ${DBHOST} is reachable and accepting connections."
+    echo "Checking MySQL server connection ${dbhost} with ${dbuser} and ${dbpass}... ($i/$retries)"
+    if mysqladmin ping -h "$dbhost" -u "$dbuser" -p"$dbpass" 2>&1 | tee pinged | grep -q "mysqld is alive"; then
+      echo "MySQL server at $dbhost is reachable and accepting connections."
       return 0
     fi
 
-    # Check if failure was due to a timeout
-    if [ $? -eq 124 ]; then
+    echo "not alive, response was $(cat pinged)"
+
+    # Check for any errors in output, including timeouts
+    if grep -q "timed out" pinged; then
       echo "Connection timed out after $timeout seconds. Retrying... ($i/$retries)"
     else
-      # Assume auth failure for other exit codes
-      echo "Error: MySQL server at ${DBHOST} failed with $?; might require authentication. Please check username and password."
-      return 1
+      # If not a timeout, print a generic error message and continue trying
+      echo "Error: MySQL server at $dbhost might require authentication or has other issues. Please check username, password, and server status."
     fi
 
+    rm pinged
     sleep "$timeout"
   done
 
