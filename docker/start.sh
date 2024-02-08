@@ -2,9 +2,8 @@
 set -x
 
 is_mysql_reachable() {
-  retries=5
-  wait=5
-  for i in {1..$retries}; do
+  retries=5 # Define the number of retries
+  for ((i=1; i<=$retries; i++)); do
     echo "Checking MySQL server connection , ($i/$retries)"
     if php /var/www/html/maintenance/checkDB.php; then
       echo "MySQL server is reachable and accepting connections."
@@ -12,7 +11,7 @@ is_mysql_reachable() {
     else
       echo "Error: MySQL server might require authentication or has other issues. Please check username, password, and server status."
     fi
-    sleep "$wait"
+    sleep 5
   done
 
   # If all retries fail, assume general error
