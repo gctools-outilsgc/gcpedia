@@ -49,8 +49,12 @@ jobs:
         run: docker-compose logs
 
       - name: wait for it to start
+        continue-on-error: true
         run: |
           npx -y wait-on -t 45s tcp:`./haibun/gcpedia-docker-address.sh`:80
+
+      - name: see the logs
+        run: docker-compose logs
 
       - name: playwright install
         run: |
