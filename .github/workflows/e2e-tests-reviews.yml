@@ -39,12 +39,18 @@ jobs:
           git fetch origin add-e2e-tests
           git merge --allow-unrelated-histories -X theirs origin/add-e2e-tests
 
+      - name: build gcpedia docker-compose
+        run: docker-compose build
+
       - name: start gcpedia docker-compose
         run: docker-compose up -d
 
+      - name: see the logs
+        run: docker-compose logs
+
       - name: wait for it to start
         run: |
-          npx -y wait-on tcp:`./haibun/gcpedia-docker-address.sh`:80
+          npx -y wait-on -t 45s tcp:`./haibun/gcpedia-docker-address.sh`:80
 
       - name: playwright install
         run: |
