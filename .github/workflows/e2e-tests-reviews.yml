@@ -53,8 +53,13 @@ jobs:
         run: |
           npx -y wait-on -t 45s tcp:`./haibun/gcpedia-docker-address.sh`:80
 
-      - name: see the logs
+      - name: See the logs if wait failed
+        if: steps.wait-for-it.outputs.success == 'false'
         run: docker-compose logs
+
+      - name: Fail the job if wait failed
+        if: steps.wait-for-it.outputs.success == 'false'
+        run: exit 1
 
       - name: playwright install
         run: |
