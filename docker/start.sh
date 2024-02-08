@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 is_mysql_reachable() {
-  dbuser="${MYSQL_USER:wiki}"
-  dbpass="${MYSQL_PASSWORD:gcpedia}"
+  dbhost="${DBHOST:-gcpedia-db}"
+  dbuser="${MYSQL_USER:-wiki}"
+  dbpass="${MYSQL_PASSWORD:-gcpedia}"
 
   # Ensure required environment variables are set
   if [[ -z "${DBHOST}" || -z "${dbuser}" || -z "${dbpass}" ]]; then
