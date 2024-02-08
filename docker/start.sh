@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
 is_mysql_reachable() {
+  dbuser="${MYSQL_USER:wiki}"
+  dbpass="${MYSQL_PASSWORD:gcpedia}"
+
   # Ensure required environment variables are set
-  if [[ -z "${MYSQL_HOST}" || -z "${MYSQL_USER}" || -z "${MYSQL_PASSWORD}" ]]; then
-    echo "Error: Required environment variables (MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD) are not set."
+  if [[ -z "${DBHOST}" || -z "${dbuser}" || -z "${dbpass}" ]]; then
+    echo "Error: Required environment variables (DBHOST, dbuser, dbpass) are not set."
     return 1
   fi
 
@@ -12,8 +15,8 @@ is_mysql_reachable() {
 
   for i in {1..$retries}; do
     echo "Checking MySQL server connection... ($i/$retries)"
-    if mysqladmin ping -h "${MYSQL_HOST}" -u "${MYSQL_USER}" -p "${MYSQL_PASSWORD}" &> /dev/null; then
-      echo "MySQL server at ${MYSQL_HOST} is reachable and accepting connections."
+    if mysqladmin ping -h "${DBHOST}" -u "${dbuser}" -p "${dbpass}" &> /dev/null; then
+      echo "MySQL server at ${DBHOST} is reachable and accepting connections."
       return 0
     fi
 
@@ -22,7 +25,7 @@ is_mysql_reachable() {
       echo "Connection timed out after $timeout seconds. Retrying... ($i/$retries)"
     else
       # Assume auth failure for other exit codes
-      echo "Error: MySQL server at ${MYSQL_HOST} failed with $?; might require authentication. Please check username and password."
+      echo "Error: MySQL server at ${DBHOST} failed with $?; might require authentication. Please check username and password."
       return 1
     fi
 
