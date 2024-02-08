@@ -1,15 +1,39 @@
-#!/bin/sh
-
+#!/usr/bin/env bash
 set -x
-trap 'echo "An error occurred"; exit 1' ERR
+
+is_mysql_reachable() {
+  retries=5
+  wait=5
+  for i in {1..$retries}; do
+    echo "Checking MySQL server connection , ($i/$retries)"
+    if php /var/www/html/maintenance/checkDB.php; then
+      echo "MySQL server is reachable and accepting connections."
+      return 0
+    else
+      echo "Error: MySQL server might require authentication or has other issues. Please check username, password, and server status."
+    fi
+    sleep "$wait"
+  done
+
+  # If all retries fail, assume general error
+  echo "Error: Could not connect to MySQL server after $retries attempts."
+  return 1
+}
+
+if is_mysql_reachable; then
+  echo "MySQL server is reachable"
+else
+  echo "Failed to connect to MySQL server."
+  exit 1
+fi
 
 # automated install
 echo "INIT ${INIT}"
-if [ $INIT ]
-then
+
+if [ $INIT ]; then
   rm /var/www/html/LocalSettings.php
   php /var/www/html/maintenance/dockerInstall.php
-  
+
   echo "install complete, swapping in env-based LocalSettings.php"
   cp /var/www/html/docker/LocalSettings.php.docker /var/www/html/LocalSettings.php
 
