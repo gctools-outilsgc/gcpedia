@@ -3,364 +3,25 @@
     {
       "result": {
         "ok": false,
-        "featureResults": [
-          {
-            "path": "/features/create-a11y.feature",
-            "ok": false,
-            "stepResults": [
-              {
-                "ok": true,
-                "in": "Feature: Account Creation Page Accessibility",
-                "sourcePath": "/features/create-a11y.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "feature",
-                    "start": 0.258686193,
-                    "end": 0.25878086
-                  }
-                ],
-                "seq": 1
-              },
-              {
-                "ok": true,
-                "in": "Scenario: Verify the create account page is accessible",
-                "sourcePath": "/features/create-a11y.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "scenario",
-                    "start": 0.259387632,
-                    "end": 0.259539104
-                  }
-                ],
-                "seq": 2
-              },
-              {
-                "ok": true,
-                "in": "go to the \"http://wiki.local/Main_Page\" webpage",
-                "sourcePath": "/features/create-a11y.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "gotoPage",
-                    "start": 0.260111342,
-                    "end": 1.43594911
-                  }
-                ],
-                "seq": 3
-              },
-              {
-                "ok": false,
-                "in": "then click by text \"Create account\"",
-                "sourcePath": "/features/create-a11y.feature",
-                "actionResults": [
-                  {
-                    "ok": false,
-                    "message": "in then click by text \"Create account\": locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByText('Create account')\n",
-                    "topics": {
-                      "caught": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByText('Create account')\n\n    at /home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:443:78\n    at WebPlaywright.withPage (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:125:18)\n    at action (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:443:9)\n    at Function.action (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:28:12)\n    at Function.doFeatureStep (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:120:43)\n    at FeatureExecutor.doFeature (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:92:22)\n    at Function.execute (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:48:29)\n    at runWith (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run.ts:71:14)\n    at run (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run.ts:32:15)\n    at doInstanceRun (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:104:21)\n    at /home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:34:21\n    at runWithOptions (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:40:25)\n    at go (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/cli/src/cli.ts:73:123)"
-                    },
-                    "name": "clickByText",
-                    "start": 1.436849279,
-                    "end": 31.441086534
-                  }
-                ],
-                "seq": 4
-              }
-            ]
+        "shared": {
+          "values": {
+            "Institution email": "//*[@id=\"mw-input-wpemailname\"]",
+            "Institution": "//*[@id=\"mw-input-wpemaildomain\"]",
+            "Password": "//*[@id=\"wpPassword2\"]",
+            "Confirm password": "//*[@id=\"wpRetype\"]",
+            "Real name": "//*[@id=\"wpRealName\"]",
+            "Accept terms": "//*[@id=\"mw-input-wpterms_checkbox\"]",
+            "Create account": "//*[@id=\"wpCreateaccount\"]",
+            "Notification title": "//*[@id=\"mw-notification-area\"]/div/div[1]",
+            "User page created link": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
+            "Main page": "http://wiki.local/Main_Page",
+            "User page": "http://wiki.local/User:Rnd",
+            "_scored": [],
+            "feature": "Account Creation Page Accessibility",
+            "scenario": "Verify the create account page is accessible"
           },
-          {
-            "path": "/features/create-account.feature",
-            "ok": false,
-            "stepResults": [
-              {
-                "ok": true,
-                "in": "Feature: Account Creation Workflow on Wiki",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "feature",
-                    "start": 34.891084298,
-                    "end": 34.891137837
-                  }
-                ],
-                "seq": 1
-              },
-              {
-                "ok": true,
-                "in": "Set Institution email to //*[@id=\"mw-input-wpemailname\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.891743346,
-                    "end": 34.892068411
-                  }
-                ],
-                "seq": 2
-              },
-              {
-                "ok": true,
-                "in": "Set Institution to //*[@id=\"mw-input-wpemaildomain\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.892650736,
-                    "end": 34.892700579
-                  }
-                ],
-                "seq": 3
-              },
-              {
-                "ok": true,
-                "in": "Set Password to //*[@id=\"wpPassword2\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.893283736,
-                    "end": 34.893331765
-                  }
-                ],
-                "seq": 4
-              },
-              {
-                "ok": true,
-                "in": "Set Confirm password to //*[@id=\"wpRetype\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.893841475,
-                    "end": 34.893890396
-                  }
-                ],
-                "seq": 5
-              },
-              {
-                "ok": true,
-                "in": "Set Real name to //*[@id=\"wpRealName\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.894404234,
-                    "end": 34.894524808
-                  }
-                ],
-                "seq": 6
-              },
-              {
-                "ok": true,
-                "in": "Set Accept terms to //*[@id=\"mw-input-wpterms_checkbox\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.895053603,
-                    "end": 34.89512689
-                  }
-                ],
-                "seq": 7
-              },
-              {
-                "ok": true,
-                "in": "Set Create account to //*[@id=\"wpCreateaccount\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.89640413,
-                    "end": 34.896438133
-                  }
-                ],
-                "seq": 8
-              },
-              {
-                "ok": true,
-                "in": "Set Notification title to //*[@id=\"mw-notification-area\"]/div/div[1]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.896835524,
-                    "end": 34.896868535
-                  }
-                ],
-                "seq": 9
-              },
-              {
-                "ok": true,
-                "in": "Set User page created link to //*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.89725764,
-                    "end": 34.897287265
-                  }
-                ],
-                "seq": 10
-              },
-              {
-                "ok": true,
-                "in": "Set Main page to \"http://wiki.local/Main_Page\"",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.897670489,
-                    "end": 34.897704533
-                  }
-                ],
-                "seq": 11
-              },
-              {
-                "ok": true,
-                "in": "Set User page to \"http://wiki.local/User:Rnd\"",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.898082036,
-                    "end": 34.898188044
-                  }
-                ],
-                "seq": 12
-              },
-              {
-                "ok": true,
-                "in": "Scenario: Navigating and creating an account on a local Wiki page",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "scenario",
-                    "start": 34.89857243,
-                    "end": 34.898592207
-                  }
-                ],
-                "seq": 13
-              },
-              {
-                "ok": true,
-                "in": "We start by creating a random username and password, and what will become the user page.",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "prose",
-                    "start": 34.898964391,
-                    "end": 34.899020345
-                  }
-                ],
-                "seq": 14
-              },
-              {
-                "ok": true,
-                "in": "When I have a valid random username <username>",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "hasRandomUsername",
-                    "start": 34.899426973,
-                    "end": 34.899534923
-                  }
-                ],
-                "seq": 15
-              },
-              {
-                "ok": true,
-                "in": "When I have a valid random password <password>",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "hasRandomPassword",
-                    "start": 34.899921614,
-                    "end": 34.900013525
-                  }
-                ],
-                "seq": 16
-              },
-              {
-                "ok": true,
-                "in": "Go to the create account page, and fill it in, starting with the gc institution.",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "prose",
-                    "start": 34.900398062,
-                    "end": 34.900415164
-                  }
-                ],
-                "seq": 17
-              },
-              {
-                "ok": true,
-                "in": "go to the Main page webpage",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "gotoPage",
-                    "start": 34.900781065,
-                    "end": 34.971355217
-                  }
-                ],
-                "seq": 18
-              },
-              {
-                "ok": true,
-                "in": "resize window to 1400x1100",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "resizeWindow",
-                    "start": 34.971938394,
-                    "end": 34.97651455
-                  }
-                ],
-                "seq": 19
-              },
-              {
-                "ok": false,
-                "in": "then click by text \"Create account\"",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": false,
-                    "message": "in then click by text \"Create account\": locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByText('Create account')\n",
-                    "topics": {
-                      "caught": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByText('Create account')\n\n    at /home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:443:78\n    at WebPlaywright.withPage (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:125:18)\n    at action (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:443:9)\n    at Function.action (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:28:12)\n    at Function.doFeatureStep (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:120:43)\n    at FeatureExecutor.doFeature (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:92:22)\n    at Function.execute (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:48:29)\n    at runWith (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run.ts:71:14)\n    at run (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run.ts:32:15)\n    at doInstanceRun (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:104:21)\n    at /home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:34:21\n    at runWithOptions (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:40:25)\n    at go (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/cli/src/cli.ts:73:123)"
-                    },
-                    "name": "clickByText",
-                    "start": 34.976982001,
-                    "end": 64.979272637
-                  }
-                ],
-                "seq": 20
-              }
-            ]
-          }
-        ],
+          "context": "world [object Object]"
+        },
         "tag": {
           "key": "test",
           "sequence": 0,
@@ -380,66 +41,17 @@
             "Main page": "http://wiki.local/Main_Page",
             "User page": "http://wiki.local/User:Rnd",
             "_scored": [],
-            "feature": "Account Creation Workflow on Wiki",
-            "scenario": "Navigating and creating an account on a local Wiki page",
-            "//*[@id=\"mw-input-wpemailname\"]": "//*[@id=\"mw-input-wpemailname\"]",
-            "//*[@id=\"mw-input-wpemaildomain\"]": "//*[@id=\"mw-input-wpemaildomain\"]",
-            "//*[@id=\"wpPassword2\"]": "//*[@id=\"wpPassword2\"]",
-            "//*[@id=\"wpRetype\"]": "//*[@id=\"wpRetype\"]",
-            "//*[@id=\"wpRealName\"]": "//*[@id=\"wpRealName\"]",
-            "//*[@id=\"mw-input-wpterms_checkbox\"]": "//*[@id=\"mw-input-wpterms_checkbox\"]",
-            "//*[@id=\"wpCreateaccount\"]": "//*[@id=\"wpCreateaccount\"]",
-            "//*[@id=\"mw-notification-area\"]/div/div[1]": "//*[@id=\"mw-notification-area\"]/div/div[1]",
-            "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
-            "http://wiki.local/Main_Page": "http://wiki.local/Main_Page",
-            "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
-            "__cred_username": "rnd_s8if9v_18cp1z",
-            "__cred_password": "testpass_VGP89"
+            "feature": "Account Creation Page Accessibility",
+            "scenario": "Verify the create account page is accessible"
           },
           "trace": true
-        },
-        "shared": {
-          "values": {
-            "Institution email": "//*[@id=\"mw-input-wpemailname\"]",
-            "Institution": "//*[@id=\"mw-input-wpemaildomain\"]",
-            "Password": "//*[@id=\"wpPassword2\"]",
-            "Confirm password": "//*[@id=\"wpRetype\"]",
-            "Real name": "//*[@id=\"wpRealName\"]",
-            "Accept terms": "//*[@id=\"mw-input-wpterms_checkbox\"]",
-            "Create account": "//*[@id=\"wpCreateaccount\"]",
-            "Notification title": "//*[@id=\"mw-notification-area\"]/div/div[1]",
-            "User page created link": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
-            "Main page": "http://wiki.local/Main_Page",
-            "User page": "http://wiki.local/User:Rnd",
-            "_scored": [],
-            "feature": "Account Creation Workflow on Wiki",
-            "scenario": "Navigating and creating an account on a local Wiki page",
-            "//*[@id=\"mw-input-wpemailname\"]": "//*[@id=\"mw-input-wpemailname\"]",
-            "//*[@id=\"mw-input-wpemaildomain\"]": "//*[@id=\"mw-input-wpemaildomain\"]",
-            "//*[@id=\"wpPassword2\"]": "//*[@id=\"wpPassword2\"]",
-            "//*[@id=\"wpRetype\"]": "//*[@id=\"wpRetype\"]",
-            "//*[@id=\"wpRealName\"]": "//*[@id=\"wpRealName\"]",
-            "//*[@id=\"mw-input-wpterms_checkbox\"]": "//*[@id=\"mw-input-wpterms_checkbox\"]",
-            "//*[@id=\"wpCreateaccount\"]": "//*[@id=\"wpCreateaccount\"]",
-            "//*[@id=\"mw-notification-area\"]/div/div[1]": "//*[@id=\"mw-notification-area\"]/div/div[1]",
-            "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
-            "http://wiki.local/Main_Page": "http://wiki.local/Main_Page",
-            "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
-            "__cred_username": "rnd_s8if9v_18cp1z",
-            "__cred_password": "testpass_VGP89"
-          },
-          "context": "world [object Object]"
         },
         "failure": {
           "stage": "Execute",
           "error": {
-            "message": "in then click by text \"Create account\": locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByText('Create account')\n",
+            "message": "page.bringToFront: Protocol error (Page.bringToFront): Not attached to an active page",
             "details": {
-              "stack": [],
-              "errors": [
-                "/features/create-a11y.feature",
-                "/features/create-account.feature"
-              ]
+              "stack": "page.bringToFront: Protocol error (Page.bringToFront): Not attached to an active page\n    at BrowserFactory.getBrowserContextPage (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/BrowserFactory.ts:138:18)\n    at WebPlaywright.getPage (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:110:57)\n    at WebPlaywright.withPage (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:122:89)\n    at WebPlaywright.captureScreenshot (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:665:5)\n    at WebPlaywright.captureFailureScreenshot (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:655:12)\n    at WebPlaywright.onFailure (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:131:7)\n    at FeatureExecutor.onFailure (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:143:21)\n    at FeatureExecutor.doFeature (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:99:9)\n    at Function.execute (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:48:29)\n    at runWith (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run.ts:71:14)\n    at run (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run.ts:32:15)\n    at doInstanceRun (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:104:21)\n    at /home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:34:21\n    at runWithOptions (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:40:25)\n    at go (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/cli/src/cli.ts:73:123)"
             }
           }
         }
@@ -458,384 +70,32 @@
           "Main page": "http://wiki.local/Main_Page",
           "User page": "http://wiki.local/User:Rnd",
           "_scored": [],
-          "feature": "Account Creation Workflow on Wiki",
-          "scenario": "Navigating and creating an account on a local Wiki page",
-          "//*[@id=\"mw-input-wpemailname\"]": "//*[@id=\"mw-input-wpemailname\"]",
-          "//*[@id=\"mw-input-wpemaildomain\"]": "//*[@id=\"mw-input-wpemaildomain\"]",
-          "//*[@id=\"wpPassword2\"]": "//*[@id=\"wpPassword2\"]",
-          "//*[@id=\"wpRetype\"]": "//*[@id=\"wpRetype\"]",
-          "//*[@id=\"wpRealName\"]": "//*[@id=\"wpRealName\"]",
-          "//*[@id=\"mw-input-wpterms_checkbox\"]": "//*[@id=\"mw-input-wpterms_checkbox\"]",
-          "//*[@id=\"wpCreateaccount\"]": "//*[@id=\"wpCreateaccount\"]",
-          "//*[@id=\"mw-notification-area\"]/div/div[1]": "//*[@id=\"mw-notification-area\"]/div/div[1]",
-          "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
-          "http://wiki.local/Main_Page": "http://wiki.local/Main_Page",
-          "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
-          "__cred_username": "rnd_s8if9v_18cp1z",
-          "__cred_password": "testpass_VGP89"
+          "feature": "Account Creation Page Accessibility",
+          "scenario": "Verify the create account page is accessible"
         },
         "context": "world [object Object]"
       },
       "output": {
         "ok": false,
-        "featureResults": [
-          {
-            "path": "/features/create-a11y.feature",
-            "ok": false,
-            "stepResults": [
-              {
-                "ok": true,
-                "in": "Feature: Account Creation Page Accessibility",
-                "sourcePath": "/features/create-a11y.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "feature",
-                    "start": 0.258686193,
-                    "end": 0.25878086
-                  }
-                ],
-                "seq": 1
-              },
-              {
-                "ok": true,
-                "in": "Scenario: Verify the create account page is accessible",
-                "sourcePath": "/features/create-a11y.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "scenario",
-                    "start": 0.259387632,
-                    "end": 0.259539104
-                  }
-                ],
-                "seq": 2
-              },
-              {
-                "ok": true,
-                "in": "go to the \"http://wiki.local/Main_Page\" webpage",
-                "sourcePath": "/features/create-a11y.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "gotoPage",
-                    "start": 0.260111342,
-                    "end": 1.43594911
-                  }
-                ],
-                "seq": 3
-              },
-              {
-                "ok": false,
-                "in": "then click by text \"Create account\"",
-                "sourcePath": "/features/create-a11y.feature",
-                "actionResults": [
-                  {
-                    "ok": false,
-                    "message": "in then click by text \"Create account\": locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByText('Create account')\n",
-                    "topics": {
-                      "caught": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByText('Create account')\n\n    at /home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:443:78\n    at WebPlaywright.withPage (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:125:18)\n    at action (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:443:9)\n    at Function.action (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:28:12)\n    at Function.doFeatureStep (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:120:43)\n    at FeatureExecutor.doFeature (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:92:22)\n    at Function.execute (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:48:29)\n    at runWith (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run.ts:71:14)\n    at run (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run.ts:32:15)\n    at doInstanceRun (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:104:21)\n    at /home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:34:21\n    at runWithOptions (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:40:25)\n    at go (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/cli/src/cli.ts:73:123)"
-                    },
-                    "name": "clickByText",
-                    "start": 1.436849279,
-                    "end": 31.441086534
-                  }
-                ],
-                "seq": 4
-              }
-            ]
+        "shared": {
+          "values": {
+            "Institution email": "//*[@id=\"mw-input-wpemailname\"]",
+            "Institution": "//*[@id=\"mw-input-wpemaildomain\"]",
+            "Password": "//*[@id=\"wpPassword2\"]",
+            "Confirm password": "//*[@id=\"wpRetype\"]",
+            "Real name": "//*[@id=\"wpRealName\"]",
+            "Accept terms": "//*[@id=\"mw-input-wpterms_checkbox\"]",
+            "Create account": "//*[@id=\"wpCreateaccount\"]",
+            "Notification title": "//*[@id=\"mw-notification-area\"]/div/div[1]",
+            "User page created link": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
+            "Main page": "http://wiki.local/Main_Page",
+            "User page": "http://wiki.local/User:Rnd",
+            "_scored": [],
+            "feature": "Account Creation Page Accessibility",
+            "scenario": "Verify the create account page is accessible"
           },
-          {
-            "path": "/features/create-account.feature",
-            "ok": false,
-            "stepResults": [
-              {
-                "ok": true,
-                "in": "Feature: Account Creation Workflow on Wiki",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "feature",
-                    "start": 34.891084298,
-                    "end": 34.891137837
-                  }
-                ],
-                "seq": 1
-              },
-              {
-                "ok": true,
-                "in": "Set Institution email to //*[@id=\"mw-input-wpemailname\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.891743346,
-                    "end": 34.892068411
-                  }
-                ],
-                "seq": 2
-              },
-              {
-                "ok": true,
-                "in": "Set Institution to //*[@id=\"mw-input-wpemaildomain\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.892650736,
-                    "end": 34.892700579
-                  }
-                ],
-                "seq": 3
-              },
-              {
-                "ok": true,
-                "in": "Set Password to //*[@id=\"wpPassword2\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.893283736,
-                    "end": 34.893331765
-                  }
-                ],
-                "seq": 4
-              },
-              {
-                "ok": true,
-                "in": "Set Confirm password to //*[@id=\"wpRetype\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.893841475,
-                    "end": 34.893890396
-                  }
-                ],
-                "seq": 5
-              },
-              {
-                "ok": true,
-                "in": "Set Real name to //*[@id=\"wpRealName\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.894404234,
-                    "end": 34.894524808
-                  }
-                ],
-                "seq": 6
-              },
-              {
-                "ok": true,
-                "in": "Set Accept terms to //*[@id=\"mw-input-wpterms_checkbox\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.895053603,
-                    "end": 34.89512689
-                  }
-                ],
-                "seq": 7
-              },
-              {
-                "ok": true,
-                "in": "Set Create account to //*[@id=\"wpCreateaccount\"]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.89640413,
-                    "end": 34.896438133
-                  }
-                ],
-                "seq": 8
-              },
-              {
-                "ok": true,
-                "in": "Set Notification title to //*[@id=\"mw-notification-area\"]/div/div[1]",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.896835524,
-                    "end": 34.896868535
-                  }
-                ],
-                "seq": 9
-              },
-              {
-                "ok": true,
-                "in": "Set User page created link to //*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.89725764,
-                    "end": 34.897287265
-                  }
-                ],
-                "seq": 10
-              },
-              {
-                "ok": true,
-                "in": "Set Main page to \"http://wiki.local/Main_Page\"",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.897670489,
-                    "end": 34.897704533
-                  }
-                ],
-                "seq": 11
-              },
-              {
-                "ok": true,
-                "in": "Set User page to \"http://wiki.local/User:Rnd\"",
-                "sourcePath": "/backgrounds/account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "set",
-                    "start": 34.898082036,
-                    "end": 34.898188044
-                  }
-                ],
-                "seq": 12
-              },
-              {
-                "ok": true,
-                "in": "Scenario: Navigating and creating an account on a local Wiki page",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "scenario",
-                    "start": 34.89857243,
-                    "end": 34.898592207
-                  }
-                ],
-                "seq": 13
-              },
-              {
-                "ok": true,
-                "in": "We start by creating a random username and password, and what will become the user page.",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "prose",
-                    "start": 34.898964391,
-                    "end": 34.899020345
-                  }
-                ],
-                "seq": 14
-              },
-              {
-                "ok": true,
-                "in": "When I have a valid random username <username>",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "hasRandomUsername",
-                    "start": 34.899426973,
-                    "end": 34.899534923
-                  }
-                ],
-                "seq": 15
-              },
-              {
-                "ok": true,
-                "in": "When I have a valid random password <password>",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "hasRandomPassword",
-                    "start": 34.899921614,
-                    "end": 34.900013525
-                  }
-                ],
-                "seq": 16
-              },
-              {
-                "ok": true,
-                "in": "Go to the create account page, and fill it in, starting with the gc institution.",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "prose",
-                    "start": 34.900398062,
-                    "end": 34.900415164
-                  }
-                ],
-                "seq": 17
-              },
-              {
-                "ok": true,
-                "in": "go to the Main page webpage",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "gotoPage",
-                    "start": 34.900781065,
-                    "end": 34.971355217
-                  }
-                ],
-                "seq": 18
-              },
-              {
-                "ok": true,
-                "in": "resize window to 1400x1100",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": true,
-                    "name": "resizeWindow",
-                    "start": 34.971938394,
-                    "end": 34.97651455
-                  }
-                ],
-                "seq": 19
-              },
-              {
-                "ok": false,
-                "in": "then click by text \"Create account\"",
-                "sourcePath": "/features/create-account.feature",
-                "actionResults": [
-                  {
-                    "ok": false,
-                    "message": "in then click by text \"Create account\": locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByText('Create account')\n",
-                    "topics": {
-                      "caught": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByText('Create account')\n\n    at /home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:443:78\n    at WebPlaywright.withPage (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:125:18)\n    at action (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:443:9)\n    at Function.action (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:28:12)\n    at Function.doFeatureStep (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:120:43)\n    at FeatureExecutor.doFeature (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:92:22)\n    at Function.execute (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:48:29)\n    at runWith (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run.ts:71:14)\n    at run (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run.ts:32:15)\n    at doInstanceRun (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:104:21)\n    at /home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:34:21\n    at runWithOptions (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:40:25)\n    at go (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/cli/src/cli.ts:73:123)"
-                    },
-                    "name": "clickByText",
-                    "start": 34.976982001,
-                    "end": 64.979272637
-                  }
-                ],
-                "seq": 20
-              }
-            ]
-          }
-        ],
+          "context": "world [object Object]"
+        },
         "tag": {
           "key": "test",
           "sequence": 0,
@@ -855,66 +115,17 @@
             "Main page": "http://wiki.local/Main_Page",
             "User page": "http://wiki.local/User:Rnd",
             "_scored": [],
-            "feature": "Account Creation Workflow on Wiki",
-            "scenario": "Navigating and creating an account on a local Wiki page",
-            "//*[@id=\"mw-input-wpemailname\"]": "//*[@id=\"mw-input-wpemailname\"]",
-            "//*[@id=\"mw-input-wpemaildomain\"]": "//*[@id=\"mw-input-wpemaildomain\"]",
-            "//*[@id=\"wpPassword2\"]": "//*[@id=\"wpPassword2\"]",
-            "//*[@id=\"wpRetype\"]": "//*[@id=\"wpRetype\"]",
-            "//*[@id=\"wpRealName\"]": "//*[@id=\"wpRealName\"]",
-            "//*[@id=\"mw-input-wpterms_checkbox\"]": "//*[@id=\"mw-input-wpterms_checkbox\"]",
-            "//*[@id=\"wpCreateaccount\"]": "//*[@id=\"wpCreateaccount\"]",
-            "//*[@id=\"mw-notification-area\"]/div/div[1]": "//*[@id=\"mw-notification-area\"]/div/div[1]",
-            "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
-            "http://wiki.local/Main_Page": "http://wiki.local/Main_Page",
-            "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
-            "__cred_username": "rnd_s8if9v_18cp1z",
-            "__cred_password": "testpass_VGP89"
+            "feature": "Account Creation Page Accessibility",
+            "scenario": "Verify the create account page is accessible"
           },
           "trace": true
-        },
-        "shared": {
-          "values": {
-            "Institution email": "//*[@id=\"mw-input-wpemailname\"]",
-            "Institution": "//*[@id=\"mw-input-wpemaildomain\"]",
-            "Password": "//*[@id=\"wpPassword2\"]",
-            "Confirm password": "//*[@id=\"wpRetype\"]",
-            "Real name": "//*[@id=\"wpRealName\"]",
-            "Accept terms": "//*[@id=\"mw-input-wpterms_checkbox\"]",
-            "Create account": "//*[@id=\"wpCreateaccount\"]",
-            "Notification title": "//*[@id=\"mw-notification-area\"]/div/div[1]",
-            "User page created link": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
-            "Main page": "http://wiki.local/Main_Page",
-            "User page": "http://wiki.local/User:Rnd",
-            "_scored": [],
-            "feature": "Account Creation Workflow on Wiki",
-            "scenario": "Navigating and creating an account on a local Wiki page",
-            "//*[@id=\"mw-input-wpemailname\"]": "//*[@id=\"mw-input-wpemailname\"]",
-            "//*[@id=\"mw-input-wpemaildomain\"]": "//*[@id=\"mw-input-wpemaildomain\"]",
-            "//*[@id=\"wpPassword2\"]": "//*[@id=\"wpPassword2\"]",
-            "//*[@id=\"wpRetype\"]": "//*[@id=\"wpRetype\"]",
-            "//*[@id=\"wpRealName\"]": "//*[@id=\"wpRealName\"]",
-            "//*[@id=\"mw-input-wpterms_checkbox\"]": "//*[@id=\"mw-input-wpterms_checkbox\"]",
-            "//*[@id=\"wpCreateaccount\"]": "//*[@id=\"wpCreateaccount\"]",
-            "//*[@id=\"mw-notification-area\"]/div/div[1]": "//*[@id=\"mw-notification-area\"]/div/div[1]",
-            "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
-            "http://wiki.local/Main_Page": "http://wiki.local/Main_Page",
-            "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
-            "__cred_username": "rnd_s8if9v_18cp1z",
-            "__cred_password": "testpass_VGP89"
-          },
-          "context": "world [object Object]"
         },
         "failure": {
           "stage": "Execute",
           "error": {
-            "message": "in then click by text \"Create account\": locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByText('Create account')\n",
+            "message": "page.bringToFront: Protocol error (Page.bringToFront): Not attached to an active page",
             "details": {
-              "stack": [],
-              "errors": [
-                "/features/create-a11y.feature",
-                "/features/create-account.feature"
-              ]
+              "stack": "page.bringToFront: Protocol error (Page.bringToFront): Not attached to an active page\n    at BrowserFactory.getBrowserContextPage (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/BrowserFactory.ts:138:18)\n    at WebPlaywright.getPage (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:110:57)\n    at WebPlaywright.withPage (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:122:89)\n    at WebPlaywright.captureScreenshot (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:665:5)\n    at WebPlaywright.captureFailureScreenshot (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:655:12)\n    at WebPlaywright.onFailure (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/web-playwright/src/web-playwright.ts:131:7)\n    at FeatureExecutor.onFailure (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:143:21)\n    at FeatureExecutor.doFeature (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:99:9)\n    at Function.execute (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/phases/Executor.ts:48:29)\n    at runWith (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run.ts:71:14)\n    at run (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run.ts:32:15)\n    at doInstanceRun (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:104:21)\n    at /home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:34:21\n    at runWithOptions (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/core/src/lib/run-with-options.ts:40:25)\n    at go (/home/runner/work/gcpedia/gcpedia/haibun/node_modules/@haibun/cli/src/cli.ts:73:123)"
             }
           }
         }
@@ -938,27 +149,14 @@
           "Main page": "http://wiki.local/Main_Page",
           "User page": "http://wiki.local/User:Rnd",
           "_scored": [],
-          "feature": "Account Creation Workflow on Wiki",
-          "scenario": "Navigating and creating an account on a local Wiki page",
-          "//*[@id=\"mw-input-wpemailname\"]": "//*[@id=\"mw-input-wpemailname\"]",
-          "//*[@id=\"mw-input-wpemaildomain\"]": "//*[@id=\"mw-input-wpemaildomain\"]",
-          "//*[@id=\"wpPassword2\"]": "//*[@id=\"wpPassword2\"]",
-          "//*[@id=\"wpRetype\"]": "//*[@id=\"wpRetype\"]",
-          "//*[@id=\"wpRealName\"]": "//*[@id=\"wpRealName\"]",
-          "//*[@id=\"mw-input-wpterms_checkbox\"]": "//*[@id=\"mw-input-wpterms_checkbox\"]",
-          "//*[@id=\"wpCreateaccount\"]": "//*[@id=\"wpCreateaccount\"]",
-          "//*[@id=\"mw-notification-area\"]/div/div[1]": "//*[@id=\"mw-notification-area\"]/div/div[1]",
-          "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
-          "http://wiki.local/Main_Page": "http://wiki.local/Main_Page",
-          "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
-          "__cred_username": "rnd_s8if9v_18cp1z",
-          "__cred_password": "testpass_VGP89"
+          "feature": "Account Creation Page Accessibility",
+          "scenario": "Verify the create account page is accessible"
         },
         "trace": true
       },
-      "runStart": 310,
-      "runDuration": 67,
-      "fromStart": 67.869046318
+      "runStart": 369,
+      "runDuration": 1,
+      "fromStart": 1.284110859
     }
   ]
 }
