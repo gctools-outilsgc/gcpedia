@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 
 is_mysql_reachable() {
   retries=5
@@ -18,8 +19,6 @@ is_mysql_reachable() {
   echo "Error: Could not connect to MySQL server after $retries attempts."
   return 1
 }
-set -x
-trap 'echo "An error occurred"; exit 1' ERR
 
 if is_mysql_reachable; then
   echo "MySQL server is reachable"
