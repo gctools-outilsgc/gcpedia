@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -x
 
 is_mysql_reachable() {
   retries=5 # Define the number of retries
@@ -8,8 +7,6 @@ is_mysql_reachable() {
     if php /var/www/html/maintenance/checkDB.php; then
       echo "MySQL server is reachable and accepting connections."
       return 0
-    else
-      echo "Error: MySQL server might require authentication or has other issues. Please check username, password, and server status."
     fi
     sleep 5
   done
