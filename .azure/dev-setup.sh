@@ -3,13 +3,13 @@
 # automated install
 if [ $INIT ]
 then
-  rm /home/site/www/gcwiki/LocalSettings.php
-  php /home/site/www/gcwiki/maintenance/dockerInstall.php
+  rm /home/site/wwwroot/gcwiki/LocalSettings.php
+  php /home/site/wwwroot/gcwiki/maintenance/dockerInstall.php
 
   echo "install complete, swapping in env-based LocalSettings.php"
-  cp /home/site/www/gcwiki/docker/LocalSettings.php.docker /home/site/www/gcwiki/LocalSettings.php
+  cp /home/site/wwwroot/gcwiki/docker/LocalSettings.php.docker /home/site/wwwroot/gcwiki/LocalSettings.php
 
   # run script with the full config
   echo "running update maintenance script"
-  php /home/site/www/gcwiki/maintenance/update.php -q
+  php /home/site/wwwroot/gcwiki/maintenance/update.php -q
 fi
