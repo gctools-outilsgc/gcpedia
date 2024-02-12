@@ -1,7 +1,9 @@
 <?php
 
+$code_root = dirname(dirname(__FILE__));
+
 // check if install is needed
-if( file_exists("/var/www/html/LocalSettings.php") )
+if( file_exists("$code_root/LocalSettings.php") )
   exit("\nLocalSettings.php found, not running install.\n\n");
 
 $enabled = getenv('DOCKER') != ''; //are we in a Docker container?
@@ -40,14 +42,14 @@ mysqli_close($dbconnect);
 error_reporting($etmp);     // revert error reporting to default
 
 // first run regular cli install script
-shell_exec("php /var/www/html/maintenance/install.php --confpath=/var/www/html/ \
+shell_exec("php $code_root/maintenance/install.php  --confpath=$code_root/ \
  --dbserver={$dbhost} --dbtype={$dbtype} --dbuser={$dbuser} --dbpass={$dbpass} --dbname={$dbname} \
  --scriptpath='' --server='{$protocol}://{$host}{$port}' --lang=en  \
  --pass=adminpassword 'GCpedia' 'admin' ");
 echo "basic setup complete\n";
 
 // then add extensions; some require extra configuration so this will get a bit long...
-$local_settings = fopen("/var/www/html/LocalSettings.php", 'a');		// a for append
+$local_settings = fopen("$code_root/LocalSettings.php", 'a');		// a for append
 
 // using single brackets as a simple way to prevent parsing of variable names, etc.
 fwrite($local_settings, returnLocalSettingsText());
@@ -57,7 +59,7 @@ if ($openid) fwrite($local_settings, returnLocalSettingsOpenIDText());
 fclose($local_settings);
 echo "LocalSettings.php setup complete\n";
 
-shell_exec("php /var/www/html/maintenance/update.php");		// some extensions being added will need db changes, update.php will handle that
+shell_exec("php $code_root/maintenance/update.php");		// some extensions being added will need db changes, update.php will handle that
 
 echo "DB update complete\n  Install Complete!\n";
 
