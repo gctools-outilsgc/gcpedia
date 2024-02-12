@@ -74,8 +74,13 @@ jobs:
 
 - job: deploy
   displayName: deploy gcpedia review site code
+  dependsOn: setup
+  condition: succeeded()
   steps:
   - bash: |
       php --version
       composer --version
+      git --version
+      curl --version
+      git clone https://github.com/gctools-outilsgc/gcpedia.git
     displayName: prepare gcpedia code build environment
