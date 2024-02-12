@@ -76,5 +76,6 @@ jobs:
   displayName: deploy gcpedia review site code
   steps:
   - bash: |
-    php --version
-    composer --version
+      php --version
+      composer --version
+    displayName: prepare gcpedia code build environment
