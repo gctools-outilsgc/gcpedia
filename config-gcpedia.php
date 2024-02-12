@@ -8,12 +8,12 @@ $wgLocaltimezone = "America/Montreal";
 $wgSitename = "GCpedia";
 
 $wgLogo = '';
-$wgFavicon = "extensions/SkinTweaksGCpedia/resources/images/favicon.ico";
+$wgFavicon = "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/favicon.ico";
 $wgLogos = [ 
-    '1x' =>  'extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Eng.png',
+    '1x' =>  "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Eng.png",
     'variants' => [
 		'fr' => [
-            '1x' => "extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Fra.png",
+            '1x' => "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Fra.png",
         ],
     ],
 ];
@@ -63,7 +63,7 @@ $wgFooterIcons = [
 	"poweredby" => [null],
     "canada-fip" => [
         "footer" => [
-            "src" => "extensions/SkinTweaksGCpedia/resources/images/wmms-alt.svg",
+            "src" => "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/wmms-alt.svg",
             "url" => null,
             "alt" => "Symbol of the Government of Canada",
             "width" => 186,
