@@ -83,7 +83,7 @@ jobs:
       git --version
       curl --version
       git clone https://github.com/gctools-outilsgc/gcpedia.git
-      cd gcpedia
+      cd gcpedia && git submodule update --recursive --init
       cd extensions/OpenIDConnect && composer install --no-dev --no-interaction
       cd ../PluggableAuth && composer install --no-dev --no-interaction
       cd ../TimedMediaHandler && composer install --no-dev --no-interaction
