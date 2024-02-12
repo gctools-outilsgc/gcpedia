@@ -18,7 +18,7 @@ pool:
 
 jobs:
 - job: setup
-  displayName: build and set up review site
+  displayName: build and set up review site infrastructure
   steps:
   - task: Docker@2
     displayName: Build and Push Container image to ACR
@@ -71,3 +71,10 @@ jobs:
                 $(commentStringGCPedia) https://gcpedia-dev-pr-$(System.PullRequest.PullRequestNumber).azurewebsites.net/ '
     condition: and(succeeded(), eq(variables['commentExists'], '0'))
     displayName: Post a comment to PR with link to review site
+
+- job: deploy
+  displayName: deploy gcpedia review site code
+  steps:
+  - script:
+    php --version
+    composer --version
