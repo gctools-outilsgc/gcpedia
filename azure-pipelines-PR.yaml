@@ -84,7 +84,7 @@ jobs:
       curl --version
       mkdir -p /tmp/gcpedia_build/gcwiki && cd /tmp/gcpedia_build
       git clone https://github.com/gctools-outilsgc/gcpedia.git
-      cd gcpedia && git submodule update --recursive --init
+      cd gcpedia && git submodule init && git submodule update --recursive --init
       cd extensions/OpenIDConnect && composer install --no-dev --no-interaction
       cd ../PluggableAuth && composer install --no-dev --no-interaction
       cd ../TimedMediaHandler && composer install --no-dev --no-interaction
@@ -105,6 +105,20 @@ jobs:
       rm -r "$GNUPGHOME" mediawiki.tar.gz.sig mediawiki.tar.gz
       ls -la
       cp -r /tmp/gcpedia_build/gcpedia/* ./
+      cp -r /tmp/gcpedia_build/gcpedia/.azure ./
       ls -la
+
+    - task: ArchiveFiles@2
+      displayName: 'Archive files'
+      inputs:
+        rootFolderOrFile: '/tmp/gcpedia_build/gcwiki'
+        includeRootFolder: true
+        archiveType: zip
+        archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        replaceExistingArchive: true
+
+    - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      displayName: 'Upload package'
+      artifact: drop
       
     displayName: prepare gcpedia code build environment
