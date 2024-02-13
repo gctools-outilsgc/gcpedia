@@ -107,6 +107,7 @@ jobs:
       cp -r /tmp/gcpedia_build/gcpedia/* ./
       cp -r /tmp/gcpedia_build/gcpedia/.azure ./
       ls -la
+    displayName: prepare gcpedia code build environment
 
   - task: ArchiveFiles@2
     displayName: 'Archive files'
@@ -121,4 +122,3 @@ jobs:
     displayName: 'Upload package'
     artifact: drop
       
-    displayName: prepare gcpedia code build environment
