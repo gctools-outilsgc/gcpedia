@@ -121,4 +121,10 @@ jobs:
   - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
     displayName: 'Upload package'
     artifact: drop
-      
+
+  - task: AzureWebApp@1
+    displayName: 'Deploy Azure Web App gcpedia PR code'
+    inputs:
+      azureSubscription: $(azSubServiceConnection)
+      appName: gcpedia-dev-pr-$(System.PullRequest.PullRequestNumber)
+      package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
