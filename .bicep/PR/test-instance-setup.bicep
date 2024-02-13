@@ -17,6 +17,8 @@ param appCommandLine string = ''
 param scriptPath string = ''
 param articlePath string = ''
 
+param cacheType string = ''
+
 @allowed(['gcpedia', 'gcwiki'])
 param siteType string = 'gcwiki'
 
@@ -44,5 +46,6 @@ module wiki './wiki-test-instance.bicep' = {
     appCommandLine: appCommandLine
     scriptPath: scriptPath
     articlePath: articlePath
+    cacheType: cacheType
   }
 }

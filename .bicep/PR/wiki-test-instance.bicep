@@ -25,6 +25,8 @@ param appCommandLine string = ''
 param scriptPath string = ''
 param articlePath string = ''
 
+param cacheType string = ''
+
 @allowed([
   'gcpedia', 'gcwiki'
 ])
@@ -114,6 +116,10 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
         {
           name: 'ARTICLE_PATH'
           value: articlePath
+        }
+        {
+          name: 'CACHE_TYPE'
+          value: cacheType
         }
         {
           name: 'WIKI_DEBUG'
