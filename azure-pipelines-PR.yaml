@@ -104,7 +104,7 @@ jobs:
       gpgconf --kill all
       rm -r "$GNUPGHOME" mediawiki.tar.gz.sig mediawiki.tar.gz
       ls -la
-      cp -r /tmp/gcpedia_build/* ./
+      cp -r /tmp/gcpedia_build/gcpedia/* ./
       ls -la
       
     displayName: prepare gcpedia code build environment
