@@ -127,4 +127,4 @@ jobs:
     inputs:
       azureSubscription: $(azSubServiceConnection)
       appName: gcpedia-dev-pr-$(System.PullRequest.PullRequestNumber)
-      package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+      package: $(Build.ArtifactStagingDirectory)/drop/$(Build.BuildId).zip
