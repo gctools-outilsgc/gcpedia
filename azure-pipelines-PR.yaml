@@ -99,6 +99,12 @@ jobs:
       441276E9CCD15F44F6D97D18C119E1A64D70938E \
       F7F780D82EBFB8A56556E7EE82403E59F9F8CD79 \
       1D98867E82982C8FE0ABC25F9B69B3109D3BB7B0
-      gpg --batch --verify mediawiki.tar.gz.sig mediawiki.tar.gz;
+      gpg --batch --verify mediawiki.tar.gz.sig mediawiki.tar.gz
+      tar -x --strip-components=1 -f mediawiki.tar.gz
+      gpgconf --kill all
+      rm -r "$GNUPGHOME" mediawiki.tar.gz.sig mediawiki.tar.gz
+      ls -la
+      cp -r /tmp/gcpedia_build/* ./
+      ls -la
       
     displayName: prepare gcpedia code build environment
