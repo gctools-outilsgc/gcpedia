@@ -42,7 +42,7 @@ jobs:
         az deployment sub create --location $LOCATION --template-file $TEMPLATE_FILE \
           --parameters prNumber=$PR dbServerName=$DBSERVERNAME dbServerRG=$DBRG containerTag=$TAG dbServerPass=$(REVIEW_DB_SERVER_PASS) \
           subnetID=$SUBNET_ID planID=$PLAN_ID acrName=$ACR_NAME siteType=gcpedia phpEnv='php|8.2' scriptPath='/gcwiki' articlePath='/wiki/$1' \
-          appCommandLine='bash /home/site/wwwroot/gcwiki/.azure/dev-setup.sh; bash /home/site/wwwroot/gcwiki/.azure/env-init.sh' cacheType='CACHE_MEMCACHED'
+          appCommandLine='bash /home/site/wwwroot/gcwiki/.azure/dev-setup.sh; bash /home/site/wwwroot/gcwiki/.azure/env-init.sh; service memcached start' cacheType='CACHE_MEMCACHED'
     env:
       DBRG: $(db_resource_group)
       DBSERVERNAME: $(review_db_server_name)
