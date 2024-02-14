@@ -194,3 +194,5 @@ wfLoadExtension( "RandomImage" );
 wfLoadExtension( "TimedMediaHandler" );
 $wgEnableTranscode = false;
 $wgFFmpegLocation = '/usr/bin/ffmpeg';
+
+wfLoadExtension("SidebarTitleText");
