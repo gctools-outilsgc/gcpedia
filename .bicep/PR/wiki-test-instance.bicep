@@ -18,6 +18,16 @@ param containerSHA string = ''
 param acrName string = 'wikitestacr'
 
 @allowed([
+  '', 'php|8.2'
+])
+param phpEnv string = ''
+param appCommandLine string = ''
+param scriptPath string = ''
+param articlePath string = ''
+
+param cacheType string = ''
+
+@allowed([
   'gcpedia', 'gcwiki'
 ])
 param siteType string = 'gcwiki'
@@ -25,7 +35,8 @@ param siteType string = 'gcwiki'
 var DATAROOT = '/var/www/html/images/'
 
 var imageRepoName = toLower('wiki_${prName}')
-var linuxFxVersion = empty(containerSHA) ? 'DOCKER|${acrName}.azurecr.io/${imageRepoName}:${containerTag}' : 'DOCKER|${acrName}.azurecr.io/${imageRepoName}@sha256:${containerSHA}'
+var containerImage = empty(containerSHA) ? 'DOCKER|${acrName}.azurecr.io/${imageRepoName}:${containerTag}' : 'DOCKER|${acrName}.azurecr.io/${imageRepoName}@sha256:${containerSHA}'
+var linuxFxVersion = empty(phpEnv) ? containerImage : phpEnv
 
 var appName = '${siteType}-dev-${prName}'
 var dbName = '${siteType}-${prName}'
@@ -47,6 +58,7 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
     serverFarmId: planID
     siteConfig: {
       linuxFxVersion: linuxFxVersion
+      appCommandLine: appCommandLine
       acrUseManagedIdentityCreds: true
       appSettings: [
         {
@@ -86,8 +98,32 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
           value: dbName
         }
         {
-          name: 'HOST'
+          name: 'DBSSL'
+          value: '0'
+        }
+        {
+          name: 'WIKI_HOST'
           value: '${appName}.azurewebsites.net'
+        }
+        {
+          name: 'WIKI_PORT'
+          value: ''
+        }
+        {
+          name: 'SCRIPT_PATH'
+          value: scriptPath
+        }
+        {
+          name: 'ARTICLE_PATH'
+          value: articlePath
+        }
+        {
+          name: 'CACHE_TYPE'
+          value: cacheType
+        }
+        {
+          name: 'WIKI_DEBUG'
+          value: 'true'
         }
       ]
 

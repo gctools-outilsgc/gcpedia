@@ -1,6 +1,6 @@
 <?php
 
-$wgArticlePath = "/$1";
+$wgUsePathInfo = true;
 
 wfLoadSkin( 'Vector' );
 $wgLocaltimezone = "America/Montreal";
@@ -8,17 +8,31 @@ $wgLocaltimezone = "America/Montreal";
 $wgSitename = "GCpedia";
 
 $wgLogo = '';
-$wgFavicon = "extensions/SkinTweaksGCpedia/resources/images/favicon.ico";
+$wgFavicon = "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/favicon.ico";
 $wgLogos = [ 
-    '1x' =>  'extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Eng.png',
+    '1x' =>  "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Eng.png",
     'variants' => [
 		'fr' => [
-            '1x' => "extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Fra.png",
+            '1x' => "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Fra.png",
         ],
     ],
 ];
 
-$wgNamespacesWithSubpages[NS_MAIN] = true;
+# To enable displayed menu structure when creating sub-pages
+$wgNamespacesWithSubpages = array_fill(0, 100, true);
+
+$wgAllowUserCss = true;
+$wgAllowUserJs  = true;
+
+$wgExtraNamespaces[100] = "Portal";
+$wgExtraNamespaces[101] = "Portal_Talk";
+$wgNamespacesWithSubpages[100] = true;
+$wgNamespacesWithSubpages[101] = true;
+
+$wgExtraNamespaces[102] = "Community";
+$wgExtraNamespaces[103] = "Community_Talk";
+$wgNamespacesWithSubpages[102] = true;
+$wgNamespacesWithSubpages[103] = true;
   
 # Disable EDIT for 'everyone'
 $wgGroupPermissions['*']['edit']              = false;
@@ -32,8 +46,10 @@ $wgGroupPermissions['user']['undelete']       = true;
 $wgGroupPermissions['user']['deletedhistory'] = true;
 
 $wgEnableUploads = true;
-$wgFileExtensions = array('pub','png','gif','jpg','jpeg','pdf','xls','docx','pptx','doc','ppt','svg','xml','mpg','odp','odt','wmv','flv','vsd','mpp','ai','zip','txt','wpd','rtf','drf','xlsx','xlsm', 'oft');
+$wgFileExtensions = array('pub','png','gif','jpg','jpeg','pdf','xls','docx','pptx','doc','ppt','svg','xml','mpg','odp','odt','wmv','flv','vsd','mpp','ai','zip','txt','wpd','rtf','drf','xlsx','xlsm', 'oft','swf', 'ppsx','dotx', 'potx');
+$wgMaxUploadSize = 1024*1024*32;
 
+$wgRawHtml = true;
 $wgUseAjax = true;
 $wgEnableAPI = true;
 
@@ -47,7 +63,7 @@ $wgFooterIcons = [
 	"poweredby" => [null],
     "canada-fip" => [
         "footer" => [
-            "src" => "extensions/SkinTweaksGCpedia/resources/images/wmms-alt.svg",
+            "src" => "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/wmms-alt.svg",
             "url" => null,
             "alt" => "Symbol of the Government of Canada",
             "width" => 186,

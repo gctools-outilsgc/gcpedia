@@ -72,14 +72,14 @@ services:
     environment:
       - DOCKER=1
       - DBHOST=gcpedia-db
-      - HOST=wiki.local
-      - PROTOCOL=http
-      - PORT=
+      - WIKI_HOST=wiki.local
+      - WIKI_PROTOCOL=http
+      - WIKI_PORT=
       - INIT=wiki
       - DBSSL=0
       - OPENID=
       - SITE=gcpedia
-      - DEBUG=true
+      - WIKI_DEBUG=true
 #      - OAUTH=true
 #      - USESAML=false
 
