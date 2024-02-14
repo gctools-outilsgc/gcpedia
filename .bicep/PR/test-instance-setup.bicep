@@ -9,6 +9,16 @@ param subnetID string
 param planID string
 param acrName string = 'wikitestacr'
 
+@allowed([
+  '', 'php|8.2'
+])
+param phpEnv string = ''
+param appCommandLine string = ''
+param scriptPath string = ''
+param articlePath string = ''
+
+param cacheType string = ''
+
 @allowed(['gcpedia', 'gcwiki'])
 param siteType string = 'gcwiki'
 
@@ -32,5 +42,10 @@ module wiki './wiki-test-instance.bicep' = {
     dbServerPass: dbServerPass
     acrName: acrName
     siteType: siteType
+    phpEnv: phpEnv
+    appCommandLine: appCommandLine
+    scriptPath: scriptPath
+    articlePath: articlePath
+    cacheType: cacheType
   }
 }
