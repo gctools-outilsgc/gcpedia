@@ -82,12 +82,11 @@ jobs:
       composer --version
       git --version
       curl --version
-      mkdir -p /tmp/gcpedia_build/gcwiki
-      cd gcpedia && git submodule init && git submodule update --recursive --init
+      git submodule init && git submodule update --recursive --init
       cd extensions/OpenIDConnect && composer install --no-dev --no-interaction
       cd ../PluggableAuth && composer install --no-dev --no-interaction
       cd ../TimedMediaHandler && composer install --no-dev --no-interaction
-      cd /tmp/gcpedia_build/gcwiki
+      mkdir -p /tmp/gcpedia_build/gcwiki && cd /tmp/gcpedia_build/gcwiki
       MEDIAWIKI_MAJOR_VERSION=1.40 && MEDIAWIKI_VERSION=1.40.2
       curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz" -o mediawiki.tar.gz
       curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz.sig" -o mediawiki.tar.gz.sig
