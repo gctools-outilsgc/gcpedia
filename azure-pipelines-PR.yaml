@@ -100,7 +100,6 @@ jobs:
       tar -x --strip-components=1 -f mediawiki.tar.gz
       gpgconf --kill all
       rm -r "$GNUPGHOME" mediawiki.tar.gz.sig mediawiki.tar.gz
-      echo "$(Pipeline.Workspace)/s/" && ls -la $(Pipeline.Workspace)/s/
       cp -r $(Pipeline.Workspace)/s/* ./
       cp -r $(Pipeline.Workspace)/s/.azure ./
       ls -la
