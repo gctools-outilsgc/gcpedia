@@ -101,8 +101,8 @@ jobs:
       tar -x --strip-components=1 -f mediawiki.tar.gz
       gpgconf --kill all
       rm -r "$GNUPGHOME" mediawiki.tar.gz.sig mediawiki.tar.gz
-      cp -r $(rootFolder)/* ./
-      cp -r $(rootFolder)/.azure ./
+      cp -r $(Pipeline.Workspace)/* ./
+      cp -r $(Pipeline.Workspace)/.azure ./
       ls -la
     displayName: prepare gcpedia code build environment
 
