@@ -147,9 +147,9 @@ wfLoadSkin( 'Vector' );
 $GAaccount = (getenv('GAACCOUNT') != '') ? getenv('GAACCOUNT') : 'UA-xxxxxxx-x';
 // is this gcpedia or gcwiki? gcwiki extensions are a subset of gcpedia's so default to gcwiki
 if ( getenv('SITE') == 'gcpedia' )
-	include('./config-gcpedia.php');
+	include('$IP/config-gcpedia.php');
 else
-	include('./config.php');
+	include('$IP/config.php');
 
 if (getenv('WIKI_DEBUG') === 'true') {
 	$wgShowExceptionDetails = true;
