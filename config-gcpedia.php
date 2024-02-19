@@ -191,6 +191,7 @@ wfLoadExtension( "AjaxShowEditors" );
 wfLoadExtension( "MsCalendar" );
 wfLoadExtension( "RandomImage" );
 
+wfLoadExtension( "Widgets" );
 wfLoadExtension( "TimedMediaHandler" );
 $wgEnableTranscode = false;
 $wgFFmpegLocation = '/usr/bin/ffmpeg';
