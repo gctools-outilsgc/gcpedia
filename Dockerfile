@@ -54,6 +54,7 @@ COPY ./docker/LocalSettings.php.docker /var/www/html/LocalSettings.php
 RUN mkdir /super
 RUN mv /var/www/html/docker/secrets.php /super/secrets.php
 RUN chown www-data:www-data /super/secrets.php
+RUN chown www-data:www-data /var/www/html/extensions/Widgets/compiled_templates/
 
 EXPOSE 80
 
