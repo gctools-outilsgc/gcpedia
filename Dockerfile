@@ -32,6 +32,7 @@ ARG COMPOSER_NO_INTERACTION=1
 RUN cd /app/extensions/OpenIDConnect && composer install --no-dev
 RUN cd /app/extensions/PluggableAuth && composer install --no-dev
 RUN cd /app/extensions/TimedMediaHandler && composer install --no-dev
+RUN cd /app/extensions/Widgets && composer install --no-dev
 
 # Cleanup before copying over to next stage - version history takes up a lot of space
 RUN rm -rf .git/
@@ -53,6 +54,7 @@ COPY ./docker/LocalSettings.php.docker /var/www/html/LocalSettings.php
 RUN mkdir /super
 RUN mv /var/www/html/docker/secrets.php /super/secrets.php
 RUN chown www-data:www-data /super/secrets.php
+RUN chown www-data:www-data /var/www/html/extensions/Widgets/compiled_templates/
 
 EXPOSE 80
 

@@ -42,7 +42,7 @@ jobs:
         az deployment sub create --location $LOCATION --template-file $TEMPLATE_FILE \
           --parameters prNumber=$PR dbServerName=$DBSERVERNAME dbServerRG=$DBRG containerTag=$TAG dbServerPass=$(REVIEW_DB_SERVER_PASS) \
           subnetID=$SUBNET_ID planID=$PLAN_ID acrName=$ACR_NAME siteType=gcpedia phpEnv='php|8.2' scriptPath='/gcwiki' articlePath='/wiki/$1' \
-          appCommandLine='bash /home/site/wwwroot/gcwiki/.azure/dev-setup.sh; bash /home/site/wwwroot/gcwiki/.azure/env-init.sh; service memcached start' cacheType='CACHE_MEMCACHED'
+          appCommandLine='bash /home/site/wwwroot/gcwiki/.azure/dev-setup.sh; bash /home/site/wwwroot/gcwiki/.azure/env-init.sh; service memcached start; php /home/site/wwwroot/gcwiki/maintenance/update.php' cacheType='CACHE_MEMCACHED'
     env:
       DBRG: $(db_resource_group)
       DBSERVERNAME: $(review_db_server_name)
@@ -86,6 +86,7 @@ jobs:
       cd extensions/OpenIDConnect && composer install --no-dev --no-interaction
       cd ../PluggableAuth && composer install --no-dev --no-interaction
       cd ../TimedMediaHandler && composer install --no-dev --no-interaction
+      cd ../Widgets && composer install --no-dev --no-interaction
       mkdir -p /tmp/gcpedia_build/gcwiki && cd /tmp/gcpedia_build/gcwiki
       MEDIAWIKI_MAJOR_VERSION=1.40 && MEDIAWIKI_VERSION=1.40.2
       curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz" -o mediawiki.tar.gz

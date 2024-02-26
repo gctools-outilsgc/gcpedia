@@ -65,6 +65,7 @@ services:
       - /var/www/html/extensions/MsCalendar
       - /var/www/html/extensions/RandomImage
       - /var/www/html/extensions/TimedMediaHandler
+      - /var/www/html/extensions/Widgets
     links:
       - gcpedia-db
     depends_on:
