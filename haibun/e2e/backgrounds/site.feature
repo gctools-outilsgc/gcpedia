@@ -9,3 +9,5 @@ Concat Site address and "Main_Page" as Main
 Set Login to //*[@id="wpName1"]
 Set Password to //*[@id="wpPassword1"]
 Set Log in button to //*[@id="wpLoginAttempt"]
+
+Set Wiki editor to //*[@id="wpTextbox1"]
