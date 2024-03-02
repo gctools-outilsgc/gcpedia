@@ -42,6 +42,9 @@ jobs:
       - name: build gcpedia docker-compose
         run: docker-compose build
 
+      - name: make images directory
+        run: mkdir images
+
       - name: set images permissions
         run: chmod 777 images/
 
