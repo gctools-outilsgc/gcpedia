@@ -1,6 +1,6 @@
 Feature: Account Creation Workflow on Wiki
 
-  Backgrounds: account, site
+  Backgrounds: site, form-create-account
 
   Scenario: Navigating and creating an account on a local Wiki page
 
@@ -21,8 +21,8 @@ Feature: Account Creation Workflow on Wiki
     pause for 1s
     Press "Tab"
     Type "c"
-    input <password> for Password
-    input <password> for Confirm password
+    input <password> for Create password input
+    input <password> for Confirm password input
     input "test account" for Real name
     Click the checkbox Accept terms
     Click on Create account

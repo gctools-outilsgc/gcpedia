@@ -1,8 +1,8 @@
 Set Institution email to //*[@id="mw-input-wpemailname"]
 Set Institution to //*[@id="mw-input-wpemaildomain"]
 
-Set Password to //*[@id="wpPassword2"]
-Set Confirm password to //*[@id="wpRetype"]
+Set Create password input to //*[@id="wpPassword2"]
+Set Confirm password input to //*[@id="wpRetype"]
 Set Real name to //*[@id="wpRealName"]
 
 Set Accept terms to //*[@id="mw-input-wpterms_checkbox"]
