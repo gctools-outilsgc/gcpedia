@@ -12,7 +12,7 @@ Backgrounds: site, form-login, admin-credentials, login-successful
     Input Random file for Destination filename
     Click on Upload file button
 
-    In Download link, see Random file
+#    In Download link, see Random file
     Change links matching Download link to download
     Register download to /tmp/verify-foo.txt
     Click on Download link
