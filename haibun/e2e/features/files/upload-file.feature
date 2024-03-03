@@ -1,3 +1,4 @@
+Feature: upload small file
 
 Backgrounds: site, form-login, admin-credentials, login-successful
 
