@@ -1,3 +1,4 @@
+Feature: upload 10M file
 
 Backgrounds: site, form-login, admin-credentials, login-successful
 
