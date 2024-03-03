@@ -25,3 +25,9 @@ add an entry into your hosts file for
 and you now have a fully installed instance of the wiki (visual editor service extra, needs at bit more work) that you can reach at wiki.local! 
 
 This setup will also reflect any changes that you make to the code you just pulled without needing to do anything extra.
+
+## e2e reviews
+
+Available [here](https://gctools-outilsgc.github.io/gcpedia/haibun/reviews/dashboard.html).
+
+
