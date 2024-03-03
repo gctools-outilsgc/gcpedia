@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - add-e2e-tests
+      - main
   pull_request:
 
 permissions:
@@ -36,8 +36,8 @@ jobs:
 
       - name: Merge base branch
         run: |
-          git fetch origin add-e2e-tests
-          git merge --allow-unrelated-histories -X theirs origin/add-e2e-tests
+          git fetch origin main
+          git merge --allow-unrelated-histories -X theirs origin/main
 
       - name: build gcpedia docker-compose
         run: docker-compose build
@@ -83,7 +83,7 @@ jobs:
           cd haibun
           npm run docker-test
 
-      - name: run e2e tests and publish
+      - name: run publish
         run: |
           cd haibun
           npm run publish
