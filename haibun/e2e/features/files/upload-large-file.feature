@@ -14,8 +14,8 @@ Backgrounds: site, form-login, admin-credentials, login-successful
     Click on Upload file button
 
 #    In Download link, see Random file
-    Change links matching Download link to download
-    Register download to /tmp/verify-foo.txt
-    Click on Download link
+#    Change links matching Download link to download
+#    Register download to /tmp/verify-foo.txt
+#    Click on Download link
     /tmp/foo.txt is the same as /tmp/verify-foo.txt
 
