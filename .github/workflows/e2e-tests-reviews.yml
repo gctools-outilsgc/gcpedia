@@ -1,0 +1,100 @@
+name: "Haibun e2e tests"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: "${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  e2e_test_and_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v3.5.1
+      - uses: actions/checkout@v4
+      # - uses: fregante/setup-git-user@v2
+        with:
+          repository: gctools-outilsgc/gcpedia
+          token: ${{ secrets.BOT_ACCESS_TOKEN }}
+          node-version: 18
+          ref: gh-pages
+
+      - name: Set up GitHub Actions bot identity
+        run: |
+          git config user.name "github-actions[pat]"
+          git config user.email "vid_github@zooid.org"
+
+      - name: Merge base branch
+        run: |
+          git fetch origin main
+          git merge --allow-unrelated-histories -X theirs origin/main
+
+      - name: build gcpedia docker-compose
+        run: docker-compose build
+
+      - name: make images directory
+        run: mkdir images
+
+      - name: set images permissions
+        run: chmod 777 images/
+
+      - name: start gcpedia docker-compose
+        run: docker-compose up -d
+
+      - name: see the logs
+        run: docker-compose logs
+
+      - name: wait for it to start
+        continue-on-error: true
+        run: |
+          npx -y wait-on -t 45s tcp:`./haibun/gcpedia-docker-address.sh`:80
+
+      - name: See the logs if wait failed
+        if: steps.wait-for-it.outputs.success == 'false'
+        run: docker-compose logs
+
+      - name: Fail the job if wait failed
+        if: steps.wait-for-it.outputs.success == 'false'
+        run: exit 1
+
+      - name: playwright install
+        run: |
+          npx playwright install-deps
+          npx playwright install
+                
+      - name: install haibun dependencies
+        run: |
+          cd haibun
+          npm ci
+
+      - name: run e2e tests
+        continue-on-error: true
+        run: |
+          cd haibun
+          npm run docker-test
+
+      - name: run publish
+        run: |
+          cd haibun
+          npm run publish
+
+      - name: Add reviews
+        run: |
+          cd haibun
+          git add ./reviews/
+          git status
+          ls -lat
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "update e2e test reviews"

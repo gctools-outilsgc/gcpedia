@@ -84,7 +84,6 @@ services:
 #      - OAUTH=true
 #      - USESAML=false
 
-
   # ###########################################################################
   # The Electron render service container for the ElectronPdfService Extension.
   # Will be available to gcpedia at elec-render:3000
