@@ -28,7 +28,7 @@ function addTopBar(){
     </datalist> \
                    <!-- hidden forms for federated search --> \
                    <input type='hidden' name='a'  value='s'> \
-                   <input type='hidden' name='s'  value='2'> \
+                   <input type='hidden' name='s'  value='1'> \
                    <input type='hidden' name='chk3'  value='True'> \
     </div> \
     <div class='form-group submit'> \

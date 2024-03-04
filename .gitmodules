@@ -108,3 +108,6 @@
 [submodule "extensions/TimedMediaHandler"]
 	path = extensions/TimedMediaHandler
 	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/TimedMediaHandler
+[submodule "extensions/Widgets"]
+	path = extensions/Widgets
+	url = https://gerrit.wikimedia.org/r/mediawiki/extensions/Widgets
