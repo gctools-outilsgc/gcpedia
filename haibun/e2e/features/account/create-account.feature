@@ -36,3 +36,4 @@ Feature: Account Creation Workflow on Wiki
   Confirm we're on the new user page.
 
     URI starts with User page
+pause for 2s
