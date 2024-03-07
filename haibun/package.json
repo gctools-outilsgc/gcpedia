@@ -8,7 +8,7 @@
   "scripts": {
     "test": "HAIBUN_LOG_LEVEL=log HAIBUN_O_A11YSTEPPER_STORAGE=StorageFS HAIBUN_O_OUTREVIEWS_STORAGE=StorageFS HAIBUN_KEY=test HAIBUN_TRACE=true HAIBUN_O_WEBPLAYWRIGHT_STORAGE=StorageFS HAIBUN_O_WEBPLAYWRIGHT_CAPTURE_VIDEO=true haibun-cli e2e --config e2e/local",
     "publish": "HAIBUN_O_OUTREVIEWS_PUBLISH_ROOT=./reviews HAIBUN_O_OUTREVIEWS_STORAGE=StorageFS HAIBUN_O_OUTREVIEWS_PUBLISH_STORAGE=StorageFS haibun-cli --config publish/local publish",
-    "docker-test": "HAIBUN_O_WEBPLAYWRIGHT_ARGS=\"--host-resolver-rules=MAP wiki.local `./gcpedia-docker-address.sh`:80\" npm run test"
+    "docker-test": "HAIBUN_O_WEBPLAYWRIGHT_ARGS=\"--host-resolver-rules=MAP wiki.local `./gcpedia-docker-address.sh`:80\"HAIBUN_O_WEBPLAYWRIGHT_CAPTURE_PLAYWRIGHT_TRACE=true npm run test"
   },
   "license": "ISC",
   "dependencies": {
