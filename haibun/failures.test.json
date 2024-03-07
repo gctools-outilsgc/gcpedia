@@ -55,8 +55,8 @@
             "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
             "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
             "scenario": "Navigating and creating an account on a local Wiki page",
-            "__cred_username": "rnd_s9yg4h_1i5q4w",
-            "__cred_password": "testpass_1JCS3G"
+            "__cred_username": "rnd_s9zbvw_lxo6n",
+            "__cred_password": "testpass_SLBXF"
           },
           "context": "world [object Object]"
         },
@@ -117,8 +117,8 @@
             "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
             "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
             "scenario": "Navigating and creating an account on a local Wiki page",
-            "__cred_username": "rnd_s9yg4h_1i5q4w",
-            "__cred_password": "testpass_1JCS3G"
+            "__cred_username": "rnd_s9zbvw_lxo6n",
+            "__cred_password": "testpass_SLBXF"
           },
           "trace": true
         },
@@ -184,8 +184,8 @@
           "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
           "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
           "scenario": "Navigating and creating an account on a local Wiki page",
-          "__cred_username": "rnd_s9yg4h_1i5q4w",
-          "__cred_password": "testpass_1JCS3G"
+          "__cred_username": "rnd_s9zbvw_lxo6n",
+          "__cred_password": "testpass_SLBXF"
         },
         "context": "world [object Object]"
       },
@@ -243,8 +243,8 @@
             "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
             "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
             "scenario": "Navigating and creating an account on a local Wiki page",
-            "__cred_username": "rnd_s9yg4h_1i5q4w",
-            "__cred_password": "testpass_1JCS3G"
+            "__cred_username": "rnd_s9zbvw_lxo6n",
+            "__cred_password": "testpass_SLBXF"
           },
           "context": "world [object Object]"
         },
@@ -305,8 +305,8 @@
             "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
             "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
             "scenario": "Navigating and creating an account on a local Wiki page",
-            "__cred_username": "rnd_s9yg4h_1i5q4w",
-            "__cred_password": "testpass_1JCS3G"
+            "__cred_username": "rnd_s9zbvw_lxo6n",
+            "__cred_password": "testpass_SLBXF"
           },
           "trace": true
         },
@@ -377,14 +377,14 @@
           "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a": "//*[@id=\"mw-notification-area\"]/div/div[2]/div/a",
           "http://wiki.local/User:Rnd": "http://wiki.local/User:Rnd",
           "scenario": "Navigating and creating an account on a local Wiki page",
-          "__cred_username": "rnd_s9yg4h_1i5q4w",
-          "__cred_password": "testpass_1JCS3G"
+          "__cred_username": "rnd_s9zbvw_lxo6n",
+          "__cred_password": "testpass_SLBXF"
         },
         "trace": true
       },
-      "runStart": 467,
+      "runStart": 423,
       "runDuration": 0,
-      "fromStart": 0.630879325
+      "fromStart": 0.602191114
     }
   ]
 }
