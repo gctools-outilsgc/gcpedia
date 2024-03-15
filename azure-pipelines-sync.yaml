@@ -8,12 +8,13 @@ steps:
 - script: |
     echo Sync azure repo
     B64_PAT=$(echo -n ":$PAT" | base64)
-    git -c http.extraHeader="Authorization: Basic ${B64_PAT}" clone --bare https://dev.azure.com/tbs-sct/GCtools/_git/$REPO_NAME Sync_directory
+    git -c http.extraHeader="Authorization: Basic ${SYSTEM_ACCESSTOKEN}" clone --bare https://dev.azure.com/tbs-sct/GCtools/_git/$REPO_NAME Sync_directory
     cd Sync_directory
     git remote add --mirror=fetch upstream https://github.com/gctools-outilsgc/$REPO_NAME
     git fetch upstream --tags
-    git -c http.extraHeader="Authorization: Basic ${B64_PAT}" push origin --all
+    git -c http.extraHeader="Authorization: Basic ${SYSTEM_ACCESSTOKEN}" push origin --all
   env:
     PAT: $(PAT)
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
     REPO_NAME: "gcpedia"
   displayName: 'Sync repo'
