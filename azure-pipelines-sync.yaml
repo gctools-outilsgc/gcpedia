@@ -8,11 +8,11 @@ steps:
 - script: |
     echo Sync azure repo
     B64_PAT=$(echo -n ":$PAT" | base64)
-    git -c http.extraHeader="Authorization: Bearer ${SYSTEM_ACCESSTOKEN}" clone --bare https://dev.azure.com/tbs-sct/GCtools/_git/$REPO_NAME Sync_directory
+    git clone --bare https://$(System.AccessToken)@dev.azure.com/tbs-sct/GCtools/_git/$REPO_NAME Sync_directory
     cd Sync_directory
     git remote add --mirror=fetch upstream https://github.com/gctools-outilsgc/$REPO_NAME
     git fetch upstream --tags
-    git -c http.extraHeader="Authorization: Bearer ${SYSTEM_ACCESSTOKEN}" push origin --all
+    git push origin --all
   env:
     PAT: $(PAT)
     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
