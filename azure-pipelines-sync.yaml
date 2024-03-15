@@ -8,7 +8,7 @@ steps:
 - script: |
     echo Sync azure repo
     B64_PAT=$(echo -n ":$PAT" | base64)
-    git clone --bare https://$SYSTEM_ACCESSTOKEN@dev.azure.com/tbs-sct/GCtools/_git/$REPO_NAME Sync_directory
+    git clone --bare https://{SYSTEM_ACCESSTOKEN}@dev.azure.com/tbs-sct/GCtools/_git/$REPO_NAME Sync_directory
     cd Sync_directory
     git remote add --mirror=fetch upstream https://github.com/gctools-outilsgc/$REPO_NAME
     git fetch upstream --tags
