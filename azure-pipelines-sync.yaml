@@ -17,4 +17,7 @@ steps:
     PAT: $(PAT)
     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
     REPO_NAME: "gcpedia"
+  uses:
+   repositories:
+     - gcpedia
   displayName: 'Sync repo'
