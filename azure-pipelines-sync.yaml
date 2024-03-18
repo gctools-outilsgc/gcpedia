@@ -1,6 +1,12 @@
 trigger:
 - main
 
+resources:
+  repositories:
+  - repository: gcpedia
+    type: git
+    name: GCTools/gcpedia
+
 pool:
   vmImage: ubuntu-latest
 jobs:
