@@ -23,6 +23,5 @@ jobs:
         git fetch upstream --tags
         git push origin --all
       env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         REPO_NAME: "gcpedia"
       displayName: 'Sync repo'
