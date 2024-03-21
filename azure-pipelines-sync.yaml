@@ -1,0 +1,27 @@
+trigger:
+- main
+
+resources:
+  repositories:
+  - repository: gcpedia
+    type: git
+    name: GCTools/gcpedia
+
+pool:
+  vmImage: ubuntu-latest
+jobs:
+  - job: sync
+    uses:
+     repositories:
+       - gcpedia
+    steps:
+    - script: |
+        echo Sync azure repo
+        git clone --bare https://GCTools:$(System.AccessToken)@dev.azure.com/tbs-sct/GCTools/_git/$REPO_NAME Sync_directory
+        cd Sync_directory
+        git remote add --mirror=fetch upstream https://github.com/gctools-outilsgc/$REPO_NAME
+        git fetch upstream --tags
+        git push origin --all
+      env:
+        REPO_NAME: "gcpedia"
+      displayName: 'Sync repo'
