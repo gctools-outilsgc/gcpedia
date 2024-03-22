@@ -1,0 +1,50 @@
+trigger:  # don't trigger automatically for now
+- none
+
+
+- job: deploy
+  displayName: deploy gcpedia review site code
+  dependsOn: setup
+  condition: succeeded()
+  steps:
+  - bash: |
+      php --version
+      composer --version
+      git --version
+      curl --version
+      git submodule init && git submodule update --recursive --init
+      cd extensions/OpenIDConnect && composer install --no-dev --no-interaction
+      cd ../PluggableAuth && composer install --no-dev --no-interaction
+      cd ../TimedMediaHandler && composer install --no-dev --no-interaction
+      cd ../Widgets && composer install --no-dev --no-interaction
+      mkdir -p /tmp/gcpedia_build/gcwiki && cd /tmp/gcpedia_build/gcwiki
+      MEDIAWIKI_MAJOR_VERSION=1.40 && MEDIAWIKI_VERSION=1.40.2
+      curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz" -o mediawiki.tar.gz
+      curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz.sig" -o mediawiki.tar.gz.sig
+      export GNUPGHOME="$(mktemp -d)"
+      gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
+      D7D6767D135A514BEB86E9BA75682B08E8A3FEC4 \
+      441276E9CCD15F44F6D97D18C119E1A64D70938E \
+      F7F780D82EBFB8A56556E7EE82403E59F9F8CD79 \
+      1D98867E82982C8FE0ABC25F9B69B3109D3BB7B0
+      gpg --batch --verify mediawiki.tar.gz.sig mediawiki.tar.gz
+      tar -x --strip-components=1 -f mediawiki.tar.gz
+      gpgconf --kill all
+      rm -r "$GNUPGHOME" mediawiki.tar.gz.sig mediawiki.tar.gz
+      cp -r $(Pipeline.Workspace)/s/* ./
+      cp -r $(Pipeline.Workspace)/s/.azure ./
+      ls -la
+    displayName: prepare gcpedia code build environment
+
+  - task: ArchiveFiles@2
+    displayName: 'Archive files'
+    inputs:
+      rootFolderOrFile: '/tmp/gcpedia_build/gcwiki'
+      includeRootFolder: true
+      archiveType: zip
+      archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      replaceExistingArchive: true
+
+  - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+    displayName: 'Upload package'
+    artifact: drop
