@@ -6,8 +6,6 @@ trigger:  # don't trigger automatically for now
 jobs:
 - job: deploy
   displayName: deploy gcpedia review site code
-  dependsOn: setup
-  condition: succeeded()
   steps:
   - bash: |
       php --version
