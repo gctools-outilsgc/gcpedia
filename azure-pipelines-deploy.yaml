@@ -2,6 +2,8 @@ trigger:  # don't trigger automatically for now
 - none
 
 
+
+jobs:
 - job: deploy
   displayName: deploy gcpedia review site code
   dependsOn: setup
