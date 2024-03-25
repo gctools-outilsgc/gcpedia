@@ -54,6 +54,8 @@ jobs:
 - job: deploy
   displayName: deploy gcpedia site code
   pool: $(deployPool)
+  dependsOn: build
+  condition: succeeded()
   steps:
   - task: AzureWebApp@1
     displayName: 'Deploy Azure Web App gcpedia code'
