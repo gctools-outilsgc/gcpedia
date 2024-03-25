@@ -1,7 +1,7 @@
 trigger:  # don't trigger automatically for now
 - none
 
-
+pool: 'TBS Linux Self Hosted'
 
 jobs:
 - job: deploy
