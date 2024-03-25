@@ -1,11 +1,13 @@
 trigger:  # don't trigger automatically for now
 - none
 
-pool: 'TBS Linux Self Hosted'
+
 
 jobs:
-- job: deploy
+- job: build
   displayName: deploy gcpedia review site code
+  pool:
+    vmImage: ubuntu-latest
   steps:
   - bash: |
       php --version
