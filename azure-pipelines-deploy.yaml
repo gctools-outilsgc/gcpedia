@@ -5,7 +5,7 @@ trigger:  # don't trigger automatically for now
 
 jobs:
 - job: build
-  displayName: deploy gcpedia review site code
+  displayName: build gcpedia site code
   pool:
     vmImage: ubuntu-latest
   steps:
@@ -50,3 +50,14 @@ jobs:
   - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
     displayName: 'Upload package'
     artifact: drop
+
+- job: deploy
+  displayName: deploy gcpedia site code
+  pool: $(deployPool)
+  steps:
+  - task: AzureWebApp@1
+    displayName: 'Deploy Azure Web App gcpedia code'
+    inputs:
+      azureSubscription: $(azSubServiceConnection)
+      appName: $(appName)
+      package: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
