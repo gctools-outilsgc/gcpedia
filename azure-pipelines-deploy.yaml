@@ -57,9 +57,11 @@ jobs:
   dependsOn: build
   condition: succeeded()
   steps:
+  - download: current
+    artifact: drop
   - task: AzureWebApp@1
     displayName: 'Deploy Azure Web App gcpedia code'
     inputs:
       azureSubscription: $(azSubServiceConnection)
       appName: $(appName)
-      package: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
