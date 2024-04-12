@@ -1,66 +1,68 @@
-# First stage, install composer and its dependencies and fetch vendor files and submodules
-FROM alpine:3.13
-RUN apk update
-RUN apk --no-cache add \
-  php7 \
-  php7-dom \
-  php7-phar \
-  php7-gd \
-  php7-json \
-  php7-mysqli \
-  php7-mysqlnd \
-  php7-mbstring \
-  php7-ctype \
-  php7-iconv \
-  php7-tokenizer \
-  php7-openssl \
-  php7-xml \
-  php7-simplexml \
-  php7-xmlwriter \
-  php7-zlib \
-  php7-curl \
-  git \
-  curl
-RUN mkdir /app && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --version=1.10.19 --filename=composer
-WORKDIR /app
-COPY . /app/
-
-RUN git submodule init
-RUN git submodule update --recursive --init
-ARG COMPOSER_ALLOW_SUPERUSER=1
-ARG COMPOSER_NO_INTERACTION=1
-RUN cd /app/extensions/OpenIDConnect && composer install --no-dev
-RUN cd /app/extensions/PluggableAuth && composer install --no-dev
-RUN cd /app/extensions/TimedMediaHandler && composer install --no-dev
-RUN cd /app/extensions/Widgets && composer install --no-dev
-
-# Cleanup before copying over to next stage - version history takes up a lot of space
-RUN rm -rf .git/
-
-
-# Second stage, build usable container
 FROM mediawiki:1.40.1
-LABEL maintainer="Ilia Salem"
 
-RUN apt-get update && apt install -y htmldoc ffmpeg
+ENV MEDIAWIKI_EXT_BRANCH REL1_40
 
-WORKDIR /var/www/html/
-COPY --from=0 /app/ /var/www/html/
-COPY ./docker/LocalSettings.php.docker /var/www/html/LocalSettings.php
+LABEL maintainer="GC Tools team"
 
-# for automated install
-#RUN chown www-data:www-data /var/www/html/
+RUN set -x; \
+  apt-get update \
+  && apt-get upgrade -y \
+  && apt-get install -y --no-install-recommends git zip \
+  && rm -rf /var/lib/apt/lists/*
+
 
 RUN mkdir /super
-RUN mv /var/www/html/docker/secrets.php /super/secrets.php
-RUN chown www-data:www-data /super/secrets.php
-RUN chown www-data:www-data /var/www/html/extensions/Widgets/compiled_templates/
 
-EXPOSE 80
+WORKDIR /var/www/html/
 
-RUN chmod +x docker/start.sh
+COPY extensions/ /var/www/html/extensions/
 
-# Start Apache in foreground mode
-RUN rm -f /run/apache2/httpd.pid
-ENTRYPOINT [ "docker/start.sh" ]
-CMD  ["apache2-foreground"]
+RUN chown -R www-data:www-data /var/www/html/
+USER www-data
+
+ENV COMPOSER_HOME=/tmp
+COPY --from=composer:2.1 /usr/bin/composer /usr/bin/composer
+
+RUN composer config platform.php 8.0 && \
+  composer require --update-no-dev mediawiki/pluggable-auth
+
+# Available
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/AJAXPoll /var/www/html/extensions/AJAXPoll
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/AjaxShowEditors /var/www/html/extensions/AjaxShowEditors
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/CategoryWatch /var/www/html/extensions/CategoryWatch
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/CharInsert /var/www/html/extensions/CharInsert
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/TimedMediaHandler /var/www/html/extensions/TimedMediaHandler
+
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/CSS /var/www/html/extensions/CSS
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/EditUser /var/www/html/extensions/EditUser
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/LookupUser /var/www/html/extensions/LookupUser 
+RUN git clone --depth=1 https://github.com/debtcompliance/PdfBook /var/www/html/extensions/PdfBook
+
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/UserMerge /var/www/html/extensions/UserMerge
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/intersection /var/www/html/extensions/intersection
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/RSS /var/www/html/extensions/RSS
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/UniversalLanguageSelector /var/www/html/extensions/UniversalLanguageSelector
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/MobileFrontend /var/www/html/extensions/MobileFrontend
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/IframePage /var/www/html/extensions/IframePage
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/googleAnalytics /var/www/html/extensions/googleAnalytics
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/Lingo /var/www/html/extensions/Lingo
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/DeletePagesForGood /var/www/html/extensions/DeletePagesForGood
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/MsCalendar /var/www/html/extensions/MsCalendar
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/RandomImage /var/www/html/extensions/RandomImage
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/Widgets /var/www/html/extensions/Widgets
+
+RUN composer update --no-dev
+
+## MISSING
+# RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/EmailUpdate /var/www/html/extensions/EmailUpdate
+
+## Conflict
+# RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/CategoryTree /var/www/html/extensions/CategoryTree
+# RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/skins/MinervaNeue /var/www/html/skins/MinervaNeue
+
+
+COPY maintenance/checkDB.php maintenance/
+COPY docker/init.sh docker/init.sh
+
+ENTRYPOINT [ "bash", "docker/init.sh" ]
+CMD [ "docker-php-entrypoint" ]
