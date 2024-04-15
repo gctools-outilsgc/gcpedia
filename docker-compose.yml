@@ -17,6 +17,7 @@ services:
       - gcpedia-db
     environment:
       - DOCKER=1
+      - DBTYPE=mysql
       - DBHOST=gcpedia-db
       - DBNAME=wiki
       - DBUSER=wiki
