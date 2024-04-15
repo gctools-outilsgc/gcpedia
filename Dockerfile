@@ -9,7 +9,6 @@ RUN set -x; \
  && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends \
     git \
-    vim \
     libzip-dev \
     unzip \
     zlib1g-dev \
@@ -67,8 +66,12 @@ RUN cd vendors/oauth2-client; composer install
 # RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/skins/MinervaNeue /var/www/html/skins/MinervaNeue
 
 
-COPY docker/checkDB.php docker/
-COPY docker/init.sh docker/init.sh
+# Unsupported
 
-ENTRYPOINT [ "bash", "docker/init.sh" ]
+# MagicNoNumberedHeadings
+
+COPY init/checkDB.php init/
+COPY init/init.sh init/
+
+ENTRYPOINT [ "bash", "init/init.sh" ]
 CMD [ "apache2-foreground" ]
