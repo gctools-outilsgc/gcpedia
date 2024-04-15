@@ -15,4 +15,4 @@ jobs:
       RunAsPreJob: false
 
   - bash: |
-    mysql -h $(DB_HOST) -u $(DB_USER) -p $(DB_PASS) < db_dump.sql
+    gunzip -c $(DUMP_FILE_NAME) | mysql -h $(DB_HOST) -u $(DB_USER) -p $(DB_PASS) $(DB_NAME)
