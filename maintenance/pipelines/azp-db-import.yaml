@@ -1,0 +1,18 @@
+trigger:  # triggered manually when needed
+- none
+
+
+jobs:
+- job: import
+  displayName: import sql dump
+  pool: $(deployPool)
+  steps:
+  - task: AzureKeyVault@1
+    inputs:
+      azureSubscription: $(azSubServiceConnection)
+      KeyVaultName: $(KV_NAME)
+      SecretsFilter: $(KV_SECRETS_LIST)
+      RunAsPreJob: false
+
+  - bash: |
+    mysql -h $(DB_HOST) -u $(DB_USER) -p $(DB_PASS) < db_dump.sql
