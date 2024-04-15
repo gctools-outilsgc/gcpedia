@@ -10,9 +10,7 @@ services:
       - 80:80
     volumes:
       - ./images:/var/www/html/images
-      - ./docker:/docker
-      - ./compiled_templates:/var/www/html/extensions/Widgets/compiled_templates/
-      - /usr/bin/vim:/usr/bin/vim
+      # - ./compiled_templates:/var/www/html/extensions/Widgets/compiled_templates/
     links:
       - gcpedia-db
     depends_on:

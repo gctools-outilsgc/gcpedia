@@ -5,7 +5,7 @@ check_database() {
   retries=5
   for ((i=1; i<=$retries; i++)); do
     echo "Checking MySQL server connection , ($i/$retries)"
-    if php /var/www/html/maintenance/checkDB.php; then
+    if php docker/checkDB.php; then
       echo "MySQL server is up and running!"
       return 0
     fi
@@ -22,7 +22,7 @@ check_setup() {
   #   If it's not, remove any exising LocalSettings.php link if present, then do an install, link the LocalSettings.php, and run the update script. 
   #   If it is, if LocalSettings.php isn't linked, link it and run update
   local RUN_UPDATE="false"
-  if ! php /var/www/html/maintenance/checkDB.php ${DBNAME}; then
+  if ! php docker/checkDB.php ${DBNAME} categorylinks; then
     if [ -e /var/www/html/LocalSettings.php ]; then
       echo "Dangling LocalSettings.php found, unlinking"
       rm LocalSettings.php

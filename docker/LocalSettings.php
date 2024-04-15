@@ -11,7 +11,7 @@
 # https://www.mediawiki.org/wiki/Manual:Configuration_settings
 
 # Protect against web entry
-if ( !defined( 'MEDIAWIKI' ) ) {
+if (!defined('MEDIAWIKI')) {
 	exit;
 }
 
@@ -31,7 +31,7 @@ $wgArticlePath = (getenv('ARTICLE_PATH') != '') ? getenv('ARTICLE_PATH') : "/$1"
 
 ## The protocol and server name to use in fully-qualified URLs
 $host = (getenv('WIKI_HOST') != '') ? getenv('WIKI_HOST') : 'localhost';
-$port = (getenv('WIKI_PORT') != '' && getenv('WIKI_PORT') != '80') ? ":".getenv('WIKI_PORT') : '';
+$port = (getenv('WIKI_PORT') != '' && getenv('WIKI_PORT') != '80') ? ":" . getenv('WIKI_PORT') : '';
 $protocol = (getenv('WIKI_PROTOCOL') != '') ? getenv('WIKI_PROTOCOL') : 'https';
 $wgServer = "{$protocol}://{$host}{$port}";
 
@@ -40,7 +40,7 @@ $wgResourceBasePath = $wgScriptPath;
 
 ## The URL paths to the logo.  Make sure you change this from the default,
 ## or else you'll overwrite your logo when you upgrade!
-$wgLogos = [ '1x' => "$wgResourceBasePath/resources/assets/wiki.png" ];
+$wgLogos = ['1x' => "$wgResourceBasePath/resources/assets/wiki.png"];
 
 ## UPO means: this is also a user preference option
 
@@ -49,13 +49,13 @@ $wgEnableUserEmail = true; # UPO
 
 ## smtp authentication
 $wgPasswordSender = (getenv('WIKI_PASSWORDSENDER') != '') ? getenv('WIKI_PASSWORDSENDER') : '';
-if (getenv('WIKI_SMTP_HOST')){
+if (getenv('WIKI_SMTP_HOST')) {
 	$wgSMTP = array(
-	'host'     => getenv('WIKI_SMTP_HOST'), // could also be an IP address. Where the SMTP server is located
-	'port'     => getenv('WIKI_SMTP_PORT'),                 // Port to use when connecting to the SMTP server
-	'auth'     => getenv('WIKI_SMTP_AUTH'),               // Should we use SMTP authentication (true or false)
-	'username' => getenv('WIKI_SMTP_USERNAME'),     // Username to use for SMTP authentication (if being used)
-	'password' => getenv('WIKI_SMTP_PASSWORD')
+		'host' => getenv('WIKI_SMTP_HOST'), // could also be an IP address. Where the SMTP server is located
+		'port' => getenv('WIKI_SMTP_PORT'),                 // Port to use when connecting to the SMTP server
+		'auth' => getenv('WIKI_SMTP_AUTH'),               // Should we use SMTP authentication (true or false)
+		'username' => getenv('WIKI_SMTP_USERNAME'),     // Username to use for SMTP authentication (if being used)
+		'password' => getenv('WIKI_SMTP_PASSWORD')
 	);
 }
 
@@ -135,21 +135,16 @@ $wgDefaultSkin = "vector";
 
 # Enabled skins.
 # The following skins were automatically enabled:
-wfLoadSkin( 'MinervaNeue' );
-wfLoadSkin( 'MonoBook' );
-wfLoadSkin( 'Timeless' );
-wfLoadSkin( 'Vector' );
+wfLoadSkin('MinervaNeue');
+wfLoadSkin('MonoBook');
+wfLoadSkin('Timeless');
+wfLoadSkin('Vector');
 
 
 # End of automatically generated settings.
 # Add more configuration options below.
 
 $GAaccount = (getenv('GAACCOUNT') != '') ? getenv('GAACCOUNT') : 'UA-xxxxxxx-x';
-// is this gcpedia or gcwiki? gcwiki extensions are a subset of gcpedia's so default to gcwiki
-if ( getenv('SITE') == 'gcpedia' )
-	include("$IP/config-gcpedia.php");
-else
-	include("$IP/config.php");
 
 if (getenv('WIKI_DEBUG') === 'true') {
 	$wgShowExceptionDetails = true;
