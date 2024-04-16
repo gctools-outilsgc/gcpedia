@@ -18,7 +18,7 @@ RUN set -x; \
 
 WORKDIR /var/www/html/
 
-COPY extensions/* extensions/
+COPY extensions/ extensions/
 
 RUN chown -R www-data:www-data /var/www/html/
 USER www-data
@@ -54,6 +54,8 @@ RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/RandomImage extensions/RandomImage
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/Widgets extensions/Widgets
 
+RUN git clone --depth=1 https://gitlab.com/organicdesign/TreeAndMenu extensions/TreeAndMenu
+
 RUN git clone --depth=1 https://github.com/United-Earth-Team/MW-OAuth2Client.git extensions/MW-OAuth2Client
 RUN cd extensions/MW-OAuth2Client ; git submodule update --init
 RUN cd vendors/oauth2-client; composer install
@@ -68,7 +70,8 @@ RUN cd vendors/oauth2-client; composer install
 
 # Unsupported
 
-# MagicNoNumberedHeadings
+# Multilanguage - unmaintained, no database changes
+# MagicNoNumberedHeadings - unmaintained, no database changes
 
 COPY init/checkDB.php init/
 COPY init/init.sh init/

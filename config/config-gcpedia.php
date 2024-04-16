@@ -142,7 +142,7 @@ wfLoadExtension("RSS");
 $wgRSSUrlWhitelist = array("*");
 $wgRSSUrlNumberOfAllowedRedirects = 1;
 
-require_once( "$IP/extensions/Multilang/multilang.php" );
+// require_once( "$IP/extensions/Multilang/multilang.php" );
 
 wfLoadExtension("MobileFrontend");
 $wgMFAutodetectMobileView = true;

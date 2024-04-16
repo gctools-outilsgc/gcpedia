@@ -41,7 +41,7 @@ check_setup() {
     fi
     # overwrite installation LocalSettings with site specific
     echo "TODO: copy /site/LocalSettings.php to /var/www/html/LocalSettings.php after all extensions are validated"
-    # cp /site/LocalSettings.php LocalSettings.php
+    cp /site/LocalSettings.php LocalSettings.php
     # make sure an update is run for the sake of extensions
     RUN_UPDATE="true"
   else 
