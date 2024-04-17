@@ -14,5 +14,12 @@ jobs:
       SecretsFilter: $(KV_SECRETS_LIST)
       RunAsPreJob: false
 
-  - bash: |
-    gunzip -c $(DUMP_FILE_NAME) | mysql -h $(DB_HOST) -u $(DB_USER) -p $(DB_PASS) $(DB_NAME)
+  - task: AzureCLI@2
+    displayName: download and import
+    inputs:
+      azureSubscription: $(serviceConnectionName)
+      scriptType: bash
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az storage blob download --account-name $(STORAGE_ACCOUNT) --container-name $(STORAGE_CONTAINER) --file "$(DUMP_FILE_NAME)" --name "$(DUMP_BLOB_NAME)"
+        gunzip -c $(DUMP_FILE_NAME) | mysql -h $(DB_HOST) -u $(DB_USER) -p $(DB_PASS) $(DB_NAME)
