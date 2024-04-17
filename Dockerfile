@@ -20,7 +20,7 @@ WORKDIR /var/www/html/
 
 COPY extensions/ extensions/
 COPY ./site/mediawiki.ini /usr/local/etc/php/conf.d/mediawiki.ini
-COPY ./site/*php /site
+COPY ./site/*php /site/
 
 RUN chown -R www-data:www-data /var/www/html/
 USER www-data
