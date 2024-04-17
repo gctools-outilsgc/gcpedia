@@ -9,8 +9,6 @@ services:
     ports:
       - 80:80
     volumes:
-      - ./config/config-gcpedia.php:/site/config.php
-      - ./config/LocalSettings.php:/site/LocalSettings.php
       - ./images:/var/www/html/images
       - ./compiled_templates:/var/www/html/extensions/Widgets/compiled_templates/
     links:

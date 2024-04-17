@@ -19,7 +19,8 @@ RUN set -x; \
 WORKDIR /var/www/html/
 
 COPY extensions/ extensions/
-COPY ./config/mediawiki.ini /usr/local/etc/php/conf.d/mediawiki.ini
+COPY ./site/mediawiki.ini /usr/local/etc/php/conf.d/mediawiki.ini
+COPY ./site/*php /site
 
 RUN chown -R www-data:www-data /var/www/html/
 USER www-data

@@ -141,4 +141,10 @@ if (getenv('WIKI_DEBUG') === 'true') {
 	$wgSitename = "Dev wiki instance - DEBUG mode";
 }
 
-require_once('/site/config.php');
+if (getenv('SITE') == 'gcpedia') {
+	require_once ('/site/config-gcpedia.php');
+} else if (getenv('SITE') == 'gcwiki') {
+	require_once ('/site/config-gcwiki.php');
+} else {
+	die('SITE env variable not set');
+}
