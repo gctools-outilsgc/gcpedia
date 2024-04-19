@@ -1,0 +1,33 @@
+trigger:  # triggered manually when needed
+- none
+
+
+jobs:
+- job: import
+  displayName: import sql dump
+  pool: $(deployPool)
+  steps:
+  - task: AzureKeyVault@1
+    inputs:
+      azureSubscription: $(azSubServiceConnection)
+      KeyVaultName: $(KV_NAME)
+      SecretsFilter: $(KV_SECRETS_LIST)
+      RunAsPreJob: false
+
+  - task: AzureCLI@2
+    displayName: download and import
+    inputs:
+      azureSubscription: $(serviceConnectionName)
+      scriptType: bash
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az storage blob download --account-name $(STORAGE_ACCOUNT) --container-name $(STORAGE_CONTAINER) --file "db_backup.sql.gz" --name "$(DUMP_BLOB_NAME)"
+        gunzip -c db_backup.sql.gz | mysql -h$(DB_HOST) -u$(DB_USER) -p$(DB_PASS) $(DB_NAME)
+    env:
+      DB_HOST: $(database_host)
+      DB_USER: $(gcpediaDBUsername)
+      DB_Pass: $(gcpediaDBPass)
+      DB_NAME: $(DB_NAME)
+      DUMP_BLOB_NAME: $(DUMP_BLOB_NAME)
+      STORAGE_ACCOUNT: $(STORAGE_ACCOUNT)
+      STORAGE_CONTAINER: $(STORAGE_CONTAINER)
