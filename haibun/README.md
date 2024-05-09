@@ -20,7 +20,7 @@ Setup:
 `npm run publish`
 
 
-You can then use eg `npx live-server reviews` to make them available via a browser.
+You can then use eg `npx live-server reviews` to make them available via a browser. Start with dashboard.html.
 
 ## Load tests
 
