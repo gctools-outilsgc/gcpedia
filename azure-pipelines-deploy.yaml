@@ -35,6 +35,7 @@ jobs:
       rm -r "$GNUPGHOME" mediawiki.tar.gz.sig mediawiki.tar.gz
       cp -r $(Pipeline.Workspace)/s/* ./
       cp -r $(Pipeline.Workspace)/s/.azure ./
+      wget http://security.ubuntu.com/ubuntu/pool/main/m/memcached/memcached_1.6.14-1ubuntu0.1_amd64.deb
       ls -la
     displayName: prepare gcpedia code build environment
 
