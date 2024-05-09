@@ -36,6 +36,7 @@ jobs:
       cp -r $(Pipeline.Workspace)/s/* ./
       cp -r $(Pipeline.Workspace)/s/.azure ./
       wget http://http.us.debian.org/debian/pool/main/m/memcached/memcached_1.6.9+dfsg-1_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/libe/libevent/libevent-2.1-7_2.1.12-stable-1_amd64.deb
       ls -la
     displayName: prepare gcpedia code build environment
 
