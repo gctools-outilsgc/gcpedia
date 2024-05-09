@@ -18,7 +18,7 @@ Feature: Account Creation Workflow on Wiki
 
   We have to pause a bit to get the form to recognize the name and institution have been entered, so it will populate the username field.
 
-    pause for 5s
+    pause for 5s # FIXME extended for load tests
     Press "Tab"
     Type "c"
     input <password> for Create password input
