@@ -44,11 +44,12 @@ via docker, to better partition resources.
 
 ### On clients:
 
-Copy the file env-client.simple to env-client and edit appropriately on each client host. 
+Copy the file env-client.sample to env-client and edit appropriately on each client host. 
 For GCPedia, it would be easiest to point client DNS for "wiki.local" to the mediawiki instance, 
 and change `HAIBUN_O_HAIBUNLOADTESTSSTEPPER_DISPATCHER_ADDRESS=http://<dispatcher-host>:8123` in the env file appropriately.
 
 `docker-compose build`
+
 `docker-compose up --scale clients=20 clients`
 
 This will run 20 clients on each host.
