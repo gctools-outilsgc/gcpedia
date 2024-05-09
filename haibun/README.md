@@ -13,7 +13,7 @@ Setup:
 
 ## To run individual tests
 
-`npm run test -- <filter>`, for example, `npm rnu test -- create-account`
+`npm run test -- <filter>`, for example, `npm run test -- create-account`
 
 ## Publish results
 
@@ -33,8 +33,8 @@ via docker, to better partition resources.
 ## Run one load test
 
 `npm run dispatcher`
-`npm run local-client`
 
+`npm run local-client`
 
 ## Run 500 load tests
 
