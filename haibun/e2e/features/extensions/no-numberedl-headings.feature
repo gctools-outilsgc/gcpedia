@@ -1,5 +1,5 @@
 
-Feature: Numbered lists
+Feature: No numbered lists
 
 Backgrounds: site, form-login, admin-credentials, login-successful
 
@@ -9,8 +9,7 @@ Go to the Random webpage
 
 Click "Create"
 Click on Wiki editor
-type "__NUMBEREDHEADINGS__"
-Press Enter
+type "__NONUMBEREDHEADINGS__"
 type "# H1"
-Click "Save page"
-See text "1. H1"
+type "# H2"
+Click "Save Page"

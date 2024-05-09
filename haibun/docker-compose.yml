@@ -1,0 +1,26 @@
+version: '3.8'
+
+x-common-settings: &common-settings
+  build: .
+  env_file:
+    - env-client
+  network_mode: "host"
+
+services:
+  clients:
+    <<: *common-settings
+    command: container-client
+    volumes:
+      - ./package.json:/app/package.json
+      - ./load-tests:/app/load-tests
+      - ./capture:/app/capture
+
+  publish:
+    <<: *common-settings
+    command: publish
+    volumes:
+      - ./package.json:/app/package.json
+      - ./capture:/app/capture
+      - ./publish:/app/publish
+      - ./reviews:/app/reviews
+

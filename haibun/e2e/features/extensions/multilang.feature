@@ -1,14 +1,14 @@
-
 Feature: Multilang
 
-Backgrounds: site, form-login, admin-credentials, login-successful
+Backgrounds: site, form-login, admin-credentials, login-successful, preferences-english
 
 When I have a valid random username <pagename>
 Concat "http://wiki.local/" and <pagename> as Random
-Go to the Random webpage
+Concat Random and "?uselang=en-ca" as English Random
+Go to the English Random webpage
 
-Click "Create"
-Click on Wiki editor
+Click the link Create source
+Click the link Wiki editor
 type "<multilang>"
 Press Enter
 type "@en|English text"
@@ -16,9 +16,8 @@ Press Enter
 type "@fr|Texte français"
 Press Enter
 type "</multilang>"
-Click "Save Page"
+Click the button Save page
 see "English text"
 Click on Language toggle
 pause for 1s
 See "Texte français"
-pause for 1000s

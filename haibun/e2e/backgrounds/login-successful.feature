@@ -1,5 +1,5 @@
 
-Go to the Log in webpage
+Go to the English Log in webpage
 Input Username for Login input
 Input User password for Password input
 Click on Log in button
