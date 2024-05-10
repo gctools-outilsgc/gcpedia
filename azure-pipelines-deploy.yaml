@@ -44,6 +44,8 @@ jobs:
       wget http://http.us.debian.org/debian/pool/main/libo/libonig/libonig-dev_6.9.6-1.1_amd64.deb
       wget http://http.us.debian.org/debian/pool/main/h/htmldoc/htmldoc_1.9.11-4+deb11u3_amd64.deb
       wget http://http.us.debian.org/debian/pool/main/h/htmldoc/htmldoc-common_1.9.11-4+deb11u3_all.deb
+      wget http://http.us.debian.org/debian/pool/main/f/fltk1.3/libfltk-images1.3_1.3.5-3_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/f/fltk1.3/libfltk1.3_1.3.5-3_amd64.deb
       ls -la
     displayName: prepare gcpedia code build environment
 
