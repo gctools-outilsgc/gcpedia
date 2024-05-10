@@ -42,6 +42,8 @@ jobs:
       wget http://http.us.debian.org/debian/pool/main/h/hicolor-icon-theme/hicolor-icon-theme_0.17-2_all.deb
       wget http://http.us.debian.org/debian/pool/main/i/icu/libicu-dev_67.1-7_amd64.deb
       wget http://http.us.debian.org/debian/pool/main/libo/libonig/libonig-dev_6.9.6-1.1_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/h/htmldoc/htmldoc_1.9.11-4+deb11u3_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/h/htmldoc/htmldoc-common_1.9.11-4+deb11u3_all.deb
       ls -la
     displayName: prepare gcpedia code build environment
 
