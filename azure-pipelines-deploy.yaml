@@ -48,14 +48,14 @@ jobs:
       mkdir deb/libonig
       wget http://http.us.debian.org/debian/pool/main/libo/libonig/libonig-dev_6.9.6-1.1_amd64.deb -O deb/libonig/libonig-dev_6.9.6-1.1_amd64.deb
       mkdir deb/htmldoc
-      wget http://http.us.debian.org/debian/pool/main/h/htmldoc/htmldoc_1.9.11-4+deb11u3_amd64.deb -O htmldoc/htmldoc_1.9.11-4+deb11u3_amd64.deb
-      wget http://http.us.debian.org/debian/pool/main/h/htmldoc/htmldoc-common_1.9.11-4+deb11u3_all.deb  -O htmldoc/htmldoc-common_1.9.11-4+deb11u3_all.deb
-      wget http://http.us.debian.org/debian/pool/main/f/fltk1.3/libfltk-images1.3_1.3.5-3_amd64.deb  -O htmldoc/libfltk-images1.3_1.3.5-3_amd64.deb
-      wget http://http.us.debian.org/debian/pool/main/f/fltk1.3/libfltk1.3_1.3.5-3_amd64.deb -O htmldoc/libfltk1.3_1.3.5-3_amd64.deb
-      wget http://http.us.debian.org/debian/pool/main/libx/libxcursor/libxcursor1_1.2.0-2_amd64.deb  -O htmldoc/libxcursor1_1.2.0-2_amd64.deb
-      wget http://http.us.debian.org/debian/pool/main/libx/libxfixes/libxfixes3_5.0.3-2_amd64.deb -O htmldoc/libxfixes3_5.0.3-2_amd64.deb
-      wget http://http.us.debian.org/debian/pool/main/x/xft/libxft2_2.3.2-2_amd64.deb -O htmldoc/libxft2_2.3.2-2_amd64.deb
-      wget http://http.us.debian.org/debian/pool/main/libx/libxinerama/libxinerama1_1.1.4-2_amd64.deb -O htmldoc/libxinerama1_1.1.4-2_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/h/htmldoc/htmldoc_1.9.11-4+deb11u3_amd64.deb -O deb/htmldoc/htmldoc_1.9.11-4+deb11u3_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/h/htmldoc/htmldoc-common_1.9.11-4+deb11u3_all.deb  -O deb/htmldoc/htmldoc-common_1.9.11-4+deb11u3_all.deb
+      wget http://http.us.debian.org/debian/pool/main/f/fltk1.3/libfltk-images1.3_1.3.5-3_amd64.deb  -O deb/htmldoc/libfltk-images1.3_1.3.5-3_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/f/fltk1.3/libfltk1.3_1.3.5-3_amd64.deb -O deb/htmldoc/libfltk1.3_1.3.5-3_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/libx/libxcursor/libxcursor1_1.2.0-2_amd64.deb  -O deb/htmldoc/libxcursor1_1.2.0-2_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/libx/libxfixes/libxfixes3_5.0.3-2_amd64.deb -O deb/htmldoc/libxfixes3_5.0.3-2_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/x/xft/libxft2_2.3.2-2_amd64.deb -O deb/htmldoc/libxft2_2.3.2-2_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/libx/libxinerama/libxinerama1_1.1.4-2_amd64.deb -O deb/htmldoc/libxinerama1_1.1.4-2_amd64.deb
       ls -la
     displayName: prepare gcpedia code build environment
 
