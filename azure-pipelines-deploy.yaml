@@ -56,6 +56,8 @@ jobs:
       wget http://http.us.debian.org/debian/pool/main/libx/libxfixes/libxfixes3_5.0.3-2_amd64.deb -O deb/htmldoc/libxfixes3_5.0.3-2_amd64.deb
       wget http://http.us.debian.org/debian/pool/main/x/xft/libxft2_2.3.2-2_amd64.deb -O deb/htmldoc/libxft2_2.3.2-2_amd64.deb
       wget http://http.us.debian.org/debian/pool/main/libx/libxinerama/libxinerama1_1.1.4-2_amd64.deb -O deb/htmldoc/libxinerama1_1.1.4-2_amd64.deb
+      mkdir deb/ffmpeg
+      wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/ffmpeg_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/ffmpeg_4.3.6-0+deb11u1_amd64.deb
       ls -la
     displayName: prepare gcpedia code build environment
 
