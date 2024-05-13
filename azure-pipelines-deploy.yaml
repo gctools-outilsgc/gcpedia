@@ -58,6 +58,16 @@ jobs:
       wget http://http.us.debian.org/debian/pool/main/libx/libxinerama/libxinerama1_1.1.4-2_amd64.deb -O deb/htmldoc/libxinerama1_1.1.4-2_amd64.deb
       mkdir deb/ffmpeg
       wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/ffmpeg_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/ffmpeg_4.3.6-0+deb11u1_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/libswscale5_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/libswscale5_4.3.6-0+deb11u1_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/libavcodec58_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/libavcodec58_4.3.6-0+deb11u1_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/libavfilter7_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/libavfilter7_4.3.6-0+deb11u1_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/libavdevice58_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/libavdevice58_4.3.6-0+deb11u1_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/libavresample4_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/libavresample4_4.3.6-0+deb11u1_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/libavformat58_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/libavformat58_4.3.6-0+deb11u1_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/libpostproc55_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/libpostproc55_4.3.6-0+deb11u1_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/libavutil56_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/libavutil56_4.3.6-0+deb11u1_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/libswresample3_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/libswresample3_4.3.6-0+deb11u1_amd64.deb
+      wget http://http.us.debian.org/debian/pool/main/libs/libsdl2/libsdl2-2.0-0_2.0.14+dfsg2-3+deb11u1_amd64.deb -O deb/ffmpeg/libsdl2-2.0-0_2.0.14+dfsg2-3+deb11u1_amd64.deb
       ls -la
     displayName: prepare gcpedia code build environment
 
