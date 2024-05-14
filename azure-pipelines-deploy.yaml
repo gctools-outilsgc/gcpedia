@@ -68,6 +68,8 @@ jobs:
       wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/libavutil56_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/libavutil56_4.3.6-0+deb11u1_amd64.deb
       wget http://http.us.debian.org/debian/pool/main/f/ffmpeg/libswresample3_4.3.6-0+deb11u1_amd64.deb -O deb/ffmpeg/libswresample3_4.3.6-0+deb11u1_amd64.deb
       wget http://http.us.debian.org/debian/pool/main/libs/libsdl2/libsdl2-2.0-0_2.0.14+dfsg2-3+deb11u1_amd64.deb -O deb/ffmpeg/libsdl2-2.0-0_2.0.14+dfsg2-3+deb11u1_amd64.deb
+      echo "list all ffmpeg dependencies"
+      apt-rdepends ffmpeg | grep -v "^ "
       ls -la
     displayName: prepare gcpedia code build environment
 
