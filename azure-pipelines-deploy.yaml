@@ -12,6 +12,7 @@ jobs:
   steps:
   - bash: |
       echo "list all ffmpeg dependencies"
+      apt-get update
       apt-cache rdepends ffmpeg
 - job: build
   displayName: build gcpedia site code
