@@ -10,6 +10,7 @@ RUN set -x; \
  && apt-get install -y --no-install-recommends \
     git \
     libzip-dev \
+    ffmpeg \
     unzip \
     zlib1g-dev \
  && docker-php-ext-install \
@@ -61,6 +62,7 @@ RUN git clone --depth=1 https://gitlab.com/organicdesign/TreeAndMenu extensions/
 RUN git clone --depth=1 https://github.com/United-Earth-Team/MW-OAuth2Client.git extensions/MW-OAuth2Client
 RUN cd extensions/MW-OAuth2Client ; git submodule update --init
 RUN cd vendors/oauth2-client; composer install
+RUN cd extensions/TimedMediaHandler; composer install --no-dev
 
 ## MISSING
 # RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/EmailUpdate /var/www/html/extensions/EmailUpdate

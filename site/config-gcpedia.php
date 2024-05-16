@@ -2,17 +2,17 @@
 
 $wgUsePathInfo = true;
 
-wfLoadSkin( 'Vector' );
+wfLoadSkin('Vector');
 $wgLocaltimezone = "America/Montreal";
 
 $wgSitename = "GCpedia";
 
 $wgLogo = '';
 $wgFavicon = "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/favicon.ico";
-$wgLogos = [ 
-    '1x' =>  "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Eng.png",
+$wgLogos = [
+    '1x' => "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Eng.png",
     'variants' => [
-		'fr' => [
+        'fr' => [
             '1x' => "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/GCpedia_icon_slogan_Fra.png",
         ],
     ],
@@ -22,7 +22,7 @@ $wgLogos = [
 $wgNamespacesWithSubpages = array_fill(0, 100, true);
 
 $wgAllowUserCss = true;
-$wgAllowUserJs  = true;
+$wgAllowUserJs = true;
 
 $wgExtraNamespaces[100] = "Portal";
 $wgExtraNamespaces[101] = "Portal_Talk";
@@ -33,21 +33,21 @@ $wgExtraNamespaces[102] = "Community";
 $wgExtraNamespaces[103] = "Community_Talk";
 $wgNamespacesWithSubpages[102] = true;
 $wgNamespacesWithSubpages[103] = true;
-  
+
 # Disable EDIT for 'everyone'
-$wgGroupPermissions['*']['edit']              = false;
+$wgGroupPermissions['*']['edit'] = false;
 
 # Disable for users, too: by default 'user' is allowed to edit, even if '*' is not.
 //REGULAR USER PERMISSIONS
-$wgGroupPermissions['user']['edit']           = true;
-$wgGroupPermissions['user']['move']           = true;
-$wgGroupPermissions['user']['delete']         = false;
-$wgGroupPermissions['user']['undelete']       = true;
+$wgGroupPermissions['user']['edit'] = true;
+$wgGroupPermissions['user']['move'] = true;
+$wgGroupPermissions['user']['delete'] = false;
+$wgGroupPermissions['user']['undelete'] = true;
 $wgGroupPermissions['user']['deletedhistory'] = true;
 
 $wgEnableUploads = true;
-$wgFileExtensions = array('pub','png','gif','jpg','jpeg','pdf','xls','docx','pptx','doc','ppt','svg','xml','mpg','odp','odt','wmv','flv','vsd','mpp','ai','zip','txt','wpd','rtf','drf','xlsx','xlsm', 'oft','swf', 'ppsx','dotx', 'potx');
-$wgMaxUploadSize = 1024*1024*32;
+$wgFileExtensions = array('pub', 'png', 'gif', 'jpg', 'jpeg', 'pdf', 'xls', 'docx', 'pptx', 'doc', 'ppt', 'svg', 'xml', 'mpg', 'odp', 'odt', 'wmv', 'flv', 'vsd', 'mpp', 'ai', 'zip', 'txt', 'wpd', 'rtf', 'drf', 'xlsx', 'xlsm', 'oft', 'swf', 'ppsx', 'dotx', 'potx');
+$wgMaxUploadSize = 1024 * 1024 * 32;
 
 $wgRawHtml = true;
 $wgUseAjax = true;
@@ -59,8 +59,8 @@ $wgGroupPermissions['sysop']['deleterevision'] = true;
 $wgVectorUseIconWatch = false;
 
 $wgFooterIcons = [
-	"copyright" => [null],
-	"poweredby" => [null],
+    "copyright" => [null],
+    "poweredby" => [null],
     "canada-fip" => [
         "footer" => [
             "src" => "$wgScriptPath/extensions/SkinTweaksGCpedia/resources/images/wmms-alt.svg",
@@ -73,46 +73,46 @@ $wgFooterIcons = [
 ];
 
 ////  extensions
-wfLoadExtension( "ParserFunctions" );
+wfLoadExtension("ParserFunctions");
 
 require_once "$IP/extensions/MagicNoNumberedHeadings/MagicNoNumberedHeadings.php";
 require_once "$IP/extensions/MagicNumberedHeadings/MagicNumberedHeadings.php";
 require_once "$IP/extensions/Multilang/multilang.php";
 
-wfLoadExtension( "UniversalLanguageSelector" );
+wfLoadExtension("UniversalLanguageSelector");
 $wgULSGeoService = false;
 
-wfLoadExtension( "WikiEditor" );
+wfLoadExtension("WikiEditor");
 # Enable WikiEditor toolbar as default (but still allow users to disable)
 $wgDefaultUserOptions["usebetatoolbar"] = 1;
 $wgDefaultUserOptions["usebetatoolbar-cgd"] = 0;
 $wgDefaultUserOptions["wikieditor-preview"] = 0;
 
-wfLoadExtension( "Cite" );
+wfLoadExtension("Cite");
 
-wfLoadExtension( 'DeletePagesForGood' );
-$wgGroupPermissions['*']         ['deleteperm'] = false;
-$wgGroupPermissions['user']      ['deleteperm'] = false;
+wfLoadExtension('DeletePagesForGood');
+$wgGroupPermissions['*']['deleteperm'] = false;
+$wgGroupPermissions['user']['deleteperm'] = false;
 $wgGroupPermissions['bureaucrat']['deleteperm'] = true;
-$wgGroupPermissions['sysop']     ['deleteperm'] = false;
-$wgGroupPermissions['IMadmin']   ['deleteperm'] = true;
-$wgGroupPermissions['IMadmin']   ['delete'] = true;
-$wgGroupPermissions['IMadmin']   ['undelete'] = true;
+$wgGroupPermissions['sysop']['deleteperm'] = false;
+$wgGroupPermissions['IMadmin']['deleteperm'] = true;
+$wgGroupPermissions['IMadmin']['delete'] = true;
+$wgGroupPermissions['IMadmin']['undelete'] = true;
 
-wfLoadExtension( "CharInsert" );
-wfLoadExtension( "TreeAndMenu" );
-wfLoadExtension( "InputBox" );
-wfLoadExtension( "Gadgets" );
-wfLoadExtension( "ImageMap" );
+wfLoadExtension("CharInsert");
+wfLoadExtension("TreeAndMenu");
+wfLoadExtension("InputBox");
+wfLoadExtension("Gadgets");
+wfLoadExtension("ImageMap");
 $wgImageMapAllowExternalLinks = false;    // allowing this seems like a bad idea
-wfLoadExtension( "InputBox" );
-wfLoadExtension( "Lingo" );
-wfLoadExtension( "VisualEditor" );
+wfLoadExtension("InputBox");
+wfLoadExtension("Lingo");
+wfLoadExtension("VisualEditor");
 
 // pdf rendering service
 #wfLoadExtension("ElectronPdfService");
 #$wgElectronPdfServiceRESTbaseURL = 'https://pdf.gccollab.ca/pdf?accessKey=secret&url=https://wiki.gccollab.ca/';
-wfLoadExtension( 'PdfBook' );
+wfLoadExtension('PdfBook');
 $wgPdfBookTab = false;
 $wgPdfBookDownload = false;
 
@@ -126,18 +126,18 @@ $wgDLPAllowUnlimitedCategories = false; // Allow unlimited categories
 // How long to cache pages using DPL's in seconds. Default to 1 day. Set to
 // false to use the normal amount of page caching (most efficient), Set to 0 to disable
 // cache altogether (inefficient, but results will never be outdated)
-$wgDLPMaxCacheTime = 60*60*24;          // How long to cache pages in seconds
+$wgDLPMaxCacheTime = 60 * 60 * 24;          // How long to cache pages in seconds
 
-wfLoadExtension( "LookupUser" );
+wfLoadExtension("LookupUser");
 $wgGroupPermissions['sysop']['lookupuser'] = true;
 
-wfLoadExtension( "CategoryTree" );
+wfLoadExtension("CategoryTree");
 wfLoadExtension("CSS");
 wfLoadExtension("EditUser");
 $wgGroupPermissions['bureaucrat']['edituser'] = true;
 $wgGroupPermissions['sysop']['edituser-exempt'] = true;
 
-wfLoadExtension( 'CategoryWatch' );
+wfLoadExtension('CategoryWatch');
 
 wfLoadExtension("RSS");
 $wgRSSUrlWhitelist = array("*");
@@ -148,7 +148,7 @@ $wgRSSUrlNumberOfAllowedRedirects = 1;
 wfLoadExtension("MobileFrontend");
 $wgMFAutodetectMobileView = true;
 
-require_once("$IP/extensions/GC_Messages/GC_Messages.php");
+require_once ("$IP/extensions/GC_Messages/GC_Messages.php");
 
 # Add a "My Favorites" link to the personal URLs area:
 #wfLoadExtension("Favorites");
@@ -156,22 +156,22 @@ require_once("$IP/extensions/GC_Messages/GC_Messages.php");
 # Add a Star icon for selecting favorites:
 #$wgUseIconFavorite = false;
 
-wfLoadExtension( "ReplaceText" );
+wfLoadExtension("ReplaceText");
 $wgGroupPermissions['bureaucrat']['replacetext'] = true;
 
-wfLoadExtension( "UserMerge" );
+wfLoadExtension("UserMerge");
 $wgGroupPermissions['sysop']['usermerge'] = true;
-$wgUserMergeUnmergeable = array( 'sysop', 'awesomeusers' );
+$wgUserMergeUnmergeable = array('sysop', 'awesomeusers');
 
-wfLoadExtension( "IframePage" );
-$wgIframePageSrc= array( 'GCcollab' => 'https://gccollab.ca/', 'YouTube' => 'https://www.youtube.com/embed/' );
+wfLoadExtension("IframePage");
+$wgIframePageSrc = array('GCcollab' => 'https://gccollab.ca/', 'YouTube' => 'https://www.youtube.com/embed/');
 $wgIframePageAllowPath = true;
 
-wfLoadExtension( "Nuke" );
+wfLoadExtension("Nuke");
 $wgGroupPermissions['sysop']['nuke'] = true;
 
 // activate when it's ready
-wfLoadExtension( "SkinTweaksGCpedia" );
+wfLoadExtension("SkinTweaksGCpedia");
 
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
 $wgGoogleAnalyticsAccount = $GAaccount;
@@ -185,16 +185,20 @@ $wgGroupPermissions['sysop']['emailupdate'] = true;
 
 require_once "$IP/extensions/awards/awards.php";
 
-wfLoadExtension( "GCUserCreateForm" );
+wfLoadExtension("GCUserCreateForm");
 
-wfLoadExtension( "AJAXPoll" );
-wfLoadExtension( "AjaxShowEditors" );
-wfLoadExtension( "MsCalendar" );
-wfLoadExtension( "RandomImage" );
+wfLoadExtension("AJAXPoll");
+wfLoadExtension("AjaxShowEditors");
+wfLoadExtension("MsCalendar");
+wfLoadExtension("RandomImage");
 
-wfLoadExtension( "Widgets" );
-wfLoadExtension( "TimedMediaHandler" );
+wfLoadExtension("Widgets");
 $wgEnableTranscode = false;
 $wgFFmpegLocation = '/usr/bin/ffmpeg';
 
 wfLoadExtension("SidebarTitleText");
+
+wfLoadExtension("TimedMediaHandler");
+$wgEnabledTranscodeSet = [];
+$wgFFmpegLocation = '/usr/bin/ffmpeg';
+$wgEnableTranscode = false;
