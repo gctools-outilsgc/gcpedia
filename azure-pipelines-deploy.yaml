@@ -8,7 +8,8 @@ jobs:
   displayName: prepare gcpedia dependencies
   pool:
     vmImage: ubuntu-latest
-  container: debian:11
+  container:
+    image: debian:11
   steps:
   - script: |
       echo "list all ffmpeg dependencies"
