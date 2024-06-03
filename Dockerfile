@@ -59,8 +59,6 @@ RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/
 
 RUN git clone --depth=1 https://gitlab.com/organicdesign/TreeAndMenu extensions/TreeAndMenu
 
-RUN git clone --depth=1 https://github.com/United-Earth-Team/MW-OAuth2Client.git extensions/MW-OAuth2Client
-RUN cd extensions/MW-OAuth2Client ; git submodule update --init
 RUN cd vendors/oauth2-client; composer install
 RUN cd extensions/TimedMediaHandler; composer install --no-dev
 
