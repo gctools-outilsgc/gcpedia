@@ -49,7 +49,7 @@ node_modules/
 
 # Composer
 /composer.lock
-/composer.local.json
+#/composer.local.json
 /composer.phar
 
 # MediaWiki UI documentation
