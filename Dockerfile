@@ -1,4 +1,5 @@
-FROM mediawiki:1.40.3
+# Stage 1: Base Image with Dependencies
+FROM mediawiki:1.40.3 as base
 
 ENV MEDIAWIKI_EXT_BRANCH REL1_40
 
@@ -24,26 +25,18 @@ COPY ./site/mediawiki.ini /usr/local/etc/php/conf.d/mediawiki.ini
 COPY ./site/*php /site/
 
 RUN chown -R www-data:www-data /var/www/html/
-USER www-data
 
-ENV COMPOSER_HOME=/tmp
-COPY --from=composer:2.1 /usr/bin/composer /usr/bin/composer
+# Stage 2: Install MediaWiki Extensions
+FROM base as extensions
 
-RUN composer config platform.php 8.1 && \
-  composer require --update-no-dev mediawiki/pluggable-auth
-
-# Available
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/AJAXPoll extensions/AJAXPoll
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/AjaxShowEditors extensions/AjaxShowEditors
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/CategoryWatch extensions/CategoryWatch
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/CharInsert extensions/CharInsert
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/TimedMediaHandler extensions/TimedMediaHandler
-
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/CSS extensions/CSS
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/EditUser extensions/EditUser
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/LookupUser extensions/LookupUser 
-RUN git clone --depth=1 https://github.com/debtcompliance/PdfBook /var/www/html/extensions/PdfBook
-
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/UserMerge extensions/UserMerge
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/intersection extensions/intersection
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/RSS extensions/RSS
@@ -56,24 +49,27 @@ RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/MsCalendar extensions/MsCalendar
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/RandomImage extensions/RandomImage
 RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/Widgets extensions/Widgets
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/OpenIDConnect extensions/OpenIDConnect
 
+RUN git clone --depth=1 https://github.com/debtcompliance/PdfBook /var/www/html/extensions/PdfBook
 RUN git clone --depth=1 https://gitlab.com/organicdesign/TreeAndMenu extensions/TreeAndMenu
 
-RUN cd vendors/oauth2-client; composer install
-RUN cd extensions/TimedMediaHandler; composer install --no-dev
+# Stage 3: Composer Setup
+FROM extensions as composer
 
-## MISSING
-# RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/EmailUpdate /var/www/html/extensions/EmailUpdate
+ENV COMPOSER_HOME=/tmp
+COPY --from=composer:2.1 /usr/bin/composer /usr/bin/composer
 
-## Conflict
-# RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/CategoryTree /var/www/html/extensions/CategoryTree
-# RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/skins/MinervaNeue /var/www/html/skins/MinervaNeue
+COPY composer.local.json composer.local.json
 
+RUN composer update
 
-# Unsupported
+# Stage 4: Final Image
+FROM base
 
-# Multilanguage - unmaintained, no database changes
-# MagicNoNumberedHeadings - unmaintained, no database changes
+COPY --from=composer /var/www/html/extensions /var/www/html/extensions
+
+USER www-data
 
 COPY init/checkDB.php init/
 COPY init/init.sh init/
