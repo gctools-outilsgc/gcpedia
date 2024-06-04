@@ -147,5 +147,8 @@ $wgGroupPermissions['sysop']['nuke'] = true;
 
 wfLoadExtension("SkinTweaksGCwiki");
 
+wfLoadExtension("PluggableAuth");
+wfLoadExtension("OpenIDConnect");
+
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
 $wgGoogleAnalyticsAccount = $GAaccount;
