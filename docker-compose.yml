@@ -1,78 +1,27 @@
 version: '2'
 services:
   # ###########################################################################
-  # The GCpedia container.  Will be accessible at http://wiki.gccollab.dev
+  # The GCpedia container.  Will be accessible at http://wiki.local
   # ###########################################################################
   gcpedia:
+    container_name: gcpedia
     build: .
-  #  image: phanoix/gcpedia
     ports:
       - 80:80
-      - 443:443
     volumes:
-    # uncomment the line below if you're working on the modified vector skin
-    #  - ./skins:/var/www/html/skins
-      - ./extensions:/var/www/html/extensions
       - ./images:/var/www/html/images
-      - /var/www/html/vendor
-      - /var/www/html/docker
-      # submodules - should not be modified anyways
-      - /var/www/html/skins/CologneBlue
-      - /var/www/html/skins/Modern
-      - /var/www/html/skins/MonoBook
-      - /var/www/html/skins/MinervaNeue
-      - /var/www/html/extensions/ConfirmEdit
-      - /var/www/html/extensions/Gadgets
-      - /var/www/html/extensions/Nuke
-      - /var/www/html/extensions/ParserFunctions
-      - /var/www/html/extensions/Renameuser
-      - /var/www/html/extensions/WikiEditor
-      - /var/www/html/extensions/Cite
-      - /var/www/html/extensions/ImageMap
-      - /var/www/html/extensions/InputBox
-      - /var/www/html/extensions/Interwiki
-      - /var/www/html/extensions/LocalisationUpdate
-      - /var/www/html/extensions/Poem
-      - /var/www/html/extensions/SyntaxHighlight_GeSHi
-      - /var/www/html/extensions/TitleBlacklist
-      - /var/www/html/extensions/CiteThisPage
-      - /var/www/html/extensions/PdfHandler
-      - /var/www/html/extensions/SpamBlacklist
-      - /var/www/html/extensions/ElectronPdfService
-      - /var/www/html/extensions/CategoryTree
-      - /var/www/html/extensions/CategoryWatch
-      - /var/www/html/extensions/EditUser
-      - /var/www/html/extensions/LookupUser
-      - /var/www/html/extensions/ReplaceText
-      - /var/www/html/extensions/UserMerge
-      - /var/www/html/extensions/CharInsert
-      - /var/www/html/extensions/CSS
-      - /var/www/html/extensions/intersection
-      - /var/www/html/extensions/RSS
-      - /var/www/html/extensions/UniversalLanguageSelector
-      - /var/www/html/extensions/MobileFrontend
-      - /var/www/html/extensions/VisualEditor
-      - /var/www/html/extensions/IframePage
-      - /var/www/html/extensions/googleAnalytics
-      - /var/www/html/extensions/DeletePagesForGood
-      - /var/www/html/extensions/Lingo
-      - /var/www/html/extensions/Favorites
-      - /var/www/html/extensions/PluggableAuth
-      - /var/www/html/extensions/OpenIDConnect
-      - /var/www/html/extensions/PdfBook
-      - /var/www/html/extensions/AJAXPoll
-      - /var/www/html/extensions/AjaxShowEditors
-      - /var/www/html/extensions/MsCalendar
-      - /var/www/html/extensions/RandomImage
-      - /var/www/html/extensions/TimedMediaHandler
-      - /var/www/html/extensions/Widgets
+      - ./compiled_templates:/var/www/html/extensions/Widgets/compiled_templates/
     links:
       - gcpedia-db
     depends_on:
       - gcpedia-db
     environment:
       - DOCKER=1
+      - DBTYPE=mysql
       - DBHOST=gcpedia-db
+      - DBNAME=wiki
+      - DBUSER=wiki
+      - DBPASS=gcpedia
       - WIKI_HOST=wiki.local
       - WIKI_PROTOCOL=http
       - WIKI_PORT=
@@ -85,20 +34,12 @@ services:
 #      - USESAML=false
 
   # ###########################################################################
-  # The Electron render service container for the ElectronPdfService Extension.
-  # Will be available to gcpedia at elec-render:3000
-  # ###########################################################################
- # elec-render:
- #   image: msokk/electron-render-service
- #   ports:
- #     - 3000:3000
-
-  # ###########################################################################
   # Database container for gcpedia, accessible from by the gcpedia container 
   # using the network host "gcpedia-db".
   # ###########################################################################
   gcpedia-db:
-    image: library/mariadb:10.3
+    container_name: gcpedia-db
+    image: mariadb:10.3
     volumes:
       - ./data/db:/var/lib/mysql
     environment:

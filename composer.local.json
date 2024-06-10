@@ -1,0 +1,18 @@
+{
+	"config": {
+		"platform": {
+			"php": "8.1"
+		}
+	},
+	"require": {
+		"mediawiki/pluggable-auth": "^7.1"
+	},
+	"extra": {
+		"merge-plugin": {
+			"include": [
+				"extensions/OpenIDConnect/composer.json",
+				"extensions/TimedMediaHandler/composer.json"
+			]
+		}
+	}
+}

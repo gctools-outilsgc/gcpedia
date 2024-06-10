@@ -1,7 +1,0 @@
-composer.lock
-composer.phar
-.DS_Store
-testing/
-nbproject/private/
-test/log
-build

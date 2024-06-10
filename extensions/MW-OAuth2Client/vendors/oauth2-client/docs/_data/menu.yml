@@ -1,8 +1,0 @@
-Getting Started:
-    Introduction: '/'
-    "Basic Usage": '/usage/'
-
-Providers:
-    "Official Providers": '/providers/league/'
-    "Third-Party Providers": '/providers/thirdparty/'
-    "Implementing Your Own": '/providers/implementing/'

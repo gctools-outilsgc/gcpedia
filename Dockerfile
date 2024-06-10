@@ -1,66 +1,78 @@
-# First stage, install composer and its dependencies and fetch vendor files and submodules
-FROM alpine:3.13
-RUN apk update
-RUN apk --no-cache add \
-  php7 \
-  php7-dom \
-  php7-phar \
-  php7-gd \
-  php7-json \
-  php7-mysqli \
-  php7-mysqlnd \
-  php7-mbstring \
-  php7-ctype \
-  php7-iconv \
-  php7-tokenizer \
-  php7-openssl \
-  php7-xml \
-  php7-simplexml \
-  php7-xmlwriter \
-  php7-zlib \
-  php7-curl \
-  git \
-  curl
-RUN mkdir /app && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --version=1.10.19 --filename=composer
-WORKDIR /app
-COPY . /app/
+# Stage 1: Base Image with Dependencies
+FROM mediawiki:1.40.3 as base
 
-RUN git submodule init
-RUN git submodule update --recursive --init
-ARG COMPOSER_ALLOW_SUPERUSER=1
-ARG COMPOSER_NO_INTERACTION=1
-RUN cd /app/extensions/OpenIDConnect && composer install --no-dev
-RUN cd /app/extensions/PluggableAuth && composer install --no-dev
-RUN cd /app/extensions/TimedMediaHandler && composer install --no-dev
-RUN cd /app/extensions/Widgets && composer install --no-dev
+ENV MEDIAWIKI_EXT_BRANCH REL1_40
 
-# Cleanup before copying over to next stage - version history takes up a lot of space
-RUN rm -rf .git/
+LABEL maintainer="GC Tools team"
 
-
-# Second stage, build usable container
-FROM mediawiki:1.40.1
-LABEL maintainer="Ilia Salem"
-
-RUN apt-get update && apt install -y htmldoc ffmpeg
+RUN set -x; \
+    apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y --no-install-recommends \
+    git \
+    libzip-dev \
+    ffmpeg \
+    unzip \
+    zlib1g-dev \
+ && docker-php-ext-install \
+    zip \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html/
-COPY --from=0 /app/ /var/www/html/
-COPY ./docker/LocalSettings.php.docker /var/www/html/LocalSettings.php
 
-# for automated install
-#RUN chown www-data:www-data /var/www/html/
+COPY extensions/ extensions/
+COPY ./site/mediawiki.ini /usr/local/etc/php/conf.d/mediawiki.ini
+COPY ./site/*php /site/
 
-RUN mkdir /super
-RUN mv /var/www/html/docker/secrets.php /super/secrets.php
-RUN chown www-data:www-data /super/secrets.php
-RUN chown www-data:www-data /var/www/html/extensions/Widgets/compiled_templates/
+RUN chown -R www-data:www-data /var/www/html/
 
-EXPOSE 80
+# Stage 2: Install MediaWiki Extensions
+FROM base as extensions
 
-RUN chmod +x docker/start.sh
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/AJAXPoll extensions/AJAXPoll
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/AjaxShowEditors extensions/AjaxShowEditors
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/CategoryWatch extensions/CategoryWatch
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/CharInsert extensions/CharInsert
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/TimedMediaHandler extensions/TimedMediaHandler
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/CSS extensions/CSS
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/EditUser extensions/EditUser
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/LookupUser extensions/LookupUser 
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/UserMerge extensions/UserMerge
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/intersection extensions/intersection
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/RSS extensions/RSS
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/UniversalLanguageSelector extensions/UniversalLanguageSelector
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/MobileFrontend extensions/MobileFrontend
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/IframePage extensions/IframePage
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/googleAnalytics extensions/googleAnalytics
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/Lingo extensions/Lingo
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/DeletePagesForGood extensions/DeletePagesForGood
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/MsCalendar extensions/MsCalendar
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/RandomImage extensions/RandomImage
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/Widgets extensions/Widgets
+RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/mediawiki/extensions/OpenIDConnect extensions/OpenIDConnect
 
-# Start Apache in foreground mode
-RUN rm -f /run/apache2/httpd.pid
-ENTRYPOINT [ "docker/start.sh" ]
-CMD  ["apache2-foreground"]
+RUN git clone --depth=1 https://github.com/debtcompliance/PdfBook /var/www/html/extensions/PdfBook
+RUN git clone --depth=1 https://gitlab.com/organicdesign/TreeAndMenu extensions/TreeAndMenu
+
+# Stage 3: Composer Setup
+FROM extensions as composer
+
+ENV COMPOSER_HOME=/tmp
+COPY --from=composer:2.1 /usr/bin/composer /usr/bin/composer
+
+COPY composer.local.json composer.local.json
+
+RUN composer update
+
+# Stage 4: Final Image
+FROM base
+
+COPY --from=composer /var/www/html/extensions /var/www/html/extensions
+
+USER www-data
+
+COPY init/checkDB.php init/
+COPY init/init.sh init/
+
+ENTRYPOINT [ "bash", "init/init.sh" ]
+CMD [ "apache2-foreground" ]
