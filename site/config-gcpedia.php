@@ -200,9 +200,6 @@ wfLoadExtension("SidebarTitleText");
 
 wfLoadExtension("TimedMediaHandler");
 
-wfLoadExtension("PluggableAuth");
-wfLoadExtension("OpenIDConnect");
-
 $wgEnabledTranscodeSet = [];
 $wgFFmpegLocation = '/usr/bin/ffmpeg';
 $wgEnableTranscode = false;
