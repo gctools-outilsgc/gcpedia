@@ -1,0 +1,34 @@
+{
+	"name": "MagicNumberedHeadings",
+	"version": "1.0",
+	"author": "",
+	"url": "https://github.com/gctools-outilsgc/gcpedia",
+	"descriptionmsg": "magicnumberedheadings-desc",
+	"type": "parserhook",
+	"requires": {
+		"MediaWiki": ">= 1.40.0"
+	},
+	"MessagesDirs": {
+		"MagicNumberedHeadings": [
+			"i18n"
+		]
+	},
+	"ResourceModules": {
+		"ext.magicnumberedheadings": {
+			"styles": "css/magicnumberedheadings.css",
+			"scripts": "js/magicnumberedheadings.js"
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "resources",
+		"remoteExtPath": "MagicNumberedHeadings/resources"
+	},
+	"AutoloadClasses": {
+		"MagicNumberedHeadings": "MagicNumberedHeadingsHooks.php"
+	},
+	"Hooks": {
+		"SkinBuildSidebar": "MagicNumberedHeadingsHooks::onGetDoubleUnderscoreIDs",
+		"BeforePageDisplay": "MagicNumberedHeadingsHooks::onParserAfterParse"
+	},
+	"manifest_version": 2
+}

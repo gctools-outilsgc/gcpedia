@@ -11,6 +11,7 @@ services:
     volumes:
       - ./images:/var/www/html/images
       - ./compiled_templates:/var/www/html/extensions/Widgets/compiled_templates/
+      - ./extensions/MagicNumberedHeadings:/var/www/html/extensions/MagicNumberedHeadings/
     links:
       - gcpedia-db
     depends_on:
