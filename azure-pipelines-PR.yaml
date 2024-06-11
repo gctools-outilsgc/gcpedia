@@ -103,7 +103,10 @@ jobs:
       rm -r "$GNUPGHOME" mediawiki.tar.gz.sig mediawiki.tar.gz
       cp -r $(Pipeline.Workspace)/s/* ./
       cp -r $(Pipeline.Workspace)/s/.azure ./
+      cp $(Pipeline.Workspace)/s/site/LocalSettings.php ./LocalSettings.php
+      echo "SITE=$(siteType)" >> /etc/environment
       ls -la
+
     displayName: prepare gcpedia code build environment
 
   - task: ArchiveFiles@2
