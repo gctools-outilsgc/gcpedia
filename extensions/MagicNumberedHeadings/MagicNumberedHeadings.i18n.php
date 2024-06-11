@@ -2,6 +2,11 @@
 
 $messages = array();
 
+$messages['en'] = [
+        'magicnumberedheadings-desc' => 'Adds MagicWord "<nowiki>__NUMBEREDHEADINGS__</nowiki>"'
+];
+
+
 $magicWords = array();
 
 $magicWords['en'] = array(

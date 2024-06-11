@@ -8,10 +8,8 @@
 	"requires": {
 		"MediaWiki": ">= 1.40.0"
 	},
-	"MessagesDirs": {
-		"MagicNumberedHeadings": [
-			"i18n"
-		]
+	"ExtensionMessagesFiles": {
+		"MagicNumberedHeadings": "MagicNumberedHeadings.i18n.php"
 	},
 	"ResourceModules": {
 		"ext.magicnumberedheadings": {
@@ -24,11 +22,11 @@
 		"remoteExtPath": "MagicNumberedHeadings/resources"
 	},
 	"AutoloadClasses": {
-		"MagicNumberedHeadings": "MagicNumberedHeadingsHooks.php"
+		"MagicNumberedHeadingsHooks": "MagicNumberedHeadingsHooks.php"
 	},
 	"Hooks": {
-		"SkinBuildSidebar": "MagicNumberedHeadingsHooks::onGetDoubleUnderscoreIDs",
-		"BeforePageDisplay": "MagicNumberedHeadingsHooks::onParserAfterParse"
+		"GetDoubleUnderscoreIDs": "MagicNumberedHeadingsHooks::onGetDoubleUnderscoreIDs",
+		"ParserAfterParse": "MagicNumberedHeadingsHooks::onParserAfterParse"
 	},
 	"manifest_version": 2
 }
