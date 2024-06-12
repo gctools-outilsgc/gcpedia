@@ -12,6 +12,7 @@ RUN set -x; \
     git \
     libzip-dev \
     ffmpeg \
+    htmldoc \
     unzip \
     zlib1g-dev \
  && docker-php-ext-install \
