@@ -8,7 +8,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: read
 
 # This allows a subsequently queued workflow run to interrupt previous runs
@@ -21,13 +21,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v3.5.1
+        with:
+          node-version: 20
+          
       - uses: actions/checkout@v4
-      - uses: fregante/setup-git-user@v2
         with:
           repository: gctools-outilsgc/gcpedia
-          token: ${{ secrets.BOT_ACCESS_TOKEN }}
-          node-version: 18
           ref: gh-pages
+
+      - uses: fregante/setup-git-user@v2
+        with:
+          token: ${{ secrets.BOT_ACCESS_TOKEN }}
 
       - name: Set up GitHub Actions bot identity
         run: |
@@ -92,6 +96,10 @@ jobs:
           git status
           ls -lat
 
+      - name: git info
+        run: |
+          git config --list
+          
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "update e2e test reviews"
