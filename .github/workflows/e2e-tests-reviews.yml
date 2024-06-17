@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v3.5.1
       - uses: actions/checkout@v4
-      # - uses: fregante/setup-git-user@v2
+      - uses: fregante/setup-git-user@v2
         with:
           repository: gctools-outilsgc/gcpedia
           token: ${{ secrets.BOT_ACCESS_TOKEN }}
