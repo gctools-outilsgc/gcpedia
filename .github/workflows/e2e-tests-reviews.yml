@@ -8,10 +8,10 @@ on:
   pull_request:
 
 permissions:
-  contents: read
-  pull-requests: read
+  contents: write
+  pull-requests: write
+  actions: write
 
-# This allows a subsequently queued workflow run to interrupt previous runs
 concurrency:
   group: "${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}"
   cancel-in-progress: true
@@ -22,16 +22,15 @@ jobs:
     steps:
       - uses: actions/setup-node@v3.5.1
       - uses: actions/checkout@v4
-      - uses: fregante/setup-git-user@v2
         with:
           repository: gctools-outilsgc/gcpedia
           token: ${{ secrets.BOT_ACCESS_TOKEN }}
-          # node-version: 20
+          node-version: 20
           ref: gh-pages
 
       - name: Set up GitHub Actions bot identity
         run: |
-          git config user.name "github-actions[pat]"
+          git config user.name "github-actions[bot]"
           git config user.email "vid_github@zooid.org"
 
       - name: Merge base branch
@@ -57,7 +56,7 @@ jobs:
       - name: wait for it to start
         continue-on-error: true
         run: |
-          npx -y wait-on -t 45s tcp:`./haibun/gcpedia-docker-address.sh`:80
+          npx -y wait-on -t 45000 tcp:`./haibun/gcpedia-docker-address.sh`:80
 
       - name: See the logs if wait failed
         if: steps.wait-for-it.outputs.success == 'false'
@@ -95,6 +94,15 @@ jobs:
           git status
           ls -lat
 
+      - name: Configure Git credentials
+        run: |
+          git config --global user.email "vid_github@zooid.org"
+          git config --global user.name "github-actions[bot]"
+          echo "https://${{ secrets.BOT_ACCESS_TOKEN }}:@github.com" > ~/.git-credentials
+          git config --global credential.helper store
+
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "update e2e test reviews"
+          repository: gctools-outilsgc/gcpedia
+          token: ${{ secrets.BOT_ACCESS_TOKEN }}
