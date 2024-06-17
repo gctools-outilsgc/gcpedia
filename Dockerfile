@@ -55,7 +55,7 @@ RUN git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH https://gerrit.wikimedia.org/r/
 RUN git clone --depth=1 https://github.com/debtcompliance/PdfBook extensions/PdfBook
 
 # FIXME issues with github action
-RUN git config --global --add safe.directory extensions/PluggableAuth                  
+RUN git config --global --add safe.directory '*'
 RUN rm -rf extensions/TreeAndMenu
 RUN git clone --depth=1 https://gitlab.com/organicdesign/TreeAndMenu extensions/TreeAndMenu
 
