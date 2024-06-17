@@ -1,2 +1,2 @@
 export const endpoint = "./tracks/";
-export async function getPublishedReviews() { return ["1709483042591-tracksHistory.json"]; }
+export async function getPublishedReviews() { return ["1718384528677-tracksHistory.json","test-tracksHistory.json"]; }

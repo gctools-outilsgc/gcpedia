@@ -1,7 +1,7 @@
 /**
  * Bundle of haibun-reviews-dashboard
- * Generated: 2024-02-01
- * Version: 1.35.5
+ * Generated: 2024-05-09
+ * Version: 1.40.5
  * Dependencies:
  *
  * tslib -- 2.6.2
@@ -513,6 +513,10 @@ function getDetailContent(artifact) {
     else if (artifact.type === 'video') {
         const videoPath = artifact?.path;
         return videoPath ? x$1 `<video controls width="640"><source src=${videoPath} type="video/mp4"></video>` : x$1 `<div />`;
+    }
+    else if (artifact.type === 'archive') {
+        const archivePath = artifact?.path;
+        return x$1 `<a download href=${archivePath}>Download</a>`;
     }
     return x$1 `<img src=${artifact.path} alt=${JSON.stringify(artifact)} />`;
 }
