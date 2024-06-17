@@ -75,8 +75,7 @@ $wgFooterIcons = [
 ////  extensions
 wfLoadExtension("ParserFunctions");
 
-require_once "$IP/extensions/MagicNoNumberedHeadings/MagicNoNumberedHeadings.php";
-require_once "$IP/extensions/MagicNumberedHeadings/MagicNumberedHeadings.php";
+wfLoadExtension("MagicNumberedHeadings");
 require_once "$IP/extensions/Multilang/multilang.php";
 
 wfLoadExtension("UniversalLanguageSelector");
@@ -143,7 +142,6 @@ wfLoadExtension("RSS");
 $wgRSSUrlWhitelist = array("*");
 $wgRSSUrlNumberOfAllowedRedirects = 1;
 
-// require_once( "$IP/extensions/Multilang/multilang.php" );
 
 wfLoadExtension("MobileFrontend");
 $wgMFAutodetectMobileView = true;

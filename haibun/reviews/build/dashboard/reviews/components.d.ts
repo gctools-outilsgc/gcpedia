@@ -19,7 +19,7 @@ export declare class AReview extends LitElement {
     artifacts: TLogHistoryWithArtifact[];
     videoOverview: TLogHistoryWithArtifact | undefined;
     connectedCallback(): Promise<void>;
-    currentFilter: (h: TLogHistory) => boolean | import("@haibun/core/build/lib/interfaces/logger.js").TLogHistoryWithExecutorTopic;
+    currentFilter: (h: TLogHistory) => boolean;
     render(): TemplateResult<1>;
     handleShowDetail(event: CustomEvent): void;
     videoDetail(): void;
