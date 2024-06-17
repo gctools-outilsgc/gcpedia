@@ -28,10 +28,9 @@ jobs:
         with:
           repository: gctools-outilsgc/gcpedia
           ref: gh-pages
+#          token: ${{ secrets.BOT_ACCESS_TOKEN }}
 
       - uses: fregante/setup-git-user@v2
-        with:
-          token: ${{ secrets.BOT_ACCESS_TOKEN }}
 
       - name: Set up GitHub Actions bot identity
         run: |
