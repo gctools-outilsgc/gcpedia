@@ -21,39 +21,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v3.5.1
-      - uses: actions/checkout@v4
+      - name: Checkout the current branch
+        uses: actions/checkout@v4
         with:
-          repository: gctools-outilsgc/gcpedia
           token: ${{ secrets.BOT_ACCESS_TOKEN }}
-          node-version: 20
-          ref: gh-pages
-
+      
       - name: Set up GitHub Actions bot identity
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "vid_github@zooid.org"
 
-      - name: Merge base branch
-        run: |
-          git fetch origin main
-          git merge --allow-unrelated-histories -X theirs origin/main
-
-      - name: build gcpedia docker-compose
+      - name: Build gcpedia docker-compose
         run: docker-compose build
 
-      - name: make images directory
+      - name: Make images directory
         run: mkdir images
 
-      - name: set images permissions
+      - name: Set images permissions
         run: chmod 777 images/
 
-      - name: start gcpedia docker-compose
+      - name: Start gcpedia docker-compose
         run: docker-compose up -d
 
-      - name: see the logs
+      - name: See the logs
         run: docker-compose logs
 
-      - name: wait for it to start
+      - name: Wait for it to start
         continue-on-error: true
         run: |
           npx -y wait-on -t 45000 tcp:`./haibun/gcpedia-docker-address.sh`:80
@@ -66,23 +59,23 @@ jobs:
         if: steps.wait-for-it.outputs.success == 'false'
         run: exit 1
 
-      - name: playwright install
+      - name: Playwright install
         run: |
           npx playwright install-deps
           npx playwright install
                 
-      - name: install haibun dependencies
+      - name: Install haibun dependencies
         run: |
           cd haibun
           npm ci
 
-      - name: run e2e tests
+      - name: Run e2e tests
         continue-on-error: true
         run: |
           cd haibun
           npm run docker-test
 
-      - name: run publish
+      - name: Run publish
         run: |
           cd haibun
           npm run publish
@@ -94,15 +87,18 @@ jobs:
           git status
           ls -lat
 
-      - name: Configure Git credentials
+      - name: Checkout gh-pages branch
         run: |
-          git config --global user.email "vid_github@zooid.org"
-          git config --global user.name "github-actions[bot]"
-          echo "https://${{ secrets.BOT_ACCESS_TOKEN }}:@github.com" > ~/.git-credentials
-          git config --global credential.helper store
+          git fetch origin gh-pages
+          git checkout gh-pages
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "update e2e test reviews"
-          repository: gctools-outilsgc/gcpedia
-          token: ${{ secrets.BOT_ACCESS_TOKEN }}
+      - name: Merge current branch into gh-pages
+        run: |
+          git merge ${{ github.ref }} --allow-unrelated-histories
+
+      - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_ACCESS_TOKEN }}
+        run: |
+          git commit -m "update e2e test reviews"
+          git push origin gh-pages
