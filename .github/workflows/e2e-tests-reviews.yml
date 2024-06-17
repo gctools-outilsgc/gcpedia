@@ -9,9 +9,9 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
-  actions: write
+  pull-requests: read
 
+# This allows a subsequently queued workflow run to interrupt previous runs
 concurrency:
   group: "${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}"
   cancel-in-progress: true
@@ -21,35 +21,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v3.5.1
-      - name: Checkout the current branch
-        uses: actions/checkout@v4
         with:
-          token: ${{ secrets.E2E_ACCESS_TOKEN }}
-      
+          node-version: 20
+          
+      - uses: actions/checkout@v4
+        with:
+          repository: gctools-outilsgc/gcpedia
+          ref: gh-pages
+#          token: ${{ secrets.BOT_ACCESS_TOKEN }}
+
+      - uses: fregante/setup-git-user@v2
+
       - name: Set up GitHub Actions bot identity
         run: |
-          git config user.name "github-actions[bot]"
+          git config user.name "github-actions[pat]"
           git config user.email "vid_github@zooid.org"
 
-      - name: Build gcpedia docker-compose
+      - name: Merge base branch
+        run: |
+          git fetch origin main
+          git merge --allow-unrelated-histories -X theirs origin/main
+
+      - name: build gcpedia docker-compose
         run: docker-compose build
 
-      - name: Make images directory
+      - name: make images directory
         run: mkdir images
 
-      - name: Set images permissions
+      - name: set images permissions
         run: chmod 777 images/
 
-      - name: Start gcpedia docker-compose
+      - name: start gcpedia docker-compose
         run: docker-compose up -d
 
-      - name: See the logs
+      - name: see the logs
         run: docker-compose logs
 
-      - name: Wait for it to start
+      - name: wait for it to start
         continue-on-error: true
         run: |
-          npx -y wait-on -t 45000 tcp:`./haibun/gcpedia-docker-address.sh`:80
+          npx -y wait-on -t 45s tcp:`./haibun/gcpedia-docker-address.sh`:80
 
       - name: See the logs if wait failed
         if: steps.wait-for-it.outputs.success == 'false'
@@ -59,23 +70,20 @@ jobs:
         if: steps.wait-for-it.outputs.success == 'false'
         run: exit 1
 
-      - name: Playwright install
-        run: |
-          npx playwright install-deps
-          npx playwright install
-                
-      - name: Install haibun dependencies
+      - name: install haibun dependencies
         run: |
           cd haibun
           npm ci
-
-      - name: Run e2e tests
+          npx playwright install-deps
+          npx playwright install
+          
+      - name: run e2e tests
         continue-on-error: true
         run: |
           cd haibun
           npm run docker-test
 
-      - name: Run publish
+      - name: run publish
         run: |
           cd haibun
           npm run publish
@@ -87,18 +95,10 @@ jobs:
           git status
           ls -lat
 
-      - name: Checkout gh-pages branch
+      - name: git info
         run: |
-          git fetch origin gh-pages
-          git checkout gh-pages
-
-      - name: Merge current branch into gh-pages
-        run: |
-          git merge ${{ github.ref }} --allow-unrelated-histories
-
-      - name: Commit and push changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.E2E_ACCESS_TOKEN }}
-        run: |
-          git commit -m "update e2e test reviews"
-          git push origin gh-pages
+          git config --list
+          
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "update e2e test reviews"
