@@ -67,16 +67,13 @@ jobs:
         if: steps.wait-for-it.outputs.success == 'false'
         run: exit 1
 
-      - name: playwright install
-        run: |
-          npx playwright install-deps
-          npx playwright install
-                
       - name: install haibun dependencies
         run: |
           cd haibun
           npm ci
-
+          npx playwright install-deps
+          npx playwright install
+          
       - name: run e2e tests
         continue-on-error: true
         run: |
