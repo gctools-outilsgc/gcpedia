@@ -24,7 +24,7 @@ jobs:
       - name: Checkout the current branch
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.BOT_ACCESS_TOKEN }}
+          token: ${{ secrets.E2E_ACCESS_TOKEN }}
       
       - name: Set up GitHub Actions bot identity
         run: |
@@ -98,7 +98,7 @@ jobs:
 
       - name: Commit and push changes
         env:
-          GITHUB_TOKEN: ${{ secrets.BOT_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.E2E_ACCESS_TOKEN }}
         run: |
           git commit -m "update e2e test reviews"
           git push origin gh-pages
