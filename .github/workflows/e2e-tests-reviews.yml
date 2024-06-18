@@ -11,7 +11,6 @@ permissions:
   contents: write
   pull-requests: read
 
-# This allows a subsequently queued workflow run to interrupt previous runs
 concurrency:
   group: "${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}"
   cancel-in-progress: true
@@ -27,20 +26,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: gctools-outilsgc/gcpedia
-          ref: gh-pages
-#          token: ${{ secrets.BOT_ACCESS_TOKEN }}
+          ref: main
 
       - uses: fregante/setup-git-user@v2
 
       - name: Set up GitHub Actions bot identity
         run: |
-          git config user.name "github-actions[pat]"
+          git config user.name "github-actions[bot]"
           git config user.email "vid_github@zooid.org"
 
-      - name: Merge base branch
+      - name: git info
         run: |
-          git fetch origin main
-          git merge --allow-unrelated-histories -X theirs origin/main
+          git config --list
 
       - name: build gcpedia docker-compose
         run: docker-compose build
@@ -95,10 +92,24 @@ jobs:
           git status
           ls -lat
 
-      - name: git info
+      - name: Stash changes before checkout
         run: |
-          git config --list
-          
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "update e2e test reviews"
+          git stash # Stash changes before switching branches
+
+      - name: Checkout gh-pages branch
+        run: |
+          git checkout gh-pages
+
+      - name: Apply stashed changes
+        run: |
+          git stash pop || echo "No stash to apply" # Apply stashed changes if any
+
+      - name: Commit changes
+        run: |
+          git add ./haibun/reviews/
+          git commit -m "update e2e test reviews"
+
+      - name: Push changes to gh-pages
+        run: |
+          git push origin gh-pages
+
