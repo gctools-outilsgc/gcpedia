@@ -19,15 +19,13 @@ jobs:
   e2e_test_and_publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v3.5.1
-        with:
-          node-version: 20
-          
+      # Checkout main branch
       - uses: actions/checkout@v4
         with:
           repository: gctools-outilsgc/gcpedia
           ref: main
 
+      # Set up GitHub Actions bot identity
       - uses: fregante/setup-git-user@v2
 
       - name: Set up GitHub Actions bot identity
@@ -35,26 +33,23 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "vid_github@zooid.org"
 
-      - name: git info
-        run: |
-          git config --list
-
-      - name: build gcpedia docker-compose
+      # Build and run Docker container
+      - name: Build gcpedia docker-compose
         run: docker-compose build
 
-      - name: make images directory
+      - name: Make images directory
         run: mkdir images
 
-      - name: set images permissions
+      - name: Set images permissions
         run: chmod 777 images/
 
-      - name: start gcpedia docker-compose
+      - name: Start gcpedia docker-compose
         run: docker-compose up -d
 
-      - name: see the logs
+      - name: See the logs
         run: docker-compose logs
 
-      - name: wait for it to start
+      - name: Wait for it to start
         continue-on-error: true
         run: |
           npx -y wait-on -t 45s tcp:`./haibun/gcpedia-docker-address.sh`:80
@@ -67,49 +62,46 @@ jobs:
         if: steps.wait-for-it.outputs.success == 'false'
         run: exit 1
 
-      - name: install haibun dependencies
+      # Fetch and switch to gh-pages branch
+      - name: Fetch and switch to gh-pages branch
+        run: |
+          git fetch origin gh-pages:gh-pages
+          git switch gh-pages
+
+      # Reset gh-pages to main, except for haibun/reviews
+      - name: Reset gh-pages to main
+        run: |
+          git reset --hard origin/main
+          git checkout origin/gh-pages -- haibun/reviews
+
+      # Install haibun dependencies
+      - name: Install haibun dependencies
         run: |
           cd haibun
           npm ci
           npx playwright install-deps
           npx playwright install
-          
-      - name: run e2e tests
+
+      # Run e2e tests
+      - name: Run e2e tests
         continue-on-error: true
         run: |
           cd haibun
           npm run docker-test
 
-      - name: run publish
+      # Run publish
+      - name: Run publish
         run: |
           cd haibun
           npm run publish
 
-      - name: Add reviews
+      # Add and commit changes
+      - name: Add and commit changes
         run: |
-          cd haibun
-          git add ./reviews/
-          git status
-          ls -lat
-
-      - name: Stash changes before checkout
-        run: |
-          git stash # Stash changes before switching branches
-
-      - name: Checkout gh-pages branch
-        run: |
-          git checkout gh-pages
-
-      - name: Apply stashed changes
-        run: |
-          git stash pop || echo "No stash to apply" # Apply stashed changes if any
-
-      - name: Commit changes
-        run: |
-          git add ./haibun/reviews/
+          git add ./haibun/reviews
           git commit -m "update e2e test reviews"
 
+      # Push changes to gh-pages
       - name: Push changes to gh-pages
         run: |
           git push origin gh-pages
-
