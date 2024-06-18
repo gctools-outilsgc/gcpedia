@@ -62,12 +62,12 @@ jobs:
         if: steps.wait-for-it.outputs.success == 'false'
         run: exit 1
 
-      # Fetch and switch to gh-pages branch
+      # Fetch and check latest gh-pages branch
       - name: Fetch and switch to gh-pages branch
         run: |
-          git fetch origin gh-pages:gh-pages
-          git switch --track origin/gh-pages
-          git pull origin gh-pages
+          git fetch origin
+          git checkout gh-pages
+          git pull --rebase origin gh-pages
 
       # Reset gh-pages to main, except for haibun/reviews
       - name: Reset gh-pages to main
