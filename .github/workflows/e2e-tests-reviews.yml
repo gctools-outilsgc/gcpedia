@@ -31,7 +31,7 @@ jobs:
       - name: Set up GitHub Actions bot identity
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "vid_github@zooid.org"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       # Build and run Docker container
       - name: Build gcpedia docker-compose
@@ -67,6 +67,8 @@ jobs:
         run: |
           git fetch origin gh-pages:gh-pages
           git switch gh-pages
+          # fixme:  Updates were rejected because the tip of your current branch is behind its remote counterpoint
+          git pull
 
       # Reset gh-pages to main, except for haibun/reviews
       - name: Reset gh-pages to main
