@@ -19,21 +19,19 @@ jobs:
   e2e_test_and_publish:
     runs-on: ubuntu-latest
     steps:
-      # Checkout main branch
+      # Step 1: Checkout main branch
       - uses: actions/checkout@v4
         with:
           repository: gctools-outilsgc/gcpedia
           ref: main
 
-      # Set up GitHub Actions bot identity
-      - uses: fregante/setup-git-user@v2
-
+      # Step 2: Set up GitHub Actions bot identity
       - name: Set up GitHub Actions bot identity
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      # Build and run Docker container
+      # Step 3: Build and run Docker container
       - name: Build gcpedia docker-compose
         run: docker-compose build
 
@@ -62,20 +60,21 @@ jobs:
         if: steps.wait-for-it.outputs.success == 'false'
         run: exit 1
 
-      # Fetch and check latest gh-pages branch
+      # Step 4: Fetch and switch to gh-pages branch
       - name: Fetch and switch to gh-pages branch
         run: |
           git fetch origin
           git checkout gh-pages
+          git branch --set-upstream-to=origin/gh-pages gh-pages || true
           git pull --rebase origin gh-pages
 
-      # Reset gh-pages to main, except for haibun/reviews
+      # Step 5: Reset gh-pages to main, except for haibun/reviews
       - name: Reset gh-pages to main
         run: |
           git reset --hard origin/main
           git checkout origin/gh-pages -- haibun/reviews
 
-      # Install haibun dependencies
+      # Step 6: Install haibun dependencies
       - name: Install haibun dependencies
         run: |
           cd haibun
@@ -83,26 +82,31 @@ jobs:
           npx playwright install-deps
           npx playwright install
 
-      # Run e2e tests
+      # Step 7: Run e2e tests
       - name: Run e2e tests
         continue-on-error: true
         run: |
           cd haibun
           npm run docker-test
 
-      # Run publish
+      # Step 8: Run publish
       - name: Run publish
         run: |
           cd haibun
           npm run publish
 
-      # Add and commit changes
+      # Step 9: Add and commit changes
       - name: Add and commit changes
         run: |
           git add ./haibun/reviews
           git commit -m "update e2e test reviews"
 
-      # Push changes to gh-pages
+      # Step 10: Pull latest changes from remote gh-pages branch to avoid conflicts
+      - name: Pull latest changes
+        run: |
+          git pull --rebase origin gh-pages
+
+      # Step 11: Push changes to gh-pages
       - name: Push changes to gh-pages
         run: |
           git push origin gh-pages
