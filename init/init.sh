@@ -40,8 +40,7 @@ check_setup() {
       exit $status
     fi
     # overwrite installation LocalSettings with site specific
-    echo "TODO: copy /site/LocalSettings.php to /var/www/html/LocalSettings.php after all extensions are validated"
-    cp /site/LocalSettings.php LocalSettings.php
+    cp /setup/site/LocalSettings.php /var/www/html/LocalSettings.php
     # make sure an update is run for the sake of extensions
     RUN_UPDATE="true"
   else 
@@ -49,7 +48,7 @@ check_setup() {
   fi
   if [ ! -f /var/www/html/LocalSettings.php ]; then
     echo "LocalSettings.php not found, linking"
-    cp /site/LocalSettings.php LocalSettings.php
+    cp /setup/site/LocalSettings.php /var/www/html/LocalSettings.php
     RUN_UPDATE="true"
   fi
   if [ "$RUN_UPDATE" = "true" ]; then
