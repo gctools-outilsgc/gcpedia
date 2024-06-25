@@ -7,6 +7,7 @@ pr:  # Trigger the pipeline only for PRs targeting master branch
 
 variables:
   location: 'canadacentral'
+  imageRepository: 'wiki'
   rgTemplateFile: '../.bicep/PR/test-instance-setup.bicep'
   acrName: 'environment-acr-name'
 
