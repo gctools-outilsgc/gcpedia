@@ -6,11 +6,17 @@ pr:  # Trigger the pipeline only for PRs targeting master branch
 
 
 variables:
-  imageRepository: 'wiki'
   location: 'canadacentral'
-  RGtemplateFile: '.bicep/PR/test-instance-setup.bicep'
-  commentStringGCWiki: 'GCWiki test instance up at:'  # String used for PR comment to provide link to review site
-  commentStringGCPedia: 'GCPedia test instance up at:'
+  rgTemplateFile: '../.bicep/PR/test-instance-setup.bicep'
+  azSubServiceConnection: 'environment-azure-subscription-service-connection'
+  acrServiceConnection: 'environment-acr-service-connection'
+  db_resource_group: 'environment-db-resource-group'
+  review_db_server_name: 'environment-db-server-name'
+  imageRepository: 'environment-image-repository-name'
+  review_subnet_ID: 'environment-subnet-id'
+  review_plan_ID: 'environment-app-service-plan-id'
+  REVIEW_DB_SERVER_PASS: 'environment-db-password'
+  acrName: 'environment-acr-name'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -18,7 +24,7 @@ pool:
 
 jobs:
 - job: setup
-  displayName: build and set up review site infrastructure
+  displayName: build and set up review sites
   steps:
   - task: Docker@2
     displayName: Build and Push Container image to ACR
@@ -36,13 +42,12 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        az deployment sub create --location $LOCATION --template-file $TEMPLATE_FILE \
+        az deployment sub create --location $LOCATION --template-file $rgTemplateFile \
           --parameters prNumber=$PR dbServerName=$DBSERVERNAME dbServerRG=$DBRG containerTag=$TAG dbServerPass=$(REVIEW_DB_SERVER_PASS) \
           subnetID=$SUBNET_ID planID=$PLAN_ID acrName=$ACR_NAME siteType=gcwiki
-        az deployment sub create --location $LOCATION --template-file $TEMPLATE_FILE \
+        az deployment sub create --location $LOCATION --template-file $rgTemplateFile \
           --parameters prNumber=$PR dbServerName=$DBSERVERNAME dbServerRG=$DBRG containerTag=$TAG dbServerPass=$(REVIEW_DB_SERVER_PASS) \
-          subnetID=$SUBNET_ID planID=$PLAN_ID acrName=$ACR_NAME siteType=gcpedia phpEnv='php|8.2' scriptPath='/gcwiki' articlePath='/wiki/$1' \
-          appCommandLine='bash /home/site/wwwroot/gcwiki/.azure/dev-setup.sh; bash /home/site/wwwroot/gcwiki/.azure/env-init.sh; service memcached start; php /home/site/wwwroot/gcwiki/maintenance/update.php' cacheType='CACHE_MEMCACHED'
+          subnetID=$SUBNET_ID planID=$PLAN_ID acrName=$ACR_NAME siteType=gcpedia
     env:
       DBRG: $(db_resource_group)
       DBSERVERNAME: $(review_db_server_name)
@@ -51,7 +56,6 @@ jobs:
       SUBNET_ID: $(review_subnet_ID)
       PLAN_ID: $(review_plan_ID)
       LOCATION: $(location)
-      TEMPLATE_FILE: $(RGtemplateFile)
       ACR_NAME: $(acrName)
 
   - bash: |
@@ -71,57 +75,3 @@ jobs:
                 $(commentStringGCPedia) https://gcpedia-dev-pr-$(System.PullRequest.PullRequestNumber).azurewebsites.net/ '
     condition: and(succeeded(), eq(variables['commentExists'], '0'))
     displayName: Post a comment to PR with link to review site
-
-- job: deploy
-  displayName: deploy gcpedia review site code
-  dependsOn: setup
-  condition: succeeded()
-  steps:
-  - bash: |
-      php --version
-      composer --version
-      git --version
-      curl --version
-      git submodule init && git submodule update --recursive --init
-      cd extensions/OpenIDConnect && composer install --no-dev --no-interaction
-      cd ../PluggableAuth && composer install --no-dev --no-interaction
-      cd ../TimedMediaHandler && composer install --no-dev --no-interaction
-      cd ../Widgets && composer install --no-dev --no-interaction
-      mkdir -p /tmp/gcpedia_build/gcwiki && cd /tmp/gcpedia_build/gcwiki
-      MEDIAWIKI_MAJOR_VERSION=1.40 && MEDIAWIKI_VERSION=1.40.2
-      curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz" -o mediawiki.tar.gz
-      curl -fSL "https://releases.wikimedia.org/mediawiki/${MEDIAWIKI_MAJOR_VERSION}/mediawiki-${MEDIAWIKI_VERSION}.tar.gz.sig" -o mediawiki.tar.gz.sig
-      export GNUPGHOME="$(mktemp -d)"
-      gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
-      D7D6767D135A514BEB86E9BA75682B08E8A3FEC4 \
-      441276E9CCD15F44F6D97D18C119E1A64D70938E \
-      F7F780D82EBFB8A56556E7EE82403E59F9F8CD79 \
-      1D98867E82982C8FE0ABC25F9B69B3109D3BB7B0
-      gpg --batch --verify mediawiki.tar.gz.sig mediawiki.tar.gz
-      tar -x --strip-components=1 -f mediawiki.tar.gz
-      gpgconf --kill all
-      rm -r "$GNUPGHOME" mediawiki.tar.gz.sig mediawiki.tar.gz
-      cp -r $(Pipeline.Workspace)/s/* ./
-      cp -r $(Pipeline.Workspace)/s/.azure ./
-      ls -la
-    displayName: prepare gcpedia code build environment
-
-  - task: ArchiveFiles@2
-    displayName: 'Archive files'
-    inputs:
-      rootFolderOrFile: '/tmp/gcpedia_build/gcwiki'
-      includeRootFolder: true
-      archiveType: zip
-      archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-      replaceExistingArchive: true
-
-  - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-    displayName: 'Upload package'
-    artifact: drop
-
-  - task: AzureWebApp@1
-    displayName: 'Deploy Azure Web App gcpedia PR code'
-    inputs:
-      azureSubscription: $(azSubServiceConnection)
-      appName: gcpedia-dev-pr-$(System.PullRequest.PullRequestNumber)
-      package: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
