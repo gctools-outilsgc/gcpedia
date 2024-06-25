@@ -6,10 +6,11 @@ pr:  # Trigger the pipeline only for PRs targeting master branch
 
 
 variables:
-  location: 'canadacentral'
   imageRepository: 'wiki'
+  location: 'canadacentral'
   RGtemplateFile: '.bicep/PR/test-instance-setup.bicep'
-  acrName: 'environment-acr-name'
+  commentStringGCWiki: 'GCWiki test instance up at:'  # String used for PR comment to provide link to review site
+  commentStringGCPedia: 'GCPedia test instance up at:'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -17,7 +18,7 @@ pool:
 
 jobs:
 - job: setup
-  displayName: build and set up review sites Infrastructure
+  displayName: build and set up review site
   steps:
   - task: Docker@2
     displayName: Build and Push Container image to ACR
@@ -35,10 +36,10 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        az deployment sub create --location $LOCATION --template-file $(rgTemplateFile) \
+        az deployment sub create --location $LOCATION --template-file $TEMPLATE_FILE \
           --parameters prNumber=$PR dbServerName=$DBSERVERNAME dbServerRG=$DBRG containerTag=$TAG dbServerPass=$(REVIEW_DB_SERVER_PASS) \
           subnetID=$SUBNET_ID planID=$PLAN_ID acrName=$ACR_NAME siteType=gcwiki
-        az deployment sub create --location $LOCATION --template-file $(rgTemplateFile) \
+        az deployment sub create --location $LOCATION --template-file $TEMPLATE_FILE \
           --parameters prNumber=$PR dbServerName=$DBSERVERNAME dbServerRG=$DBRG containerTag=$TAG dbServerPass=$(REVIEW_DB_SERVER_PASS) \
           subnetID=$SUBNET_ID planID=$PLAN_ID acrName=$ACR_NAME siteType=gcpedia
     env:
@@ -49,6 +50,7 @@ jobs:
       SUBNET_ID: $(review_subnet_ID)
       PLAN_ID: $(review_plan_ID)
       LOCATION: $(location)
+      TEMPLATE_FILE: $(RGtemplateFile)
       ACR_NAME: $(acrName)
 
   - bash: |
