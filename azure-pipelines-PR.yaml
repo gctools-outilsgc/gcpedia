@@ -8,14 +8,6 @@ pr:  # Trigger the pipeline only for PRs targeting master branch
 variables:
   location: 'canadacentral'
   rgTemplateFile: '../.bicep/PR/test-instance-setup.bicep'
-  azSubServiceConnection: 'environment-azure-subscription-service-connection'
-  acrServiceConnection: 'environment-acr-service-connection'
-  db_resource_group: 'environment-db-resource-group'
-  review_db_server_name: 'environment-db-server-name'
-  imageRepository: 'environment-image-repository-name'
-  review_subnet_ID: 'environment-subnet-id'
-  review_plan_ID: 'environment-app-service-plan-id'
-  REVIEW_DB_SERVER_PASS: 'environment-db-password'
   acrName: 'environment-acr-name'
 
 pool:
@@ -24,7 +16,7 @@ pool:
 
 jobs:
 - job: setup
-  displayName: build and set up review sites
+  displayName: build and set up review sites Infrastructure
   steps:
   - task: Docker@2
     displayName: Build and Push Container image to ACR
@@ -42,10 +34,10 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        az deployment sub create --location $LOCATION --template-file $rgTemplateFile \
+        az deployment sub create --location $LOCATION --template-file $(rgTemplateFile) \
           --parameters prNumber=$PR dbServerName=$DBSERVERNAME dbServerRG=$DBRG containerTag=$TAG dbServerPass=$(REVIEW_DB_SERVER_PASS) \
           subnetID=$SUBNET_ID planID=$PLAN_ID acrName=$ACR_NAME siteType=gcwiki
-        az deployment sub create --location $LOCATION --template-file $rgTemplateFile \
+        az deployment sub create --location $LOCATION --template-file $(rgTemplateFile) \
           --parameters prNumber=$PR dbServerName=$DBSERVERNAME dbServerRG=$DBRG containerTag=$TAG dbServerPass=$(REVIEW_DB_SERVER_PASS) \
           subnetID=$SUBNET_ID planID=$PLAN_ID acrName=$ACR_NAME siteType=gcpedia
     env:
