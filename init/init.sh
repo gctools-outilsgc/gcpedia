@@ -30,7 +30,6 @@ check_setup() {
 
     echo "Database ${DBNAME} not found, running install"
     php maintenance/install.php \
-      --dbengine InnoDB \
       --dbserver=${DBHOST} --dbtype=${DBTYPE} --dbuser=${DBUSER} --dbpass=${DBPASS} --dbname=${DBNAME} \
       --scriptpath='' --server="${WIKI_PROTOCOL}://${WIKI_HOST}${WIKI_PORT}" --lang=en  \
       --pass=adminpassword 'GCpedia' 'admin' 
@@ -41,7 +40,7 @@ check_setup() {
       exit $status
     fi
     # overwrite installation LocalSettings with site specific
-    cp /setup/site/LocalSettings.php /var/www/html/LocalSettings.php
+    cp /site/LocalSettings.php /var/www/html/LocalSettings.php
     # make sure an update is run for the sake of extensions
     RUN_UPDATE="true"
   else 
@@ -49,7 +48,7 @@ check_setup() {
   fi
   if [ ! -f /var/www/html/LocalSettings.php ]; then
     echo "LocalSettings.php not found, linking"
-    cp /setup/site/LocalSettings.php /var/www/html/LocalSettings.php
+    cp /site/LocalSettings.php /var/www/html/LocalSettings.php
     RUN_UPDATE="true"
   fi
   if [ "$RUN_UPDATE" = "true" ]; then
