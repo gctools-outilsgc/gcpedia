@@ -7,5 +7,4 @@ CREATE TABLE IF NOT EXISTS tc_accepted (
     `username` varchar(100),
     `date` varchar(10),
     PRIMARY KEY (`user_id`)
-
-) ENGINE=MyISAM
+)
