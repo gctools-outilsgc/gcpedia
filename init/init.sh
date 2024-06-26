@@ -30,6 +30,7 @@ check_setup() {
 
     echo "Database ${DBNAME} not found, running install"
     php maintenance/install.php \
+      --dbengine InnoDB \
       --dbserver=${DBHOST} --dbtype=${DBTYPE} --dbuser=${DBUSER} --dbpass=${DBPASS} --dbname=${DBNAME} \
       --scriptpath='' --server="${WIKI_PROTOCOL}://${WIKI_HOST}${WIKI_PORT}" --lang=en  \
       --pass=adminpassword 'GCpedia' 'admin' 
