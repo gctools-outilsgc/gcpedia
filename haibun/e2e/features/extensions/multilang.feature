@@ -21,4 +21,3 @@ see "English text"
 Click on Language toggle
 pause for 1s
 See "Texte français"
-pause for 1000s

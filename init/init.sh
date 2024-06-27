@@ -5,7 +5,7 @@ check_database() {
   retries=5
   for ((i=1; i<=$retries; i++)); do
     echo "Checking MySQL server connection , ($i/$retries)"
-    if php init/checkDB.php; then
+    if php /init/checkDB.php; then
       echo "MySQL server is up and running!"
       return 0
     fi
@@ -22,7 +22,7 @@ check_setup() {
   #   If it's not, remove any exising LocalSettings.php link if present, then do an install, link the LocalSettings.php, and run the update script. 
   #   If it is, if LocalSettings.php isn't linked, link it and run update
   local RUN_UPDATE="false"
-  if ! php init/checkDB.php ${DBNAME} categorylinks; then
+  if ! php /init/checkDB.php ${DBNAME} categorylinks; then
     if [ -e /var/www/html/LocalSettings.php ]; then
       echo "Dangling LocalSettings.php found, unlinking"
       rm LocalSettings.php
@@ -40,8 +40,7 @@ check_setup() {
       exit $status
     fi
     # overwrite installation LocalSettings with site specific
-    echo "TODO: copy /site/LocalSettings.php to /var/www/html/LocalSettings.php after all extensions are validated"
-    cp /site/LocalSettings.php LocalSettings.php
+    cp /site/LocalSettings.php /var/www/html/LocalSettings.php
     # make sure an update is run for the sake of extensions
     RUN_UPDATE="true"
   else 
@@ -49,7 +48,7 @@ check_setup() {
   fi
   if [ ! -f /var/www/html/LocalSettings.php ]; then
     echo "LocalSettings.php not found, linking"
-    cp /site/LocalSettings.php LocalSettings.php
+    cp /site/LocalSettings.php /var/www/html/LocalSettings.php
     RUN_UPDATE="true"
   fi
   if [ "$RUN_UPDATE" = "true" ]; then
