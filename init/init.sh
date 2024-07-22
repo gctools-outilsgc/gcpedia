@@ -29,7 +29,7 @@ check_setup() {
     fi
 
     echo "Database ${DBNAME} not found, running install"
-    php maintenance/install.php \
+    php maintenance/run.php install.php \
       --dbserver=${DBHOST} --dbtype=${DBTYPE} --dbuser=${DBUSER} --dbpass=${DBPASS} --dbname=${DBNAME} \
       --scriptpath='' --server="${WIKI_PROTOCOL}://${WIKI_HOST}${WIKI_PORT}" --lang=en  \
       --pass=adminpassword 'GCpedia' 'admin' 
@@ -53,7 +53,7 @@ check_setup() {
   fi
   if [ "$RUN_UPDATE" = "true" ]; then
     echo "running update maintenance script"
-    php /var/www/html/maintenance/update.php -q
+    php /var/www/html/maintenance/run.php update.php -q
   fi
 }
 
