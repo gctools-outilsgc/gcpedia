@@ -14,16 +14,17 @@ XHTML id it should only appear once and include characters that are legal
 XHTML id names.
 */
 'sidebar' => '
-* navigation
-** mainpage|mainpage-description
-** portal-url|portal
-** currentevents-url|currentevents
-** recentchanges-url|recentchanges
-** randompage-url|randompage
-** helppage|help
+* LANGUAGES
 * SEARCH
-* TOOLBOX
-* LANGUAGES', # do not translate or duplicate this message to other languages
+
+* navigation
+** mainpage|mainpage
+** browsecategoriesURL|Browse categories
+** Special:Random|Random page
+** PDF | {{fullurl:{{FULLPAGENAME}}|action=pdfbook}}&format=single&pdfNumbering=false
+** https://support.gccollab.ca|Help
+
+* ACTIONS', # do not translate or duplicate this message to other languages
 
 # User preference toggles
 'tog-underline'               => 'Link underlining:',
