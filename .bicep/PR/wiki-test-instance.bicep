@@ -82,6 +82,10 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
           value: siteType
         }
         {
+          name: 'DBTYPE'
+          value: 'mysql' 
+        }
+        {
           name: 'DBHOST'
           value: '${dbServerName}.mysql.database.azure.com' 
         }
