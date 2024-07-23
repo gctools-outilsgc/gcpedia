@@ -106,6 +106,10 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
           value: '0'
         }
         {
+          name: 'WIKI_PROTOCOL'
+          value: 'https'
+        }
+        {
           name: 'WIKI_HOST'
           value: '${appName}.azurewebsites.net'
         }
