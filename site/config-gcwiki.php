@@ -147,8 +147,29 @@ $wgGroupPermissions['sysop']['nuke'] = true;
 
 wfLoadExtension("SkinTweaksGCwiki");
 
-wfLoadExtension("PluggableAuth");
-wfLoadExtension("OpenIDConnect");
+$OpenIDproviderURL = getenv('OPENID_PROVIDER_URL');
+$OpenIDclientID = getenv('OPENID_CLIENTID');
+$OpenIDclientsecret = getenv('OPENID_CLIENTSECRET');
+// no point in enabling openid if it's not properly configured
+$enableOpenID = getenv('ENABLE_OPENID') && $OpenIDproviderURL && $OpenIDclientID && $OpenIDclientsecret;
+if ($enableOpenID) {
+    wfLoadExtension("PluggableAuth");
+    wfLoadExtension("OpenIDConnect");
+
+    $wgGroupPermissions['*']['createaccount']= false;
+    $wgGroupPermissions['*']['autocreateaccount'] = true;
+    $wgOpenIDConnect_UseEmailNameAsUserName= true;
+
+    $wgPluggableAuth_Config[] = [
+        'plugin' => 'OpenIDConnect',
+        'data' => [
+            'providerURL' => $OpenIDproviderURL,
+            'clientID' => $OpenIDclientID,
+            'clientsecret' => $OpenIDclientsecret,
+            'scope' => ['openid', 'profile', 'email']
+        ]
+    ];
+}
 
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
 $wgGoogleAnalyticsAccount = $GAaccount;
