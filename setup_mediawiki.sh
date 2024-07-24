@@ -62,6 +62,7 @@ EXTENSIONS=(
     "MsCalendar"
     "RandomImage"
     "Widgets"
+    "PluggableAuth"
     "OpenIDConnect"
 )
 
