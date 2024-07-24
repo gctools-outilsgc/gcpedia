@@ -147,29 +147,46 @@ $wgGroupPermissions['sysop']['nuke'] = true;
 
 wfLoadExtension("SkinTweaksGCwiki");
 
-$OpenIDproviderURL = getenv('OPENID_PROVIDER_URL');
-$OpenIDclientID = getenv('OPENID_CLIENTID');
-$OpenIDclientsecret = getenv('OPENID_CLIENTSECRET');
-// no point in enabling openid if it's not properly configured
-$enableOpenID = getenv('ENABLE_OPENID') && $OpenIDproviderURL && $OpenIDclientID && $OpenIDclientsecret;
+
+wfLoadExtension("SkinTweaksGCwiki");
+
+$enableOpenID = getenv('ENABLE_OPENID');
+
 if ($enableOpenID) {
-    wfLoadExtension("PluggableAuth");
-    wfLoadExtension("OpenIDConnect");
-
-    $wgGroupPermissions['*']['createaccount']= false;
-    $wgGroupPermissions['*']['autocreateaccount'] = true;
-    $wgOpenIDConnect_UseEmailNameAsUserName= true;
-
-    $wgPluggableAuth_Config[] = [
-        'plugin' => 'OpenIDConnect',
-        'data' => [
-            'providerURL' => $OpenIDproviderURL,
-            'clientID' => $OpenIDclientID,
-            'clientsecret' => $OpenIDclientsecret,
-            'scope' => ['openid', 'profile', 'email']
-        ]
+    $envVars = [
+        'OPENID_PROVIDER_URL' => getenv('OPENID_PROVIDER_URL'),
+        'OPENID_CLIENTID' => getenv('OPENID_CLIENTID'),
+        'OPENID_CLIENTSECRET' => getenv('OPENID_CLIENTSECRET')
     ];
+
+    $missingVars = array_filter(array_keys($envVars), function ($key) use ($envVars) {
+        return !$envVars[$key];
+    });
+
+    if (empty($missingVars)) {
+        wfLoadExtension("PluggableAuth");
+        wfLoadExtension("OpenIDConnect");
+
+        $wgGroupPermissions['*']['createaccount'] = false;
+        $wgGroupPermissions['*']['autocreateaccount'] = true;
+        $wgOpenIDConnect_UseEmailNameAsUserName = true;
+
+        $wgPluggableAuth_Config[] = [
+            'plugin' => 'OpenIDConnect',
+            'data' => [
+                'providerURL' => $envVars['OPENID_PROVIDER_URL'],
+                'clientID' => $envVars['OPENID_CLIENTID'],
+                'clientsecret' => $envVars['OPENID_CLIENTSECRET'],
+                'scope' => ['openid', 'profile', 'email']
+            ]
+        ];
+    } else {
+        trigger_error('OpenID configuration is missing the following environment variables: ' . implode(', ', $missingVars), E_USER_ERROR);
+    }
+} else {
+    error_log('ENABLE_OPENID is not set, skipping OpenID extension.');
 }
+
 
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
 $wgGoogleAnalyticsAccount = $GAaccount;
