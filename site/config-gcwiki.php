@@ -150,41 +150,38 @@ wfLoadExtension("SkinTweaksGCwiki");
 
 wfLoadExtension("SkinTweaksGCwiki");
 
-$enableOpenID = getenv('ENABLE_OPENID');
+// OpenID config from env
 
-if ($enableOpenID) {
-    $envVars = [
-        'OPENID_PROVIDER_URL' => getenv('OPENID_PROVIDER_URL'),
-        'OPENID_CLIENTID' => getenv('OPENID_CLIENTID'),
-        'OPENID_CLIENTSECRET' => getenv('OPENID_CLIENTSECRET')
+// accounts should only be created through openID
+$wgGroupPermissions['*']['createaccount'] = false;
+
+$envVars = [
+    'OPENID_PROVIDER_URL' => getenv('OPENID_PROVIDER_URL'),
+    'OPENID_CLIENTID' => getenv('OPENID_CLIENTID'),
+    'OPENID_CLIENTSECRET' => getenv('OPENID_CLIENTSECRET')
+];
+$missingVars = array_filter(array_keys($envVars), function ($key) use ($envVars) {
+    return !$envVars[$key];
+});
+
+if (empty($missingVars)) {
+    wfLoadExtension("PluggableAuth");
+    wfLoadExtension("OpenIDConnect");
+
+    $wgGroupPermissions['*']['autocreateaccount'] = true;
+    $wgOpenIDConnect_UseEmailNameAsUserName = true;
+
+    $wgPluggableAuth_Config[] = [
+        'plugin' => 'OpenIDConnect',
+        'data' => [
+            'providerURL' => $envVars['OPENID_PROVIDER_URL'],
+            'clientID' => $envVars['OPENID_CLIENTID'],
+            'clientsecret' => $envVars['OPENID_CLIENTSECRET'],
+            'scope' => ['openid', 'profile', 'email']
+        ]
     ];
-
-    $missingVars = array_filter(array_keys($envVars), function ($key) use ($envVars) {
-        return !$envVars[$key];
-    });
-
-    if (empty($missingVars)) {
-        wfLoadExtension("PluggableAuth");
-        wfLoadExtension("OpenIDConnect");
-
-        $wgGroupPermissions['*']['createaccount'] = false;
-        $wgGroupPermissions['*']['autocreateaccount'] = true;
-        $wgOpenIDConnect_UseEmailNameAsUserName = true;
-
-        $wgPluggableAuth_Config[] = [
-            'plugin' => 'OpenIDConnect',
-            'data' => [
-                'providerURL' => $envVars['OPENID_PROVIDER_URL'],
-                'clientID' => $envVars['OPENID_CLIENTID'],
-                'clientsecret' => $envVars['OPENID_CLIENTSECRET'],
-                'scope' => ['openid', 'profile', 'email']
-            ]
-        ];
-    } else {
-        trigger_error('OpenID configuration is missing the following environment variables: ' . implode(', ', $missingVars), E_USER_ERROR);
-    }
 } else {
-    error_log('ENABLE_OPENID is not set, skipping OpenID extension.');
+    error_log('OpenID configuration is missing the following environment variables: ' . implode(', ', $missingVars), E_USER_ERROR);
 }
 
 
