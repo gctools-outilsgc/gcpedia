@@ -147,8 +147,43 @@ $wgGroupPermissions['sysop']['nuke'] = true;
 
 wfLoadExtension("SkinTweaksGCwiki");
 
-wfLoadExtension("PluggableAuth");
-wfLoadExtension("OpenIDConnect");
+
+wfLoadExtension("SkinTweaksGCwiki");
+
+// OpenID config from env
+
+// accounts should only be created through openID
+$wgGroupPermissions['*']['createaccount'] = false;
+
+$envVars = [
+    'OPENID_PROVIDER_URL' => getenv('OPENID_PROVIDER_URL'),
+    'OPENID_CLIENTID' => getenv('OPENID_CLIENTID'),
+    'OPENID_CLIENTSECRET' => getenv('OPENID_CLIENTSECRET')
+];
+$missingVars = array_filter(array_keys($envVars), function ($key) use ($envVars) {
+    return !$envVars[$key];
+});
+
+if (empty($missingVars)) {
+    wfLoadExtension("PluggableAuth");
+    wfLoadExtension("OpenIDConnect");
+
+    $wgGroupPermissions['*']['autocreateaccount'] = true;
+    $wgOpenIDConnect_UseEmailNameAsUserName = true;
+
+    $wgPluggableAuth_Config[] = [
+        'plugin' => 'OpenIDConnect',
+        'data' => [
+            'providerURL' => $envVars['OPENID_PROVIDER_URL'],
+            'clientID' => $envVars['OPENID_CLIENTID'],
+            'clientsecret' => $envVars['OPENID_CLIENTSECRET'],
+            'scope' => ['openid', 'profile', 'email']
+        ]
+    ];
+} else {
+    error_log('OpenID configuration is missing the following environment variables: ' . implode(', ', $missingVars), E_USER_ERROR);
+}
+
 
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
 $wgGoogleAnalyticsAccount = $GAaccount;
