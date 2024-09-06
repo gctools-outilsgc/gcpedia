@@ -75,8 +75,6 @@ $wgFooterIcons = [
 ////  extensions
 wfLoadExtension("ParserFunctions");
 
-require_once "$IP/extensions/MagicNoNumberedHeadings/MagicNoNumberedHeadings.php";
-require_once "$IP/extensions/MagicNumberedHeadings/MagicNumberedHeadings.php";
 require_once "$IP/extensions/Multilang/multilang.php";
 
 wfLoadExtension("UniversalLanguageSelector");
