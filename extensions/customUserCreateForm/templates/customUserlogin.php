@@ -135,10 +135,22 @@ text-decoration: none;
 				
 				<br /><br />
 
-		<!-- 	-->	<hr>
+				<hr>
 				<br />
+		<!-- 		<strong><?php $this->msg('ssotitle'); ?></strong><br /><br />
+				<?php $this->msg('ssobody'); ?>-->
+
 				<strong><?php $this->msg('ssotitle'); ?></strong><br /><br />
-				<?php $this->msg('ssobody'); ?>
+				<?php $this->msg('sso_decom_head'); ?>
+				<ol>
+					<li> <?php $this->msg('sso_decom_list1'); ?> </li>
+					<li> <?php
+						echo Linker::link(
+						SpecialPage::getTitleFor( 'PasswordReset' ),
+						wfMessage( 'sso_decom_list2' )); ?> </li>
+					<li> <?php $this->msg('sso_decom_list3'); ?> </li>
+				</ol>
+				<?php $this->msg('sso_decom_foot'); ?>
 				<br /><br />
 				<?php
 					if ( $this->haveData( 'extrafields' ) ) {

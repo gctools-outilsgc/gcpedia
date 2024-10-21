@@ -21,6 +21,11 @@ $messages['en'] = array(
 	'email-in-use' => "E-mail already in use",
 	'ssotitle' => "GC2.0 Tools Simplified Sign-on",
 	'ssobody' => "Use the GC2.0 Tools Simplified Sign-on to log in to GCpedia and GCconnex simultaneously.",
+	'sso_decom_head' => "Important: Simplified Sign-On is being discontinued soon.",
+	'sso_decom_list1' => "Log in and check that you have the correct email listed in your Preferences tab.",
+	'sso_decom_list2' => "Reset your account's password.",
+	'sso_decom_list3' => "Log out then log back in to make sure you can access your account properly.",
+	'sso_decom_foot' => "Visit the Knowledge Base page for detailed instructions.",
 );
 
 $messages['fr'] = array(
@@ -42,4 +47,9 @@ $messages['fr'] = array(
 	'password-text' => "Assurez-vous que les deux mots de passe sont identiques",
 	'ssotitle' => "Connexion simplifiée pour les Outils GC2.0",
 	'ssobody' => "Utilisez la Connexion simplifiée pour les Outils GC2.0 pour vous connecter à GCpédia et GCconnex simultanément.",
+	'sso_decom_head' => "",
+	'sso_decom_list1' => "",
+	'sso_decom_list2' => "",
+	'sso_decom_list3' => "",
+	'sso_decom_foot' => "",
 );
