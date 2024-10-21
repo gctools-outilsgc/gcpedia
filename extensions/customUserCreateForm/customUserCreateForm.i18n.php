@@ -21,11 +21,11 @@ $messages['en'] = array(
 	'email-in-use' => "E-mail already in use",
 	'ssotitle' => "GC2.0 Tools Simplified Sign-on",
 	'ssobody' => "Use the GC2.0 Tools Simplified Sign-on to log in to GCpedia and GCconnex simultaneously.",
-	'sso_decom_head' => "Important: Simplified Sign-On is being discontinued soon.",
+	'sso_decom_head' => "Important: Simplified Sign-On is being discontinued soon. If you use Simplified Sign-On to access GCpedia, or are having problems accessing your account, please follow these steps to update your login information:",
 	'sso_decom_list1' => "Log in and check that you have the correct email listed in your Preferences tab.",
 	'sso_decom_list2' => "Reset your account's password.",
 	'sso_decom_list3' => "Log out then log back in to make sure you can access your account properly.",
-	'sso_decom_foot' => "Visit the Knowledge Base page for detailed instructions.",
+	'sso_decom_foot' => "Click here to access our Knowledge Base for detailed instructions on how to update your password and email.",
 );
 
 $messages['fr'] = array(
