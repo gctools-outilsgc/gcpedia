@@ -21,11 +21,11 @@ $messages['en'] = array(
 	'email-in-use' => "E-mail already in use",
 	'ssotitle' => "GC2.0 Tools Simplified Sign-on",
 	'ssobody' => "Use the GC2.0 Tools Simplified Sign-on to log in to GCpedia and GCconnex simultaneously.",
-	'sso_decom_head' => "Important: Simplified Sign-On is being discontinued soon. If you use Simplified Sign-On to access GCpedia, or are having problems accessing your account, please follow these steps to update your login information:",
+	'sso_decom_head' => "Important: Simplified Sign-On is being discontinued soon. If you use Simplified Sign-On to access GCPedia, please follow these steps to update your login information:",
 	'sso_decom_list1' => "Log in and check that you have the correct email listed in your Preferences tab.",
 	'sso_decom_list2' => "Reset your account's password.",
 	'sso_decom_list3' => "Log out then log back in to make sure you can access your account properly.",
-	'sso_decom_foot' => "Click here to access our Knowledge Base for detailed instructions on how to update your password and email.",
+	'sso_decom_foot' => "Visit our Knowledge Base for detailed instructions on how to update your password and email.",
 );
 
 $messages['fr'] = array(
@@ -47,9 +47,9 @@ $messages['fr'] = array(
 	'password-text' => "Assurez-vous que les deux mots de passe sont identiques",
 	'ssotitle' => "Connexion simplifiée pour les Outils GC2.0",
 	'ssobody' => "Utilisez la Connexion simplifiée pour les Outils GC2.0 pour vous connecter à GCpédia et GCconnex simultanément.",
-	'sso_decom_head' => "Important : L'identification unique sera bientôt annulée. Si vous utilisez l'identification unique pour accéder à GCPédia, veuillez suivre les étapes suivantes pour mettre à jour vos informations de connexion :",
-	'sso_decom_list1' => "Connectez-vous et vérifiez que vous avez la bonne adresse courriel dans l'onglet « Preferences » (Préférences).",
+	'sso_decom_head' => "Important : L'identification unique sera bientôt annulée. Si vous utilisez l'identification unique pour accéder à GCPédia, veuillez suivre les étapes suivantes pour mettre à jour vos informations de connexion :",
+	'sso_decom_list1' => "Connectez-vous et vérifiez que vous avez la bonne adresse courriel dans l'onglet « Preferences » (Préférences).",
 	'sso_decom_list2' => "Réinitialisez le mot de passe de votre compte.",
 	'sso_decom_list3' => "Déconnectez-vous, puis reconnectez-vous pour vérifier que vous pouvez accéder à votre compte correctement.",
-	'sso_decom_foot' => "Consultez la page « Base de connaissances » pour obtenir des instructions détaillées.",
+	'sso_decom_foot' => "Consultez notre Base de connaissances pour obtenir des instructions détaillées sur la mise à jour de votre mot de passe et de votre adresse courriel. ",
 );
