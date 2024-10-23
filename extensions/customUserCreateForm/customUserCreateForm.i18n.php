@@ -25,6 +25,7 @@ $messages['en'] = array(
 	'sso_decom_list1' => "Log in and check that you have the correct email listed in your Preferences tab.",
 	'sso_decom_list2' => "Reset your account's password.",
 	'sso_decom_list3' => "Log out then log back in to make sure you can access your account properly.",
+	'sso_decom_foot_link' => "https://support.gctools-outilsgc.ca/en/support/solutions/articles/21000003407-how-to-change-your-gcpedia-password",
 	'sso_decom_foot' => "Visit the Knowledge Base page for detailed instructions.",
 );
 
@@ -51,6 +52,6 @@ $messages['fr'] = array(
 	'sso_decom_list1' => "Connectez-vous et vérifiez que vous avez la bonne adresse courriel dans l'onglet « Preferences » (Préférences).",
 	'sso_decom_list2' => "Réinitialisez le mot de passe de votre compte.",
 	'sso_decom_list3' => "Déconnectez-vous, puis reconnectez-vous pour vérifier que vous pouvez accéder à votre compte correctement.",
-	'sso_decom_foot_link' => "Consultez notre Base de connaissances",
+	'sso_decom_foot_link' => "https://support.gctools-outilsgc.ca/fr/support/solutions/articles/21000003407-comment-modifier-votre-mot-de-passe-sur-gcpedia",
 	'sso_decom_foot' => "Consultez la page « Base de connaissances » pour obtenir des instructions détaillées.",
 );

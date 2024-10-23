@@ -150,7 +150,7 @@ text-decoration: none;
 						wfMessage( 'sso_decom_list2' )); ?> </li>
 					<li> <?php $this->msg('sso_decom_list3'); ?> </li>
 				</ol>
-				<?php $this->msg('sso_decom_foot'); ?>
+				<a href="<?php $this->msg('sso_decom_foot_link'); ?>"><?php $this->msg('sso_decom_foot'); ?></a>
 				<br /><br />
 				<?php
 					if ( $this->haveData( 'extrafields' ) ) {
