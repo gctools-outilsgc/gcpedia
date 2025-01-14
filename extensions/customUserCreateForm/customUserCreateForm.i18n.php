@@ -27,6 +27,9 @@ $messages['en'] = array(
 	'sso_decom_list3' => "Log out then log back in to make sure you can access your account properly.",
 	'sso_decom_foot_link' => "https://support.gctools-outilsgc.ca/en/support/solutions/articles/21000003407-how-to-change-your-gcpedia-password",
 	'sso_decom_foot' => "Visit the Knowledge Base page for detailed instructions.",
+	'sso_decom_mess1' => "Simplified Sign-On is no longer available. Please follow the steps in our ",
+	'sso_decom_mess_link_text' => "Knowledge Base page ",
+	'sso_decom_mess2' => "for instructions on how access your account. If you encounter issues, contact support for assistance.",
 );
 
 $messages['fr'] = array(
@@ -54,4 +57,7 @@ $messages['fr'] = array(
 	'sso_decom_list3' => "Déconnectez-vous, puis reconnectez-vous pour vérifier que vous pouvez accéder à votre compte correctement.",
 	'sso_decom_foot_link' => "https://support.gctools-outilsgc.ca/fr/support/solutions/articles/21000003407-comment-modifier-votre-mot-de-passe-sur-gcpedia",
 	'sso_decom_foot' => "Consultez la page « Base de connaissances » pour obtenir des instructions détaillées.",
+	'sso_decom_mess1' => "L’identification unique n’est plus disponible. Veuillez suivre les étapes indiquées dans notre page ",
+	'sso_decom_mess_link_text' => "« Base de connaissances » ",
+	'sso_decom_mess2' => "pour les instructions d’accès à votre compte. Si vous rencontrez des problèmes, contactez le service de soutien pour obtenir de l’aide.",
 );

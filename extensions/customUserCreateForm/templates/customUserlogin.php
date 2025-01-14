@@ -141,16 +141,7 @@ text-decoration: none;
 				<?php $this->msg('ssobody'); ?>-->
 
 				<strong><?php $this->msg('ssotitle'); ?></strong><br /><br />
-				<?php $this->msg('sso_decom_head'); ?>
-				<ol>
-					<li> <?php $this->msg('sso_decom_list1'); ?> </li>
-					<li> <?php
-						echo Linker::link(
-						SpecialPage::getTitleFor( 'PasswordReset' ),
-						wfMessage( 'sso_decom_list2' )); ?> </li>
-					<li> <?php $this->msg('sso_decom_list3'); ?> </li>
-				</ol>
-				<a href="<?php $this->msg('sso_decom_foot_link'); ?>"><?php $this->msg('sso_decom_foot'); ?></a>
+				<?php echo $this->msg('sso_decom_mess1') ?> <a href=" <?php $this->msg('sso_decom_foot_link')?> "> <?php $this->msg('sso_decom_mess_link_text') ?> </a> <?php $this->msg('sso_decom_mess2') ?>
 				<br /><br />
 				<?php
 					if ( $this->haveData( 'extrafields' ) ) {
