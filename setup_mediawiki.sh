@@ -64,6 +64,7 @@ EXTENSIONS=(
     "Widgets"
     "PluggableAuth"
     "OpenIDConnect"
+    "DismissableSiteNotice"
 )
 
 for EXT in "${EXTENSIONS[@]}"; do
