@@ -201,3 +201,10 @@ wfLoadExtension("TimedMediaHandler");
 $wgEnabledTranscodeSet = [];
 $wgFFmpegLocation = '/usr/bin/ffmpeg';
 $wgEnableTranscode = false;
+
+
+wfLoadExtension("DismissableSiteNotice");
+// This is the value of the cookie used to keep track of the site notice being dismissed
+// increment it when a new one goes up
+$wgMajorSiteNoticeID = 0.0;
+$wgDismissableSiteNoticeForAnons = true;
