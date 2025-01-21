@@ -244,24 +244,6 @@ class VectorTemplate extends BaseTemplate {
 					<?php $this->renderNavigation( array( 'NAMESPACES', 'VARIANTS' ) ); ?>
 				</div>
 				<div id="right-navigation">
-                    <?php //Nick - adding in the share to GCconnex button to the template 
-                            //Added new style class gccon-share
-                            //Gets the site lang and puts it in the data-lang
-                    ?>
-					<div class="pull-left">
-					<script>(function(d, s, id) {
-						  var js, fjs = d.getElementsByTagName(s)[0];
-						  if (d.getElementById(id)) return;
-						  js = d.createElement(s); js.id = id;
-						  js.src = "//gcconnex.gc.ca/mod/gc_api/widget/en/share-button.js";
-						  fjs.parentNode.insertBefore(js, fjs);
-						}(document, 'script', 'gcconnex-jssdk'));</script>
-					
-					<div class="gcc-share-button gccon-share btn-default" 
-						data-lang="<?php echo $wgLang->getCode(); ?>" >
-						
-					</div>
-					</div>
 					<?php $this->renderNavigation( array( 'VIEWS', 'ACTIONS', 'SEARCH' ) ); ?>
 				</div>
 			</div>
