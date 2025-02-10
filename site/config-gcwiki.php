@@ -187,3 +187,9 @@ if (empty($missingVars)) {
 
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
 $wgGoogleAnalyticsAccount = $GAaccount;
+
+wfLoadExtension("DismissableSiteNotice");
+// This is the value of the cookie used to keep track of the site notice being dismissed
+// increment it when a new one goes up
+$wgMajorSiteNoticeID = 0.0;
+$wgDismissableSiteNoticeForAnons = false;
