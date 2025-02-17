@@ -16,6 +16,8 @@ Press Enter
 type "@fr|Texte français"
 Press Enter
 type "</multilang>"
+pause for 1s
+Press Escape
 Click "Save Page"
 see "English text"
 Click on Language toggle
