@@ -17,11 +17,10 @@ jobs:
     steps:
     - script: |
         echo Sync azure repo
-        git clone --bare https://GCTools:$(System.AccessToken)@dev.azure.com/tbs-sct/GCTools/_git/$REPO_NAME Sync_directory
+        git clone --mirror https://github.com/gctools-outilsgc/$REPO_NAME Sync_directory
         cd Sync_directory
-        git remote add --mirror=fetch upstream https://github.com/gctools-outilsgc/$REPO_NAME
-        git fetch upstream --tags
-        git push origin --all --prune --force
+        git fetch --tags
+        git push --all --prune --force https://GCTools:$(System.AccessToken)@dev.azure.com/tbs-sct/GCTools/_git/$REPO_NAME
       env:
         REPO_NAME: "gcpedia"
       displayName: 'Sync repo'
