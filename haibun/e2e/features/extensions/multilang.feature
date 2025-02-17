@@ -23,3 +23,6 @@ see "English text"
 Click on Language toggle
 pause for 1s
 See "Texte français"
+Click on Language toggle
+pause for 1s
+See "English text"
