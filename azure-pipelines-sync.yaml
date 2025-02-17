@@ -21,7 +21,7 @@ jobs:
         cd Sync_directory
         git remote add --mirror=fetch upstream https://github.com/gctools-outilsgc/$REPO_NAME
         git fetch upstream --tags
-        git push origin --mirror
+        git push origin --all --prune --force
       env:
         REPO_NAME: "gcpedia"
       displayName: 'Sync repo'
