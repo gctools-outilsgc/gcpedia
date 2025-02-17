@@ -19,8 +19,8 @@ jobs:
         echo Sync azure repo
         git clone https://github.com/gctools-outilsgc/$REPO_NAME Sync_directory
         cd Sync_directory
-        git fetch upstream --tags
-        git push --all --prune --force https://GCTools:$(System.AccessToken)@dev.azure.com/tbs-sct/GCTools/_git/$REPO_NAME Sync_directory
+        git fetch --tags
+        git push --all --prune --force https://GCTools:$(System.AccessToken)@dev.azure.com/tbs-sct/GCTools/_git/$REPO_NAME
       env:
         REPO_NAME: "gcpedia"
       displayName: 'Sync repo'
