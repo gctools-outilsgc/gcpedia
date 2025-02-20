@@ -3,9 +3,9 @@ Feature: Edit save rich editor page
 Backgrounds: site, form-login, admin-credentials, login-successful
 
 When I have a valid random username <pagename>
-Concat "http://wiki.local/" and <pagename> as Random
+Concat "http://wiki.local/" and <pagename> as Random visual
 
-Go to the Random webpage
+Go to the Random visual webpage
 
 Click "Create"
 Click on Wiki editor
