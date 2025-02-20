@@ -4,8 +4,8 @@ Feature: Multilang
 Backgrounds: site, form-login, admin-credentials, login-successful
 
 When I have a valid random username <pagename>
-Concat "http://wiki.local/" and <pagename> as Random
-Go to the Random webpage
+Concat "http://wiki.local/" and <pagename> as Random mulitlang
+Go to the Random mulitlang webpage
 
 Click "Create"
 Click on Wiki editor
