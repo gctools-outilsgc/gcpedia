@@ -56,6 +56,7 @@ class GCUserCreateForm {
         $email_name = [
             'type' => 'text',
             'required' => false,
+            'placeholder' => wfMessage('placeholder:firstlastname'),
             'section' => 'validgcemail'
         ];
         $email_symbol = [
@@ -73,12 +74,14 @@ class GCUserCreateForm {
         ];
         $email_domain = [
             'type' => 'select',
+            'aria-label' => 'institution.gc.ca',
             'required' => false,
             'section' => 'validgcemail',
             'options' => $domain_options
         ];
         $email_domain_text = [
             'type' => 'text',
+            'placeholder' => 'institution.gc.ca',
             'hide-if'  => ['!==', 'emaildomain', 'other'],
             'required' => false,
             'section' => 'validgcemail'
