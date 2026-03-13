@@ -61,7 +61,6 @@ EXTENSIONS=(
     "DeletePagesForGood"
     "MsCalendar"
     "RandomImage"
-    "Widgets"
     "PluggableAuth"
     "OpenIDConnect"
     "DismissableSiteNotice"
@@ -86,7 +85,6 @@ COMPOSER_EXTENSIONS=(
     "OpenIDConnect"
     "PluggableAuth"
     "TimedMediaHandler"
-    "Widgets"
 )
 
 for EXT in "${COMPOSER_EXTENSIONS[@]}"; do
