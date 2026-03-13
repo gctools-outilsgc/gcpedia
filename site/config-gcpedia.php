@@ -190,10 +190,6 @@ wfLoadExtension("AjaxShowEditors");
 wfLoadExtension("MsCalendar");
 wfLoadExtension("RandomImage");
 
-wfLoadExtension("Widgets");
-$wgEnableTranscode = false;
-$wgFFmpegLocation = '/usr/bin/ffmpeg';
-
 wfLoadExtension("SidebarTitleText");
 
 wfLoadExtension("TimedMediaHandler");
