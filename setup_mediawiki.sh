@@ -58,7 +58,6 @@ EXTENSIONS=(
     "IframePage"
     "googleAnalytics"
     "Lingo"
-    "DeletePagesForGood"
     "MsCalendar"
     "RandomImage"
     "PluggableAuth"
@@ -69,6 +68,7 @@ EXTENSIONS=(
 for EXT in "${EXTENSIONS[@]}"; do
     git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH "https://gerrit.wikimedia.org/r/mediawiki/extensions/$EXT" "$WORKDIR/extensions/$EXT"
 done
+    git clone --depth=1 -b REL1_43 "https://gerrit.wikimedia.org/r/mediawiki/extensions/DeletePagesForGood" "$WORKDIR/extensions/DeletePagesForGood"
 
 # Additional extensions
 git clone --depth=1 https://github.com/debtcompliance/PdfBook "$WORKDIR/extensions/PdfBook"
