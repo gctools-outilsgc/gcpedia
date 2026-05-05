@@ -72,7 +72,8 @@ $wgDBTableOptions = "ENGINE=InnoDB, DEFAULT CHARSET=binary";
 $wgSharedTables[] = "actor";
 
 ## Shared memory settings
-$wgMainCacheType = (getenv('CACHE_TYPE') == 'CACHE_MEMCACHED') ? CACHE_MEMCACHED : CACHE_ACCEL;
+$wgMainCacheType = (getenv('CACHE_TYPE') == 'CACHE_MEMCACHED') ? CACHE_MEMCACHED : CACHE_NONE;
+$wgMemCachedServers = (getenv('MEMCACHED_HOST') != '') ? getenv('MEMCACHED_HOST') : $wgMemCachedServers;
 
 ## To enable image uploads, make sure the 'images' directory
 ## is writable, then set this to true:
@@ -138,6 +139,7 @@ $GAaccount = (getenv('GAACCOUNT') != '') ? getenv('GAACCOUNT') : 'UA-xxxxxxx-x';
 
 if (getenv('WIKI_DEBUG') === 'true') {
 	$wgShowExceptionDetails = true;
+	$wgDebugLogFile = '/tmp/wikiDebug.log';
 	$wgSitename = "Dev wiki instance - DEBUG mode";
 }
 
