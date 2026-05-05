@@ -73,7 +73,7 @@ $wgSharedTables[] = "actor";
 
 ## Shared memory settings
 $wgMainCacheType = (getenv('CACHE_TYPE') == 'CACHE_MEMCACHED') ? CACHE_MEMCACHED : CACHE_NONE;
-$wgMemCachedServers = (getenv('MEMCACHED_HOST') != '') ? getenv('MEMCACHED_HOST') : $wgMemCachedServers;
+$wgMemCachedServers = (getenv('MEMCACHED_HOST') != '') ? [getenv('MEMCACHED_HOST')] : $wgMemCachedServers;
 
 ## To enable image uploads, make sure the 'images' directory
 ## is writable, then set this to true:
