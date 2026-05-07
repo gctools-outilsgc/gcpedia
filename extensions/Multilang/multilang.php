@@ -95,7 +95,7 @@ function renderMultilang($input, array $argv, Parser $parser, PPFrame $frame) {
 					// rather complicated call of the parser (necessary in newer
 					// MediaWiki versions) so that we get our embedded wiki text
 					// converted into HTML
-					$output = $parser->parse($rawtext, $parser->mTitle, $parser->mOptions, true, false);
+					$output = $parser->parse($rawtext, $parser->getTitle(), $parser->getOptions(), true, false);
 					return $output->getText();
 				}
 			}
@@ -105,7 +105,7 @@ function renderMultilang($input, array $argv, Parser $parser, PPFrame $frame) {
 		$rawtext = substr($input,$match[0][0][1],($match[0][1][1])-$match[0][0][1]);
 		$delimiter = strpos($rawtext,'|');
 		$rawtext = substr($rawtext, $delimiter+1);
-		$output = $parser->parse($rawtext, $parser->mTitle, $parser->mOptions, true, false);
+		$output = $parser->parse($rawtext, $parser->getTitle(), $parser->getOptions(), true, false);
 		return $output->getText();
 	}
 }
