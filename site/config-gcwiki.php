@@ -48,9 +48,6 @@ $wgRightsIcon = "https://i.creativecommons.org/l/by/4.0/88x31.png";
 ////  extensions
 wfLoadExtension("ParserFunctions");
 
-require_once "$IP/extensions/MagicNoNumberedHeadings/MagicNoNumberedHeadings.php";
-require_once "$IP/extensions/MagicNumberedHeadings/MagicNumberedHeadings.php";
-
 wfLoadExtension("UniversalLanguageSelector");
 $wgULSGeoService = false;
 
