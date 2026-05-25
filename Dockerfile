@@ -55,6 +55,7 @@ COPY site/LocalSettings.php /site/
 COPY site/config-gcpedia.php /site/
 COPY site/config-gcwiki.php /site/
 COPY site/robots.txt /site/
+COPY site/.htaccess /site/
 RUN chmod +x /init/init.sh
 
 # this is needed to use InnoDB instead of MyISAM
