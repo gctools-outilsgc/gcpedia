@@ -2,6 +2,10 @@
 div#mw-head {
 	top: 35px;
 }
+div#mw-page-base {
+	height: 7.2em;
+}
+
 
 #ca-favorite a:focus,
 #ca-unfavorite a:focus,
