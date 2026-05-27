@@ -71,6 +71,11 @@ $wgDBTableOptions = "ENGINE=InnoDB, DEFAULT CHARSET=binary";
 $wgMainCacheType = (getenv('CACHE_TYPE') == 'CACHE_MEMCACHED' && getenv('MEMCACHED_HOST') != '') ? CACHE_MEMCACHED : CACHE_NONE;
 $wgMemCachedServers = (getenv('MEMCACHED_HOST') != '') ? [getenv('MEMCACHED_HOST')] : $wgMemCachedServers;
 
+## Use X-Forwarded-For headers if behind proxy
+$proxyCIDR = getenv('PROXY_CIDR');
+$wgUsePrivateIPs = $proxyCIDR != '';
+$wgCdnServersNoPurge[] = $proxyCIDR;
+
 ## To enable image uploads, make sure the 'images' directory
 ## is writable, then set this to true:
 $wgUseImageMagick = true;
