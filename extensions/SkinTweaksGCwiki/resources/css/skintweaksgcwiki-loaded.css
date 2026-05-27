@@ -1,3 +1,6 @@
 div#mw-page-base {
 	height: 5em;
 }
+.vector-header-container {
+        padding-top: 0;
+}
