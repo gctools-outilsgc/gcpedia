@@ -5,7 +5,9 @@ div#mw-head {
 div#mw-page-base {
 	height: 7.2em;
 }
-
+.vector-header-container {
+    padding-top: 2.2em;
+}
 
 #ca-favorite a:focus,
 #ca-unfavorite a:focus,
