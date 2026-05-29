@@ -35,6 +35,7 @@ class SkinTweaksGCwikiHooks {
 
 
     public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
+        $out->addModuleStyles( [ 'ext.skintweaksgcwiki.css' ] );
         $out->addModules( [ 'ext.skintweaksgcwiki' ] );
         return;
     }
