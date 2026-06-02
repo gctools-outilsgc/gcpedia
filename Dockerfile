@@ -1,11 +1,11 @@
 # This dockerfile creates a base image, which it uses for setup of gc mediawiki packages and extensions.
 # Finally, it copies files required for mediawiki's runtime from teh setup container to the bsae container for runtime.
 # Stage 1: Base Image with Dependencies
-FROM mediawiki:1.40.4 as base
+FROM mediawiki:1.40.4 AS base
 
 ENV MEDIAWIKI_EXT_BRANCH REL1_40
 
-LABEL maintainer="GC Tools team"
+LABEL maintainer "GC Tools team"
 
 WORKDIR /var/www/html/
 
@@ -26,7 +26,7 @@ RUN apt-get install -y --no-install-recommends \
 COPY extensions /var/www/html/extensions
 RUN ls -lat /var/www/html/extensions
 
-FROM base as setup
+FROM base AS setup
 # Stage 2: Site specific mediawiki setup
 COPY . /setup
 
