@@ -24,7 +24,6 @@ RUN apt-get install -y --no-install-recommends \
 
 # Copy local extensions here, in case there are dependencies solved in setup
 COPY extensions /var/www/html/extensions
-RUN ls -lat /var/www/html/extensions
 
 FROM base AS setup
 # Stage 2: Site specific mediawiki setup
@@ -41,7 +40,7 @@ RUN apt-get update && apt-get install -y \
 # Run the setup_mediawiki script
 RUN /setup/setup_mediawiki.sh
 
-# Stage 2: Final Image
+# Stage 3: Final Image
 FROM base
 
 RUN rm -rf /var/lib/apt/lists/*
