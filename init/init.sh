@@ -57,12 +57,12 @@ check_setup() {
   fi
 }
 
-check_database 
 
 # automated install
 echo "INIT ${INIT}"
 
 if [ $INIT ]; then
+  check_database
   check_setup
 else
   echo "skipping initialization check"
