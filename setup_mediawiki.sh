@@ -29,21 +29,6 @@ rm -rf /var/lib/apt/lists/*
 # Set working directory
 WORKDIR=${WORKDIR:-/var/www/html}
 
-# Copy local files
-if [ -d "/setup/site" ]; then
-    cp /setup/site/mediawiki.ini /usr/local/etc/php/conf.d/mediawiki.ini
-    cp /setup/site/*php $WORKDIR
-    cp /setup/site/robots.txt $WORKDIR
-    cp /setup/site/LocalSettings.php $WORKDIR
-    cp /setup/site/.htaccess $WORKDIR
-elif [ -d "./site" ]; then
-    cp ./site/mediawiki.ini /usr/local/etc/php/conf.d/mediawiki.ini
-    cp ./site/*php $WORKDIR
-    cp ./site/robots.txt $WORKDIR
-    cp ./site/LocalSettings.php $WORKDIR
-    cp ./site/.htaccess $WORKDIR
-fi
-
 # Clone MediaWiki extensions
 EXTENSIONS=(
     "AJAXPoll"
