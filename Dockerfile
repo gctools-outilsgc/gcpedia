@@ -47,14 +47,14 @@ RUN rm -rf /var/lib/apt/lists/*
 
 COPY --from=setup /var/www/html /var/www/html
 
-# Copy init scripts
+# Copy init scripts and config files
 COPY init/* /init/
 COPY site/mediawiki.ini /usr/local/etc/php/conf.d/mediawiki.ini
-COPY site/LocalSettings.php /site/
+COPY site/LocalSettings.php /var/www/html/
 COPY site/config-gcpedia.php /site/
 COPY site/config-gcwiki.php /site/
-COPY site/robots.txt /site/
-COPY site/.htaccess /site/
+COPY site/robots.txt /var/www/html/
+COPY site/.htaccess /var/www/html/
 RUN chmod +x /init/init.sh
 
 # this is needed to use InnoDB instead of MyISAM
