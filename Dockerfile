@@ -60,6 +60,16 @@ RUN chmod +x /init/init.sh
 # this is needed to use InnoDB instead of MyISAM
 COPY maintenance/tables-generated.sql maintenance/
 
+RUN { \
+		echo "<Directory /var/www/html/images>"; \
+		echo "  AllowOverride None"; \
+		echo "  AddType text/plain .html .htm .shtml .phtml"; \
+		echo "  php_admin_flag engine off"; \
+		echo "  Header set X-Content-Type-Options nosniff"; \
+		echo "</Directory>"; \
+	} > "$APACHE_CONFDIR/conf-available/upload-directory.conf"; \
+	a2enconf upload-directory
+
 RUN chown -R root:root /var/www/html; \
     chmod -R go-w /var/www/html
 USER www-data
