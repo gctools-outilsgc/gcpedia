@@ -60,6 +60,8 @@ RUN chmod +x /init/init.sh
 # this is needed to use InnoDB instead of MyISAM
 COPY maintenance/tables-generated.sql maintenance/
 
+RUN chown -R root:root /var/www/html; \
+    chmod -R go-w /var/www/html
 USER www-data
 
 ENTRYPOINT [ "bash", "/init/init.sh" ]
