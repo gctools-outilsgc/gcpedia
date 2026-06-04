@@ -6,6 +6,7 @@ services:
   gcpedia:
     container_name: gcpedia
     build: .
+    user: root
     ports:
       - 80:80
     volumes:

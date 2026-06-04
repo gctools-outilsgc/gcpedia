@@ -66,7 +66,6 @@ RUN { \
 		echo "  AllowOverride None"; \
 		echo "  AddType text/plain .html .htm .shtml .phtml"; \
 		echo "  php_admin_flag engine off"; \
-		echo "  Header set X-Content-Type-Options nosniff"; \
 		echo "</Directory>"; \
 	} > "$APACHE_CONFDIR/conf-available/upload-directory.conf"; \
 	a2enconf upload-directory
