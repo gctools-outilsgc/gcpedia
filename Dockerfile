@@ -62,11 +62,13 @@ RUN chmod +x /init/init.sh
 COPY maintenance/tables-generated.sql maintenance/
 
 RUN { \
-		echo "<Directory /var/www/html/images>"; \
-		echo "  AllowOverride None"; \
-		echo "  AddType text/plain .html .htm .shtml .phtml"; \
-		echo "  php_admin_flag engine off"; \
-		echo "</Directory>"; \
+	    echo "<Directory /var/www/html/images>"; \
+	    echo "  AllowOverride None"; \
+	    echo "  AddType text/plain .html .htm .shtml .phtml"; \
+	    echo "  php_admin_flag engine off"; \
+        echo "  EnableSendfile On"; \
+        echo "  EnableMMAP On"; \
+	    echo "</Directory>"; \
 	} > "$APACHE_CONFDIR/conf-available/upload-directory.conf"; \
 	a2enconf upload-directory
 
