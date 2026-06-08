@@ -3,9 +3,9 @@
 # Stage 1: Base Image with Dependencies
 FROM mediawiki:1.40.4 AS base
 
-ENV MEDIAWIKI_EXT_BRANCH REL1_40
+ENV MEDIAWIKI_EXT_BRANCH=REL1_40
 
-LABEL maintainer "GC Tools team"
+LABEL maintainer="GC Tools team"
 
 WORKDIR /var/www/html/
 
@@ -55,7 +55,6 @@ COPY site/config-gcwiki.php /site/
 COPY site/LocalSettings.php /site/
 COPY site/LocalSettings.php /var/www/html/
 COPY site/robots.txt /var/www/html/
-COPY site/.htaccess /var/www/html/
 RUN chmod +x /init/init.sh
 
 # this is needed to use InnoDB instead of MyISAM
