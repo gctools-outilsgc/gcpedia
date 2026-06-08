@@ -3,9 +3,9 @@
 # Stage 1: Base Image with Dependencies
 FROM mediawiki:1.40.4 AS base
 
-ENV MEDIAWIKI_EXT_BRANCH REL1_40
+ENV MEDIAWIKI_EXT_BRANCH=REL1_40
 
-LABEL maintainer "GC Tools team"
+LABEL maintainer="GC Tools team"
 
 WORKDIR /var/www/html/
 
@@ -50,27 +50,18 @@ COPY --from=setup /var/www/html /var/www/html
 # Copy init scripts and config files
 COPY init/* /init/
 COPY site/mediawiki.ini /usr/local/etc/php/conf.d/mediawiki.ini
+COPY site/upload-directory.conf $APACHE_CONFDIR/conf-available/upload-directory.conf
 COPY site/config-gcpedia.php /site/
 COPY site/config-gcwiki.php /site/
 COPY site/LocalSettings.php /site/
 COPY site/LocalSettings.php /var/www/html/
 COPY site/robots.txt /var/www/html/
-COPY site/.htaccess /var/www/html/
 RUN chmod +x /init/init.sh
+RUN a2enconf upload-directory
 
 # this is needed to use InnoDB instead of MyISAM
 COPY maintenance/tables-generated.sql maintenance/
 
-RUN { \
-	    echo "<Directory /var/www/html/images>"; \
-	    echo "  AllowOverride None"; \
-	    echo "  AddType text/plain .html .htm .shtml .phtml"; \
-	    echo "  php_admin_flag engine off"; \
-        echo "  EnableSendfile On"; \
-        echo "  EnableMMAP On"; \
-	    echo "</Directory>"; \
-	} > "$APACHE_CONFDIR/conf-available/upload-directory.conf"; \
-	a2enconf upload-directory
 
 RUN chown -R root:root /var/www/html; \
     chmod -R go-w /var/www/html
