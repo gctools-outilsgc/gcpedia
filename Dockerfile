@@ -59,10 +59,6 @@ COPY site/robots.txt /var/www/html/
 RUN chmod +x /init/init.sh
 RUN a2enconf upload-directory
 
-# this is needed to use InnoDB instead of MyISAM
-COPY maintenance/tables-generated.sql maintenance/
-
-
 RUN chown -R root:root /var/www/html; \
     chmod -R go-w /var/www/html
 USER www-data
