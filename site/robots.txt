@@ -1,3 +1,4 @@
 User-agent: *
 Disallow: /Special:
+Disallow: /index.php?title=Special:
 Disallow: /index.php?search=
