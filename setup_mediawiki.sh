@@ -3,7 +3,7 @@ set -e
 set -x
 
 # Environment variables
-MEDIAWIKI_EXT_BRANCH=${MEDIAWIKI_EXT_BRANCH:-REL1_40}
+MEDIAWIKI_EXT_BRANCH=${MEDIAWIKI_EXT_BRANCH:-REL1_43}
 
 # Install required packages
 apt-get update
