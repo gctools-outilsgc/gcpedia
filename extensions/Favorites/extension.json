@@ -1,0 +1,97 @@
+{
+	"name": "Favorites",
+	"version": "1.2",
+	"author": [
+		"Jeremy Lemley",
+		"..."
+	],
+	"url": "https://www.mediawiki.org/wiki/Extension:Favorites",
+	"descriptionmsg": "favorites-desc",
+	"type": "specialpage",
+	"requires": {
+		"MediaWiki": ">= 1.40.0"
+	},
+	"APIModules": {
+		"favorite": "ApiFavorite"
+	},
+	"SpecialPages": {
+		"Favoritelist": "SpecialFavoritelist"
+	},
+	"MessagesDirs": {
+		"Favorites": [
+			"i18n"
+		]
+	},
+	"Actions": {
+		"favorite": "FavoriteAction",
+		"unfavorite": "UnfavoriteAction"
+	},
+	"ExtensionMessagesFiles": {
+		"FavoritesAlias": "SpecialFavorites.alias.php"
+	},
+	"AutoloadClasses": {
+		"Favorites": "includes/Favorites.php",
+		"FavoriteListInfo": "includes/FavoriteListInfo.php",
+		"BaseAction": "includes/BaseAction.php",
+		"FavoriteAction": "includes/FavoriteAction.php",
+		"UnfavoriteAction": "includes/UnfavoriteAction.php",
+		"SpecialFavoritelist": "includes/specials/SpecialFavoritelist.php",
+		"ViewFavorites": "includes/specials/SpecialFavoritelist.php",
+		"FavoritelistEditor": "includes/FavoritelistEditor.php",
+		"FavParser": "includes/FavParser.php",
+		"FavoritesHooks": "includes/FavoritesHooks.php",
+		"ApiFavorite": "includes/api/ApiFavorite.php"
+	},
+	"ResourceModules": {
+		"ext.favorites": {
+			"scripts": [
+				"js/page.favorite.ajax.js",
+				"js/favorites.js"
+			],
+			"dependencies": [
+				"mediawiki.api",
+				"mediawiki.util",
+				"user.options"
+			],
+			"messages": [
+				"favoriteerrortext",
+				"tooltip-ca-favorite",
+				"tooltip-ca-unfavorite",
+				"favoriteing",
+				"unfavoriteing",
+				"favoritethispage",
+				"unfavoritethispage",
+				"favorite",
+				"unfavorite",
+				"addedfavoritetext",
+				"removedfavoritetext"
+			]
+		},
+		"ext.favorites.style": {
+			"styles": "css/favorites.css"
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "resources",
+		"remoteExtPath": "Favorites/resources"
+	},
+	"Hooks": {
+		"BeforePageDisplay": "FavoritesHooks::onBeforePageDisplay",
+		"ParserFirstCallInit": "FavoritesHooks::onParserFirstCallInit",
+		"PageMoveComplete": "FavoritesHooks::onPageMoveComplete",
+		"PageDeleteComplete": "FavoritesHooks::onPageDeleteComplete",
+		"SkinTemplateNavigation::Universal": "FavoritesHooks::onSkinTemplateNavigation__Universal",
+		"LoadExtensionSchemaUpdates": "FavoritesHooks::onLoadExtensionSchemaUpdates"
+	},
+	"config": {
+		"FavoritesPersonalURL": {
+			"description": "Add a link to \"My Favorites\" to the Personal URLs section, next to \"My Watchlist\"?",
+			"value": false
+		},
+		"UseIconFavorite": {
+			"description": "Use the same star icon for the favorite list as the (original) Vector skin does?",
+			"value": false
+		}
+	},
+	"manifest_version": 2
+}
