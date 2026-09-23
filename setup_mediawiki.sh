@@ -35,6 +35,7 @@ EXTENSIONS=(
     "AjaxShowEditors"
     "CategoryWatch"
     "CharInsert"
+    "DeletePagesForGood"
     "TimedMediaHandler"
     "CSS"
     "EditUser"
@@ -57,7 +58,6 @@ EXTENSIONS=(
 for EXT in "${EXTENSIONS[@]}"; do
     git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH "https://gerrit.wikimedia.org/r/mediawiki/extensions/$EXT" "$WORKDIR/extensions/$EXT"
 done
-    git clone --depth=1 -b REL1_43 "https://gerrit.wikimedia.org/r/mediawiki/extensions/DeletePagesForGood" "$WORKDIR/extensions/DeletePagesForGood"
 
 # Additional extensions
 git clone --depth=1 https://github.com/debtcompliance/PdfBook "$WORKDIR/extensions/PdfBook"
@@ -65,9 +65,6 @@ git clone --depth=1 https://gitlab.com/organicdesign/TreeAndMenu "$WORKDIR/exten
 
 # FIXME issues with github action
 git config --global --add safe.directory '*'
-
-# Change ownership
-chown -R www-data:www-data $WORKDIR
 
 # Install Composer dependencies for specific extensions
 COMPOSER_EXTENSIONS=(
