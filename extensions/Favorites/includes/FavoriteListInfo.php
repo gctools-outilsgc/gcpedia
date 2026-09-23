@@ -68,7 +68,7 @@ class FavoriteListInfo {
 					}
 
 					// Ignore non-talk
-					if ( !$title->isTalkPage() && $skipTalk ) {
+					if ( !$title->isTalkPage() && $skipTalk || !$skipTalk ) {
 						$titles[$row->page_namespace][$row->page_title] = $row->page_is_redirect;
 					}
 				}
