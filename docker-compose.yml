@@ -28,7 +28,7 @@ services:
       - INIT=wiki
       - DBSSL=0
       - OPENID=
-      - SITE=gcpedia
+      - SITE=gcwiki
       - WIKI_DEBUG=true
 #      - OAUTH=true
 #      - USESAML=false
