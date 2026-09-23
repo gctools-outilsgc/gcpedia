@@ -338,30 +338,18 @@ class ViewFavorites {
 	 */
 	private function buildRemoveList( $user ) {
 		$list = '';
-		$toc = Linker::tocIndent();
-		$tocLength = 0;
 
 		$favorites = FavoriteListInfo::getForUser( $user, [ 'ignoreTalkNS' => true ] );
 
 		foreach ( $favorites as $namespace => $pages ) {
-			$tocLength++;
 			$heading = htmlspecialchars( $this->getNamespaceHeading( $namespace ) );
 			$anchor = 'editfavoritelist-ns' . $namespace;
-
-			$list .= Linker::makeHeadLine( 2, '>', $anchor, $heading, '' );
-			$toc .= Linker::tocLine( $anchor, $heading, $tocLength, 1 ) . Linker::tocLineEnd();
-
 			$list .= "<ul>\n";
 			foreach ( $pages as $dbkey => $redirect ) {
 				$title = Title::makeTitleSafe( $namespace, $dbkey );
 				$list .= $this->buildRemoveLine( $title, $redirect );
 			}
 			$list .= "</ul>\n";
-		}
-
-		// ISSUE: omit the TOC if the total number of titles is low?
-		if ( $tocLength > 10 ) {
-			$list = Linker::tocList( $toc ) . $list;
 		}
 
 		return $list;

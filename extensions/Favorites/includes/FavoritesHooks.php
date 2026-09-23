@@ -145,8 +145,5 @@ class FavoritesHooks {
 				$personal_urls = wfArrayInsertAfter( $personal_urls, $url, 'watchlist' );
 			}
 		}
-
-		$favClass = new Favorites;
-		$favClass->favoritesLinks( $sktemplate, $links );
 	}
 }

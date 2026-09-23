@@ -333,30 +333,17 @@ class FavoritelistEditor {
 	 */
 	private function buildRemoveList( $user ) {
 		$list = '';
-		$toc = Linker::tocIndent();
-		$tocLength = 0;
-
 		$favorites = FavoriteListInfo::getForUser( $user );
 
 		foreach ( $favorites as $namespace => $pages ) {
-			$tocLength++;
 			$heading = htmlspecialchars( $this->getNamespaceHeading( $namespace ) );
 			$anchor = 'editfavoritelist-ns' . $namespace;
-
-			$list .= Linker::makeHeadLine( 2, '>', $anchor, $heading, '' );
-			$toc .= Linker::tocLine( $anchor, $heading, $tocLength, 1 ) . Linker::tocLineEnd();
-
 			$list .= "\n";
 			foreach ( $pages as $dbkey => $redirect ) {
 				$title = Title::makeTitleSafe( $namespace, $dbkey );
 				$list .= $this->buildRemoveLine( $title, $redirect );
 			}
 			$list .= "\n";
-		}
-
-		// ISSUE: omit the TOC if the total number of titles is low?
-		if ( $tocLength > 1 ) {
-			$list = Linker::tocList( $toc ) . $list;
 		}
 
 		return $list;
