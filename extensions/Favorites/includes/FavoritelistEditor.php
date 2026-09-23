@@ -101,6 +101,8 @@ class FavoritelistEditor {
 	 * @return array
 	 */
 	private function extractTitles( $list ) {
+		if (!$list) return [];
+		
 		$titles = [];
 
 		if ( !is_array( $list ) ) {
