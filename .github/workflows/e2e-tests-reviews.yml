@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: gctools-outilsgc/gcpedia
-          ref: main
+          ref: ${{github.ref}}
 
       # Set up GitHub Actions bot identity
       - name: Set up GitHub Actions bot identity
