@@ -39,7 +39,6 @@ EXTENSIONS=(
     "TimedMediaHandler"
     "CSS"
     "EditUser"
-    "LookupUser"
     "UserMerge"
     "intersection"
     "RSS"
@@ -58,10 +57,11 @@ EXTENSIONS=(
 for EXT in "${EXTENSIONS[@]}"; do
     git clone --depth=1 -b $MEDIAWIKI_EXT_BRANCH "https://gerrit.wikimedia.org/r/mediawiki/extensions/$EXT" "$WORKDIR/extensions/$EXT"
 done
+    git clone --depth=1 -b REL1_44 "https://gerrit.wikimedia.org/r/mediawiki/extensions/LookupUser" "$WORKDIR/extensions/LookupUser"
 
 # Additional extensions
 git clone --depth=1 https://github.com/debtcompliance/PdfBook "$WORKDIR/extensions/PdfBook"
-git clone --depth=1 https://gitlab.com/organicdesign/TreeAndMenu "$WORKDIR/extensions/TreeAndMenu"
+git clone --depth=1 https://github.com/debtcompliance/TreeAndMenu  "$WORKDIR/extensions/TreeAndMenu"
 
 # FIXME issues with github action
 git config --global --add safe.directory '*'
