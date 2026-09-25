@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": []
 	},
+	"favorites-decom-message": "The favourites feature is no longer receiving support and will be discontinued after the next upgrade, early next year.",
 	"favorites-desc": "Enables users to create and maintain [[Special:FavoriteList|a personal list of their favorite pages]]",
 	"favoritethis": "Add to Favorites",
 	"prefs-favoritelist": "Favorites",
