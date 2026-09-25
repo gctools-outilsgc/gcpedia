@@ -161,7 +161,7 @@ $missingVars = array_filter(array_keys($envVars), function ($key) use ($envVars)
     return !$envVars[$key];
 });
 
-if (empty($missingVars) || count($missingVars) == count($envVars)) {
+if (empty($missingVars)) {
     wfLoadExtension("PluggableAuth");
     wfLoadExtension("OpenIDConnect");
 
@@ -177,7 +177,7 @@ if (empty($missingVars) || count($missingVars) == count($envVars)) {
             'scope' => ['openid', 'profile', 'email']
         ]
     ];
-} else {
+} else if  (count($missingVars) < count($envVars)) {
     error_log('OpenID configuration is missing the following environment variables: ' . implode(', ', $missingVars), E_USER_ERROR);
 }
 
