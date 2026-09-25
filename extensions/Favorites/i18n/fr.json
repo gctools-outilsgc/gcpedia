@@ -2,6 +2,7 @@
     "@metadata": {
         "authors": []
     },
+	"favorites-decom-message": ".",
     "favorites-desc": "Créer une liste de favoris",
 	"favoritethis"                       : "Ajouter cette page aux favoris",
 	"prefs-favoritelist"              : "Favoris",
