@@ -6,12 +6,12 @@ wfLoadSkin('Vector');
 $wgLocaltimezone = "America/Montreal";
 
 $wgLogo = '';
-$wgFavicon = "extensions/SkinTweaksGCwiki/resources/images/mini_wiki_icon.png";
+$wgFavicon = "$wgScriptPath/extensions/SkinTweaksGCwiki/resources/images/mini_wiki_icon.png";
 $wgLogos = [
-    '1x' => 'extensions/SkinTweaksGCwiki/resources/images/collab_logo_en_1x.png',
+    '1x' => '$wgScriptPath/extensions/SkinTweaksGCwiki/resources/images/collab_logo_en_1x.png',
     'variants' => [
         'fr' => [
-            '1x' => "extensions/SkinTweaksGCwiki/resources/images/collab_logo_fr_1x.png",
+            '1x' => "$wgScriptPath/extensions/SkinTweaksGCwiki/resources/images/collab_logo_fr_1x.png",
         ],
     ],
 ];
@@ -161,7 +161,7 @@ $missingVars = array_filter(array_keys($envVars), function ($key) use ($envVars)
     return !$envVars[$key];
 });
 
-if (empty($missingVars)) {
+if (empty($missingVars) || count($missingVars) == count($envVars)) {
     wfLoadExtension("PluggableAuth");
     wfLoadExtension("OpenIDConnect");
 
