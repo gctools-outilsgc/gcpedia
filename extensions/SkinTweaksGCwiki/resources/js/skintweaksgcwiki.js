@@ -4,10 +4,10 @@ function addTopBar(){
 
     var currentSkin = mw.config.get( 'skin' );
     if (currentSkin === "vector") {
-        header.innerHTML = '<object type="image/svg+xml" tabindex="-1" role="img" data="extensions/SkinTweaksGCwiki/resources/images/sig-alt-en.svg" aria-label="Symbol of the Government of Canada" style="height:25px; float:left; padding:5px 10px;"></object> \
+        header.innerHTML = '<object type="image/svg+xml" tabindex="-1" role="img" data="/extensions/SkinTweaksGCwiki/resources/images/sig-alt-en.svg" aria-label="Symbol of the Government of Canada" style="height:25px; float:left; padding:5px 10px;"></object> \
                             <div id="app-brand-name"><span style="font-weight:600">GC</span>wiki</div>';
     } else {
-        header.innerHTML = '<object type="image/svg+xml" tabindex="-1" role="img" data="extensions/SkinTweaksGCwiki/resources/images/sig-alt-en.svg" aria-label="Symbol of the Government of Canada" style="height:25px; float:left; padding:5px 10px;"></object>';
+        header.innerHTML = '<object type="image/svg+xml" tabindex="-1" role="img" data="/extensions/SkinTweaksGCwiki/resources/images/sig-alt-en.svg" aria-label="Symbol of the Government of Canada" style="height:25px; float:left; padding:5px 10px;"></object>';
     }
 
     document.body.insertBefore(header, document.body.firstChild);
