@@ -116,7 +116,7 @@ class ViewFavorites {
 		$sub .= '<br />' . FavoritelistEditor::buildTools();
 		$this->out->setSubtitle( $sub );
 
-		$this->out->addHTML( "<b>" . wfMessage( 'favorites-decom-message' )->text() . "</b>" );
+		$this->out->addHTML( "<p style='border:2px solid; padding:3px;'><b>" . wfMessage( 'favorites-decom-message' )->text() . "</b></p>" );
 
 		if ( ( $mode = FavoritelistEditor::getMode( $this->request, $par ) ) !== false ) {
 			$editor = new FavoritelistEditor();
