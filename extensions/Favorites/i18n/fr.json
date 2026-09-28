@@ -2,7 +2,7 @@
     "@metadata": {
         "authors": []
     },
-	"favorites-decom-message": ".",
+	"favorites-decom-message": "La fonctionnalité de « Mes favoris » n'est plus prise en charge et sera supprimée après la prochaine mise à jour de GCwiki, début 2027.",
     "favorites-desc": "Créer une liste de favoris",
 	"favoritethis"                       : "Ajouter cette page aux favoris",
 	"prefs-favoritelist"              : "Favoris",
