@@ -5,6 +5,8 @@ $wgArticlePath = "/$1";
 wfLoadSkin('Vector');
 $wgLocaltimezone = "America/Montreal";
 
+$wgSitename = "GCwiki";
+
 $wgLogo = '';
 $wgFavicon = "$wgScriptPath/extensions/SkinTweaksGCwiki/resources/images/mini_wiki_icon.png";
 $wgLogos = [
