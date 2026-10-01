@@ -16,7 +16,6 @@ services:
     depends_on:
       - gcpedia-db
     environment:
-      - DOCKER=1
       - DBTYPE=mysql
       - DBHOST=gcpedia-db
       - DBNAME=wiki
@@ -27,11 +26,9 @@ services:
       - WIKI_PORT=
       - INIT=wiki
       - DBSSL=0
-      - OPENID=
       - SITE=gcwiki
+      - SITENAME=Local DEV Wiki
       - WIKI_DEBUG=true
-#      - OAUTH=true
-#      - USESAML=false
 
   # ###########################################################################
   # Database container for gcpedia, accessible from by the gcpedia container 

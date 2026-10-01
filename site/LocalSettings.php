@@ -141,7 +141,6 @@ $GAaccount = (getenv('GAACCOUNT') != '') ? getenv('GAACCOUNT') : 'UA-xxxxxxx-x';
 if (getenv('WIKI_DEBUG') === 'true') {
 	$wgShowExceptionDetails = true;
 	$wgDebugLogFile = '/tmp/wikiDebug.log';
-	$wgSitename = "Dev wiki instance - DEBUG mode";
 
 	error_reporting( -1 );
 	ini_set( 'display_errors', 1 );
@@ -155,3 +154,6 @@ if (getenv('SITE') == 'gcpedia') {
 } else {
 	die('SITE env variable not set');
 }
+
+if (getenv('SITENAME'))
+        $wgSitename = getenv('SITENAME');
