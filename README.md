@@ -1,10 +1,10 @@
 # GCpedia
 
-Main branch: Dockerfile and customizations off mediawiki 1.40 for GCwiki and GCpedia.
+Main branch: Dockerfile and customizations off mediawiki 1.43 LTS for GCwiki and GCpedia.
 
 GCpedia branch: current GCpedia production, more of an archive at this point.
 
-Both branches include Dockerfiles to build docker images as well as docker compose files for a dev environment using docker compose.
+Both branches include Dockerfiles to build docker images as well as docker compose files for a dev environment.
 
 The main Dockerfile is based off docker hub's official Mediawiki image.
 
