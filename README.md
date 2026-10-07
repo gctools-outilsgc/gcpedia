@@ -24,6 +24,9 @@ and you now have a fully installed instance of the wiki (visual editor service e
 
 By default the only directories mapped into the running dev instance container are ./images to persist any files you upload and ./data to persist the database, when working on an extension that lives in the repo it can similarly be mapped to reflect code changes without needing to rebuild the container image every time.
 
+### GCpedia / GCwiki
+The SITE environment variable controls which of the two config files (config-gcpedia/wiki.php) in ./site/ is used, effectively allowing switching between the two on the fly, you will most likely need to flush your browser cache to see all of the changes.
+
 ## e2e reviews
 
 Available [here](https://gctools-outilsgc.github.io/gcpedia/haibun/reviews/dashboard.html).
