@@ -20,7 +20,7 @@ add an entry into your hosts file for
 <host ip> wiki.local
 ```
 
-and you now have a fully installed instance of the wiki (visual editor service extra, needs at bit more work for the older gcpedia version) that you can reach at wiki.local! 
+and you now have a fully installed instance of the wiki (visual editor service extra, needs at bit more work for the older gcpedia version) that you can reach at wiki.local! A default admin account is created during this install that can be used to log in to the docker compose local dev environment with credentials: Username: "admin" Password: "adminpassword"
 
 By default the only directories mapped into the running dev instance container are ./images to persist any files you upload and ./data to persist the database, when working on an extension that lives in the repo it can similarly be mapped to reflect code changes without needing to rebuild the container image every time.
 
