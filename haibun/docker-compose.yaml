@@ -1,0 +1,41 @@
+services:
+  # ###########################################################################
+  # The GCpedia container.  Will be accessible at http://wiki.local
+  # ###########################################################################
+  gcpedia:
+    container_name: gcpedia
+    build: ../.
+    user: root
+    ports:
+      - 80:80
+    links:
+      - gcpedia-db
+    depends_on:
+      - gcpedia-db
+    environment:
+      - DBTYPE=mysql
+      - DBHOST=gcpedia-db
+      - DBNAME=wiki
+      - DBUSER=wiki
+      - DBPASS=gcpedia
+      - WIKI_HOST=wiki.local   # make sure this is mapped to localhost or similar in your OS hosts file
+      - WIKI_PROTOCOL=http
+      - WIKI_PORT=
+      - INIT=1    # This is read as a string, setting this to anything non-empty is truthy
+      - DBSSL=0   # anything other than 0 or not having th env var here at all is truthy
+      - SITE=gcpedia  # gcwiki or gcpedia
+      - SITENAME=Local DEV Wiki
+      - WIKI_DEBUG=true
+
+  # ###########################################################################
+  # Database container for gcpedia, accessible from by the gcpedia container
+  # using the network host "gcpedia-db".
+  # ###########################################################################
+  gcpedia-db:
+    container_name: gcpedia-db
+    image: mariadb:10.3
+    environment:
+      - MYSQL_ROOT_PASSWORD=gcpedia
+      - MYSQL_DATABASE=wiki
+      - MYSQL_USER=wiki
+      - MYSQL_PASSWORD=gcpedia
