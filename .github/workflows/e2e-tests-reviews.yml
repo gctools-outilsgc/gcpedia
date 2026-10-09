@@ -60,14 +60,6 @@ jobs:
         if: steps.wait-for-it.outputs.success == 'false'
         run: exit 1
 
-      # Fetch and switch to gh-pages branch
-      - name: Fetch and switch to gh-pages branch
-        run: |
-          git fetch origin
-          git checkout gh-pages
-          git reset --hard origin/main
-          git checkout origin/gh-pages -- haibun/reviews
-
       # Install haibun dependencies
       - name: Install haibun dependencies
         run: |
@@ -86,6 +78,12 @@ jobs:
       - name: Remove failures.test.json
         run: |
           rm -f haibun/failures.test.json
+
+      # Fetch and switch to gh-pages branch
+      - name: Fetch and switch to gh-pages branch
+        run: |
+          git fetch origin
+          git checkout gh-pages
 
       # Run publish
       - name: Run publish
