@@ -121,7 +121,6 @@ class GCUserCreateForm {
 
         // re-order and add custom field
         $formDescriptor = [
-            'statusarea' => $formDescriptor['statusarea'],
             'email_domain_note' => $email_domain_note,
             'email' => $formDescriptor['email'],
             'emailname' => $email_name,

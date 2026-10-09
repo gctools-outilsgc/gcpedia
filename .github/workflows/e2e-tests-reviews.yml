@@ -33,7 +33,7 @@ jobs:
 
       # Build and run Docker container
       - name: Build gcpedia docker-compose
-        run: docker compose build
+        run: docker compose -f haibun/docker-compose.yaml build
 
       - name: Make images directory
         run: mkdir images
@@ -42,32 +42,23 @@ jobs:
         run: chmod 777 images/
 
       - name: Start gcpedia docker-compose
-        run: docker compose up -d
+        run: docker compose -f haibun/docker-compose.yaml up -d
 
       - name: See the logs
-        run: docker compose logs
+        run: docker compose -f haibun/docker-compose.yaml logs
 
       - name: Wait for it to start
         continue-on-error: true
         run: |
-          npx -y wait-on -t 45s tcp:`./haibun/gcpedia-docker-address.sh`:80
+          npx -y wait-on -t 45s tcp:127.0.0.1:80
 
       - name: See the logs if wait failed
         if: steps.wait-for-it.outputs.success == 'false'
-        run: docker compose logs
+        run: docker compose -f haibun/docker-compose.yaml logs
 
       - name: Fail the job if wait failed
         if: steps.wait-for-it.outputs.success == 'false'
         run: exit 1
-
-      # Fetch and switch to gh-pages branch
-      - name: Fetch and switch to gh-pages branch
-        run: |
-          git fetch origin
-          git checkout gh-pages
-          git reset --hard origin/main
-          git checkout origin/gh-pages -- haibun/reviews
-
       # Install haibun dependencies
       - name: Install haibun dependencies
         run: |
@@ -86,6 +77,12 @@ jobs:
       - name: Remove failures.test.json
         run: |
           rm -f haibun/failures.test.json
+
+      # Fetch and switch to gh-pages branch
+      - name: Fetch and switch to gh-pages branch
+        run: |
+          git fetch origin
+          git checkout gh-pages
 
       # Run publish
       - name: Run publish
