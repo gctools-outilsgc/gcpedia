@@ -29,6 +29,9 @@ FROM base AS setup
 # Stage 2: Site specific mediawiki setup
 COPY . /setup
 
+# this is needed to use InnoDB instead of MyISAM
+COPY maintenance/tables-generated.sql maintenance/
+
 # Make the setup script executable
 RUN chmod +x /setup/setup_mediawiki.sh
 
